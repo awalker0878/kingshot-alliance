@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\ReadModels\AllianceAssistant;
+namespace Tests\Unit\ReadModels\AllianceAssistant;
 
 use App\ReadModels\AllianceAssistant\Enums\AssistantIntent;
 use App\ReadModels\AllianceAssistant\Enums\AssistantStatus;
@@ -10,7 +10,7 @@ use App\ReadModels\AllianceAssistant\Enums\EvidenceClassification;
 use App\ReadModels\AllianceAssistant\Enums\EvidenceSourceType;
 use App\ReadModels\AllianceAssistant\ValueObjects\AssistantEvidence;
 use App\ReadModels\AllianceAssistant\ValueObjects\AssistantResult;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
 final class AllianceAssistantEvidenceV3Test extends TestCase
 {

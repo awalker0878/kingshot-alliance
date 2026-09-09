@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Architecture;
 
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
+use Tests\Support\RepositoryPath;
 
 final class ProgressionDatasetAbsenceBoundaryV3Test extends TestCase
 {
     public function test_planner_handles_only_typed_release_absence_before_loading_alliance_observations(): void
     {
-        $controller = file_get_contents(base_path('app/ReadModels/Progression/Http/Controllers/ProgressionPlannerController.php'));
-        $planner = file_get_contents(base_path('resources/js/pages/Kingdom/Progression/Planner.vue'));
+        $controller = file_get_contents(RepositoryPath::fromRoot('app/ReadModels/Progression/Http/Controllers/ProgressionPlannerController.php'));
+        $planner = file_get_contents(RepositoryPath::fromRoot('resources/js/pages/Kingdom/Progression/Planner.vue'));
 
         self::assertIsString($controller);
         self::assertIsString($planner);

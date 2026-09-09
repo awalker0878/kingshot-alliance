@@ -6,7 +6,8 @@ namespace Tests\Architecture;
 
 use JsonException;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
+use Tests\Support\RepositoryPath;
 
 final class PwaContractV3Test extends TestCase
 {
@@ -16,14 +17,14 @@ final class PwaContractV3Test extends TestCase
     #[Test]
     public function manifest_and_worker_preserve_the_offline_privacy_boundary(): void
     {
-        $manifestPath = public_path('manifest.webmanifest');
-        $workerPath = public_path('service-worker.js');
+        $manifestPath = RepositoryPath::fromRoot('public/manifest.webmanifest');
+        $workerPath = RepositoryPath::fromRoot('public/service-worker.js');
 
         self::assertFileExists($manifestPath);
         self::assertFileExists($workerPath);
-        self::assertFileExists(public_path('offline.html'));
-        self::assertFileExists(public_path('images/app-icons/icon-192.png'));
-        self::assertFileExists(public_path('images/app-icons/icon-512.png'));
+        self::assertFileExists(RepositoryPath::fromRoot('public/offline.html'));
+        self::assertFileExists(RepositoryPath::fromRoot('public/images/app-icons/icon-192.png'));
+        self::assertFileExists(RepositoryPath::fromRoot('public/images/app-icons/icon-512.png'));
 
         $manifestContents = file_get_contents($manifestPath);
         self::assertIsString($manifestContents);

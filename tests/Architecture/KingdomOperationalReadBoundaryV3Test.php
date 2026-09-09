@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Architecture;
 
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
+use Tests\Support\RepositoryPath;
 
 final class KingdomOperationalReadBoundaryV3Test extends TestCase
 {
@@ -21,7 +22,7 @@ final class KingdomOperationalReadBoundaryV3Test extends TestCase
         ];
 
         foreach ($expectations as $path => $contract) {
-            $source = file_get_contents(base_path($path));
+            $source = file_get_contents(RepositoryPath::fromRoot($path));
             self::assertIsString($source, $path);
             self::assertStringContainsString($contract, $source, $path);
         }
@@ -36,7 +37,7 @@ final class KingdomOperationalReadBoundaryV3Test extends TestCase
             'app/Contexts/Intelligence/Observations/Http/Controllers/KingdomAllianceObservationController.php',
             'app/Contexts/Operations/Events/Services/EventTargetResolver.php',
         ] as $path) {
-            $source = file_get_contents(base_path($path));
+            $source = file_get_contents(RepositoryPath::fromRoot($path));
             self::assertIsString($source, $path);
             self::assertStringContainsString('->require(', $source, $path);
         }
@@ -44,8 +45,8 @@ final class KingdomOperationalReadBoundaryV3Test extends TestCase
 
     public function test_transfer_evidence_identity_comparison_stays_behind_active_target_authorization(): void
     {
-        $targetQuery = file_get_contents(base_path('app/Contexts/GameWorld/KingdomTransfers/Queries/TransferEvidenceTargetQuery.php'));
-        $review = file_get_contents(base_path('app/Contexts/Intelligence/Evidence/Actions/SaveTransferEvidenceReview.php'));
+        $targetQuery = file_get_contents(RepositoryPath::fromRoot('app/Contexts/GameWorld/KingdomTransfers/Queries/TransferEvidenceTargetQuery.php'));
+        $review = file_get_contents(RepositoryPath::fromRoot('app/Contexts/Intelligence/Evidence/Actions/SaveTransferEvidenceReview.php'));
 
         self::assertIsString($targetQuery);
         self::assertIsString($review);

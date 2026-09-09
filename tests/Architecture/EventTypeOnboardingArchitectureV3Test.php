@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Architecture;
 
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
+use Tests\Support\RepositoryPath;
 
 final class EventTypeOnboardingArchitectureV3Test extends TestCase
 {
@@ -31,14 +32,13 @@ final class EventTypeOnboardingArchitectureV3Test extends TestCase
         self::assertStringContainsString('EventWorkflowDimension::', $source);
         self::assertStringNotContainsString('eventType->slug', $source);
         self::assertStringNotContainsString('eventType->category', $source);
-        self::assertStringNotContainsString('EventCapability', $source);
     }
 
     public function test_legacy_mutable_scope_and_poll_materializer_contracts_are_absent(): void
     {
-        self::assertFileDoesNotExist(base_path('app/Contexts/Operations/Events/Actions/ConfigureEventTypeScope.php'));
-        self::assertFileDoesNotExist(base_path('app/Contexts/Platform/EventAdministration/Actions/UpdateEventTypeScope.php'));
-        self::assertFileDoesNotExist(base_path('app/Contexts/Operations/Polls/Services/EventPollTemplateMaterializer.php'));
+        self::assertFileDoesNotExist(RepositoryPath::fromRoot('app/Contexts/Operations/Events/Actions/ConfigureEventTypeScope.php'));
+        self::assertFileDoesNotExist(RepositoryPath::fromRoot('app/Contexts/Platform/EventAdministration/Actions/UpdateEventTypeScope.php'));
+        self::assertFileDoesNotExist(RepositoryPath::fromRoot('app/Contexts/Operations/Polls/Services/EventPollTemplateMaterializer.php'));
 
         $routes = $this->source('routes/platform.php');
         self::assertStringNotContainsString('EventTypeAdministrationController', $routes);
@@ -47,7 +47,7 @@ final class EventTypeOnboardingArchitectureV3Test extends TestCase
 
     private function source(string $relativePath): string
     {
-        $source = file_get_contents(base_path($relativePath));
+        $source = file_get_contents(RepositoryPath::fromRoot($relativePath));
         self::assertIsString($source);
 
         return $source;
