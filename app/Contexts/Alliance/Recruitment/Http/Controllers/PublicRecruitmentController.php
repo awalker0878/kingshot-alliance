@@ -13,6 +13,7 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentApplicationInvite;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentApplicationTokenService;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentConfigurationCapacity;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentInput;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Shared\Infrastructure\Http\Controller;
@@ -115,7 +116,7 @@ final class PublicRecruitmentController extends Controller
             'contact_handle' => ['nullable', 'string', 'max:'.RecruitmentInput::LIMITS['contactHandle']],
             'source' => ['nullable', 'string', 'max:'.RecruitmentInput::LIMITS['source']],
             'application_token' => ['nullable', 'string', 'size:64'],
-            'answers' => ['array'],
+            'answers' => ['array', 'max:'.RecruitmentConfigurationCapacity::ACTIVE_QUESTIONS],
         ]);
         $user = $request->user();
         $attributionSource = $this->attributionSource($request);

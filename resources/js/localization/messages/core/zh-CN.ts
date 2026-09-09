@@ -1,6 +1,9 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': '已更新招募入盟引导项目。',
+  },
   common: {
     historyItemsOnPage: '此页有 {count} 条记录（最多 {pageSize} 条）。',
     all: '全部',

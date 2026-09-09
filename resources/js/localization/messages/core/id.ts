@@ -1,6 +1,9 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': 'Item orientasi rekrutmen diperbarui.',
+  },
   common: {
     historyItemsOnPage: '{count} catatan di halaman ini (maksimal {pageSize}).',
     all: 'Semua',

@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    activeConfigurationLimit:
+      'Bis zu {limit} aktive Einträge. Deaktiviere einen Eintrag, um Platz für einen weiteren zu schaffen.',
     historyItemsOnPage: '{count} Einträge auf dieser Seite (bis zu {pageSize}).',
     bulkOutcome: {
       'permission-denied': 'Berechtigung verweigert',

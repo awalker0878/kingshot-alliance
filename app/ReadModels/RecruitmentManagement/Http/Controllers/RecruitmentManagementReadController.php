@@ -12,6 +12,7 @@ use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentQuestionType;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentConfigurationCapacity;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentInput;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\ReadModels\RecruitmentManagement\Queries\RecruitmentManagementQuery;
@@ -88,6 +89,7 @@ final class RecruitmentManagementReadController extends Controller
             'issuedApplicationLink' => $request->session()->pull('recruitmentApplicationLink'),
             'reasonMaxLength' => RecruitmentTextInput::REASON_MAX_LENGTH,
             'inputLimits' => RecruitmentInput::LIMITS,
+            'configurationLimits' => ['questions' => RecruitmentConfigurationCapacity::ACTIVE_QUESTIONS, 'onboardingItems' => RecruitmentConfigurationCapacity::ACTIVE_ONBOARDING_ITEMS],
             'bulkPreview' => $request->session()->pull('recruitmentBulkPreview'),
             'bulkResult' => $request->session()->pull('recruitmentBulkResult'),
         ]);

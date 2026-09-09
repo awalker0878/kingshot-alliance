@@ -1,6 +1,9 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': 'Đã cập nhật mục hướng dẫn tân binh.',
+  },
   common: {
     historyItemsOnPage: '{count} bản ghi trên trang này (tối đa {pageSize}).',
     all: 'Tất cả',

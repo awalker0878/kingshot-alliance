@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    activeConfigurationLimit:
+      'Maksimal {limit} item aktif. Nonaktifkan satu item untuk menambahkan item lain.',
     historyItemsOnPage: '{count} catatan di halaman ini (maksimal {pageSize}).',
     bulkOutcome: {
       'permission-denied': 'Izin ditolak',

@@ -17,6 +17,7 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentStageHistory;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentApplicationTokenService;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentConfigurationCapacity;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentInput;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -48,6 +49,9 @@ final class SubmitRecruitmentApplication
         ?string $applicationToken = null,
         ?int $applicantUserId = null,
     ): string {
+        if (count($answers) > RecruitmentConfigurationCapacity::ACTIVE_QUESTIONS) {
+            throw ValidationException::withMessages(['answers' => 'Answer only the current application questions.']);
+        }
         $cleanName = RecruitmentInput::requiredText($fullName, 'full_name', RecruitmentInput::LIMITS['fullName']);
         $normalizedEmail = RecruitmentInput::email($email);
         $contactHandle = RecruitmentInput::optionalText($contactHandle, 'contact_handle', RecruitmentInput::LIMITS['contactHandle']);
@@ -136,6 +140,10 @@ final class SubmitRecruitmentApplication
                 ->orderBy('id')
                 ->sharedLock()
                 ->get();
+
+            if (array_diff(array_keys($answers), $questions->modelKeys()) !== []) {
+                throw ValidationException::withMessages(['answers' => 'The application questions changed. Refresh the form before submitting.']);
+            }
 
             /** @var list<array{question: RecruitmentQuestion, answer: array<string, mixed>}> $validatedAnswers */
             $validatedAnswers = [];

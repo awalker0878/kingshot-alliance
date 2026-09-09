@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    activeConfigurationLimit: 'Tối đa {limit} mục đang hoạt động. Tắt một mục để thêm mục khác.',
     historyItemsOnPage: '{count} bản ghi trên trang này (tối đa {pageSize}).',
     bulkOutcome: {
       'permission-denied': 'Không có quyền',

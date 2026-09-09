@@ -350,6 +350,8 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
                     ->name('alliance.recruitment.decision-templates.store');
                 Route::post('/alliance/recruitment/onboarding-items', [RecruitmentManagementController::class, 'storeOnboardingItem'])
                     ->name('alliance.recruitment.onboarding-items.store');
+                Route::patch('/alliance/recruitment/onboarding-items/{item}', [RecruitmentManagementController::class, 'setOnboardingItemActive'])
+                    ->whereUlid('item')->name('alliance.recruitment.onboarding-items.update');
                 Route::post('/alliance/recruitment/bulk-stage/preview', [RecruitmentManagementController::class, 'previewBulkStageChange'])
                     ->name('alliance.recruitment.bulk-stage.preview');
                 Route::post('/alliance/recruitment/bulk-stage', [RecruitmentManagementController::class, 'commitBulkStageChange'])

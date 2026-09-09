@@ -1,0 +1,25 @@
+# ADR-0042: Complete bounded Recruitment configuration
+
+Status: Accepted
+
+## Context
+
+Public applications load every active question, and conversion creates every active onboarding assignment in one transaction. Neither set had an owner limit. Paginating these operations would break required-answer validation or create only part of a recruit's onboarding. Text limits alone do not bound the complete form or transaction. Configuration creation previously used a shared Alliance scope, so concurrent writers could both consume a final available slot.
+
+## Decision
+
+RecruitmentConfigurationCapacity defines a maximum of 30 active questions and 30 active onboarding items per Alliance. Thirty long answers are at most 300,000 characters under the existing individual-answer contract; the complete form and conversion workload remain bounded without hiding required items. Inactive configuration remains retained and does not consume active capacity.
+
+Question creation/update and onboarding creation/activation acquire exclusive Alliance scope before current authorization, capacity validation and row mutation. Public intake holds shared Alliance scope through its complete question read and answer writes; conversion already holds exclusive scope through invitation issuance and assignment creation. Competing configuration changes therefore serialize with each other and with those consumers. Counts exclude the edited row, allowing edits to existing active questions at capacity. The fresh schema indexes active onboarding by Alliance and order.
+
+SetRecruitmentOnboardingItemActive is the sole activation owner, with current Recruitment Manage permission, exact Alliance/item scope, idempotent unchanged state, audit and outbox in one transaction. The management page exposes active-state controls, the limit and retained validation feedback. Deactivation frees a slot while preserving existing candidate assignments. Conversion snapshots the complete active set once; replay returns the existing invitation and never appends later configuration items.
+
+Application intake accepts at most 30 answer keys. Unknown or deactivated question keys reject the stale form with refresh guidance. The owner still validates every current required question and stores its answer snapshot. HTTP uses the same bound. No partial-answer truncation or partial onboarding initialization is introduced.
+
+## Alternatives and consequences
+
+An arbitrary read limit would silently omit required work, so it is rejected. Unlimited synchronous forms and assignment transactions are also rejected. The explicit active limit is visible and reversible through deactivation. Inactive catalogues, decision templates, tags, historical reviewers and roster/member selectors require separate paginated projections; this decision does not claim those collections are bounded. That remaining work is tracked under HARD-088.
+
+Exclusive Alliance scope serializes infrequent configuration writes and can briefly delay other Alliance operations. There are no external calls inside these transactions. Validation failures and late audit/outbox failures consume no active capacity. The application is undeployed with an empty database, so there is no historical data conversion, fallback path or second configuration authority.
+
+Fourteen PostgreSQL cases cover active creation/reactivation limits, deactivation, edits at capacity, retained inactive catalogues, complete required forms, stale answers, complete one-time onboarding, HTTP validation, current permission and tenant scope, idempotence, both competing capacity/intake orders and late delivery rollback. Desktop/mobile management coverage exercises persisted onboarding deactivation/reactivation alongside question draft validation. Runtime results are recorded in the delivery ledger.

@@ -289,6 +289,7 @@ return new class extends Migration
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
             $table->unique(['id', 'alliance_id']);
             $table->unique(['alliance_id', 'name']);
+            $table->index(['alliance_id', 'is_active', 'position', 'id'], 'recruitment_onboarding_active_idx');
         });
 
         Schema::create('recruitment_candidate_onboarding', function (Blueprint $table): void {

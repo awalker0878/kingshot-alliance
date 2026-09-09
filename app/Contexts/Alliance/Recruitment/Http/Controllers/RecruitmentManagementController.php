@@ -13,6 +13,7 @@ use App\Contexts\Alliance\Recruitment\Actions\CreateRecruitmentOnboardingItem;
 use App\Contexts\Alliance\Recruitment\Actions\CreateRecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Actions\IssueRecruitmentApplicationInvite;
 use App\Contexts\Alliance\Recruitment\Actions\PreviewRecruitmentStageBulkChange;
+use App\Contexts\Alliance\Recruitment\Actions\SetRecruitmentOnboardingItemActive;
 use App\Contexts\Alliance\Recruitment\Actions\UpdateRecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentQuestionType;
@@ -189,6 +190,16 @@ final class RecruitmentManagementController extends Controller
         );
 
         return back()->with('actionReceipt', $this->receipt('recruitment-onboarding-item-created'));
+    }
+
+    public function setOnboardingItemActive(Request $request, AllianceContext $context, SetRecruitmentOnboardingItemActive $setActive, string $item): RedirectResponse
+    {
+        /** @var array{active:bool} $validated */
+        $validated = $request->validate(['active' => ['required', 'boolean']]);
+        $scope = $context->scope();
+        $setActive->handle($scope->playerId, $scope->allianceId, $item, (bool) $validated['active']);
+
+        return back()->with('actionReceipt', $this->receipt('recruitment-onboarding-item-updated'));
     }
 
     public function previewBulkStageChange(

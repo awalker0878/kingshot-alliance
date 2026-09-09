@@ -206,6 +206,7 @@ const messages = {
     'recruitment-decision-template-created': 'Recruitment decision template created.',
     'recruitment-membership-invite-prepared': 'Alliance invitation prepared for the candidate.',
     'recruitment-note-added': 'Officer recruitment note added.',
+    'recruitment-onboarding-item-updated': 'Recruitment onboarding item updated.',
     'recruitment-onboarding-item-created': 'Recruitment onboarding item created.',
     'recruitment-onboarding-updated': 'Candidate onboarding progress updated.',
     'recruitment-question-created': 'Recruitment question created.',

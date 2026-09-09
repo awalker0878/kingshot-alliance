@@ -1,6 +1,9 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': 'Пункт адаптации новобранцев обновлён.',
+  },
   common: {
     historyItemsOnPage: 'На этой странице {count} записей (не более {pageSize}).',
     all: 'Все',

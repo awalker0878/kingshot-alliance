@@ -84,6 +84,7 @@ type BulkResult = {
 
 const props = defineProps<{
   inputLimits: RecruitmentInputLimits;
+  configurationLimits: { questions: number; onboardingItems: number };
   reasonMaxLength: number;
   user: { name: string; email: string };
   alliance: { id: string; name: string; slug: string };
@@ -274,6 +275,27 @@ function createQuestion(): void {
       questionOptions.value = '';
     },
   });
+}
+
+const onboardingUpdates = reactive<Record<string, { busy: boolean; error?: string }>>({});
+function setOnboardingItemActive(id: string, event: Event): void {
+  const checkbox = event.target as HTMLInputElement;
+  const active = checkbox.checked;
+  checkbox.checked = !active;
+  onboardingUpdates[id] = { busy: true };
+  router.patch(
+    `/alliance/recruitment/onboarding-items/${id}`,
+    { active },
+    {
+      preserveScroll: true,
+      onError: (errors) => {
+        onboardingUpdates[id] = { busy: false, error: Object.values(errors)[0] ?? '' };
+      },
+      onFinish: () => {
+        if (onboardingUpdates[id]) onboardingUpdates[id].busy = false;
+      },
+    },
+  );
 }
 
 function saveQuestion(id: string): void {
@@ -1125,6 +1147,13 @@ function humanize(value: string): string {
           {{ t('recruitment.addQuestion') }}
         </h2>
 
+        <p class="mt-2 text-sm text-[var(--ks-muted)]">
+          {{
+            t('recruitment.activeConfigurationLimit', {
+              limit: formatNumber(configurationLimits.questions),
+            })
+          }}
+        </p>
         <form class="mt-5 grid gap-3 sm:grid-cols-2" @submit.prevent="createQuestion">
           <FormError class="sm:col-span-2" :message="Object.values(questionForm.errors)[0]" />
           <div class="sm:col-span-2">
@@ -1342,6 +1371,13 @@ function humanize(value: string): string {
         <h2 id="onboarding-heading" class="ks-display mt-1 text-xl font-semibold">
           {{ t('recruitment.onboardingProgress') }}
         </h2>
+        <p class="mt-2 text-sm text-[var(--ks-muted)]">
+          {{
+            t('recruitment.activeConfigurationLimit', {
+              limit: formatNumber(configurationLimits.onboardingItems),
+            })
+          }}
+        </p>
         <form class="mt-5 space-y-3" @submit.prevent="createOnboardingItem">
           <FormError class="sm:col-span-2" :message="Object.values(onboardingForm.errors)[0]" />
           <input
@@ -1397,6 +1433,16 @@ function humanize(value: string): string {
             <p v-if="item.description" class="mt-1 text-[var(--ks-text-secondary)]">
               {{ item.description }}
             </p>
+            <label class="mt-3 flex items-center gap-2">
+              <input
+                type="checkbox"
+                :checked="item.active"
+                :disabled="onboardingUpdates[item.id]?.busy"
+                @change="setOnboardingItemActive(item.id, $event)"
+              />
+              {{ t('recruitment.active') }}
+            </label>
+            <FormError :message="onboardingUpdates[item.id]?.error" />
           </article>
         </div>
       </section>

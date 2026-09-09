@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    activeConfigurationLimit:
+      '有効な項目は最大{limit}件です。別の項目を追加するには、既存の項目を無効にしてください。',
     historyItemsOnPage: 'このページに{count}件（最大{pageSize}件）。',
     bulkOutcome: {
       'permission-denied': '権限がありません',

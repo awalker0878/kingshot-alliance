@@ -52,3 +52,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0040: Recruitment owner input contracts](0040-recruitment-owner-input-contracts.md)
 
 - [ADR-0041: Bounded transfer eligibility evidence and observation history](0041-transfer-eligibility-evidence-and-history.md)
+
+- [ADR-0042: Complete bounded Recruitment configuration](0042-complete-bounded-recruitment-configuration.md)

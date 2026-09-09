@@ -51,6 +51,20 @@ test('question validation preserves drafts and newly created questions can be ed
   await row.getByRole('button').click();
   await expect(row.locator('summary')).toContainText(`Updated ${prompt}`);
   await expect(row.getByRole('alert')).toHaveCount(0);
+  const onboarding = page.locator('section[aria-labelledby="onboarding-heading"]');
+  await expect(onboarding).toContainText('Up to 30 active items');
+  const taskName = `Onboarding capacity ${testInfo.project.name}`;
+  await onboarding.getByPlaceholder('Item name').fill(taskName);
+  await onboarding.locator('form button[type="submit"]').click();
+  const task = onboarding.locator('article').filter({ hasText: taskName });
+  await expect(task.getByRole('checkbox', { name: 'Active', exact: true })).toBeChecked();
+  await task.getByRole('checkbox', { name: 'Active', exact: true }).click();
+  await expect(task.getByRole('checkbox', { name: 'Active', exact: true })).not.toBeChecked();
+  await page.reload();
+  await expect(task.getByRole('checkbox', { name: 'Active', exact: true })).not.toBeChecked();
+  await task.getByRole('checkbox', { name: 'Active', exact: true }).click();
+  await expect(task.getByRole('checkbox', { name: 'Active', exact: true })).toBeChecked();
+  await expect(task.getByRole('alert')).toHaveCount(0);
   expect(errors).toEqual([]);
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1),

@@ -9,6 +9,7 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentQuestionType;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentQuestion;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentConfigurationCapacity;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentInput;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -21,6 +22,7 @@ final class CreateRecruitmentQuestion
         private AllianceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
+        private RecruitmentConfigurationCapacity $capacity,
     ) {}
 
     /** @param array<array-key,mixed> $options */
@@ -51,8 +53,12 @@ final class CreateRecruitmentQuestion
             $cleanOptions,
             $isActive,
         ): string {
-            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
+            $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
+
+            if ($isActive) {
+                $this->capacity->question((string) $context->alliance->id);
+            }
 
             $question = RecruitmentQuestion::query()->create([
                 'alliance_id' => $context->alliance->id,

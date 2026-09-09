@@ -1,6 +1,9 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': 'İşe alım uyum öğesi güncellendi.',
+  },
   common: {
     historyItemsOnPage: 'Bu sayfada {count} kayıt (en fazla {pageSize}).',
     all: 'Tümü',

@@ -1,6 +1,9 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': '모집 온보딩 항목을 업데이트했습니다.',
+  },
   common: {
     historyItemsOnPage: '이 페이지에 {count}개 기록(최대 {pageSize}개).',
     all: '전체',

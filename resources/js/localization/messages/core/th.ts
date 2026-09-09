@@ -1,6 +1,9 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': 'อัปเดตรายการปฐมนิเทศผู้สมัครแล้ว',
+  },
   common: {
     historyItemsOnPage: '{count} รายการในหน้านี้ (สูงสุด {pageSize} รายการ)',
     all: 'ทั้งหมด',

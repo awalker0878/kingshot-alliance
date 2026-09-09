@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    activeConfigurationLimit: 'الحد الأقصى {limit} من العناصر النشطة. عطّل عنصرًا لإضافة آخر.',
     historyItemsOnPage: '{count} سجلات في هذه الصفحة (حتى {pageSize}).',
     bulkOutcome: {
       'permission-denied': 'تم رفض الإذن',

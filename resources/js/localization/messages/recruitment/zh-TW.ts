@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    activeConfigurationLimit: '最多啟用 {limit} 項。請停用一項後再新增其他項。',
     historyItemsOnPage: '此頁有 {count} 筆記錄（最多 {pageSize} 筆）。',
     bulkOutcome: {
       'permission-denied': '權限不足',

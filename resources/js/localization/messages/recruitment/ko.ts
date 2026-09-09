@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    activeConfigurationLimit:
+      '활성 항목은 최대 {limit}개입니다. 새 항목을 추가하려면 기존 항목을 비활성화하세요.',
     historyItemsOnPage: '이 페이지에 {count}개 기록(최대 {pageSize}개).',
     bulkOutcome: {
       'permission-denied': '권한이 없습니다',

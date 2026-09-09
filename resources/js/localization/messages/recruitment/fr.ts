@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    activeConfigurationLimit:
+      'Jusqu’à {limit} éléments actifs. Désactivez un élément pour en ajouter un autre.',
     historyItemsOnPage: '{count} éléments sur cette page (jusqu’à {pageSize}).',
     bulkOutcome: {
       'permission-denied': 'Autorisation refusée',

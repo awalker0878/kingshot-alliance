@@ -1,6 +1,9 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': 'تم تحديث عنصر تهيئة المجندين.',
+  },
   common: {
     historyItemsOnPage: '{count} سجلات في هذه الصفحة (حتى {pageSize}).',
     all: 'الكل',

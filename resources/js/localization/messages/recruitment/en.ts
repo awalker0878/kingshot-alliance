@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    activeConfigurationLimit:
+      'Up to {limit} active items. Deactivate an item to make room for another.',
     historyItemsOnPage: '{count} records on this page (up to {pageSize}).',
     eyebrow: 'Alliance recruitment',
     title: 'Recruitment',

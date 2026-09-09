@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    activeConfigurationLimit:
+      'เปิดใช้งานได้สูงสุด {limit} รายการ ปิดใช้งานหนึ่งรายการเพื่อเพิ่มรายการใหม่',
     historyItemsOnPage: '{count} รายการในหน้านี้ (สูงสุด {pageSize} รายการ)',
     bulkOutcome: {
       'permission-denied': 'ไม่มีสิทธิ์',

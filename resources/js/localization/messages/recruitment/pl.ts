@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    activeConfigurationLimit:
+      'Maksymalnie {limit} aktywnych elementów. Wyłącz jeden, aby dodać kolejny.',
     historyItemsOnPage: '{count} rekordów na tej stronie (maksymalnie {pageSize}).',
     bulkOutcome: {
       'permission-denied': 'Brak uprawnień',
