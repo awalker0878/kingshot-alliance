@@ -52,7 +52,7 @@ final class AllianceGovernanceReadModelsBehaviorV3Test extends TestCase
         );
 
         $query = app(AllianceGovernanceTimelineQuery::class);
-        $firstPage = $query->forAlliance($alliance->allianceId, limit: 1);
+        $firstPage = $query->forAlliance($owner->playerId, $alliance->allianceId, limit: 1);
 
         self::assertCount(1, $firstPage['items']);
         self::assertSame($reentry->id, $firstPage['items'][0]['id']);
@@ -60,6 +60,7 @@ final class AllianceGovernanceReadModelsBehaviorV3Test extends TestCase
         self::assertNotNull($firstPage['nextCursor']);
 
         $secondPage = $query->forAlliance(
+            viewerPlayerId: $owner->playerId,
             allianceId: $alliance->allianceId,
             beforeId: $firstPage['nextCursor'],
             limit: 1,
@@ -69,6 +70,7 @@ final class AllianceGovernanceReadModelsBehaviorV3Test extends TestCase
         self::assertSame('/alliance', $secondPage['items'][0]['handoff']);
 
         $membershipOnly = $query->forAlliance(
+            viewerPlayerId: $owner->playerId,
             allianceId: $alliance->allianceId,
             eventPrefix: 'membership',
             actorPlayerId: $owner->playerId,

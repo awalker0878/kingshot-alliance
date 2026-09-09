@@ -42,3 +42,7 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0035: Current Recruitment lifecycle and protected target authority](0035-current-recruitment-lifecycle-and-target-authority.md)
 
 - [ADR-0036: Bounded Recruitment candidate history](0036-bounded-recruitment-candidate-history.md)
+
+- [ADR-0037: Recruitment private retention and audit metadata](0037-recruitment-private-retention-and-audit-metadata.md)
+
+- [ADR-0038: Current Recruitment visibility in governance history](0038-current-governance-recruitment-visibility.md)

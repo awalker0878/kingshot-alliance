@@ -40,6 +40,7 @@ final class RecruitmentReentryController extends Controller
             ->whereKey($candidate)
             ->where('alliance_id', $scope->allianceId)
             ->whereNull('merged_into_id')
+            ->whereNull('anonymized_at')
             ->firstOrFail();
 
         return Inertia::render('Alliance/Recruitment/Reentry', [

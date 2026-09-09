@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `e0accdbd123dfcabab764b76adb65ef32a004448`.
+- Latest pushed durable checkpoint: `db969f2372be221c10c2b69213333fed2664064f`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-089 / In progress; review text owners and adapters now share finite limits, with nineteen direct/HTTP boundary cases. HARD-087 formatting and visual fixture corrections are included; history and newer Membership/Recruitment containing verification remain pending.
+- Current item/state: HARD-091/092 / In progress; private-retention clearing/redaction and current governance Recruitment visibility are implemented with thirteen new cases. HARD-087 also corrects the composed communication summary to count in SQL and load only its latest record. The db969f23 PHP gate completed with six failures; the communication hydration fix and current-context HTTP test correction address all six.
 - Most recently verified gates: all nine PR workflows pass on `abda37b1b3093c8cde37026eb19fccc8b9d097eb`, including 1,267 PHP tests / 80,498 assertions in parallel PHP and both complete serial suites, fresh PostgreSQL, frontend, container/staging/recovery, all fifty visual cases and security/capabilities.
-- Active files: Recruitment review text owners, RecruitmentTextInput, candidate/re-entry/management adapters and pages, nineteen boundary cases, history formatting/visual fixture corrections, verbose Pint diagnostics and current contracts.
+- Active files: Recruitment retention and AuditRecorder, governance timeline/HTTP/Assistant authority, thirteen privacy cases, composed communication summary/history regression, ADR-0037/0038 and current contracts.
 - Current CI result: All nine workflows pass on abda37b1. Parallel PHP job 102348335586 passes 1,267 tests / 80,498 assertions in 20:28 plus Pint (1,929 files), PHPStan and fresh schema. Architecture job 102348335670 passes static 63 / 69,236 and full 1,267 / 80,498 in 40:16; Intelligence job 102348335749 passes full 1,267 / 80,498 in 41:31. Container/staging/recovery job 102352927089 passes. The following 4de40440 static-analysis failure is fixed on 0709f9bc. That PHP job passes Pint (1,935 files), PHPStan and fresh schema, and executes 1,349 tests / 80,893 assertions in 16:40; five new intake cases fail due to fixture/exception-contract errors, corrected in the current slice.
 - Remaining current work: Verify the newer Membership/Recruitment and candidate-history changes; continue Recruitment collection/input bounds and the remaining capability-by-capability repository audit.
-- Known failures: On e0accdbd, PHP job 102361855802 passes full Pint (1,940 files), fresh schema and frontend, then stops on one PHPStan historyPage return-type error: Eloquent collection transformation erases the generic model parameter. The helper now declares its actual list of the query model and slices that bounded array, preserving its generic PageSlice result. Earlier intake fixture corrections, thirteen history cases and nineteen text cases still await containing execution.
+- Known failures: db969f23 PHP job 102362936452 passes Pint (1,940 files), PHPStan, fresh schema and executes 1,381 tests / 81,261 assertions in 23:26. Six failures remain: five HTTP text-boundary cases omit the required current-context version and receive 409 before validation, and communications hydrate 76 models against the 27 budget because of the composed latest-50 summary. The HTTP cases now issue the real current version, and the summary counts in SQL plus loads one model. Earlier intake fixture corrections and all other history/text cases pass. All 52 visual cases and frontend pass; serial suites still run.
 - Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout tracks the latest remote checkpoint; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: Publish review text bounds and the current history gate corrections, verify containing CI, then finish HARD-088/090/091 and the remaining capability audit.
+- Exact next action: Publish privacy and current gate corrections; finish the underway HARD-094 member-history query, continuation and regression coverage, then HARD-088/090/093 and the remaining capability audit.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -1247,6 +1247,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - State: In progress.
 - Verification required: Large histories, deterministic pagination, independent history categories, scoped continuation, current authorization and matching frontend contracts.
 - Verification result: Authorized detail composition moves into the existing RecruitmentManagement ReadModel; the mutation controller no longer renders it. Notes/history/communications and duplicates each return independent 25-record PageSlices with scope-bound timestamp/ID cursors, current authority and terminal checks, and duplicate-fact fingerprinting. Current indexes include tie-breakers and normalized matching. Thirteen PHP cases cover bounds, deterministic continuation, changed/deleted boundaries, scope and authority, with two desktop/mobile browser cases covering independent navigation and retained note drafts. Local full frontend checks pass before the final pagination preservation option; that option and browser fixture receive final containing checks. Executable PHP/browser verification is pending. Remaining catalogues/selectors are tracked under HARD-088.
+- Additional composition finding: TransferCampaignWorkspaceQuery hydrated up to fifty communications and reported that capped length as total. It now uses an SQL count and one latest record, so the complete detail stays within the communication hydration budget; the 51-record history case also checks the true summary total. All 52 browser cases pass on db969f23, including both new history navigation cases (job 102362996920). PHP containing verification remains pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -1295,14 +1296,56 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 ### HARD-091 — Recruitment anonymization leaves private control and identity links
 
 - Area: Unsuccessful-candidate retention, re-entry projection and retained delivery/audit metadata.
-- Finding: PurgeExpiredRecruitmentCandidates clears names/email/answers/private child rows but retains player_id, source and re-entry reason/review/set metadata. RecruitmentReentryController.show excludes merged rows but still serves anonymized candidates. The product requires private re-entry controls to obey existing candidate retention rules.
-- Current owner: Recruitment retention and re-entry read paths; historical metadata belongs to its existing recorder/retention owners.
-- Intended authoritative owner: Complete current Recruitment anonymization contract with explicit preserved aggregate facts.
-- Rationale: A terminal candidate must not retain or expose private review text and identity linkage through an alternate page.
-- Remediation: Trace all retained fields and metadata against the current policy, clear private candidate fields through retention, exclude terminal re-entry detail, and reconcile cross-owner retained evidence without parallel authority.
+- Finding: PurgeExpiredRecruitmentCandidates retains player_id, source and re-entry fields, while the alternate re-entry page serves anonymized candidates. Audit copies retain private source/tag/control detail; delivery events unnecessarily copy reason/date/source values. The product requires private re-entry controls to obey candidate retention while auditing current reason/date changes.
+- Current owner: Recruitment retention/re-entry/intake and Infrastructure AuditRecorder.
+- Intended authoritative owner: Recruitment's retention boundary with scoped Infrastructure metadata redaction and minimal delivery payloads.
+- Rationale: Private review state must expire with the candidate while preserving event chronology and independently owned handoff facts.
+- Remediation: Clear candidate Player/source/re-entry fields, exclude terminal alternate detail, delegate exact subject/Alliance/event metadata redaction to AuditRecorder, and emit control/change/presence delivery flags instead of private text. Application, tag and re-entry audit metadata become a retention marker in the same transaction; event/actor/subject/time fields remain. No historical migration or fallback event shape.
+- State: In progress.
+- Verification required: Actual private control and linked candidate before/after purge, read denial, unchanged handoff facts, both competing orders, scoped redaction, rollback/retry and retained metadata policy.
+- Verification result: Seven new PostgreSQL cases cover actual conversion and decline, audited reason/date before purge, minimal outbox values, terminal-field clearing and both HTTP pages, application-source/tag audit removal, unrelated subject/type/event/Alliance isolation, two late failure points and both re-entry/purge orders. PHP execution pending; whitespace passes.
+- Completion evidence: RecruitmentPrivateRetentionV3Test, ADR-0037 and reconciled acceptance/architecture contracts.
+- Commit SHA: pending.
+
+### HARD-092 — Governance timeline exposes recruiter-private metadata through broader officer access
+
+- Area: AllianceGovernanceTimelineQuery, HTTP governance timeline and AllianceGovernanceAssistantQuery.
+- Finding: Timeline access accepts MembershipManage/RoleManage/Manage and returns raw metadata for all recruitment events. Those permissions do not imply RecruitmentManage, so private source/tag/re-entry audit detail can bypass the Recruitment page's current authority. The query has no current viewer argument and Assistant uses the same projection.
+- Current owner: AllianceGovernance timeline and its HTTP/Assistant adapters.
+- Intended authoritative owner: Current viewer-authorized cross-owner projection.
+- Rationale: Broader governance access must not disclose recruiter-private state, including through continuation or Assistant composition.
+- Remediation: Carry current viewer identity into the projection, retain governance admission, filter unauthorized Recruitment records before paging and migrate all callers without a viewer-less fallback.
+- State: In progress.
+- Verification required: Officer without RecruitmentManage, recruiter with timeline access, direct/HTTP/Assistant paths, revocation, filtered continuation and cross-Alliance scope.
+- Verification result: Current viewer admission and Recruitment visibility now live in the shared query; unauthorized events are removed in SQL before paging. Six new cases cover direct/HTTP/Assistant paths, authorized private metadata, filtering before limits, both role revocations, existing-instance/cursor freshness, and cross-Alliance isolation. PHP execution pending.
+- Completion evidence: GovernanceRecruitmentPrivacyV3Test, migrated existing behavior cases, ADR-0038 and acceptance contract.
+- Commit SHA: pending.
+
+### HARD-093 — Transfer campaign composition clips facts and expands unrelated history
+
+- Area: TransferCampaignWorkspaceQuery and TransferEligibilityQuery.
+- Finding: The campaign's latest-twenty blocker load is filtered for active state only after limiting, hiding older active blockers. Eligibility independently materializes all plan observations, all window conditions and group Kingdoms even for one candidate. The communication total is separately corrected within HARD-087.
+- Current owner: GameWorld transfer eligibility facts and RecruitmentManagement campaign composition.
+- Intended authoritative owner: Bounded current-fact selection with truthful visible history summaries.
+- Rationale: A nominally bounded page must neither omit active blockers through pre-filter limits nor load unrelated historical evidence for a single participant.
+- Remediation: Trace factual selector semantics and consumers, select only relevant latest/valid evidence with stable provenance, filter active blockers before bounded presentation and expose continuation/true summaries as required.
 - State: Planned.
-- Verification required: Real private control and linked candidate before/after actual purge, read denial, unaffected aggregate facts, concurrent writes, rollback/retry and historical metadata policy.
-- Verification result: Current purge fields, alternate show query and product retention requirement traced; full metadata review and implementation pending.
+- Verification required: Older active blockers behind resolved entries, multiple observation kinds/targets, stale/missing facts, unrelated participant/Kingdom volume and current source authority.
+- Verification result: Eager-load ordering and complete-plan/window query paths traced; implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-094 — Membership governance history filters after an unrelated global limit
+
+- Area: MembershipGovernanceHistoryQuery and member history projection.
+- Finding: The query loads the latest 500 Alliance audit records, then filters for a selected Player and takes at most 100, so unrelated recent activity can hide all valid Player history; the response has no continuation.
+- Current owner: AllianceGovernance Membership history projection.
+- Intended authoritative owner: Scoped Player-history query with bounded visible continuation.
+- Rationale: Bounded materialization must preserve the user's requested subject and history reachability.
+- Remediation: Apply supported Player metadata predicates in SQL before limits, reconcile indexes and scoped cursors, and preserve HTTP/Assistant consumers with a single response contract.
+- State: Planned.
+- Verification required: More than 500 unrelated entries, multiple Player reference keys, deterministic ties, complete scoped continuation and current governance authority.
+- Verification result: Current limit/filter ordering traced; implementation pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

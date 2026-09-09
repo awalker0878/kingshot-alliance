@@ -89,8 +89,7 @@ final readonly class AllianceGovernanceAssistantQuery
 
     private function history(PlayerReference $actor, AllianceScopeReference $scope): AssistantResult
     {
-        $this->authorizeOfficer($actor->playerId, $scope->allianceId);
-        $result = $this->timeline->forAlliance($scope->allianceId, limit: 10);
+        $result = $this->timeline->forAlliance($actor->playerId, $scope->allianceId, limit: 10);
         $evidence = [];
         foreach ($result['items'] as $item) {
             $actorName = is_array($item['actor'] ?? null) ? ($item['actor']['name'] ?? null) : null;
@@ -176,14 +175,5 @@ final readonly class AllianceGovernanceAssistantQuery
             ],
             [$evidence],
         );
-    }
-
-    private function authorizeOfficer(string $playerId, string $allianceId): void
-    {
-        if (! $this->authorization->allows($playerId, $allianceId, AlliancePermission::MembershipManage)
-            && ! $this->authorization->allows($playerId, $allianceId, AlliancePermission::RoleManage)
-            && ! $this->authorization->allows($playerId, $allianceId, AlliancePermission::Manage)) {
-            throw new AuthorizationException;
-        }
     }
 }

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\ReadModels\AllianceGovernance\Queries;
 
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
 
 final readonly class AllianceGovernanceTimelineQuery
@@ -19,18 +22,31 @@ final readonly class AllianceGovernanceTimelineQuery
         'integration.',
     ];
 
-    public function __construct(private PlayerReferenceQuery $players) {}
+    public function __construct(
+        private PlayerReferenceQuery $players,
+        private AllianceAuthorization $authorization,
+    ) {}
 
     /** @return array{items:list<array<string,mixed>>,nextCursor:?string} */
     public function forAlliance(
+        string $viewerPlayerId,
         string $allianceId,
         ?string $eventPrefix = null,
         ?string $actorPlayerId = null,
         ?string $beforeId = null,
         int $limit = 50,
     ): array {
+        if (! $this->authorization->allows($viewerPlayerId, $allianceId, AlliancePermission::MembershipManage)
+            && ! $this->authorization->allows($viewerPlayerId, $allianceId, AlliancePermission::RoleManage)
+            && ! $this->authorization->allows($viewerPlayerId, $allianceId, AlliancePermission::Manage)) {
+            throw new AuthorizationException;
+        }
+        $canReadRecruitment = $this->authorization->allows($viewerPlayerId, $allianceId, AlliancePermission::RecruitmentManage);
         $limit = max(1, min(100, $limit));
         $query = AuditEvent::query()->where('alliance_id', $allianceId);
+        if (! $canReadRecruitment) {
+            $query->where('event', 'not like', 'recruitment.%');
+        }
         $query->where(function (Builder $builder): void {
             foreach (self::PREFIXES as $index => $prefix) {
                 $method = $index === 0 ? 'where' : 'orWhere';

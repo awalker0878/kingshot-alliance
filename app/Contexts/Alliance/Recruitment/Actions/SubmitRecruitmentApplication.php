@@ -215,7 +215,7 @@ final class SubmitRecruitmentApplication
             ]);
             $this->outbox->record('recruitment.application.submitted', (string) $currentAlliance->id, $candidate, [
                 'candidate_id' => $candidate->id,
-                'source' => $candidate->source,
+                'has_source' => $candidate->source !== null && $candidate->source !== '',
             ]);
 
             return (string) $candidate->id;

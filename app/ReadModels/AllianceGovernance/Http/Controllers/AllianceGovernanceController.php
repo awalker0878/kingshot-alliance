@@ -26,13 +26,11 @@ final class AllianceGovernanceController extends Controller
     public function index(
         Request $request,
         AllianceContext $context,
-        AllianceAuthorization $authorization,
         AllianceReferenceQuery $alliances,
         AllianceGovernanceTimelineQuery $timeline,
     ): Response {
         $user = $this->user($request);
         $scope = $context->scope();
-        $this->authorizeOfficer($authorization, $scope->playerId, $scope->allianceId);
         $alliance = $alliances->require($scope->allianceId);
         $validated = $request->validate([
             'capability' => ['nullable', 'string', 'in:alliance,membership,invitation,recruitment,content,integration'],
@@ -40,6 +38,7 @@ final class AllianceGovernanceController extends Controller
             'before' => ['nullable', 'string', 'ulid'],
         ]);
         $result = $timeline->forAlliance(
+            $scope->playerId,
             $scope->allianceId,
             isset($validated['capability']) ? (string) $validated['capability'] : null,
             isset($validated['actor_player_id']) ? (string) $validated['actor_player_id'] : null,

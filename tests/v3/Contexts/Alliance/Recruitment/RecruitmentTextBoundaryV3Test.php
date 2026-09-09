@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\v3\Contexts\Alliance\Recruitment;
 
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
 use App\Contexts\Alliance\Recruitment\Actions\AddRecruitmentNote;
 use App\Contexts\Alliance\Recruitment\Actions\BulkChangeRecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Actions\ChangeRecruitmentStage;
@@ -13,6 +14,10 @@ use App\Contexts\Alliance\Recruitment\Actions\SetRecruitmentReentryControl;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentReentryControl;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
+use App\Contexts\GameWorld\Players\Http\Middleware\RequireCurrentPlayerContextVersion;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\GameWorld\Players\Services\PlayerAuthorityContextVersion;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -59,7 +64,12 @@ final class RecruitmentTextBoundaryV3Test extends TestCase
     public function test_http_and_page_contract_share_the_owner_text_boundary(string $operation, int $limit, string $field): void
     {
         $fixture = $this->fixture();
-        $this->actingAs($fixture['user'])->withSession([(string) config('game_world.active_player_session_key') => $fixture['actorId']]);
+        $player = app(PlayerReferenceQuery::class)->require($fixture['actorId']);
+        $allianceFacts = app(PlayerIdentityContextQuery::class)->forPlayers([$player->playerId])[$player->playerId] ?? null;
+        $kingdom = app(KingdomAuthorityFactsQuery::class)->findCurrent($player->playerId, $player->kingdomId)->permissionKeysObservedAtRead ?? [];
+        $version = app(PlayerAuthorityContextVersion::class)->issue($player, $allianceFacts, $kingdom);
+        $this->actingAs($fixture['user'])->withSession([(string) config('game_world.active_player_session_key') => $fixture['actorId']])
+            ->withHeader(RequireCurrentPlayerContextVersion::HEADER_NAME, $version);
         $this->get(route('alliance.recruitment.candidates.show', $fixture['candidate']))
             ->assertOk()->assertInertia(static function (Assert $page): void {
                 $page->component('Alliance/Recruitment/Candidate')->where('inputLimits.note', 10000)->where('inputLimits.reason', 5000);

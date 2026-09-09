@@ -83,7 +83,13 @@ final readonly class SetRecruitmentReentryControl
 
             $metadata = ['candidate_id' => (string) $candidate->id, 'from' => $before, 'to' => $after];
             $this->audit->record('recruitment.reentry_control_changed', $context->actor, $candidate, $context->alliance, $metadata);
-            $this->outbox->record('recruitment.reentry_control_changed', $allianceId, $candidate, $metadata);
+            $this->outbox->record('recruitment.reentry_control_changed', $allianceId, $candidate, [
+                'candidate_id' => (string) $candidate->id,
+                'from_control' => $before['control'],
+                'to_control' => $after['control'],
+                'reason_changed' => $before['reason'] !== $after['reason'],
+                'review_at_changed' => $before['review_at'] !== $after['review_at'],
+            ]);
 
             return (string) $candidate->id;
         });

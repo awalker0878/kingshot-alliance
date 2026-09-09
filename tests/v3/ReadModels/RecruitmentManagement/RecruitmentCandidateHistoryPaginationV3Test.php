@@ -69,6 +69,9 @@ final class RecruitmentCandidateHistoryPaginationV3Test extends TestCase
             $projection = app(RecruitmentCandidateDetailQuery::class)->forCandidate($owner->playerId, $alliance->allianceId, (string) $candidate->id, [$section => $cursor]);
             $queries = count(DB::getQueryLog());
             DB::disableQueryLog();
+            if ($section === 'communications') {
+                self::assertSame(51, $projection['transferCampaign']['communications']['total']);
+            }
             $page = $projection[$section.'Page'];
             self::assertArrayNotHasKey($section, $projection);
             self::assertCount($count, $page['items']);

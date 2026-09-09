@@ -63,3 +63,9 @@ RecruitmentManagement owns current authorized candidate-detail composition. Note
 ## Review text inputs
 
 RecruitmentTextInput defines the existing accepted limits: notes contain 1–10,000 characters after trimming; individual/bulk stage, merge and re-entry reasons are optional and contain at most 5,000 characters after trimming. Unicode characters are counted independently of their UTF-8 byte length. Empty optional reasons are stored as null. Mutation owners validate these inputs before effects, including bulk execution before preview/receipts. HTTP adapters and page limits use the same constants; note errors use the form's body field.
+
+## Private data at retention
+
+Due unsuccessful-candidate anonymization clears the candidate's Player link, source, re-entry control/reason/review/set fields and existing private child data. AuditRecorder redacts the candidate's application-source, candidate-tag and re-entry metadata in the same transaction, preserving event/actor/subject/time evidence with an explicit retention marker. Current reason/review dates remain audited until retention; delivery events carry identifiers and change/presence flags without free-form private values. Both candidate and re-entry detail reject anonymized rows. Membership handoff facts and aggregate stage/milestone dates retain their existing owners. [ADR-0037](../../adr/0037-recruitment-private-retention-and-audit-metadata.md) records the exact boundary.
+
+Recruitment audit details in the governance timeline require current RecruitmentManage in addition to governance admission. The shared ReadModel enforces this for direct, HTTP and Assistant reads before filtering and pagination, including after role revocation (ADR-0038).

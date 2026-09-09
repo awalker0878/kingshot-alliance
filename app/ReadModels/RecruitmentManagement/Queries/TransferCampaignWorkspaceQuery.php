@@ -231,16 +231,14 @@ final readonly class TransferCampaignWorkspaceQuery
     /** @return array{total:int,latestStatus:?string,latestAt:?string} */
     private function communications(string $allianceId, string $candidateId): array
     {
-        $rows = RecruitmentCommunication::query()
+        $query = RecruitmentCommunication::query()
             ->where('alliance_id', $allianceId)
-            ->where('candidate_id', $candidateId)
-            ->orderByDesc('created_at')
-            ->limit(50)
-            ->get();
-        $latest = $rows->first();
+            ->where('candidate_id', $candidateId);
+        $total = (clone $query)->count();
+        $latest = $query->orderByDesc('created_at')->orderByDesc('id')->first();
 
         return [
-            'total' => $rows->count(),
+            'total' => $total,
             'latestStatus' => $latest instanceof RecruitmentCommunication
                 ? $latest->communicationStatus()->value
                 : null,

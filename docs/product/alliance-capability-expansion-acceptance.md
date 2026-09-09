@@ -62,16 +62,16 @@ Status: Current complete capability
 ## ACE-07 Recruitment re-entry controls
 
 - Controls are Alliance-local, recruiter-private and one of `normal`, `do_not_invite`, `reapply_after`, `review_required`.
-- Optional reason/review date are audited.
+- Optional reason/review date are audited until the candidate retention boundary; expired private metadata is redacted atomically with candidate anonymization.
 - Conversion/invitation respects active controls.
 - Expired `reapply_after` controls no longer block once their date is reached.
 - Duplicate merge preserves the stricter unresolved control deterministically.
-- Existing retention/anonymization policy remains authoritative.
+- Existing retention/anonymization policy remains authoritative, including re-entry fields and alternate detail routes.
 - No global blacklist or public exposure is introduced.
 
 ## ACE-08 Alliance governance timeline
 
-- Authorized officers can read a bounded chronological timeline of consequential settings, membership, role, leadership, recruitment, Content and Integration administration.
+- Authorized officers can read a bounded chronological timeline of consequential settings, membership, role, leadership, recruitment, Content and Integration administration. Recruitment entries additionally require current RecruitmentManage and are filtered before pagination; HTTP and Assistant use the same viewer-authorized projection.
 - Timeline entries retain owner source and handoff links where supported.
 - Timeline owns no domain truth and performs no writes.
 - Ordering/filtering and pagination are deterministic and scope bound.
