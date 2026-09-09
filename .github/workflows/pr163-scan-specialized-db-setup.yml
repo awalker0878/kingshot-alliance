@@ -26,7 +26,6 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           import json
-          import re
           from pathlib import Path
 
           groups = {
@@ -43,20 +42,11 @@ jobs:
               'king-perks': [Path('tests/Feature/Contexts/Operations/KingPerks')],
           }
 
-          reset_traits = {
-              'DatabaseTruncation': 'DatabaseTruncation',
-              'RefreshDatabase': 'RefreshDatabase',
-              'DatabaseTransactions': 'DatabaseTransactions',
-              'DatabaseMigrations': 'DatabaseMigrations',
-          }
-          # Conservative DB-use signals. A Laravel TestCase without a reset trait is
-          # also reported separately even if these lexical signals are absent.
-          db_patterns = [
-              re.compile(r'\\bDB::'),
-              re.compile(r'assertDatabase'),
-              re.compile(r'->(?:insert|update|delete|save|create|forceCreate)\\s*\\('),
-              re.compile(r'::(?:query\\(\\)->)?(?:create|factory|where|find|findOrFail|first|firstOrFail)\\s*\\('),
-              re.compile(r'Illuminate\\\\Database'),
+          reset_traits = ['DatabaseTruncation', 'RefreshDatabase', 'DatabaseTransactions', 'DatabaseMigrations']
+          db_tokens = [
+              'DB::', 'assertDatabase', 'Illuminate\\Database',
+              '::factory(', '::create(', '::query()', '->save(', '->delete(',
+              '->insert(', '->update(', '->forceCreate(',
           ]
 
           report = {}
@@ -68,11 +58,10 @@ jobs:
               rows = []
               for path in files:
                   source = path.read_text()
-                  traits = [label for label, token in reset_traits.items()
-                            if re.search(rf'\\buse\\s+{re.escape(token)}\\s*;', source)]
+                  traits = [trait for trait in reset_traits if f'use {trait};' in source]
                   pure_phpunit = 'use PHPUnit\\Framework\\TestCase;' in source
                   laravel_test_case = 'use Tests\\TestCase;' in source
-                  db_signal = any(pattern.search(source) for pattern in db_patterns)
+                  db_signal = any(token in source for token in db_tokens)
                   rows.append({
                       'path': path.as_posix(),
                       'traits': traits,
@@ -83,14 +72,12 @@ jobs:
               unknown = [row for row in rows
                          if not row['traits'] and not row['pure_phpunit']
                          and (row['laravel_test_case'] or row['db_signal'])]
-              unsafe_transaction = [row for row in rows
-                                    if 'DatabaseTransactions' in row['traits']]
               report[name] = {
                   'files': len(rows),
                   'reset_owned': sum(bool(row['traits']) for row in rows),
                   'pure_phpunit': sum(row['pure_phpunit'] for row in rows),
                   'unknown_laravel_or_db': unknown,
-                  'database_transactions': unsafe_transaction,
+                  'database_transactions': [row for row in rows if 'DatabaseTransactions' in row['traits']],
                   'rows': rows,
               }
 
