@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `69bf4440d829952d04fc8d5781e0d51f9a06219b`.
+- Latest pushed durable checkpoint: `6726d1fd139f8be241f527c00e99643624c1e1a6`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-052/058 / In progress; isolated catalog HTTP actor sessions and truthful retry-safe role-removal events.
+- Current item/state: HARD-059 / In progress; shared Alliance settings input is prepared. Lifecycle race, owner duplication and cleanup lock-order findings are recorded under HARD-060–063.
 - Most recently verified gates: all nine PR workflows pass on `8c6b8a7a29a7d0bc1ecba9a1aa579bc88e828d5e`, including 876 PHP tests / 75,032 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: RemoveMembershipRole, AllianceRoleRemovalRetryV3Test, AllianceRoleCatalogV3Test and Access/ledger contracts.
-- Current CI result: 69bf4440 completes 1,087 PostgreSQL/Redis parallel tests / 78,054 assertions with exactly one failure: the combined catalog HTTP test retains the previous account's browser session and receives 401 before its expected permission denial. Full PHPStan/Pint, fresh installation, frontend, all 50 visual cases and five security/capability workflows pass. All role creation/archival/input/upload cases pass. 8814c59a's 1,079-test serial job completes normally in 27 minutes and reports the same fixture failure. Item-specific verified findings are closed below; final containing gates remain.
-- Remaining current work: Verify isolated catalog actor sessions and four removal retry/rollback cases; finish pending parallel/container evidence; continue lifecycle, membership, recruitment, content and the remaining repository audit.
-- Known failures: The catalog fixture now rotates and clears session state before each actor; its original HTTP authority expectations and all middleware are preserved. HARD-058 behavior is implemented but not yet executed in CI.
+- Active files: AllianceSettingsInput, CreateAlliance, UpdateAllianceSettings, creation controller, lifecycle regression and current contracts.
+- Current CI result: 6726d1fd passes frontend, all visual cases, dependency review, CodeQL, Gift Code, King Perks and KingdomMaps. PHP/Architecture/Intelligence remain running. Earlier 69bf4440 runs 1,087 tests / 78,054 assertions with only the catalog actor-session fixture failure, corrected in 6726d1fd. All item-specific role/input/archive/upload cases, full PHPStan/Pint and fresh schema pass there; the 35-minute serial allowance reports normal full-suite outcomes.
+- Remaining current work: Verify the catalog/removal checkpoint and shared settings input, implement HARD-060–063, then continue remaining lifecycle/membership/recruitment/content and repository audit.
+- Known failures: No completed failure on 6726d1fd has been observed; its full gates are still running. Shared settings input and its nine PHP/HTTP cases await executable verification.
 - Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout tracks the latest remote checkpoint; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: Publish/verify this retry/fixture checkpoint, then continue Alliance lifecycle/membership boundary tracing while its full gates run.
+- Exact next action: Publish/verify shared lifecycle validation, then address global slug collisions and creation ownership races with consistent account/Kingdom/Player locking; retain independent membership cleanup and Platform ownership items.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -841,6 +841,76 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - State: In progress.
 - Verification required: Absent/repeated removal, distinct same-time transitions, current authority on retries and late outbox rollback followed by successful retry.
 - Verification result: Direct/bulk owners and governance history consumer traced. Four PostgreSQL regression cases are prepared; full executable verification pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-059 — Alliance creation and settings use inconsistent input invariants
+
+- Area: Alliance Lifecycle HTTP and direct owner settings input.
+- Finding: Creation accepts reserved URL names and arbitrary language values that settings updates reject. CreateAlliance has no owner name/slug/timezone bounds; UpdateAllianceSettings does not enforce the 120-character columns after slug normalization, which can expand valid-looking Unicode input.
+- Current owner: Two controller/Action rule sets under Lifecycle.
+- Intended authoritative owner: One immutable AllianceSettingsInput contract shared by both owner Actions.
+- Rationale: Every creation/update path must produce usable settings within schema bounds and the same closed language vocabulary.
+- Remediation: Share normalization, reserved names, storage limits, supported locales and IANA timezone validation; retain controller input-shape feedback and no-op update behavior.
+- State: In progress.
+- Verification required: Both direct owners reject malformed/expanded values without partial writes, real HTTP creation rejects reserved URLs/unsupported languages, valid storage boundaries persist and same-value updates remain no-ops.
+- Verification result: Shared input contract and nine PostgreSQL/HTTP cases prepared. Executable verification pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-060 — Concurrent Alliance URL claims escape as database errors
+
+- Area: Alliance creation/settings uniqueness under concurrent different administrators.
+- Finding: Creation relies on the controller's earlier unique check; settings locks an absent target slug while holding only its own Alliance. Competing owners can both observe the same available global slug before the unique constraint rejects one insert/update.
+- Current owner: Lifecycle mutations and alliances.slug unique constraint.
+- Intended authoritative owner: Database uniqueness with recoverable, narrowly classified owner validation.
+- Rationale: A competing URL claim must preserve the winner and give ordinary field feedback without poisoning an enclosing transaction or hiding unrelated database faults.
+- Remediation: Use savepoint-backed exact slug collision recovery for creation/update and preserve current authorization/atomic events.
+- State: Planned.
+- Verification required: Real separate-connection create/create, create/update and update/update competition; one winner, usable caller transactions, independent slugs, retry safety and unrelated failures.
+- Verification result: HTTP uniqueness, absent-row lock and schema authority traced; implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-061 — Alliance creation uses unlocked Player ownership and Kingdom facts
+
+- Area: Alliance creation versus Player release/reconciliation/account finalization and competing creation.
+- Finding: CreateAlliance reads a claimed Player snapshot without locking its current account/Player/Kingdom. ReleasePlayerAccount and account finalization can clear ownership after that read, while creation still establishes active R5 membership. Same-Player competing creations also both pass an absent active-membership query before a unique violation.
+- Current owner: Alliance creation consuming GameWorld and Accounts owner references.
+- Intended authoritative owner: Creation validates current active account, canonical Player ownership and active Kingdom under a consistent owner lock order before establishing membership.
+- Rationale: Creating leadership must serialize with ownership revocation and must not create an unclaimed/terminal account's Alliance from stale facts.
+- Remediation: Acquire current owner locks through reference APIs, recheck candidate identities, coordinate one-active-membership outcomes and preserve atomic bootstrap/audit/outbox.
+- State: Planned.
+- Verification required: Real competing ownership release/finalization/reconciliation, both commit orders, same-Player creation, inactive Kingdom, changed owner and late rollback; no new lock-order inversion.
+- Verification result: Creation, ReleasePlayerAccount, ReleasePlayersFromAccount, ReconcilePlayers and account finalization traced. Lock-order review and implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-062 — Alliance duplicates Platform provisioning and entitlement interpretation
+
+- Area: Alliance creation, Membership/Content capacity and Platform AllianceAdministration.
+- Finding: AllianceBootstrapProvisioner writes Platform-owned plan/settings tables with upserts that can reset existing configuration. MemberCapacityPolicy and StorageCapacityPolicy duplicate PlanEntitlementService's plan resolution and entitlement lookup instead of consuming an owner query.
+- Current owner: Duplicated Alliance services/policies and Platform plan/settings models/service.
+- Intended authoritative owner: Platform owns initial plan/settings persistence and entitlement lookup; Alliance owns its usage/capacity decisions through explicit owner contracts.
+- Rationale: Plan/default changes must have one authority and initialization retries must preserve administrative changes.
+- Remediation: Move initial persistence behind a Platform owner Action and centralize entitlement facts, migrate current consumers and remove superseded copies with architecture protection.
+- State: Planned.
+- Verification required: Atomic initial provisioning and failure rollback, duplicate initialization preserves settings, consistent missing/custom plan limits, current capacity behavior and dependency/ownership tests.
+- Verification result: All raw plan/settings callers and duplicate lookup implementations traced; architecture decision and implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-063 — Account membership cleanup reverses the Alliance lock order
+
+- Area: Account deletion's RemovePlayersFromAlliances versus Alliance administrative writes.
+- Finding: Cleanup locks memberships before shared Alliance rows. Ordinary and exclusive Alliance writers acquire Alliance before membership, allowing a two-transaction cycle between cleanup's membership lock and an administrator's exclusive Alliance lock.
+- Current owner: Membership cleanup Action composed by account deletion.
+- Intended authoritative owner: The same owner cleanup following the established Alliance-before-membership lock order.
+- Rationale: Account cleanup and administrative writes must not deadlock because they acquire identical rows in opposite order.
+- Remediation: Discover candidate scopes, acquire ordered Alliance locks before current membership locks, revalidate current rows and preserve atomic rank guards, detach and durable records.
+- State: Planned.
+- Verification required: Two-connection cleanup/administration contention, current R5 protection, scoped multi-Alliance cleanup, new/changed membership handling and late rollback.
+- Verification result: RemovePlayersFromAlliances and AllianceWriteState lock sequences traced; implementation pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

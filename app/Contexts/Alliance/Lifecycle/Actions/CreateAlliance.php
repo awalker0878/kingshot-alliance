@@ -8,6 +8,7 @@ use App\Contexts\Alliance\Access\Services\AllianceRoleProvisioner;
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceBootstrapProvisioner;
+use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceSettingsInput;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
@@ -28,7 +29,9 @@ final readonly class CreateAlliance
 
     public function handle(string $ownerPlayerId, string $name, string $slug, string $language = 'en', string $timezone = 'UTC'): string
     {
-        return DB::transaction(function () use ($ownerPlayerId, $name, $slug, $language, $timezone): string {
+        $settings = AllianceSettingsInput::from($name, $slug, $language, $timezone);
+
+        return DB::transaction(function () use ($ownerPlayerId, $settings): string {
             $owner = $this->players->require($ownerPlayerId);
             if (! $owner->claimed()) {
                 throw ValidationException::withMessages(['player' => 'An Alliance can only be created by a Player claimed by a User account.']);
@@ -39,11 +42,8 @@ final readonly class CreateAlliance
             }
 
             $alliance = Alliance::query()->create([
-                'name' => $name,
-                'slug' => $slug,
+                ...$settings->attributes(),
                 'kingdom_id' => $owner->kingdomId,
-                'language' => $language,
-                'timezone' => $timezone,
                 'status' => AllianceStatus::Active,
             ]);
             AllianceMembership::query()->create([
