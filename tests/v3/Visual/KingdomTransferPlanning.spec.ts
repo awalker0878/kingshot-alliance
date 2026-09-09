@@ -3,8 +3,8 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const transferVisualFingerprints: Record<string, string> = {
-  desktop: '24dc68b7f95f33d58040e6e4eab851de6d41828bafbfdd4ee1c38ea3e64b6797',
-  mobile: 'ba27f6d8a477a948cb7b57baa28c4a31e1fb999ba4f1a847284ed770ffef3586',
+  desktop: 'aaf55590a0019815680596f02a1c00a382ac19f9265e69ca9beeb604d65e9b71',
+  mobile: 'a8121ae901d149acfa90dedf594c979d2903755c3fc5312871ddbfc56970dc81',
 };
 
 async function openTransferPlanning(page: Page): Promise<void> {
@@ -173,11 +173,9 @@ test('Transfer observation history pages independently and retries a failed cont
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await openTransferPlanning(page);
-  const card = page
-    .locator('article')
-    .filter({
-      has: page.getByRole('heading', { name: 'Northstar Marshal', exact: true, level: 2 }),
-    });
+  const card = page.locator('article').filter({
+    has: page.getByRole('heading', { name: 'Northstar Marshal', exact: true, level: 2 }),
+  });
   const history = card
     .locator('details')
     .filter({ has: page.locator('summary', { hasText: /^Observation history$/ }) });

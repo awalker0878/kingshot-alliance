@@ -252,6 +252,7 @@ final class RecruitmentConfigurationInputV3Test extends TestCase
 
         return $state;
     }
+
     private function usePublicClient(string $slug): void
     {
         $prefix = hash('sha256', $slug);

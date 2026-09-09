@@ -46,7 +46,7 @@ final readonly class TransferObservationHistoryQuery
         $items = $rows->take(25)->values();
         $last = $items->last();
 
-        return new PageSlice($items->all(), $rows->count() > 25 && $last instanceof TransferObservation
+        return new PageSlice(array_values($items->all()), $rows->count() > 25 && $last instanceof TransferObservation
             ? $this->cursors->encode($scope, ['at' => $last->observed_at->format('Y-m-d H:i:s.u'), 'id' => (string) $last->id])
             : null, 25, $cursor === null);
     }
