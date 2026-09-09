@@ -8,11 +8,13 @@ Tests are organized by **execution semantics first**, then by the owner of the b
 
 The repository requires PHP 8.5. The inspected dependency artifact contains Laravel 13.30.1, PHPUnit 12.5.33, ParaTest 7.20.0 and Pint 1.30.4; the browser package is Playwright 1.62.1. Inspect installed versions before choosing commands; a lockfile or historical artifact is not evidence of a developer machine's runtime version.
 
-The current ownership pass starts at `4252615d77044b94b02b3cf0937566628313e858`. Commits `57fe1189`, `417f0b3e` and `c06229f9` move 13 existing classes and split one mixed class into two. The resulting 15 PHP files preserve all 59 affected test methods, their assertions, fixtures and provider bodies. The split adds one source class, not new or duplicated scenarios. Thirteen inverse source comparisons reproduce their originals after reversing only namespace/class/path changes; the split's two method bodies are unchanged. Connector blob/subtree hashes match the prepared sources.
+The current continuation starts at `9df8a99a3e07b48e1abdddfbcf8711b911320e8b`. `deddea08` splits mixed pagination checks by resource requirements. `c721daa` separates Transfer source checks from guard behavior and consolidates both Evidence registration methods under the Evidence owner. Across three original PHP classes, all eight original test methods remain exactly once in five focused classes; helpers and assertions are preserved. Only the two extracted source methods substitute `RepositoryPath::fromRoot()` for `base_path()`. The plain PageSlice method and two source methods no longer require Laravel startup; no elapsed saving is claimed.
 
-The reconciled source inventory is **285 PHP test files**: 15 Unit, 189 Feature, 53 Integration, 25 Architecture and 3 Frontend. This follows the prior 284-file inventory plus the one class split; it is **not runtime discovery**. No runner configuration, test-selection filter, production behavior, database reset implementation, retry count, coverage threshold or worker count changed in this ownership pass.
+`3524c496` groups all 17 browser specifications under their Context, ReadModel, Shared or Acceptance owner. It reuses every spec's original Git blob and the complete 12-PNG ApplicationShell baseline tree, moved to match the unchanged snapshot template. Browser titles, assertions, setup hooks, manual fingerprints and timeout values are unchanged. File-based IDs and execution order may change; runtime inventory and isolation reconciliation remain required. See [Browser navigation](../../tests/Browser/README.md).
 
-Only source inspection, source equivalence and host PHP 8.4.23 syntax checks were performed for these changes. PHP 8.5 target-runtime validation, PHPUnit discovery/execution, browser execution, order/isolation checks and after-change timing remain pending. No tests, migrations, benchmarks or CI dispatch were run. Commits carry `[skip ci]` during the explicit execution hold; that does not satisfy or permanently disable the required gates.
+The source inventory accounts for **287 PHP test files**: 16 Unit, 189 Feature, 53 Integration, 26 Architecture and 3 Frontend. This is the prior 285-file inventory plus the two net class splits, not new scenarios or runtime discovery. No runner configuration, test-selection filter, production behavior, database reset implementation, retry count, coverage threshold or worker count changed in this continuation.
+
+Source-method comparisons, browser blob/snapshot reconciliation and host PHP 8.4.23 syntax checks were performed. The five resulting test files and updated source-certification script match the prepared Git blob hashes. The script and two operational/product references change only their browser paths. Syntax checks do not execute the tests or the source-certification script. PHP 8.5 target-runtime validation, formatting/static analysis, PHPUnit discovery/execution, browser execution, order/isolation checks and after-change timing remain pending for the final revision. No tests, migrations, benchmarks or CI dispatch were run. Commits carry `[skip ci]` during the explicit execution hold; that does not satisfy or permanently disable the required gates.
 
 ## Suite structure and ownership
 
@@ -26,9 +28,9 @@ Only source inspection, source equivalence and host PHP 8.4.23 syntax checks wer
 | Architecture | Ownership, dependencies, source boundaries, reflection and actual application registration | Pure PHPUnit for source/reflection; Laravel for real wiring/routes/scheduler |
 | Frontend | PHP-side frontend source contracts | No browser startup; not a substitute for browser journeys |
 
-`tests/Browser` contains Playwright journeys. `tests/Fixtures`, `tests/Support` and `tests/TestCase.php` are support, not execution suites.
+`tests/Browser` contains Playwright journeys grouped by rendered-surface ownership. `tests/Fixtures`, `tests/Support` and `tests/TestCase.php` are support, not execution suites.
 
-Use `Contexts/<Context>/<Capability>`, `ReadModels/<Composition>`, `Workflows/<Workflow>` and `Shared/Infrastructure/<Concern>` below the appropriate tier. The read-model boundary classes now live under [Architecture/ReadModels](../../tests/Architecture/ReadModels/README.md); capability boundaries live under [Architecture/Contexts](../../tests/Architecture/Contexts/README.md). Repository-wide rules and cross-application acceptance matrices remain explicitly cross-cutting instead of being assigned to an arbitrary context.
+Use `Contexts/<Context>/<Capability>`, `ReadModels/<Composition>`, `Workflows/<Workflow>` and `Shared/Infrastructure/<Concern>` below the appropriate tier. The read-model boundary classes live under [Architecture/ReadModels](../../tests/Architecture/ReadModels/README.md); capability boundaries live under [Architecture/Contexts](../../tests/Architecture/Contexts/README.md). Repository-wide rules and cross-application acceptance matrices remain explicitly cross-cutting instead of being assigned to an arbitrary context.
 
 Frontend contracts are grouped under GameWorld/Players, Alliance/Content and GameWorld/KingdomTransfers. Cross-route throttle behavior is under `Feature/Shared/Infrastructure/Security`; cache namespace and migration-reference harness checks are under `Integration/Shared/Testing`. The separate top-level Feature/Infrastructure and Integration/Infrastructure buckets are gone.
 
@@ -38,7 +40,9 @@ The existing `Integration/Concurrency/Contexts` and `Integration/Concurrency/Wor
 
 `Tests\Support\RepositoryPath::fromRoot()` locates source files independently of test nesting and does not cache their contents. Source-only classes use `PHPUnit\Framework\TestCase`. Real container, route, middleware, scheduler, encryption and persistence contracts keep `Tests\TestCase`.
 
-Within `Architecture/Contexts/Intelligence/Evidence`, `EvidenceReferenceContractTest` now owns the unchanged family-neutral interface reflection method. `GovernorProgressionEvidenceBindingTest` owns the unchanged real container-resolution method. Both remain in Architecture and the existing Intelligence path selection; only the reflection case stops paying for a Laravel bootstrap. The split is not permission to replace the binding assertion with a mock or source string.
+Within `Architecture/Contexts/Intelligence/Evidence`, `EvidenceReferenceContractTest` owns family-neutral interface reflection. `EvidenceReferenceBindingTest` consolidates the unchanged general and progression registration methods, both using the real container. Under the Transfer owner, `Architecture/Contexts/GameWorld/KingdomTransfers/TransferEvidenceWriteBoundaryTest` inspects guard usage and provenance fingerprints; `Feature/Contexts/GameWorld/KingdomTransfers/TransferEvidenceReferenceGuardTest` retains same-alliance/approval behavior with actual Laravel validation. These complementary contracts replace the former mixed class without removing its scenarios.
+
+Pagination uses matching `Shared/Infrastructure/Pagination` owner folders across Unit and Feature. `PageSliceTest` verifies the plain response shape without a framework. `ScopedCursorCodecTest` verifies opaque encrypted cursors and cross-scope rejection through the actual application. Do not replace that encryption/validation path with mocks simply to make it as cheap as the data-object check.
 
 `scripts/verify-test-layout.php` guards suite topology, namespace/file alignment, duplicate declarations, undiscovered PHP test files, stale versioned root references and ordinary per-test schema rebuilds. Source guards do not replace runtime discovery or behavioral verification.
 
@@ -62,14 +66,22 @@ vendor/bin/phpunit --fail-on-empty-test-suite \
   tests/Architecture/ReadModels/Progression \
   tests/Feature/ReadModels/Progression
 
-# One real application-binding contract
+# Pagination data and real encrypted-cursor behavior
 vendor/bin/phpunit --fail-on-empty-test-suite \
-  tests/Architecture/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceBindingTest.php
+  tests/Unit/Shared/Infrastructure/Pagination \
+  tests/Feature/Shared/Infrastructure/Pagination
+
+# Real Evidence registration contracts
+vendor/bin/phpunit --fail-on-empty-test-suite \
+  tests/Architecture/Contexts/Intelligence/Evidence/EvidenceReferenceBindingTest.php
 
 # Full PHP regression: serial, existing local parallel, or fixed two-worker CI
 composer test
 composer test:parallel
 composer test:ci
+
+# One browser surface for development only
+npm run test:visual -- tests/Browser/ReadModels/RecruitmentManagement
 
 # Full browser/visual verification
 npm run test:visual
@@ -95,13 +107,13 @@ Snapshots are process-local and keyed by the actual PostgreSQL connection target
 
 A migration that populates another table requires review of reference-table insertion order and identity-sequence handling. Unclassified populated tables fail closed for review. Do not bypass that failure by excluding mutable tables, disabling constraints or recording test data as reference truth. Cleanup must preserve failing exit behavior, framework teardown and cache-environment restoration.
 
-The earlier migration-reference repair and its six authored regression cases still require execution. Validate mixed `DatabaseTruncation`/`RefreshDatabase` ordering, schema reuse, committed fixture removal, reference mutations, identity handling and failure cleanup before accepting it. The ownership pass does not validate or modify that repair.
+The earlier migration-reference repair and its six authored regression cases still require execution. Validate mixed `DatabaseTruncation`/`RefreshDatabase` ordering, schema reuse, committed fixture removal, reference mutations, identity handling and failure cleanup before accepting it. This continuation does not validate or modify that repair.
 
 ## Parallelism and isolation
 
 The existing full CI path uses two PHP workers; the developer parallel command retains its local default. Do not increase either on an assumption of safety. Check databases, caches, queues, sessions, files, temporary directories, object-storage prefixes, ports, browser profiles, external identifiers, static/global state and fixtures. Keep cases serial or independently isolated where competing execution would invalidate their purpose.
 
-Playwright remains `workers: 1` and `fullyParallel: false`. Neither workers nor retries were increased. Repeat isolation-sensitive cases in different orders and under bounded worker counts before claiming reliable parallelism. Report wall-clock improvement separately from aggregate compute cost.
+Playwright remains `workers: 1` and `fullyParallel: false`. Neither workers nor retries were increased. Repeat isolation-sensitive cases in different orders and under bounded worker counts before claiming reliable parallelism. Report wall-clock improvement separately from aggregate compute cost. Browser directory moves can change file-based discovery IDs and execution order even when file contents are identical; reconcile both projects and shared fixtures before accepting the reorganization.
 
 ## Profiling and budgets
 
