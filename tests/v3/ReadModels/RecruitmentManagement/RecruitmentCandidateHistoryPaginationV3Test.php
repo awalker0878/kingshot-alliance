@@ -178,9 +178,11 @@ final class RecruitmentCandidateHistoryPaginationV3Test extends TestCase
         $user->forceFill(['email_verified_at' => now()])->save();
         $this->actingAs($user)->withSession([(string) config('game_world.active_player_session_key') => $owner->playerId])
             ->get(route('alliance.recruitment.candidates.show', $candidate))
-            ->assertOk()->assertInertia(static fn (Assert $page) => $page->component('Alliance/Recruitment/Candidate')
-                ->has('notesPage.items', 0)->has('historyPage.items', 0)->has('communicationsPage.items', 0)->has('duplicatesPage.items', 0)
-                ->where('notesPage.pageSize', 25)->missing('notes')->missing('history')->missing('communications')->missing('duplicates'));
+            ->assertOk()->assertInertia(static function (Assert $page): void {
+                $page->component('Alliance/Recruitment/Candidate')
+                    ->has('notesPage.items', 0)->has('historyPage.items', 0)->has('communicationsPage.items', 0)->has('duplicatesPage.items', 0)
+                    ->where('notesPage.pageSize', 25)->missing('notes')->missing('history')->missing('communications')->missing('duplicates');
+            });
         $this->getJson(route('alliance.recruitment.candidates.show', ['candidate' => $candidate->id, 'notes_cursor' => ['invalid']]))->assertUnprocessable();
     }
 

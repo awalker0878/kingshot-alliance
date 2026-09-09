@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Recruitment\Actions;
 
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Http\BulkActionResult;
@@ -32,6 +33,7 @@ final readonly class BulkChangeRecruitmentStage
         ?string $reason = null,
         ?CarbonImmutable $nextActionAt = null,
     ): BulkActionResult {
+        $reason = RecruitmentTextInput::reason($reason);
         $preview = $this->preview->handle($actorPlayerId, $allianceId, $candidateIds, $target);
         $items = [];
 

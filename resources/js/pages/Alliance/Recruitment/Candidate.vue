@@ -6,6 +6,7 @@ import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import CursorPagination from '@/components/ui/CursorPagination.vue';
+import FormError from '@/components/ui/FormError.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
@@ -40,6 +41,7 @@ const props = defineProps<{
     playerId: string | null;
     membershipInvitationId: string | null;
   };
+  inputLimits: { note: number; reason: number };
   answers: Array<{ id: string; prompt: string; type: string; answer: Record<string, unknown> }>;
   reviewers: Array<{ id: string; name: string }>;
   notesPage: DetailPage<{ id: string; body: string; author: string; createdAt: string | null }>;
@@ -370,8 +372,9 @@ function humanize(value: string): string {
                 id="candidate-stage-reason"
                 v-model="stageForm.reason"
                 class="ks-input mt-1.5 min-h-20"
-                maxlength="5000"
+                :maxlength="inputLimits.reason"
               />
+              <FormError :message="stageForm.errors.reason" />
             </div>
             <AppButton class="w-full" type="submit" :disabled="stageForm.processing">{{
               t('recruitment.updateStage')
@@ -615,9 +618,10 @@ function humanize(value: string): string {
               <textarea
                 v-model="noteForm.body"
                 class="ks-input min-h-24"
-                maxlength="5000"
+                :maxlength="inputLimits.note"
                 required
               />
+              <FormError :message="noteForm.errors.body" />
               <AppButton type="submit" variant="ghost" :disabled="noteForm.processing">{{
                 t('recruitment.addNote')
               }}</AppButton>
@@ -849,9 +853,10 @@ function humanize(value: string): string {
               <textarea
                 v-model="mergeReason.reason"
                 class="ks-input mt-4 min-h-20"
-                maxlength="5000"
+                :maxlength="inputLimits.reason"
                 :placeholder="t('recruitment.mergeReason')"
               />
+              <FormError :message="mergeReason.errors.reason" />
               <div class="mt-4 space-y-2">
                 <article
                   v-for="duplicate in duplicatesPage.items"

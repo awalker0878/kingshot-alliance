@@ -81,6 +81,7 @@ type BulkResult = {
 };
 
 const props = defineProps<{
+  reasonMaxLength: number;
   user: { name: string; email: string };
   alliance: { id: string; name: string; slug: string };
   settings: {
@@ -655,7 +656,7 @@ function humanize(value: string): string {
               id="recruitment-bulk-reason"
               v-model="bulkReason"
               class="ks-input mt-1.5"
-              maxlength="5000"
+              :maxlength="reasonMaxLength"
             />
           </div>
           <div>

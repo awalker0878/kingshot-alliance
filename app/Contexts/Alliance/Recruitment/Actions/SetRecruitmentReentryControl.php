@@ -9,6 +9,7 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentReentryControl;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Carbon;
@@ -32,7 +33,7 @@ final readonly class SetRecruitmentReentryControl
         ?string $reason = null,
         ?string $reviewAt = null,
     ): string {
-        $reason = $reason === null || trim($reason) === '' ? null : trim($reason);
+        $reason = RecruitmentTextInput::reason($reason);
         $review = $reviewAt === null || trim($reviewAt) === '' ? null : Carbon::parse($reviewAt);
         if ($control === RecruitmentReentryControl::ReapplyAfter && $review === null) {
             throw ValidationException::withMessages(['review_at' => 'A reapply-after control requires a review date.']);

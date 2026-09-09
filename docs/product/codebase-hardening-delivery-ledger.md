@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `0709f9bc420d3b158704a493454e9adc5bd4183c`.
+- Latest pushed durable checkpoint: `33022998a48aa73b7920ca655aea6ce1333a3b86`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-087 / In progress; four growing candidate histories now have scoped 25-record pages and ReadModel composition, with thirteen PHP and two desktop/mobile browser cases. HARD-078–082/084–086 remain in verification on 0709f9bc after the unreachable Joined branch was removed.
+- Current item/state: HARD-089 / In progress; review text owners and adapters now share finite limits, with nineteen direct/HTTP boundary cases. HARD-087 formatting and visual fixture corrections are included; history and newer Membership/Recruitment containing verification remain pending.
 - Most recently verified gates: all nine PR workflows pass on `abda37b1b3093c8cde37026eb19fccc8b9d097eb`, including 1,267 PHP tests / 80,498 assertions in parallel PHP and both complete serial suites, fresh PostgreSQL, frontend, container/staging/recovery, all fifty visual cases and security/capabilities.
-- Active files: RecruitmentCandidateDetailQuery, candidate read/mutation adapters, duplicate query, current history/duplicate indexes, candidate page and pagination component, localized summaries, history PHP/browser fixtures, ADR-0036 and current contracts.
+- Active files: Recruitment review text owners, RecruitmentTextInput, candidate/re-entry/management adapters and pages, nineteen boundary cases, history formatting/visual fixture corrections, verbose Pint diagnostics and current contracts.
 - Current CI result: All nine workflows pass on abda37b1. Parallel PHP job 102348335586 passes 1,267 tests / 80,498 assertions in 20:28 plus Pint (1,929 files), PHPStan and fresh schema. Architecture job 102348335670 passes static 63 / 69,236 and full 1,267 / 80,498 in 40:16; Intelligence job 102348335749 passes full 1,267 / 80,498 in 41:31. Container/staging/recovery job 102352927089 passes. The following 4de40440 static-analysis failure is fixed on 0709f9bc. That PHP job passes Pint (1,935 files), PHPStan and fresh schema, and executes 1,349 tests / 80,893 assertions in 16:40; five new intake cases fail due to fixture/exception-contract errors, corrected in the current slice.
 - Remaining current work: Verify the newer Membership/Recruitment and candidate-history changes; continue Recruitment collection/input bounds and the remaining capability-by-capability repository audit.
-- Known failures: On 0709f9bc, PHP job 102354999782 executes all 1,349 cases; only five new RecruitmentIntakeConcurrency cases fail. Three expect AuthorizationException/application feedback instead of the existing account-owned ValidationException/account field; two bypass the question owner and omit its required updated_by_player_id. Correct the assertions to the current account contract and create the question through its real owner. All other new Membership/Recruitment cases pass. Reverification of these five and HARD-087 is pending.
+- Known failures: On 33022998, PHP job 102359426032 stops at Pint on the new detail query and HTTP history assertion formatting; fresh schema and frontend pass. Visual job 102359425482 stops during seeding because independent ScenarioFactory processes reuse the same stable Player ID. The new fixture now uses an explicit unique Player ID and Alliance slug. Formatting is corrected and full Pint remains required, with verbose failure differences enabled. Earlier 0709f9bc executes all 1,349 tests with five intake fixture/exception errors, corrected on 33022998; those corrections still await containing execution.
 - Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout tracks the latest remote checkpoint; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: Verify the Membership/Recruitment containing gates on 0709f9bc, publish the locally checked candidate-history projection under HARD-087, then continue HARD-088/089 and the remaining capability audit.
+- Exact next action: Publish review text bounds and the current history gate corrections, verify containing CI, then finish HARD-088/090/091 and the remaining capability audit.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -1266,15 +1266,43 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 
 ### HARD-089 — Recruitment free-text owner limits depend on HTTP adapters
 
-- Area: AddRecruitmentNote and stage/merge/re-entry reason mutation owners.
-- Finding: AddRecruitmentNote validates only nonempty text while its HTTP adapter permits up to 10,000 characters and the candidate textarea stops at 5,000. Stage, merge and re-entry reasons similarly accept direct-owner text without the adapter's finite input limit, allowing oversized retained text and delivery metadata through other callers.
+- Area: AddRecruitmentNote and individual/bulk stage, merge and re-entry reason mutation owners.
+- Finding: AddRecruitmentNote validates only nonempty text while its HTTP adapter permits up to 10,000 characters and the candidate textarea stops at 5,000. Stage, merge and re-entry reasons accept direct-owner text without the adapter's finite input limit; bulk must reject malformed common input before outcomes/audit.
 - Current owner: Recruitment text mutation owners and their adapters.
 - Intended authoritative owner: Shared existing product input bounds enforced by each protected owner entrypoint.
 - Rationale: Direct and HTTP callers must have one finite accepted input contract.
-- Remediation: Trace each current limit/normalization and enforce it in the owner while preserving field-specific feedback, optional reasons and atomic side effects.
-- State: Planned.
+- Remediation: RecruitmentTextInput owns trimmed Unicode-aware note/reason normalization (10,000/5,000 characters), null empty optional reasons and field feedback. All five owners validate before effects; adapters/page props use the constants. Candidate note/reason forms display matching errors, and the note textarea uses its existing accepted 10,000-character contract.
+- State: In progress.
 - Verification required: Exact boundaries, whitespace and Unicode handling, optional empty reasons, direct-owner rejection before effects and matching adapter contracts.
-- Verification result: Note owner/adapter and candidate reason paths identified; detailed limit tracing and implementation pending.
+- Verification result: Nineteen new PostgreSQL cases exercise direct/HTTP exact multibyte boundaries and overflow for all five paths, both optional-null/whitespace forms and empty-note feedback, with retained values and unchanged candidate/history/audit/outbox snapshots on rejection. Full local frontend check passes; final bulk-page prop type, lint and formatting verification and documentation links (252 files) pass. PHP execution remains pending.
+- Completion evidence: RecruitmentTextBoundaryV3Test and current architecture/owner contracts; no database fallback or historical migration.
+- Commit SHA: pending.
+
+### HARD-090 — Recruitment configuration and public intake have incomplete owner input limits
+
+- Area: Settings, question create/update, decision templates, onboarding configuration and public application owners.
+- Finding: Configuration owners lack existing HTTP prompt/help/name/body/description and 30-option/160-character bounds. Public application text answers have no finite length bound even through HTTP; full name/contact/source owner validation also differs from adapter bounds. These inputs feed retained snapshots and communications.
+- Current owner: Recruitment configuration and intake actions, with some limits only in controllers.
+- Intended authoritative owner: Existing protected owner input contracts, reused by adapters and forms.
+- Rationale: Bounded result counts alone do not bound individual retained payloads or prevent direct-owner database errors.
+- Remediation: Reconcile current schema/adapter/form limits, enforce meaningful owner validation for all accepted input shapes, and bound answer/options content without discarding valid required answers.
+- State: Planned.
+- Verification required: Current and excessive text/options, malformed answer shapes, full required-answer semantics, direct/HTTP parity and atomic rejection.
+- Verification result: Owner/controller/normalization paths traced; detailed contracts and implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-091 — Recruitment anonymization leaves private control and identity links
+
+- Area: Unsuccessful-candidate retention, re-entry projection and retained delivery/audit metadata.
+- Finding: PurgeExpiredRecruitmentCandidates clears names/email/answers/private child rows but retains player_id, source and re-entry reason/review/set metadata. RecruitmentReentryController.show excludes merged rows but still serves anonymized candidates. The product requires private re-entry controls to obey existing candidate retention rules.
+- Current owner: Recruitment retention and re-entry read paths; historical metadata belongs to its existing recorder/retention owners.
+- Intended authoritative owner: Complete current Recruitment anonymization contract with explicit preserved aggregate facts.
+- Rationale: A terminal candidate must not retain or expose private review text and identity linkage through an alternate page.
+- Remediation: Trace all retained fields and metadata against the current policy, clear private candidate fields through retention, exclude terminal re-entry detail, and reconcile cross-owner retained evidence without parallel authority.
+- State: Planned.
+- Verification required: Real private control and linked candidate before/after actual purge, read denial, unaffected aggregate facts, concurrent writes, rollback/retry and historical metadata policy.
+- Verification result: Current purge fields, alternate show query and product retention requirement traced; full metadata review and implementation pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

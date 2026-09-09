@@ -11,6 +11,7 @@ use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentStageHistory;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
@@ -37,6 +38,8 @@ final class ChangeRecruitmentStage
         if ($target === RecruitmentStage::Joined) {
             throw ValidationException::withMessages(['stage' => 'Joined is recorded when the candidate accepts the Alliance invitation.']);
         }
+
+        $reason = RecruitmentTextInput::reason($reason);
 
         return DB::transaction(function () use ($actorPlayerId, $allianceId, $candidateId, $target, $reason, $nextActionAt): string {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
@@ -130,7 +133,7 @@ final class ChangeRecruitmentStage
                 'candidate_id' => $locked->id,
                 'from_stage' => $from,
                 'to_stage' => $target,
-                'reason' => $reason === null ? null : trim($reason),
+                'reason' => $reason,
                 'changed_by_player_id' => $context->actor->playerId,
                 'changed_at' => $now,
             ]);

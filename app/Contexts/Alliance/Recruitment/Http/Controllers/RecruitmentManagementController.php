@@ -17,6 +17,7 @@ use App\Contexts\Alliance\Recruitment\Actions\UpdateRecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentQuestionType;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -262,7 +263,7 @@ final class RecruitmentManagementController extends Controller
                 Rule::enum(RecruitmentStage::class),
                 Rule::notIn([RecruitmentStage::Joined->value]),
             ],
-            'reason' => ['nullable', 'string', 'max:5000'],
+            'reason' => ['nullable', 'string', 'max:'.RecruitmentTextInput::REASON_MAX_LENGTH],
             'next_action_at' => ['nullable', 'date'],
         ]);
     }

@@ -9,6 +9,7 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentNote;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -25,10 +26,7 @@ final class AddRecruitmentNote
 
     public function handle(string $actorPlayerId, string $allianceId, string $candidateId, string $body): string
     {
-        $cleanBody = trim($body);
-        if ($cleanBody === '') {
-            throw ValidationException::withMessages(['note' => 'Recruitment note text is required.']);
-        }
+        $cleanBody = RecruitmentTextInput::note($body);
 
         return DB::transaction(function () use ($actorPlayerId, $allianceId, $candidateId, $cleanBody): string {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);

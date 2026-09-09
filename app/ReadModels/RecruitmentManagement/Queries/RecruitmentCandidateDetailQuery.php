@@ -21,6 +21,7 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentNote;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentStageHistory;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentTag;
 use App\Contexts\Alliance\Recruitment\Queries\RecruitmentDuplicateFinder;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\Pagination\PageSlice;
 use App\Shared\Infrastructure\Pagination\ScopedCursorCodec;
@@ -43,7 +44,7 @@ final readonly class RecruitmentCandidateDetailQuery
     ) {}
 
     /**
-     * @param array{notes?:string|null,history?:string|null,communications?:string|null,duplicates?:string|null} $cursors
+     * @param  array{notes?:string|null,history?:string|null,communications?:string|null,duplicates?:string|null}  $cursors
      * @return array<string,mixed>
      */
     public function forCandidate(string $actorPlayerId, string $allianceId, string $candidateId, array $cursors = []): array
@@ -266,6 +267,7 @@ final readonly class RecruitmentCandidateDetailQuery
                 'playerId' => $record->player_id,
                 'membershipInvitationId' => $record->membership_invitation_id,
             ],
+            'inputLimits' => ['note' => RecruitmentTextInput::NOTE_MAX_LENGTH, 'reason' => RecruitmentTextInput::REASON_MAX_LENGTH],
             'answers' => $answerData,
             'reviewers' => $reviewerData,
             'notesPage' => (new PageSlice($noteData, $notes->nextCursor, $notes->pageSize, $notes->isFirstPage))->toArray(),
@@ -288,7 +290,8 @@ final readonly class RecruitmentCandidateDetailQuery
 
     /**
      * @template T of Model
-     * @param Builder<T> $query
+     *
+     * @param  Builder<T>  $query
      * @return PageSlice<T>
      */
     private function historyPage(Builder $query, string $scope, string $column, ?string $cursor): PageSlice

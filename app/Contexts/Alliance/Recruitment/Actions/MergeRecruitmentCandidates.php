@@ -10,6 +10,7 @@ use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentNote;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentReentryPolicy;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -36,6 +37,8 @@ final class MergeRecruitmentCandidates
         if ($sourceCandidateId === $targetCandidateId) {
             throw ValidationException::withMessages(['candidate' => 'A recruitment candidate cannot be merged into itself.']);
         }
+
+        $reason = RecruitmentTextInput::reason($reason);
 
         return DB::transaction(function () use ($actorPlayerId, $allianceId, $sourceCandidateId, $targetCandidateId, $reason): string {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
@@ -83,12 +86,12 @@ final class MergeRecruitmentCandidates
                 'updated_by_player_id' => $context->actor->playerId,
             ])->save();
 
-            if ($reason !== null && trim($reason) !== '') {
+            if ($reason !== null) {
                 RecruitmentNote::query()->create([
                     'alliance_id' => $context->alliance->id,
                     'candidate_id' => $targetCandidate->id,
                     'author_player_id' => $context->actor->playerId,
-                    'body' => 'Merge reason: '.trim($reason),
+                    'body' => 'Merge reason: '.$reason,
                 ]);
             }
 

@@ -29,3 +29,5 @@ Content may display Recruitment availability but does not own a duplicate writab
 - [`docs/architecture/contexts/alliance/recruitment.md`](../../../../docs/architecture/contexts/alliance/recruitment.md)
 
 Candidate detail is composed by `ReadModels/RecruitmentManagement/Queries/RecruitmentCandidateDetailQuery`; the Recruitment candidate controller only adapts mutations. The duplicate owner query returns a scoped 25-record PageSlice, matching the bounded note/history/communication pages. See [ADR-0036](../../../../docs/architecture/adr/0036-bounded-recruitment-candidate-history.md).
+
+Review text is bounded in RecruitmentTextInput at each mutation owner: notes allow 10,000 characters, optional stage/bulk/merge/re-entry reasons 5,000, with trimmed Unicode-aware lengths and null empty reasons. The HTTP and page contracts use the same limits.

@@ -59,3 +59,7 @@ If current recruiter permission is revoked during bulk execution, each remaining
 ## Candidate history reads
 
 RecruitmentManagement owns current authorized candidate-detail composition. Notes, stage history and communications return independent 25-record timestamp/ID pages; duplicate matching returns the same bounded PageSlice contract in oldest-first order. Cursors bind Alliance, candidate and category, and duplicate cursors bind current matching facts. Each request rechecks current authority and terminal state. The page preserves other history sections and unsaved note drafts while navigating. [ADR-0036](../../adr/0036-bounded-recruitment-candidate-history.md) defines the response, current indexes and remaining catalogue/selector audit scope.
+
+## Review text inputs
+
+RecruitmentTextInput defines the existing accepted limits: notes contain 1–10,000 characters after trimming; individual/bulk stage, merge and re-entry reasons are optional and contain at most 5,000 characters after trimming. Unicode characters are counted independently of their UTF-8 byte length. Empty optional reasons are stored as null. Mutation owners validate these inputs before effects, including bulk execution before preview/receipts. HTTP adapters and page limits use the same constants; note errors use the form's body field.

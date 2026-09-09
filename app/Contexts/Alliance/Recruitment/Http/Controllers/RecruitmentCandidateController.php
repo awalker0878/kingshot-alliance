@@ -17,6 +17,7 @@ use App\Contexts\Alliance\Recruitment\Actions\TagRecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Actions\UpdateRecruitmentOnboardingStatus;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentOnboardingStatus;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -34,7 +35,7 @@ final class RecruitmentCandidateController extends Controller
     ): RedirectResponse {
         $validated = $request->validate([
             'stage' => ['required', Rule::enum(RecruitmentStage::class), Rule::notIn([RecruitmentStage::Joined->value])],
-            'reason' => ['nullable', 'string', 'max:5000'],
+            'reason' => ['nullable', 'string', 'max:'.RecruitmentTextInput::REASON_MAX_LENGTH],
             'next_action_at' => ['nullable', 'date'],
         ]);
         $scope = $context->scope();
@@ -71,7 +72,7 @@ final class RecruitmentCandidateController extends Controller
         AddRecruitmentNote $add,
         string $candidate,
     ): RedirectResponse {
-        $validated = $request->validate(['body' => ['required', 'string', 'max:10000']]);
+        $validated = $request->validate(['body' => ['required', 'string', 'max:'.RecruitmentTextInput::NOTE_MAX_LENGTH]]);
         $scope = $context->scope();
         $add->handle($scope->playerId, $scope->allianceId, $candidate, $validated['body']);
 
@@ -98,7 +99,7 @@ final class RecruitmentCandidateController extends Controller
         string $candidate,
         string $target,
     ): RedirectResponse {
-        $validated = $request->validate(['reason' => ['nullable', 'string', 'max:5000']]);
+        $validated = $request->validate(['reason' => ['nullable', 'string', 'max:'.RecruitmentTextInput::REASON_MAX_LENGTH]]);
         $scope = $context->scope();
         $mergedCandidateId = $merge->handle(
             $scope->playerId,
