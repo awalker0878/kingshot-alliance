@@ -159,6 +159,11 @@ const surfaces: Surface[] = [
 ];
 
 test('capability acceptance surfaces remain visually and semantically stable', async ({ page }, testInfo) => {
+  // This acceptance case intentionally traverses seven authenticated surfaces. The
+  // default 30s Playwright budget is suitable for focused cases but made this
+  // aggregate matrix flaky under CI load, so give only this test a realistic cap.
+  test.setTimeout(90_000);
+
   await login(page);
 
   const viewport = testInfo.project.name;
