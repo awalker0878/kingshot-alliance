@@ -27,11 +27,11 @@ def blob_sha(content: bytes) -> str:
 BLOCKERS: list[tuple[str, re.Pattern[str]]] = [
     (
         "schema facade or builder",
-        re.compile(r"Illuminate\\\\Support\\\\Facades\\\\Schema|(?<![A-Za-z0-9_])Schema::|getSchemaBuilder\\s*\\("),
+        re.compile(r"Illuminate\\Support\\Facades\\Schema|(?<![A-Za-z0-9_])Schema::|getSchemaBuilder\s*\("),
     ),
     (
         "migration/schema artisan command",
-        re.compile(r"artisan\\s*\\([^\\n]*(?:migrate|db:wipe|schema:)", re.IGNORECASE),
+        re.compile(r"artisan\s*\([^\n]*(?:migrate|db:wipe|schema:)", re.IGNORECASE),
     ),
     (
         "database refresh hook/state override",
@@ -40,7 +40,7 @@ BLOCKERS: list[tuple[str, re.Pattern[str]]] = [
     (
         "explicit DDL",
         re.compile(
-            r"\\b(?:create|alter|drop)\\s+(?:table|schema|database|index|type|sequence)\\b",
+            r"\b(?:create|alter|drop)\s+(?:table|schema|database|index|type|sequence)\b",
             re.IGNORECASE,
         ),
     ),
