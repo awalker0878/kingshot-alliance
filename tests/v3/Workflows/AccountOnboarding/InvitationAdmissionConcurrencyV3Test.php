@@ -20,6 +20,7 @@ use App\Contexts\Alliance\Membership\Models\Invitation;
 use App\Contexts\GameWorld\Kingdoms\Actions\ArchiveKingdom;
 use App\Contexts\GameWorld\Players\Actions\ClaimPlayerAccount;
 use App\Contexts\GameWorld\Players\Models\Player;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Platform\DataGovernance\Actions\ProcessAccountDeletionRequests;
 use App\Contexts\Platform\DataGovernance\Models\AccountDeletionRequest;
 use App\Workflows\AccountOnboarding\Actions\AcceptInvitationForAccount;
@@ -275,7 +276,7 @@ final class InvitationAdmissionConcurrencyV3Test extends TestCase
         self::assertSame($before, $this->state());
     }
 
-    /** @return array{owner:\App\Contexts\GameWorld\Players\ValueObjects\PlayerReference,userId:int,playerId:string,allianceId:string,rosterId:string,invitationId:string,token:string} */
+    /** @return array{owner:PlayerReference,userId:int,playerId:string,allianceId:string,rosterId:string,invitationId:string,token:string} */
     private function fixture(): array
     {
         $factory = app(ScenarioFactory::class);
