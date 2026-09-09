@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\ReadModels\AllianceAssistant;
+namespace Tests\Unit\ReadModels\AllianceAssistant;
 
 use App\Contexts\GameWorld\Progression\Enums\ProgressionFactKind;
 use App\ReadModels\AllianceAssistant\Enums\AssistantIntent;
 use App\ReadModels\AllianceAssistant\Enums\AssistantPrompt;
 use App\ReadModels\AllianceAssistant\Services\AssistantQuestionInterpreter;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
 final class AssistantQuestionInterpreterV3Test extends TestCase
 {
@@ -21,7 +21,7 @@ final class AssistantQuestionInterpreterV3Test extends TestCase
         bool $includeTime,
         bool $nextEvent,
     ): void {
-        $parsed = app(AssistantQuestionInterpreter::class)->interpret($question);
+        $parsed = (new AssistantQuestionInterpreter)->interpret($question);
 
         self::assertSame($intent, $parsed->intent);
         self::assertSame($subject, $parsed->subject);
@@ -55,7 +55,7 @@ final class AssistantQuestionInterpreterV3Test extends TestCase
         AssistantIntent $intent,
         ?string $subject,
     ): void {
-        $parsed = app(AssistantQuestionInterpreter::class)->interpret('Texte localisé sans grammaire anglaise', $prompt);
+        $parsed = (new AssistantQuestionInterpreter)->interpret('Texte localisé sans grammaire anglaise', $prompt);
 
         self::assertSame($intent, $parsed->intent);
         self::assertSame($subject, $parsed->subject);
@@ -85,7 +85,7 @@ final class AssistantQuestionInterpreterV3Test extends TestCase
 
     public function test_recognized_roster_write_becomes_navigation_handoff_before_prompt_override(): void
     {
-        $parsed = app(AssistantQuestionInterpreter::class)->interpret(
+        $parsed = (new AssistantQuestionInterpreter)->interpret(
             'Put me on the Swordland roster',
             AssistantPrompt::SwordlandRoster,
         );
@@ -97,7 +97,7 @@ final class AssistantQuestionInterpreterV3Test extends TestCase
 
     public function test_recognized_rally_write_preserves_the_bounded_event_subject(): void
     {
-        $parsed = app(AssistantQuestionInterpreter::class)->interpret(
+        $parsed = (new AssistantQuestionInterpreter)->interpret(
             'Assign John to Rally 2 for Bear Hunt',
         );
 
@@ -110,46 +110,46 @@ final class AssistantQuestionInterpreterV3Test extends TestCase
     {
         self::assertSame(
             AssistantIntent::Unsupported,
-            app(AssistantQuestionInterpreter::class)->interpret('Delete every Event')->intent,
+            (new AssistantQuestionInterpreter)->interpret('Delete every Event')->intent,
         );
     }
 
     public function test_game_fact_forms_are_typed_without_creating_a_generic_game_fallback(): void
     {
-        $hero = app(AssistantQuestionInterpreter::class)->interpret('What generation is Amadeus?');
+        $hero = (new AssistantQuestionInterpreter)->interpret('What generation is Amadeus?');
         self::assertSame(AssistantIntent::GameFact, $hero->intent);
         self::assertSame(ProgressionFactKind::HeroGeneration, $hero->gameFact?->kind);
 
-        $troop = app(AssistantQuestionInterpreter::class)->interpret('What are the stats for Infantry T3?');
+        $troop = (new AssistantQuestionInterpreter)->interpret('What are the stats for Infantry T3?');
         self::assertSame(AssistantIntent::GameFact, $troop->intent);
         self::assertSame(ProgressionFactKind::TroopTierStats, $troop->gameFact?->kind);
         self::assertSame(3, $troop->gameFact?->level);
 
         self::assertSame(
             AssistantIntent::Unsupported,
-            app(AssistantQuestionInterpreter::class)->interpret('What are the best heroes in KingShot?')->intent,
+            (new AssistantQuestionInterpreter)->interpret('What are the best heroes in KingShot?')->intent,
         );
     }
 
     public function test_participation_assignment_and_roster_keywords_do_not_collide(): void
     {
-        $waitlist = app(AssistantQuestionInterpreter::class)->interpret('Am I waitlisted?');
+        $waitlist = (new AssistantQuestionInterpreter)->interpret('Am I waitlisted?');
         self::assertSame(AssistantIntent::EventParticipationSelf, $waitlist->intent);
         self::assertSame('waitlist', $waitlist->participationMode);
 
         self::assertSame(
             AssistantIntent::BattlePlanSelf,
-            app(AssistantQuestionInterpreter::class)->interpret('What team am I on?')->intent,
+            (new AssistantQuestionInterpreter)->interpret('What team am I on?')->intent,
         );
         self::assertSame(
             AssistantIntent::EventRosterSelf,
-            app(AssistantQuestionInterpreter::class)->interpret('Am I rostered for Swordland?')->intent,
+            (new AssistantQuestionInterpreter)->interpret('Am I rostered for Swordland?')->intent,
         );
     }
 
     public function test_transfer_target_number_is_typed(): void
     {
-        $parsed = app(AssistantQuestionInterpreter::class)->interpret('Can I transfer to Kingdom 123?');
+        $parsed = (new AssistantQuestionInterpreter)->interpret('Can I transfer to Kingdom 123?');
 
         self::assertSame(AssistantIntent::TransferStatusSelf, $parsed->intent);
         self::assertSame(123, $parsed->kingdomNumber);

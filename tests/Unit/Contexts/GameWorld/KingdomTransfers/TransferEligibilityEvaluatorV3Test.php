@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Contexts\GameWorld\KingdomTransfers;
+namespace Tests\Unit\Contexts\GameWorld\KingdomTransfers;
 
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferEligibilityOutcome;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationStatus;
@@ -15,7 +15,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Services\TransferEligibilityEvaluato
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEligibilityInput;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferObservedValue;
 use Carbon\CarbonImmutable;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
 final class TransferEligibilityEvaluatorV3Test extends TestCase
 {
@@ -29,7 +29,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
 
     public function test_phase_i_and_closed_windows_never_report_eligible(): void
     {
-        $evaluator = app(TransferEligibilityEvaluator::class);
+        $evaluator = (new TransferEligibilityEvaluator);
 
         self::assertSame(TransferEligibilityOutcome::NotOpenYet, $evaluator->evaluate($this->eligibleInput(TransferWindowPhase::PreTransfer), $this->now)->outcome);
         self::assertSame(TransferEligibilityOutcome::WindowClosed, $evaluator->evaluate($this->eligibleInput(TransferWindowPhase::Closed), $this->now)->outcome);
@@ -37,7 +37,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
 
     public function test_phase_iii_under_cap_governor_is_eligible_without_invitation_when_all_rules_are_current(): void
     {
-        $assessment = app(TransferEligibilityEvaluator::class)->evaluate($this->eligibleInput(TransferWindowPhase::TransferOpens), $this->now);
+        $assessment = (new TransferEligibilityEvaluator)->evaluate($this->eligibleInput(TransferWindowPhase::TransferOpens), $this->now);
 
         self::assertSame(TransferEligibilityOutcome::EligibleNow, $assessment->outcome);
         self::assertNull($assessment->primaryAction);
@@ -46,7 +46,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
 
     public function test_phase_ii_requires_the_correct_invitation_type(): void
     {
-        $evaluator = app(TransferEligibilityEvaluator::class);
+        $evaluator = (new TransferEligibilityEvaluator);
         $missingInvite = $this->eligibleInput(TransferWindowPhase::InvitationalTransfer, invitation: $this->current(TransferInvitationStatus::None->value));
         $ordinaryInvite = $this->eligibleInput(TransferWindowPhase::InvitationalTransfer, invitation: $this->current(TransferInvitationStatus::OrdinaryReceived->value));
 
@@ -56,7 +56,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
 
     public function test_over_cap_governor_requires_special_invite_and_leading_target_is_a_hard_blocker(): void
     {
-        $evaluator = app(TransferEligibilityEvaluator::class);
+        $evaluator = (new TransferEligibilityEvaluator);
         $ordinary = $this->eligibleInput(
             TransferWindowPhase::TransferOpens,
             power: $this->current(130_000_000),
@@ -75,7 +75,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
 
     public function test_group_generation_and_truegold_mismatches_are_hard_blockers(): void
     {
-        $evaluator = app(TransferEligibilityEvaluator::class);
+        $evaluator = (new TransferEligibilityEvaluator);
 
         self::assertSame(
             TransferEligibilityOutcome::Blocked,
@@ -93,7 +93,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
 
     public function test_character_age_threshold_is_inclusive_and_exceeding_it_blocks(): void
     {
-        $evaluator = app(TransferEligibilityEvaluator::class);
+        $evaluator = (new TransferEligibilityEvaluator);
         $atBoundary = $this->eligibleInput(TransferWindowPhase::TransferOpens, characterAgeOverTargetDays: $this->current(120));
         $overBoundary = $this->eligibleInput(TransferWindowPhase::TransferOpens, characterAgeOverTargetDays: $this->current(121));
 
@@ -103,7 +103,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
 
     public function test_transfer_cooldown_is_actionable_until_zero_days_remain(): void
     {
-        $evaluator = app(TransferEligibilityEvaluator::class);
+        $evaluator = (new TransferEligibilityEvaluator);
         $coolingDown = $this->eligibleInput(TransferWindowPhase::TransferOpens, cooldownRemaining: $this->current(1));
         $ready = $this->eligibleInput(TransferWindowPhase::TransferOpens, cooldownRemaining: $this->current(0));
 
@@ -115,7 +115,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
 
     public function test_four_existing_characters_in_target_is_a_hard_blocker(): void
     {
-        $evaluator = app(TransferEligibilityEvaluator::class);
+        $evaluator = (new TransferEligibilityEvaluator);
 
         self::assertSame(
             TransferEligibilityOutcome::EligibleNow,
@@ -129,7 +129,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
 
     public function test_exhausted_target_or_phase_capacity_never_reports_eligible_now(): void
     {
-        $evaluator = app(TransferEligibilityEvaluator::class);
+        $evaluator = (new TransferEligibilityEvaluator);
         $totalFull = $this->eligibleInput(TransferWindowPhase::TransferOpens, targetCapacity: $this->current(0));
         $openFull = $this->eligibleInput(TransferWindowPhase::TransferOpens, transferOpenCapacity: $this->current(0));
 
@@ -139,7 +139,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
 
     public function test_resource_loss_preflight_is_actionable_but_not_a_hard_game_blocker(): void
     {
-        $assessment = app(TransferEligibilityEvaluator::class)->evaluate(
+        $assessment = (new TransferEligibilityEvaluator)->evaluate(
             $this->eligibleInput(TransferWindowPhase::TransferOpens, resourceProtection: $this->current(false)),
             $this->now,
         );
@@ -152,7 +152,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
 
     public function test_missing_stale_or_conflicting_evidence_yields_needs_verification(): void
     {
-        $evaluator = app(TransferEligibilityEvaluator::class);
+        $evaluator = (new TransferEligibilityEvaluator);
 
         foreach ([TransferRequirementState::Unknown, TransferRequirementState::Stale, TransferRequirementState::Conflicting] as $state) {
             $input = $this->eligibleInput(
@@ -171,7 +171,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
             passesAvailable: $this->current(7),
             passesRequired: $this->current(9),
         );
-        $assessment = app(TransferEligibilityEvaluator::class)->evaluate($input, $this->now);
+        $assessment = (new TransferEligibilityEvaluator)->evaluate($input, $this->now);
 
         self::assertSame(TransferEligibilityOutcome::EligibleWithAction, $assessment->outcome);
         self::assertSame('Acquire 2 more Transfer Pass(es).', $assessment->primaryAction);
@@ -179,7 +179,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
 
     public function test_required_pass_count_outside_official_range_is_conflicting(): void
     {
-        $assessment = app(TransferEligibilityEvaluator::class)->evaluate(
+        $assessment = (new TransferEligibilityEvaluator)->evaluate(
             $this->eligibleInput(TransferWindowPhase::TransferOpens, passesRequired: $this->current(51), passesAvailable: $this->current(51)),
             $this->now,
         );
@@ -191,7 +191,7 @@ final class TransferEligibilityEvaluatorV3Test extends TestCase
 
     public function test_false_in_game_verification_is_a_hard_blocker_and_missing_verification_never_silently_passes(): void
     {
-        $evaluator = app(TransferEligibilityEvaluator::class);
+        $evaluator = (new TransferEligibilityEvaluator);
         $blocked = $this->eligibleInput(TransferWindowPhase::TransferOpens, inGameRules: $this->current(false, 'Governor is still in an Alliance.'));
         $unknown = $this->eligibleInput(TransferWindowPhase::TransferOpens, inGameRules: TransferObservedValue::unknown());
 

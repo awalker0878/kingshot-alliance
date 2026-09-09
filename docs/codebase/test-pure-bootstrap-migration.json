@@ -1,0 +1,53 @@
+{
+  "source_commit": "9951bcbbec4e5c1416ec80f9cae15f2f82572bd1",
+  "scope": "PR #163 only",
+  "tests_executed": false,
+  "prior_report": {
+    "run_id": 34387606165,
+    "artifact_id": 10118771307,
+    "name": "phpunit-results",
+    "note": "Existing report used only to count prior identities; the containing run failed and is not speedup evidence."
+  },
+  "moved_classes": 4,
+  "prior_report_cases": 55,
+  "allowed_source_changes": [
+    "Feature to Unit namespace/path",
+    "Laravel TestCase import to PHPUnit TestCase",
+    "container resolution to direct object construction",
+    "equivalent constructor parentheses formatting"
+  ],
+  "files": [
+    {
+      "old_path": "tests/Feature/Contexts/Operations/KingPerks/KingPerkPolicyBehaviorV3Test.php",
+      "new_path": "tests/Unit/Contexts/Operations/KingPerks/KingPerkPolicyBehaviorV3Test.php",
+      "source_blob_sha": "361a70298fb49764f647d1c001d006a553d5ec12",
+      "result_blob_sha": "168a664cbe15543f0a8d48a373f41a3ce4abc883",
+      "prior_report_case_count": 1,
+      "behavior_preserved_by_inverse_source_transform": true
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/Events/RecurrencePolicyBehaviorV3Test.php",
+      "new_path": "tests/Unit/Contexts/Operations/Events/RecurrencePolicyBehaviorV3Test.php",
+      "source_blob_sha": "61781f911f8e472d0c71830528e9c26b3062ac93",
+      "result_blob_sha": "8a629f12b4832946a9a7e2977d6cc3c7066eef40",
+      "prior_report_case_count": 2,
+      "behavior_preserved_by_inverse_source_transform": true
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceAssistant/AssistantQuestionInterpreterV3Test.php",
+      "new_path": "tests/Unit/ReadModels/AllianceAssistant/AssistantQuestionInterpreterV3Test.php",
+      "source_blob_sha": "ee40ab7e1ab9d944deef5234dae063633ea702a1",
+      "result_blob_sha": "82991fa23a8ec2f100fc7cbb304fe395067d394e",
+      "prior_report_case_count": 38,
+      "behavior_preserved_by_inverse_source_transform": true
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferEligibilityEvaluatorV3Test.php",
+      "new_path": "tests/Unit/Contexts/GameWorld/KingdomTransfers/TransferEligibilityEvaluatorV3Test.php",
+      "source_blob_sha": "31c3ac163f964ec3bda5a426507f820b7c1d78bc",
+      "result_blob_sha": "c5fc88844f8166a320649f6ed2fb9d7b040f4c87",
+      "prior_report_case_count": 14,
+      "behavior_preserved_by_inverse_source_transform": true
+    }
+  ]
+}
