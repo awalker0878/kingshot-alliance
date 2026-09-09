@@ -123,13 +123,6 @@ final class ChangeRecruitmentStage
                 ];
             }
 
-            if ($target === RecruitmentStage::Joined) {
-                $updates += [
-                    'joined_at' => $now,
-                    'retention_due_at' => null,
-                ];
-            }
-
             $locked->forceFill($updates)->save();
 
             RecruitmentStageHistory::query()->create([

@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `abda37b1b3093c8cde37026eb19fccc8b9d097eb`.
+- Latest pushed durable checkpoint: `4de40440e15648c1223c416d72e342a2c382c2bd`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
 - Current item/state: HARD-078–082/084–086 / In progress; bounded bulk selections, current Recruitment intake, terminal candidate guards, protected target authority and candidate-before-child ordering are implemented with eighty-two additional cases. HARD-071–077/083 await containing verification.
 - Most recently verified gates: all nine PR workflows pass on `802f1a6b91b597e9e34af4d77482ce75f5781ba1`, including 1,205 PHP tests / 80,125 assertions in parallel PHP and both complete serial suites, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, all 50 visual cases and security.
 - Active files: Membership bulk/transfer handoff and Recruitment intake/candidate owners, bulk/retention/intake/membership concurrency cases, ADR-0035 and owner contracts.
 - Current CI result: On abda37b1, the parallel PHP job passes full Pint (1,929 files), PHPStan, fresh schema and all 1,267 tests / 80,498 assertions in 20:28 (job 102348335586). All corrected account, planning/stable identity/registration and seventeen completion cases pass. Frontend, all fifty visual cases and five security/capability workflows pass. Container/staging/recovery passes (job 102352927089); both full serial suites are running. The last all-nine-workflow milestone remains 802f1a6b.
 - Remaining current work: Verify the restored account barrier, corrected actor tests and planning/stable identity/registration; continue Membership/Recruitment and the remaining capability-by-capability repository audit.
-- Known failures: No failure is currently reported on abda37b1. The prior ResolveTransferPlayer Pint issue is fixed; corrected account actor assertions and restored FOR UPDATE pass. Eighty-two additional Membership/Recruitment cases are implemented but have not executed. Remaining whole-repository audit work is not complete.
+- Known failures: On 4de40440, Pint and fresh schema pass, but PHPStan rejects an obsolete Joined update branch in ChangeRecruitmentStage line 126 after the new owner guard makes it unreachable. General PHP and Architecture stop before the behavior suite (jobs 102353812181 and 102353811908); Architecture static cases pass 63 tests / 69,236 assertions. The unreachable branch is removed. Eighty-two new cases still await execution.
 - Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout tracks the latest remote checkpoint; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: Inspect abda37b1 containing PHP/deployment gates, publish/verify the coherent Membership/Recruitment slice, then bound Recruitment detail and duplicate history under HARD-087 and continue the remaining capability audit.
+- Exact next action: Publish the unreachable Joined branch removal, verify the Membership/Recruitment containing gates, finish the local bounded candidate-history projection under HARD-087, and continue the remaining capability audit.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -1218,7 +1218,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: Reject manual Joined transitions in the owner and verify real invitation acceptance remains the authoritative, replay-safe transition.
 - State: In progress.
 - Verification required: Direct/manual/bulk Joined rejection before acceptance, actual acceptance projection, terminal/stale events and idempotent delivery.
-- Verification result: Manual Joined is rejected at the owner boundary and bulk preview marks it transition-not-allowed. Six new cases cover absent/pending invitation attempts, real AcceptInvitation output projected exactly once, late projection rollback/retry, and delayed events after Declined or actual retention purge. Membership acceptance remains the authoritative relationship. Executable verification pending.
+- Verification result: Manual Joined is rejected at the owner boundary and bulk preview marks it transition-not-allowed. Six new cases cover absent/pending invitation attempts, real AcceptInvitation output projected exactly once, late projection rollback/retry, and delayed events after Declined or actual retention purge. Membership acceptance remains the authoritative relationship. The first 4de40440 static-analysis run identifies a now-unreachable Joined timestamp branch; it is removed. Executable verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
