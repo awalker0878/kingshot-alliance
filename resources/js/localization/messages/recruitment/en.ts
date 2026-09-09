@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    historyItemsOnPage: '{count} records on this page (up to {pageSize}).',
     eyebrow: 'Alliance recruitment',
     title: 'Recruitment',
     subtitle:

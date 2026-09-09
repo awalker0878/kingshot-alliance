@@ -3,15 +3,17 @@ import { Link } from '@inertiajs/vue3';
 
 import { useLocale } from '@/localization';
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     summary: string;
     isFirstPage: boolean;
     firstPageHref: string;
     hasMore: boolean;
     busy?: boolean;
+    preserveState?: boolean;
+    preserveScroll?: boolean;
   }>(),
-  { busy: false },
+  { busy: false, preserveState: false, preserveScroll: false },
 );
 
 defineEmits<{ next: [] }>();
@@ -29,6 +31,8 @@ const { t } = useLocale();
       <Link
         v-if="!isFirstPage"
         :href="firstPageHref"
+        :preserve-state="props.preserveState"
+        :preserve-scroll="props.preserveScroll"
         class="ks-command-link"
         data-variant="secondary"
       >

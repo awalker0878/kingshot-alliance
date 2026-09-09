@@ -94,6 +94,7 @@ jobs:
           php artisan tinker --execute='\Tests\v3\Fixtures\KingdomTransferCurrentRulesVisualFixture::augment();'
           php artisan tinker --execute='\Tests\v3\Fixtures\EventCommandVisualFixture::seed();'
           php artisan tinker --execute='\Tests\v3\Fixtures\AllianceRoleVisualFixture::seed();'
+          php artisan tinker --execute='\Tests\v3\Fixtures\RecruitmentHistoryVisualFixture::seed();'
 
       - name: Build production frontend
         run: npm run build

@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    historyItemsOnPage: '{count} catatan di halaman ini (maksimal {pageSize}).',
     bulkOutcome: {
       'permission-denied': 'Izin ditolak',
     },

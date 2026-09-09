@@ -245,8 +245,8 @@ final class RecruitmentRetentionAuthorityV3Test extends TestCase
         $candidate->refresh();
         $current = $this->candidate($allianceId, false);
         $current->forceFill(['email' => $candidate->email])->save();
-        self::assertCount(0, app(RecruitmentDuplicateFinder::class)->forCandidate($allianceId, $current));
-        self::assertCount(0, app(RecruitmentDuplicateFinder::class)->forCandidate($allianceId, $candidate));
+        self::assertCount(0, app(RecruitmentDuplicateFinder::class)->forCandidate($allianceId, $current)->items);
+        self::assertCount(0, app(RecruitmentDuplicateFinder::class)->forCandidate($allianceId, $candidate)->items);
     }
 
     private function writeChild(string $child, string $ownerId, string $allianceId, string $communicationId, string $onboardingId): void

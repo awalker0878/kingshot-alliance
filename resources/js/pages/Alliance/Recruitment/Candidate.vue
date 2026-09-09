@@ -1,13 +1,23 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import CursorPagination from '@/components/ui/CursorPagination.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
+
+type DetailPage<T> = {
+  items: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  pageSize: number;
+  isFirstPage: boolean;
+};
+type HistorySection = 'notes' | 'history' | 'communications' | 'duplicates';
 
 const props = defineProps<{
   user: { name: string; email: string };
@@ -32,16 +42,16 @@ const props = defineProps<{
   };
   answers: Array<{ id: string; prompt: string; type: string; answer: Record<string, unknown> }>;
   reviewers: Array<{ id: string; name: string }>;
-  notes: Array<{ id: string; body: string; author: string; createdAt: string | null }>;
+  notesPage: DetailPage<{ id: string; body: string; author: string; createdAt: string | null }>;
   tags: Array<{ id: string; name: string }>;
-  history: Array<{
+  historyPage: DetailPage<{
     id: string;
     from: string | null;
     to: string;
     reason: string | null;
     changedAt: string;
   }>;
-  communications: Array<{
+  communicationsPage: DetailPage<{
     id: string;
     subject: string;
     body: string;
@@ -57,7 +67,7 @@ const props = defineProps<{
     status: string;
     completedAt: string | null;
   }>;
-  duplicates: Array<{
+  duplicatesPage: DetailPage<{
     id: string;
     name: string;
     email: string;
@@ -132,6 +142,21 @@ const props = defineProps<{
     ownerHrefs: { recruitment: string; transfer: string; roster: string };
   };
 }>();
+
+const page = usePage();
+
+function historyUrl(section: HistorySection, cursor: string | null): string {
+  const url = new URL(page.url, 'https://app.invalid');
+  if (cursor) url.searchParams.set(`${section}_cursor`, cursor);
+  else url.searchParams.delete(`${section}_cursor`);
+  return `${url.pathname}${url.search}#${section}-heading`;
+}
+
+function nextHistoryPage(section: HistorySection): void {
+  const cursor = props[`${section}Page`].nextCursor;
+  if (!cursor) return;
+  router.get(historyUrl(section, cursor), {}, { preserveState: true, preserveScroll: true });
+}
 
 const { t, formatDate, formatNumber } = useLocale();
 const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
@@ -597,9 +622,12 @@ function humanize(value: string): string {
                 t('recruitment.addNote')
               }}</AppButton>
             </form>
-            <div v-if="notes.length" class="mt-5 space-y-2 border-t border-[var(--ks-border)] pt-4">
+            <div
+              v-if="notesPage.items.length"
+              class="mt-5 space-y-2 border-t border-[var(--ks-border)] pt-4"
+            >
               <article
-                v-for="note in notes"
+                v-for="note in notesPage.items"
                 :key="note.id"
                 class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3"
               >
@@ -609,6 +637,21 @@ function humanize(value: string): string {
                 </p>
               </article>
             </div>
+            <CursorPagination
+              v-if="notesPage.items.length || !notesPage.isFirstPage"
+              :summary="
+                t('recruitment.historyItemsOnPage', {
+                  count: formatNumber(notesPage.items.length),
+                  pageSize: formatNumber(notesPage.pageSize),
+                })
+              "
+              :is-first-page="notesPage.isFirstPage"
+              :first-page-href="historyUrl('notes', null)"
+              preserve-state
+              preserve-scroll
+              :has-more="notesPage.hasMore"
+              @next="nextHistoryPage('notes')"
+            />
           </section>
 
           <section class="ks-surface p-5" aria-labelledby="tags-heading">
@@ -637,7 +680,7 @@ function humanize(value: string): string {
                 {{ t('recruitment.decisionTemplates') }}
               </h2>
             </div>
-            <span class="ks-chip">{{ communications.length }}</span>
+            <span class="ks-chip">{{ communicationsPage.items.length }}</span>
           </div>
           <form
             v-if="decisionTemplates.length"
@@ -656,9 +699,9 @@ function humanize(value: string): string {
               >{{ t('recruitment.prepareCommunication') }}</AppButton
             >
           </form>
-          <div v-if="communications.length" class="mt-5 grid gap-3 md:grid-cols-2">
+          <div v-if="communicationsPage.items.length" class="mt-5 grid gap-3 md:grid-cols-2">
             <article
-              v-for="communication in communications"
+              v-for="communication in communicationsPage.items"
               :key="communication.id"
               class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
             >
@@ -692,6 +735,21 @@ function humanize(value: string): string {
             </article>
           </div>
           <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noCommunications') }}</div>
+          <CursorPagination
+            v-if="communicationsPage.items.length || !communicationsPage.isFirstPage"
+            :summary="
+              t('recruitment.historyItemsOnPage', {
+                count: formatNumber(communicationsPage.items.length),
+                pageSize: formatNumber(communicationsPage.pageSize),
+              })
+            "
+            :is-first-page="communicationsPage.isFirstPage"
+            :first-page-href="historyUrl('communications', null)"
+            preserve-state
+            preserve-scroll
+            :has-more="communicationsPage.hasMore"
+            @next="nextHistoryPage('communications')"
+          />
         </section>
 
         <section class="ks-surface p-5 sm:p-6" aria-labelledby="onboarding-heading">
@@ -739,9 +797,9 @@ function humanize(value: string): string {
           <section class="ks-surface p-5" aria-labelledby="history-heading">
             <p class="ks-kicker">{{ t('recruitment.stageHistory') }}</p>
             <h2 id="history-heading" class="sr-only">{{ t('recruitment.stageHistory') }}</h2>
-            <ol v-if="history.length" class="mt-4 space-y-4">
+            <ol v-if="historyPage.items.length" class="mt-4 space-y-4">
               <li
-                v-for="entry in history"
+                v-for="entry in historyPage.items"
                 :key="entry.id"
                 class="relative border-s border-[var(--ks-border-strong)] ps-5"
               >
@@ -762,6 +820,21 @@ function humanize(value: string): string {
               </li>
             </ol>
             <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noHistory') }}</div>
+            <CursorPagination
+              v-if="historyPage.items.length || !historyPage.isFirstPage"
+              :summary="
+                t('recruitment.historyItemsOnPage', {
+                  count: formatNumber(historyPage.items.length),
+                  pageSize: formatNumber(historyPage.pageSize),
+                })
+              "
+              :is-first-page="historyPage.isFirstPage"
+              :first-page-href="historyUrl('history', null)"
+              preserve-state
+              preserve-scroll
+              :has-more="historyPage.hasMore"
+              @next="nextHistoryPage('history')"
+            />
           </section>
 
           <section class="ks-surface p-5" aria-labelledby="duplicates-heading">
@@ -772,7 +845,7 @@ function humanize(value: string): string {
             <p class="mt-2 text-xs leading-5 text-[var(--ks-muted)]">
               {{ t('recruitment.duplicateHelp') }}
             </p>
-            <template v-if="duplicates.length">
+            <template v-if="duplicatesPage.items.length">
               <textarea
                 v-model="mergeReason.reason"
                 class="ks-input mt-4 min-h-20"
@@ -781,7 +854,7 @@ function humanize(value: string): string {
               />
               <div class="mt-4 space-y-2">
                 <article
-                  v-for="duplicate in duplicates"
+                  v-for="duplicate in duplicatesPage.items"
                   :key="duplicate.id"
                   class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3"
                 >
@@ -807,6 +880,21 @@ function humanize(value: string): string {
               </div>
             </template>
             <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noDuplicates') }}</div>
+            <CursorPagination
+              v-if="duplicatesPage.items.length || !duplicatesPage.isFirstPage"
+              :summary="
+                t('recruitment.historyItemsOnPage', {
+                  count: formatNumber(duplicatesPage.items.length),
+                  pageSize: formatNumber(duplicatesPage.pageSize),
+                })
+              "
+              :is-first-page="duplicatesPage.isFirstPage"
+              :first-page-href="historyUrl('duplicates', null)"
+              preserve-state
+              preserve-scroll
+              :has-more="duplicatesPage.hasMore"
+              @next="nextHistoryPage('duplicates')"
+            />
           </section>
         </div>
       </div>

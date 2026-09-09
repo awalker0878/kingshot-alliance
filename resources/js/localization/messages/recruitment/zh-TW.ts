@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    historyItemsOnPage: '此頁有 {count} 筆記錄（最多 {pageSize} 筆）。',
     bulkOutcome: {
       'permission-denied': '權限不足',
     },

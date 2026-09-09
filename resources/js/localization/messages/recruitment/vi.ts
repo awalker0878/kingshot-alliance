@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    historyItemsOnPage: '{count} bản ghi trên trang này (tối đa {pageSize}).',
     bulkOutcome: {
       'permission-denied': 'Không có quyền',
     },

@@ -40,3 +40,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0034: Enforce stable Player identity and registration on current owner facts](0034-current-stable-player-identity-and-registration.md)
 
 - [ADR-0035: Current Recruitment lifecycle and protected target authority](0035-current-recruitment-lifecycle-and-target-authority.md)
+
+- [ADR-0036: Bounded Recruitment candidate history](0036-bounded-recruitment-candidate-history.md)

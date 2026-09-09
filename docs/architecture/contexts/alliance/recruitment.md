@@ -55,3 +55,7 @@ Bulk preview and execution enforce one to fifty distinct IDs at the owner bounda
 Joined is recorded by the existing `invitation.accepted` projection after matching the candidate's current Accepted stage and captured Player. Manual and bulk owner entrypoints reject Joined even when a pending invitation exists. Delayed events do not reopen Declined, Withdrawn or anonymized candidates, and replay does not duplicate history or delivery.
 
 If current recruiter permission is revoked during bulk execution, each remaining actionable candidate receives a permission-denied failure. Earlier committed changes and the aggregate receipt remain visible; selective retry uses only failed candidate IDs after authority is restored.
+
+## Candidate history reads
+
+RecruitmentManagement owns current authorized candidate-detail composition. Notes, stage history and communications return independent 25-record timestamp/ID pages; duplicate matching returns the same bounded PageSlice contract in oldest-first order. Cursors bind Alliance, candidate and category, and duplicate cursors bind current matching facts. Each request rechecks current authority and terminal state. The page preserves other history sections and unsaved note drafts while navigating. [ADR-0036](../../adr/0036-bounded-recruitment-candidate-history.md) defines the response, current indexes and remaining catalogue/selector audit scope.

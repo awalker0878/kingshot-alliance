@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `4de40440e15648c1223c416d72e342a2c382c2bd`.
+- Latest pushed durable checkpoint: `0709f9bc420d3b158704a493454e9adc5bd4183c`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-078–082/084–086 / In progress; bounded bulk selections, current Recruitment intake, terminal candidate guards, protected target authority and candidate-before-child ordering are implemented with eighty-two additional cases. HARD-071–077/083 await containing verification.
-- Most recently verified gates: all nine PR workflows pass on `802f1a6b91b597e9e34af4d77482ce75f5781ba1`, including 1,205 PHP tests / 80,125 assertions in parallel PHP and both complete serial suites, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, all 50 visual cases and security.
-- Active files: Membership bulk/transfer handoff and Recruitment intake/candidate owners, bulk/retention/intake/membership concurrency cases, ADR-0035 and owner contracts.
-- Current CI result: On abda37b1, the parallel PHP job passes full Pint (1,929 files), PHPStan, fresh schema and all 1,267 tests / 80,498 assertions in 20:28 (job 102348335586). All corrected account, planning/stable identity/registration and seventeen completion cases pass. Frontend, all fifty visual cases and five security/capability workflows pass. Container/staging/recovery passes (job 102352927089); both full serial suites are running. The last all-nine-workflow milestone remains 802f1a6b.
-- Remaining current work: Verify the restored account barrier, corrected actor tests and planning/stable identity/registration; continue Membership/Recruitment and the remaining capability-by-capability repository audit.
-- Known failures: On 4de40440, Pint and fresh schema pass, but PHPStan rejects an obsolete Joined update branch in ChangeRecruitmentStage line 126 after the new owner guard makes it unreachable. General PHP and Architecture stop before the behavior suite (jobs 102353812181 and 102353811908); Architecture static cases pass 63 tests / 69,236 assertions. The unreachable branch is removed. Eighty-two new cases still await execution.
+- Current item/state: HARD-087 / In progress; four growing candidate histories now have scoped 25-record pages and ReadModel composition, with thirteen PHP and two desktop/mobile browser cases. HARD-078–082/084–086 remain in verification on 0709f9bc after the unreachable Joined branch was removed.
+- Most recently verified gates: all nine PR workflows pass on `abda37b1b3093c8cde37026eb19fccc8b9d097eb`, including 1,267 PHP tests / 80,498 assertions in parallel PHP and both complete serial suites, fresh PostgreSQL, frontend, container/staging/recovery, all fifty visual cases and security/capabilities.
+- Active files: RecruitmentCandidateDetailQuery, candidate read/mutation adapters, duplicate query, current history/duplicate indexes, candidate page and pagination component, localized summaries, history PHP/browser fixtures, ADR-0036 and current contracts.
+- Current CI result: All nine workflows pass on abda37b1. Parallel PHP job 102348335586 passes 1,267 tests / 80,498 assertions in 20:28 plus Pint (1,929 files), PHPStan and fresh schema. Architecture job 102348335670 passes static 63 / 69,236 and full 1,267 / 80,498 in 40:16; Intelligence job 102348335749 passes full 1,267 / 80,498 in 41:31. Container/staging/recovery job 102352927089 passes. The following 4de40440 static-analysis failure is fixed on 0709f9bc. That PHP job passes Pint (1,935 files), PHPStan and fresh schema, and executes 1,349 tests / 80,893 assertions in 16:40; five new intake cases fail due to fixture/exception-contract errors, corrected in the current slice.
+- Remaining current work: Verify the newer Membership/Recruitment and candidate-history changes; continue Recruitment collection/input bounds and the remaining capability-by-capability repository audit.
+- Known failures: On 0709f9bc, PHP job 102354999782 executes all 1,349 cases; only five new RecruitmentIntakeConcurrency cases fail. Three expect AuthorizationException/application feedback instead of the existing account-owned ValidationException/account field; two bypass the question owner and omit its required updated_by_player_id. Correct the assertions to the current account contract and create the question through its real owner. All other new Membership/Recruitment cases pass. Reverification of these five and HARD-087 is pending.
 - Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout tracks the latest remote checkpoint; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: Publish the unreachable Joined branch removal, verify the Membership/Recruitment containing gates, finish the local bounded candidate-history projection under HARD-087, and continue the remaining capability audit.
+- Exact next action: Verify the Membership/Recruitment containing gates on 0709f9bc, publish the locally checked candidate-history projection under HARD-087, then continue HARD-088/089 and the remaining capability audit.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -1020,11 +1020,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Current invitation eligibility under its Alliance scope and owner identity contract without foreign membership locks.
 - Rationale: An ineligible foreign member does not require locking foreign authority; current identity eligibility must agree with lifecycle writers.
 - Remediation: Stabilize current target identity in the agreed scope order, use nonlocking foreign membership facts and audit bounded supersession/capacity behavior through all issuance callers.
-- State: In progress.
+- State: Complete.
 - Verification required: Opposing Alliance invitations do not wait on foreign membership rows; stale canonical/placement/ownership facts, current capacity, supersession and late event rollback.
-- Verification result: Initial issuance and resend share InvitationEligibility under their exclusive Alliance scope. It locks current canonical Player identity shared, validates roster/Kingdom and recipient ownership, and observes active membership without foreign locks. Recruitment conversion reuses the issuer. Thirteen PostgreSQL cases cover opposing Alliance attempts, both ownership commit orders, reconciled identities, live versus expired capacity reservations, supersession/token validity and late delivery rollback. Initial issuance supersedes matching pending records under its exclusive scope; expired status is only a read projection and production renewal preserves the existing pending record. On 2f7042d5 all 1,218 parallel PHP tests / 80,223 assertions pass, including all thirteen cases; full Pint/PHPStan/fresh schema pass. Both complete serial suites also pass 1,218 tests / 80,223 assertions (Architecture job 102336847964, Intelligence job 102336847760; runtimes 35:39 and 36:00). The parallel enclosing job times out as results finish, tracked under HARD-075, so the containing deployment gate remains pending. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); full serial gates are pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: Initial issuance and resend share InvitationEligibility under their exclusive Alliance scope. It locks current canonical Player identity shared, validates roster/Kingdom and recipient ownership, and observes active membership without foreign locks. Recruitment conversion reuses the issuer. Thirteen PostgreSQL cases cover opposing Alliance attempts, both ownership commit orders, reconciled identities, live versus expired capacity reservations, supersession/token validity and late delivery rollback. Initial issuance supersedes matching pending records under its exclusive scope; expired status is only a read projection and production renewal preserves the existing pending record. On 2f7042d5 all 1,218 parallel PHP tests / 80,223 assertions pass, including all thirteen cases; full Pint/PHPStan/fresh schema pass. Both complete serial suites also pass 1,218 tests / 80,223 assertions (Architecture job 102336847964, Intelligence job 102336847760; runtimes 35:39 and 36:00). The parallel enclosing job times out as results finish, tracked under HARD-075, so the containing deployment gate remains pending. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); both complete serial gates now pass with the same 1,267 tests / 80,498 assertions.
+- Completion evidence: All nine workflows pass on abda37b1b3093c8cde37026eb19fccc8b9d097eb, including 1,267 tests / 80,498 assertions in parallel PHP and both complete serial suites, current static analysis, fresh schema, frontend, fifty visual cases, security/capabilities and production container/staging/recovery. The containing commit includes the recorded owner/concurrency/rollback regressions.
+- Commit SHA: verified containing candidate `abda37b1b3093c8cde37026eb19fccc8b9d097eb`.
 
 ### HARD-072 — Outgoing transfer completion acquires destination Kingdom after Player
 
@@ -1034,11 +1034,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Current transfer completion with all required Kingdom scope acquired before Player locks, revalidated participant routing and independently authoritative roster writes.
 - Rationale: Atomic transfer handoff must agree with identity and Kingdom lifecycle writers while preserving current permissions, capacity and completion records.
 - Remediation: Discover and revalidate outgoing routing, acquire current home/destination Kingdom scope in stable order before target Player locks without an unnecessary actor identity lock, and make the roster activation owner stabilize current identity. Trace every TransferWriteState consumer before changing its contract.
-- State: In progress.
+- State: Complete.
 - Verification required: Incoming/outgoing/staying completion, destination archival and identity mutation in both commit orders, changed routing, independent scopes, retries and complete handoff/history/event rollback.
-- Verification result: Completion now locks home/outgoing destination Kingdoms shared in stable ID order before canonical target Player, then revalidates current participant routing. TransferWriteState retains exclusive Alliance/current membership authority while removing the unnecessary actor Player lock; its consumers were traced for actor identity writes. Both roster handoff owners acquire current Player before roster. Fifteen PostgreSQL cases cover all directions and archival orders, independent Alliances, opposing officer targets, changed routing, archived-destination completed retry, direct roster admission versus movement and full late rollback. ADR-0033 accepted; all fifteen cases pass in the ee943b7f parallel suite. Its unrelated four account attribution test failures prevent containing verification. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); full serial gates are pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: Completion now locks home/outgoing destination Kingdoms shared in stable ID order before canonical target Player, then revalidates current participant routing. TransferWriteState retains exclusive Alliance/current membership authority while removing the unnecessary actor Player lock; its consumers were traced for actor identity writes. Both roster handoff owners acquire current Player before roster. Fifteen PostgreSQL cases cover all directions and archival orders, independent Alliances, opposing officer targets, changed routing, archived-destination completed retry, direct roster admission versus movement and full late rollback. ADR-0033 accepted; all fifteen cases pass in the ee943b7f parallel suite. Its unrelated four account attribution test failures prevent containing verification. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); both complete serial gates now pass with the same 1,267 tests / 80,498 assertions.
+- Completion evidence: All nine workflows pass on abda37b1b3093c8cde37026eb19fccc8b9d097eb, including 1,267 tests / 80,498 assertions in parallel PHP and both complete serial suites, current static analysis, fresh schema, frontend, fifty visual cases, security/capabilities and production container/staging/recovery. The containing commit includes the recorded owner/concurrency/rollback regressions.
+- Commit SHA: verified containing candidate `abda37b1b3093c8cde37026eb19fccc8b9d097eb`.
 
 ### HARD-073 — Withdraw unsupported account audit-reference lock change
 
@@ -1048,11 +1048,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Existing exclusive account lifecycle serialization and explicit domain actor references.
 - Rationale: Preserve the actual owner contract and remove a lock change unsupported by the executed path.
 - Remediation: Restore AccountIdentityQuery FOR UPDATE and the original existing test hooks; withdraw ADR-0032; correct the six new regression cases to assert Player attribution, actual cleanup ordering, rollback and account/ownership exclusivity.
-- State: In progress.
+- State: Complete.
 - Verification required: Both cleanup/writer orders, complete rollback and terminal authority, exclusive account/ownership contenders and the containing suite under the restored account lock.
-- Verification result: On ee943b7f, parallel PHP executed 1,239 tests / 80,325 assertions with four failures, all at the incorrect actor_user_id assertion in AccountAuditReferenceLockV3Test line 109. The two exclusivity cases and all fifteen HARD-072 cases passed. The four cleanup cases reached the intended interleaving, but assertions after the bad attribution assertion did not execute. The production change is reverted and all six corrected cases await execution; this item is not a confirmed production deadlock fix. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); full serial gates are pending.
-- Completion evidence: pending corrected regression execution and containing gates.
-- Commit SHA: pending.
+- Verification result: On ee943b7f, parallel PHP executed 1,239 tests / 80,325 assertions with four failures, all at the incorrect actor_user_id assertion in AccountAuditReferenceLockV3Test line 109. The two exclusivity cases and all fifteen HARD-072 cases passed. The four cleanup cases reached the intended interleaving, but assertions after the bad attribution assertion did not execute. The production change is reverted and all six corrected cases await execution; this item is not a confirmed production deadlock fix. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); both complete serial gates now pass with the same 1,267 tests / 80,498 assertions.
+- Completion evidence: All nine workflows pass on abda37b1b3093c8cde37026eb19fccc8b9d097eb, including 1,267 tests / 80,498 assertions in parallel PHP and both complete serial suites, current static analysis, fresh schema, frontend, fifty visual cases, security/capabilities and production container/staging/recovery. This verifies withdrawal of the unsupported lock change and the six corrected actual-contract regressions; it is not evidence of a User foreign-key deadlock.
+- Commit SHA: verified containing candidate `abda37b1b3093c8cde37026eb19fccc8b9d097eb`.
 
 ### HARD-074 — Transfer planning identity resolution locks Player before source Kingdom
 
@@ -1062,11 +1062,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Explicit planning identity validation under a source Kingdom barrier with deterministic current canonical Player routing and preserved owner history.
 - Rationale: Planning observation must preserve identity and current lifecycle without acquiring locks in an order opposite the underlying owner.
 - Remediation: Stabilize active source Kingdom before Player, avoid locking an unrelated conflicting identity merely to reject it, revalidate current canonical identity and preserve transactional planning/history/audit behavior.
-- State: In progress.
+- State: Complete.
 - Verification required: Both source archival/identity commit orders, conflicting identity edits in both directions, reconciled aliases, current placement/roster/membership guards and complete late planning rollback.
-- Verification result: ResolveTransferPlayer now owns a transaction, locks active source Kingdom before canonical Player, rejects stable-ID replacement without foreign identity locks and retains placement guards before delegating owner history. Eleven new PostgreSQL cases cover new/edit planning against both archival orders, opposing edits, movement orders, reconciled aliases and complete late planning rollback. ADR-0034 accepted; executable verification pending. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); full serial gates are pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: ResolveTransferPlayer now owns a transaction, locks active source Kingdom before canonical Player, rejects stable-ID replacement without foreign identity locks and retains placement guards before delegating owner history. Eleven new PostgreSQL cases cover new/edit planning against both archival orders, opposing edits, movement orders, reconciled aliases and complete late planning rollback. ADR-0034 accepted; executable verification pending. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); both complete serial gates now pass with the same 1,267 tests / 80,498 assertions.
+- Completion evidence: All nine workflows pass on abda37b1b3093c8cde37026eb19fccc8b9d097eb, including 1,267 tests / 80,498 assertions in parallel PHP and both complete serial suites, current static analysis, fresh schema, frontend, fifty visual cases, security/capabilities and production container/staging/recovery. The containing commit includes the recorded owner/concurrency/rollback regressions.
+- Commit SHA: verified containing candidate `abda37b1b3093c8cde37026eb19fccc8b9d097eb`.
 
 ### HARD-075 — Parallel PHP verification reaches the enclosing job limit
 
@@ -1076,11 +1076,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Complete unchanged PHP gate with a declared budget that includes measured setup and suite runtime.
 - Rationale: Passing test output cannot replace a successful enclosing job and required downstream verification.
 - Remediation: Increase this backend job budget to 30 minutes; retain all checks, cases, failure behavior and container dependencies.
-- State: In progress.
+- State: Complete.
 - Verification required: Full PHP job completes successfully and its container/staging/recovery dependency executes and passes on a containing checkpoint.
-- Verification result: Job 102336847932 records the complete passing test summary at 04:43:39 UTC and cancellation immediately afterward; its services started at 04:23. The earlier 802f1a6b suite took 16:35 before setup. The budget change is prepared; containing execution pending. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); full serial gates are pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: Job 102336847932 records the complete passing test summary at 04:43:39 UTC and cancellation immediately afterward; its services started at 04:23. The earlier 802f1a6b suite took 16:35 before setup. The budget change is prepared; containing execution pending. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); both complete serial gates now pass with the same 1,267 tests / 80,498 assertions.
+- Completion evidence: All nine workflows pass on abda37b1b3093c8cde37026eb19fccc8b9d097eb, including 1,267 tests / 80,498 assertions in parallel PHP and both complete serial suites, current static analysis, fresh schema, frontend, fifty visual cases, security/capabilities and production container/staging/recovery. The containing commit includes the recorded owner/concurrency/rollback regressions.
+- Commit SHA: verified containing candidate `abda37b1b3093c8cde37026eb19fccc8b9d097eb`.
 
 ### HARD-076 — Stable Player identity conflicts lock foreign rows and escape as database errors
 
@@ -1090,11 +1090,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Current canonical identity mutation with nonlocking conflict witnesses and exact recoverable uniqueness validation.
 - Rationale: Rejecting a foreign identity requires no mutation lock on it; absent identity uniqueness must remain database-enforced without poisoning caller transactions or committing partial history.
 - Remediation: Validate immutable current stable IDs before foreign lookup, observe conflicts without foreign locks and translate only the actual stable-ID constraint after transaction rollback.
-- State: In progress.
+- State: Complete.
 - Verification required: Opposing edits in both directions, simultaneous absent-ID attachment and creation in both orders, usable enclosing transactions, unrelated unique errors retained, safe retries and full history/audit rollback.
-- Verification result: Persistence validates the locked stable ID before nonlocking foreign conflict lookup. Exact players_game_player_id_unique failures become game-ID validation only after owner transaction/savepoint rollback; unrelated integrity errors propagate. Seven new PostgreSQL cases exercise opposing edits, both absent creation/attachment winners, usable caller transactions, retry behavior and real unrelated primary-key failures. ADR-0034 accepted; executable verification pending. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); full serial gates are pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: Persistence validates the locked stable ID before nonlocking foreign conflict lookup. Exact players_game_player_id_unique failures become game-ID validation only after owner transaction/savepoint rollback; unrelated integrity errors propagate. Seven new PostgreSQL cases exercise opposing edits, both absent creation/attachment winners, usable caller transactions, retry behavior and real unrelated primary-key failures. ADR-0034 accepted; executable verification pending. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); both complete serial gates now pass with the same 1,267 tests / 80,498 assertions.
+- Completion evidence: All nine workflows pass on abda37b1b3093c8cde37026eb19fccc8b9d097eb, including 1,267 tests / 80,498 assertions in parallel PHP and both complete serial suites, current static analysis, fresh schema, frontend, fifty visual cases, security/capabilities and production container/staging/recovery. The containing commit includes the recorded owner/concurrency/rollback regressions.
+- Commit SHA: verified containing candidate `abda37b1b3093c8cde37026eb19fccc8b9d097eb`.
 
 ### HARD-077 — Account Player creation can claim an identity that appeared after its precheck
 
@@ -1104,11 +1104,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Current existing-owner precondition enforced on the identity actually locked by the persistence owner, after current account and Kingdom scope.
 - Rationale: A stale absence check cannot authorize adopting another durable identity; an ordinary repeated registration may reuse only an identity currently owned by the same account.
 - Remediation: Remove the early duplicate lookup and carry an explicit expected existing account-owner precondition into the single authoritative persistence transaction before identity changes. Keep claim/history atomic and preserve trusted unclaimed persistence behavior.
-- State: In progress.
+- State: Complete.
 - Verification required: Concurrent unclaimed/foreign-owned identity arrival, creation collisions across accounts, same-owner reuse, source archival orders, current account finalization and complete late rollback.
-- Verification result: CreatePlayerForAccount removes its early duplicate lookup and passes the expected existing account owner to persistence. Persistence checks the actual locked identity before mutation, preserving current account/Kingdom/Player order and atomic claim/history/audit. Eight new PostgreSQL cases cover unclaimed/other-account arrival in both caller orders, current same-owner reuse versus both archival orders and new/existing late registration rollback. Existing terminal-account/ownership cases remain required. ADR-0034 accepted; executable verification pending. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); full serial gates are pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: CreatePlayerForAccount removes its early duplicate lookup and passes the expected existing account owner to persistence. Persistence checks the actual locked identity before mutation, preserving current account/Kingdom/Player order and atomic claim/history/audit. Eight new PostgreSQL cases cover unclaimed/other-account arrival in both caller orders, current same-owner reuse versus both archival orders and new/existing late registration rollback. Existing terminal-account/ownership cases remain required. ADR-0034 accepted; executable verification pending. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); both complete serial gates now pass with the same 1,267 tests / 80,498 assertions.
+- Completion evidence: All nine workflows pass on abda37b1b3093c8cde37026eb19fccc8b9d097eb, including 1,267 tests / 80,498 assertions in parallel PHP and both complete serial suites, current static analysis, fresh schema, frontend, fifty visual cases, security/capabilities and production container/staging/recovery. The containing commit includes the recorded owner/concurrency/rollback regressions.
+- Commit SHA: verified containing candidate `abda37b1b3093c8cde37026eb19fccc8b9d097eb`.
 
 ### HARD-078 — Membership and Recruitment bulk selections are bounded only by HTTP
 
@@ -1188,11 +1188,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Shared canonical Player stabilization for Staying observation; exclusive Player ownership for incoming/outgoing identity mutation.
 - Rationale: Preserve current identity without blocking compatible Player actor references across independent Alliance scopes.
 - Remediation: Use FOR SHARE for Staying target identity and retain FOR UPDATE for actual incoming/outgoing movement. Keep Kingdom-before-Player order and all current authority, roster and completion checks.
-- State: In progress.
+- State: Complete.
 - Verification required: Real opposing Staying completions in both initiating orders, unchanged identity/history, correct Player attribution, idempotent retry, archival serialization and late rollback for every direction.
-- Verification result: Two new connection cases construct legitimate cross-Alliance roster targets and attempt the opposing completion while the first holds its target identity. Existing archival cases recognize shared or exclusive target locks and retain Kingdom-first and no-competing-Player assertions. Executable verification pending. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); full serial gates are pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: Two new connection cases construct legitimate cross-Alliance roster targets and attempt the opposing completion while the first holds its target identity. Existing archival cases recognize shared or exclusive target locks and retain Kingdom-first and no-competing-Player assertions. Executable verification pending. The abda37b1 containing parallel job passes all 1,267 tests / 80,498 assertions, full Pint/PHPStan and fresh schema; container/staging/recovery also passes (job 102352927089); both complete serial gates now pass with the same 1,267 tests / 80,498 assertions.
+- Completion evidence: All nine workflows pass on abda37b1b3093c8cde37026eb19fccc8b9d097eb, including 1,267 tests / 80,498 assertions in parallel PHP and both complete serial suites, current static analysis, fresh schema, frontend, fifty visual cases, security/capabilities and production container/staging/recovery. The containing commit includes the recorded owner/concurrency/rollback regressions.
+- Commit SHA: verified containing candidate `abda37b1b3093c8cde37026eb19fccc8b9d097eb`.
 
 ### HARD-084 — Remaining protected membership writers acquire opposing actor/target locks
 
@@ -1244,9 +1244,37 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Bounded scoped projections with explicit navigation or continuation semantics.
 - Rationale: Retained history must remain inspectable without unbounded request memory, query results or response size.
 - Remediation: Introduce bounded deterministic history/duplicate queries and visible continuation using the existing page/ReadModel architecture; preserve current scope and terminal-state filters.
-- State: Planned.
+- State: In progress.
 - Verification required: Large histories, deterministic pagination, independent history categories, scoped continuation, current authorization and matching frontend contracts.
-- Verification result: Production detail eager-loading, duplicate query and mutation growth paths traced; implementation pending.
+- Verification result: Authorized detail composition moves into the existing RecruitmentManagement ReadModel; the mutation controller no longer renders it. Notes/history/communications and duplicates each return independent 25-record PageSlices with scope-bound timestamp/ID cursors, current authority and terminal checks, and duplicate-fact fingerprinting. Current indexes include tie-breakers and normalized matching. Thirteen PHP cases cover bounds, deterministic continuation, changed/deleted boundaries, scope and authority, with two desktop/mobile browser cases covering independent navigation and retained note drafts. Local full frontend checks pass before the final pagination preservation option; that option and browser fixture receive final containing checks. Executable PHP/browser verification is pending. Remaining catalogues/selectors are tracked under HARD-088.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-088 — Recruitment catalogues, attachments and selection lists lack result bounds
+
+- Area: RecruitmentManagementQuery configuration collections, candidate attached tags/reviewers/onboarding/answers, conversion roster selection and decision-template selection.
+- Finding: Configuration and candidate projections still materialize entire question/template/onboarding/tag/reviewer collections. Valid creation/assignment history has no corresponding owner cardinality bound; the conversion roster selector also loads every active nonmember entry while UpsertRosterEntry has no roster count limit. Membership's active-member bound does not bound these other collections.
+- Current owner: Recruitment configuration owners, candidate associations and RecruitmentManagement projections over Membership roster facts.
+- Intended authoritative owner: Explicit bounded configuration/selection projections with visible continuation and current selection validation.
+- Rationale: Bounding notes/history/communications/duplicates alone does not bound the remaining workspace and public form projections.
+- Remediation: Trace each collection's product contract, use paginated/searchable selectors or justified owner cardinality constraints, and preserve complete current form/assignment semantics without silently truncating results.
+- State: Planned.
+- Verification required: Large catalogues/rosters/attachments, scoped continuation, selected-item preservation, complete required intake answers, current authorization and frontend behavior.
+- Verification result: Production full-get/eager-load and unbounded roster writer paths traced; implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-089 — Recruitment free-text owner limits depend on HTTP adapters
+
+- Area: AddRecruitmentNote and stage/merge/re-entry reason mutation owners.
+- Finding: AddRecruitmentNote validates only nonempty text while its HTTP adapter permits up to 10,000 characters and the candidate textarea stops at 5,000. Stage, merge and re-entry reasons similarly accept direct-owner text without the adapter's finite input limit, allowing oversized retained text and delivery metadata through other callers.
+- Current owner: Recruitment text mutation owners and their adapters.
+- Intended authoritative owner: Shared existing product input bounds enforced by each protected owner entrypoint.
+- Rationale: Direct and HTTP callers must have one finite accepted input contract.
+- Remediation: Trace each current limit/normalization and enforce it in the owner while preserving field-specific feedback, optional reasons and atomic side effects.
+- State: Planned.
+- Verification required: Exact boundaries, whitespace and Unicode handling, optional empty reasons, direct-owner rejection before effects and matching adapter contracts.
+- Verification result: Note owner/adapter and candidate reason paths identified; detailed limit tracing and implementation pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

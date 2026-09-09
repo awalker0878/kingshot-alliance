@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    historyItemsOnPage: '이 페이지에 {count}개 기록(최대 {pageSize}개).',
     bulkOutcome: {
       'permission-denied': '권한이 없습니다',
     },

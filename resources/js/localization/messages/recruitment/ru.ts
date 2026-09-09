@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    historyItemsOnPage: 'На этой странице {count} записей (не более {pageSize}).',
     bulkOutcome: {
       'permission-denied': 'Недостаточно прав',
     },

@@ -38,7 +38,7 @@ Examples of V3 cross-context composition include:
 - `ReadModels/CommandOverview` for recomputable R4/R5 owner attention plus deterministic Officer Brief projections;
 - `ReadModels/NotificationDelivery` for bounded active-membership recipient pages used by scheduled Officer Brief and Intelligence delivery orchestration;
 - `ReadModels/ContributionHistory` for contribution-history presentation over Intelligence-owned contribution facts;
-- `ReadModels/RecruitmentManagement` for the filterable, cursor-paginated recruitment pipeline and authorized Transfer Campaign workspace over Recruitment, Membership, Transfer, Evidence and Communications facts;
+- `ReadModels/RecruitmentManagement` for the filterable, cursor-paginated recruitment pipeline, authorized candidate-detail composition with independent bounded history pages, and authorized Transfer Campaign workspace over Recruitment, Membership, Transfer, Evidence and Communications facts;
 - `ReadModels/Roster` for roster/history/intelligence presentation and the factual Member Capability Profile over Alliance, GameWorld, Operations and Intelligence facts;
 - `ReadModels/KingdomIntelligence` and `ReadModels/SharedKingdomIntelligence` for composed intelligence screens, including the bounded owner-linked Kingdom Intelligence Timeline;
 - `ReadModels/AllianceAssistant` for closed, source-backed questions over exact authorized owner projections and navigation-only write handoffs;

@@ -4,51 +4,38 @@ declare(strict_types=1);
 
 namespace App\ReadModels\RecruitmentManagement\Http\Controllers;
 
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
-use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
-use App\Contexts\Alliance\Recruitment\Http\Controllers\RecruitmentCandidateController;
-use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
-use App\Contexts\Alliance\Recruitment\Queries\RecruitmentDuplicateFinder;
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
-use App\ReadModels\RecruitmentManagement\Queries\TransferCampaignWorkspaceQuery;
+use App\ReadModels\RecruitmentManagement\Queries\RecruitmentCandidateDetailQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Inertia\Response;
 
-/** Read-side composition that decorates Recruitment-owned candidate facts. */
 final class RecruitmentCandidateReadController extends Controller
 {
-    public function __invoke(
-        Request $request,
-        RecruitmentCandidateController $candidatePage,
-        AllianceContext $context,
-        AllianceAuthorization $authorization,
-        RecruitmentDuplicateFinder $duplicates,
-        AllianceReferenceQuery $alliances,
-        PlayerReferenceQuery $players,
-        TransferCampaignWorkspaceQuery $transferCampaign,
-        string $candidate,
-    ): Response {
-        $response = $candidatePage->show(
-            $request,
-            $context,
-            $authorization,
-            $duplicates,
-            $alliances,
-            $players,
-            $candidate,
-        );
+    public function __invoke(Request $request, AllianceContext $context, RecruitmentCandidateDetailQuery $details, string $candidate): Response
+    {
+        $user = $request->user();
+        abort_unless($user instanceof AuthenticatedAccount, 401);
+        $validated = $request->validate([
+            'notes_cursor' => ['nullable', 'string', 'max:4096'],
+            'history_cursor' => ['nullable', 'string', 'max:4096'],
+            'communications_cursor' => ['nullable', 'string', 'max:4096'],
+            'duplicates_cursor' => ['nullable', 'string', 'max:4096'],
+        ]);
         $scope = $context->scope();
-        $record = RecruitmentCandidate::query()
-            ->where('alliance_id', $scope->allianceId)
-            ->whereKey($candidate)
-            ->firstOrFail();
+        $projection = $details->forCandidate($scope->playerId, $scope->allianceId, $candidate, [
+            'notes' => $validated['notes_cursor'] ?? null,
+            'history' => $validated['history_cursor'] ?? null,
+            'communications' => $validated['communications_cursor'] ?? null,
+            'duplicates' => $validated['duplicates_cursor'] ?? null,
+        ]);
 
-        return $response->with('transferCampaign', $transferCampaign->forCandidate(
-            $scope->playerId,
-            $scope->allianceId,
-            $record,
-        ));
+        return Inertia::render('Alliance/Recruitment/Candidate', [
+            ...$projection,
+            'user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()],
+            'issuedMembershipInvitationLink' => $request->session()->pull('recruitmentMembershipInvitationLink'),
+        ]);
     }
 }

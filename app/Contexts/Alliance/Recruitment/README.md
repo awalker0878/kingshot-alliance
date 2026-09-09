@@ -27,3 +27,5 @@ Content may display Recruitment availability but does not own a duplicate writab
 ## Canonical documentation
 
 - [`docs/architecture/contexts/alliance/recruitment.md`](../../../../docs/architecture/contexts/alliance/recruitment.md)
+
+Candidate detail is composed by `ReadModels/RecruitmentManagement/Queries/RecruitmentCandidateDetailQuery`; the Recruitment candidate controller only adapts mutations. The duplicate owner query returns a scoped 25-record PageSlice, matching the bounded note/history/communication pages. See [ADR-0036](../../../../docs/architecture/adr/0036-bounded-recruitment-candidate-history.md).
