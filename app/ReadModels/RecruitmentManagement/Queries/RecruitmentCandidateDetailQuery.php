@@ -309,14 +309,15 @@ final readonly class RecruitmentCandidateDetailQuery
                 });
             });
         }
-        $rows = $query->orderByDesc($column)->orderByDesc('id')->limit(self::HISTORY_PAGE_SIZE + 1)->get();
-        $items = $rows->take(self::HISTORY_PAGE_SIZE)->values();
-        $last = $items->last();
-        $nextCursor = $rows->count() > self::HISTORY_PAGE_SIZE && $last instanceof Model
+        /** @var list<T> $rows */
+        $rows = array_values($query->orderByDesc($column)->orderByDesc('id')->limit(self::HISTORY_PAGE_SIZE + 1)->get()->all());
+        $items = array_slice($rows, 0, self::HISTORY_PAGE_SIZE);
+        $last = $items === [] ? null : $items[array_key_last($items)];
+        $nextCursor = count($rows) > self::HISTORY_PAGE_SIZE && $last instanceof Model
             ? $this->cursors->encode($scope, ['at' => (string) $last->getRawOriginal($column), 'id' => (string) $last->getKey()])
             : null;
 
-        return new PageSlice(array_values($items->all()), $nextCursor, self::HISTORY_PAGE_SIZE, $cursor === null || $cursor === '');
+        return new PageSlice($items, $nextCursor, self::HISTORY_PAGE_SIZE, $cursor === null || $cursor === '');
     }
 
     /** @return list<string> */
