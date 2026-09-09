@@ -32,6 +32,7 @@ final class EventTypeOnboardingArchitectureV3Test extends TestCase
         self::assertStringContainsString('EventWorkflowDimension::', $source);
         self::assertStringNotContainsString('eventType->slug', $source);
         self::assertStringNotContainsString('eventType->category', $source);
+        self::assertStringNotContainsString('EventCapability', $source);
     }
 
     public function test_legacy_mutable_scope_and_poll_materializer_contracts_are_absent(): void
