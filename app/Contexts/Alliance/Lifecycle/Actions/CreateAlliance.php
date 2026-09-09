@@ -13,6 +13,7 @@ use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceSettingsInput;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -31,6 +32,7 @@ final readonly class CreateAlliance
         private PlayerReferenceQuery $players,
         private AccountIdentityQuery $accounts,
         private KingdomReferenceQuery $kingdoms,
+        private PlayerMembershipQuery $memberships,
     ) {}
 
     public function handle(int $actorUserId, string $ownerPlayerId, string $name, string $slug, string $language = 'en', string $timezone = 'UTC'): string
@@ -55,7 +57,7 @@ final readonly class CreateAlliance
                 throw ValidationException::withMessages(['player' => 'Player ownership or Kingdom changed. Reload before creating an Alliance.']);
             }
 
-            if (AllianceMembership::query()->where('player_id', $ownerPlayerId)->where('status', MembershipStatus::Active->value)->exists()) {
+            if ($this->memberships->hasAnyActiveForPlayer($ownerPlayerId)) {
                 throw ValidationException::withMessages(['player' => 'The active Player already belongs to an Alliance.']);
             }
 
@@ -76,7 +78,7 @@ final readonly class CreateAlliance
                     'joined_at' => now(),
                 ]));
             } catch (UniqueConstraintViolationException $exception) {
-                if (! AllianceMembership::query()->where('player_id', $ownerPlayerId)->where('status', MembershipStatus::Active->value)->exists()) {
+                if (! $this->memberships->hasAnyActiveForPlayer($ownerPlayerId)) {
                     throw $exception;
                 }
                 throw ValidationException::withMessages(['player' => 'The active Player already belongs to an Alliance.']);

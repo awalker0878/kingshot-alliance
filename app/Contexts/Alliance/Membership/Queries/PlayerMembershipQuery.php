@@ -12,6 +12,11 @@ use LogicException;
 
 final class PlayerMembershipQuery
 {
+    /**
+     * A concurrent transaction can change membership between two observations.
+     *
+     * @phpstan-impure
+     */
     public function hasAnyActiveForPlayer(string $playerId): bool
     {
         return AllianceMembership::query()
