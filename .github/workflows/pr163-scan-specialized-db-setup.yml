@@ -1,0 +1,129 @@
+name: PR 163 scan specialized database setup
+
+on:
+  push:
+    branches: [astra/codebase-hardening]
+    paths: [.github/workflows/pr163-scan-specialized-db-setup.yml]
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  scan:
+    if: github.repository == 'awalker0878/kingshot-alliance' && github.ref == 'refs/heads/astra/codebase-hardening'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Scan selected test ownership without executing tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          groups = {
+              'gift-codes': [Path('tests/Feature/Contexts/GameWorld/GiftCodes')],
+              'intelligence': [
+                  Path('tests/Architecture/Contexts/Intelligence'),
+                  Path('tests/Feature/Contexts/Intelligence'),
+                  Path('tests/Integration/Contexts/Intelligence'),
+                  Path('tests/Unit/Contexts/Intelligence'),
+                  Path('tests/Feature/ReadModels/EventAnalysis'),
+                  Path('tests/Feature/ReadModels/KingdomIntelligence'),
+                  Path('tests/Feature/ReadModels/IntelligenceSignals'),
+              ],
+              'king-perks': [Path('tests/Feature/Contexts/Operations/KingPerks')],
+          }
+
+          reset_traits = {
+              'DatabaseTruncation': 'DatabaseTruncation',
+              'RefreshDatabase': 'RefreshDatabase',
+              'DatabaseTransactions': 'DatabaseTransactions',
+              'DatabaseMigrations': 'DatabaseMigrations',
+          }
+          # Conservative DB-use signals. A Laravel TestCase without a reset trait is
+          # also reported separately even if these lexical signals are absent.
+          db_patterns = [
+              re.compile(r'\\bDB::'),
+              re.compile(r'assertDatabase'),
+              re.compile(r'->(?:insert|update|delete|save|create|forceCreate)\\s*\\('),
+              re.compile(r'::(?:query\\(\\)->)?(?:create|factory|where|find|findOrFail|first|firstOrFail)\\s*\\('),
+              re.compile(r'Illuminate\\\\Database'),
+          ]
+
+          report = {}
+          for name, roots in groups.items():
+              files = []
+              for root in roots:
+                  if root.is_dir():
+                      files.extend(sorted(root.rglob('*Test.php')))
+              rows = []
+              for path in files:
+                  source = path.read_text()
+                  traits = [label for label, token in reset_traits.items()
+                            if re.search(rf'\\buse\\s+{re.escape(token)}\\s*;', source)]
+                  pure_phpunit = 'use PHPUnit\\Framework\\TestCase;' in source
+                  laravel_test_case = 'use Tests\\TestCase;' in source
+                  db_signal = any(pattern.search(source) for pattern in db_patterns)
+                  rows.append({
+                      'path': path.as_posix(),
+                      'traits': traits,
+                      'pure_phpunit': pure_phpunit,
+                      'laravel_test_case': laravel_test_case,
+                      'db_signal': db_signal,
+                  })
+              unknown = [row for row in rows
+                         if not row['traits'] and not row['pure_phpunit']
+                         and (row['laravel_test_case'] or row['db_signal'])]
+              unsafe_transaction = [row for row in rows
+                                    if 'DatabaseTransactions' in row['traits']]
+              report[name] = {
+                  'files': len(rows),
+                  'reset_owned': sum(bool(row['traits']) for row in rows),
+                  'pure_phpunit': sum(row['pure_phpunit'] for row in rows),
+                  'unknown_laravel_or_db': unknown,
+                  'database_transactions': unsafe_transaction,
+                  'rows': rows,
+              }
+
+          Path('/tmp/specialized-db-setup.json').write_text(json.dumps(report, indent=2) + '\n')
+          for name, data in report.items():
+              print(f"{name}: files={data['files']} reset={data['reset_owned']} pure={data['pure_phpunit']} unknown={len(data['unknown_laravel_or_db'])} tx={len(data['database_transactions'])}")
+              for row in data['unknown_laravel_or_db']:
+                  print('  UNKNOWN', row['path'])
+          PY
+
+      - name: Publish source-only scan status
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          description="$(python - <<'PY'
+          import json
+          r=json.load(open('/tmp/specialized-db-setup.json'))
+          print(' '.join(f"{k}:{v['files']}/{len(v['unknown_laravel_or_db'])}" for k,v in r.items()))
+          PY
+          )"
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+            -d "{\"state\":\"success\",\"context\":\"specialized-db-setup-source-scan\",\"description\":\"${description}; no tests executed\"}"
+
+      - name: Retain source-only scan
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: specialized-db-setup-source-scan
+          path: /tmp/specialized-db-setup.json
+          retention-days: 7
