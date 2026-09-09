@@ -125,7 +125,7 @@
         ],
         "test:ci": [
             "@php artisan config:clear --ansi",
-            "@php artisan test --parallel --fail-on-empty-test-suite --log-junit storage/logs/phpunit-junit.xml"
+            "@php artisan test --parallel --processes=2 --fail-on-empty-test-suite --log-junit storage/logs/phpunit-junit.xml"
         ]
     },
     "extra": {
