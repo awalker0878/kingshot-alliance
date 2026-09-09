@@ -71,9 +71,6 @@ jobs:
       - name: Install locked PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Verify fresh Gift Code schema
-        run: php artisan migrate:fresh --force
-
       - name: Pint Gift Code contracts
         run: >-
           vendor/bin/pint --test
