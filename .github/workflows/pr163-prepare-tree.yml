@@ -1,0 +1,107 @@
+name: PR 163 prepare verified test tree
+
+on:
+  push:
+    branches: [astra/codebase-hardening]
+    paths: [.github/pr163-apply-test-layout.py, .github/workflows/pr163-prepare-tree.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    if: github.repository == 'awalker0878/kingshot-alliance' && github.ref == 'refs/heads/astra/codebase-hardening'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Verify exact preparation parent and allowed inputs
+        run: |
+          test "$(git rev-parse HEAD^)" = be01eb738d4f101ab65425f8593a7b2ae862febc
+          python - <<'PY'
+          import subprocess
+          changed = set(subprocess.check_output(['git','diff','--name-only','HEAD^','HEAD']).decode().splitlines())
+          assert changed == {'.github/pr163-apply-test-layout.py','.github/workflows/pr163-prepare-tree.yml','scripts/verify-test-layout.php'}, changed
+          PY
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, gd, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+      - name: Install locked dependencies and record original cases
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          vendor/bin/phpunit --list-tests-xml "$RUNNER_TEMP/before.xml"
+      - name: Apply reviewed deterministic migration
+        run: python .github/pr163-apply-test-layout.py
+      - name: Verify discovery, source contracts and formatting
+        run: |
+          composer dump-autoload --optimize --strict-psr
+          php scripts/verify-test-layout.php
+          php tests/Architecture/verify-final-source.php
+          php tests/Architecture/verify-behavior-contracts.php
+          vendor/bin/pint --test tests scripts/verify-test-layout.php
+          vendor/bin/phpunit --list-tests-xml "$RUNNER_TEMP/after.xml"
+          vendor/bin/phpunit --testsuite Unit,Architecture,Frontend --log-junit "$RUNNER_TEMP/fast.xml"
+          python - <<'PY'
+          import os,json,collections,xml.etree.ElementTree as E
+          from pathlib import Path
+          manifest=json.loads(Path('docs/codebase/test-layout-migration.json').read_text())
+          names={x['old_path'][:-4].replace('/','\\').replace('tests\\','Tests\\',1):x['new_path'][:-4].replace('/','\\').replace('tests\\','Tests\\',1) for x in manifest['files'] if x['old_path'].endswith('Test.php')}
+          def cases(filename):
+              out=[]
+              for cls in E.parse(Path(os.environ['RUNNER_TEMP'])/filename).getroot().findall('.//{*}testClass'):
+                  for method in cls:
+                      out.append((names.get(cls.attrib['name'],cls.attrib['name']),tuple(sorted((k,v.split('::',1)[-1] if k=='id' else v) for k,v in method.attrib.items()))))
+              return collections.Counter(out)
+          before,after=cases('before.xml'),cases('after.xml')
+          assert before == after and sum(after.values()) == 1482, 'Test identity drift'
+          print('All 1482 original PHP identities preserved.')
+          PY
+      - name: Prepare exact unreferenced Git tree without updating any branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git add -A
+          test "$(git write-tree)" = 5e7eb6446dbfba4da982b9081da75376078a60ed
+          python - <<'PY'
+          import os,json,subprocess,urllib.request
+          from pathlib import Path
+          def git(*args): return subprocess.check_output(['git',*args]).decode().strip()
+          expected='5e7eb6446dbfba4da982b9081da75376078a60ed'
+          entries=[]
+          raw=subprocess.check_output(['git','diff','--cached','--name-status','--no-renames','-z']).decode().split('\0')
+          for index in range(0,len(raw)-1,2):
+              status,path=raw[index:index+2]
+              assert path.startswith(('tests/','scripts/','docs/','.github/')) or path in ['composer.json','phpunit.xml','app/Contexts/README.md'], path
+              entry={'path':path,'mode':'100644','type':'blob'}
+              if status=='D': entry['sha']=None
+              else: entry['content']=Path(path).read_text()
+              entries.append(entry)
+          payload=json.dumps({'base_tree':git('rev-parse','HEAD^{tree}'),'tree':entries}).encode()
+          request=urllib.request.Request('https://api.github.com/repos/awalker0878/kingshot-alliance/git/trees',data=payload,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'},method='POST')
+          with urllib.request.urlopen(request,timeout=120) as response: result=json.load(response)
+          assert result['sha']==expected, result['sha']
+          evidence={'source_commit':git('rev-parse','HEAD'),'tree_sha':expected,'php_cases':1482,'fast_suite':'passed','branch_updated':False}
+          Path(os.environ['RUNNER_TEMP'],'prepared-tree.json').write_text(json.dumps(evidence,indent=2)+'\n')
+          print(json.dumps(evidence))
+          PY
+      - name: Retain verification evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pr163-prepared-test-tree
+          path: |
+            ${{ runner.temp }}/before.xml
+            ${{ runner.temp }}/after.xml
+            ${{ runner.temp }}/fast.xml
+            ${{ runner.temp }}/prepared-tree.json
+          if-no-files-found: error
+          retention-days: 7
