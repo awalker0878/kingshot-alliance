@@ -9,10 +9,11 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentInput;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
-use InvalidArgumentException;
+use Illuminate\Validation\ValidationException;
 
 final class ConfigureRecruitmentSettings
 {
@@ -33,14 +34,11 @@ final class ConfigureRecruitmentSettings
         bool $isOpen,
         bool $isListed,
     ): string {
-        if ($retentionUnsuccessfulDays < 1 || $retentionUnsuccessfulDays > 3650) {
-            throw new InvalidArgumentException('Recruitment retention must be between 1 and 3650 days.');
+        if ($retentionUnsuccessfulDays < 1 || $retentionUnsuccessfulDays > RecruitmentInput::LIMITS['retentionDays']) {
+            throw ValidationException::withMessages(['retention_days' => 'Recruitment retention must be between 1 and '.RecruitmentInput::LIMITS['retentionDays'].' days.']);
         }
-
-        $cleanTitle = trim($title);
-        if ($cleanTitle === '') {
-            throw new InvalidArgumentException('Recruitment application title is required.');
-        }
+        $cleanTitle = RecruitmentInput::requiredText($title, 'title', RecruitmentInput::LIMITS['title']);
+        $introduction = RecruitmentInput::optionalText($introduction, 'introduction', RecruitmentInput::LIMITS['introduction']);
 
         return DB::transaction(function () use (
             $actorPlayerId,
@@ -73,7 +71,7 @@ final class ConfigureRecruitmentSettings
             $settings->fill([
                 'application_mode' => $mode,
                 'title' => $cleanTitle,
-                'introduction' => $introduction === null ? null : trim($introduction),
+                'introduction' => $introduction,
                 'retention_unsuccessful_days' => $retentionUnsuccessfulDays,
                 'is_open' => $isOpen,
                 'is_listed' => $isListed,

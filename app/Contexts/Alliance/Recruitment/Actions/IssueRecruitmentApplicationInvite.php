@@ -9,12 +9,12 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentApplicationInvite;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentApplicationTokenService;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentInput;
 use App\Contexts\Alliance\Recruitment\ValueObjects\IssuedRecruitmentApplicationInvite;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use InvalidArgumentException;
+use Illuminate\Validation\ValidationException;
 
 final class IssueRecruitmentApplicationInvite
 {
@@ -32,11 +32,11 @@ final class IssueRecruitmentApplicationInvite
         ?string $email = null,
         int $ttlHours = 72,
     ): IssuedRecruitmentApplicationInvite {
-        if ($ttlHours < 1 || $ttlHours > 720) {
-            throw new InvalidArgumentException('Recruitment application invitation lifetime must be between 1 and 720 hours.');
+        if ($ttlHours < 1 || $ttlHours > RecruitmentInput::LIMITS['inviteHours']) {
+            throw ValidationException::withMessages(['ttl_hours' => 'Recruitment application invitation lifetime must be between 1 and '.RecruitmentInput::LIMITS['inviteHours'].' hours.']);
         }
 
-        $normalizedEmail = $email === null || trim($email) === '' ? null : Str::lower(trim($email));
+        $normalizedEmail = $email === null || trim($email) === '' ? null : RecruitmentInput::email($email);
 
         return DB::transaction(function () use ($actorPlayerId, $allianceId, $normalizedEmail, $ttlHours): IssuedRecruitmentApplicationInvite {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);

@@ -17,6 +17,7 @@ use App\Contexts\Alliance\Recruitment\Actions\UpdateRecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentApplicationMode;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentQuestionType;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentInput;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
@@ -33,9 +34,9 @@ final class RecruitmentManagementController extends Controller
     ): RedirectResponse {
         $validated = $request->validate([
             'mode' => ['required', Rule::enum(RecruitmentApplicationMode::class)],
-            'title' => ['required', 'string', 'max:160'],
-            'introduction' => ['nullable', 'string', 'max:5000'],
-            'retention_days' => ['required', 'integer', 'min:1', 'max:3650'],
+            'title' => ['required', 'string', 'max:'.RecruitmentInput::LIMITS['title']],
+            'introduction' => ['nullable', 'string', 'max:'.RecruitmentInput::LIMITS['introduction']],
+            'retention_days' => ['required', 'integer', 'min:1', 'max:'.RecruitmentInput::LIMITS['retentionDays']],
             'open' => ['required', 'boolean'],
             'listed' => ['required', 'boolean'],
         ]);
@@ -63,13 +64,13 @@ final class RecruitmentManagementController extends Controller
     ): RedirectResponse {
         $validated = $request->validate([
             'question_id' => ['nullable', 'ulid'],
-            'prompt' => ['required', 'string', 'max:240'],
-            'help_text' => ['nullable', 'string', 'max:2000'],
+            'prompt' => ['required', 'string', 'max:'.RecruitmentInput::LIMITS['prompt']],
+            'help_text' => ['nullable', 'string', 'max:'.RecruitmentInput::LIMITS['helpText']],
             'type' => ['required', Rule::enum(RecruitmentQuestionType::class)],
-            'options' => ['array', 'max:30'],
-            'options.*' => ['string', 'max:160'],
+            'options' => ['array', 'list', 'max:'.RecruitmentInput::LIMITS['options']],
+            'options.*' => ['string', 'max:'.RecruitmentInput::LIMITS['option']],
             'required' => ['required', 'boolean'],
-            'position' => ['required', 'integer', 'min:0', 'max:65535'],
+            'position' => ['required', 'integer', 'min:0', 'max:'.RecruitmentInput::LIMITS['position']],
             'active' => ['required', 'boolean'],
         ]);
 
@@ -116,8 +117,8 @@ final class RecruitmentManagementController extends Controller
         AllianceReferenceQuery $alliances,
     ): RedirectResponse {
         $validated = $request->validate([
-            'email' => ['nullable', 'email:rfc', 'max:320'],
-            'ttl_hours' => ['required', 'integer', 'min:1', 'max:720'],
+            'email' => ['nullable', 'email:rfc', 'max:'.RecruitmentInput::LIMITS['email']],
+            'ttl_hours' => ['required', 'integer', 'min:1', 'max:'.RecruitmentInput::LIMITS['inviteHours']],
         ]);
         $scope = $context->scope();
         $alliance = $alliances->require($scope->allianceId);
@@ -142,10 +143,10 @@ final class RecruitmentManagementController extends Controller
         CreateRecruitmentDecisionTemplate $create,
     ): RedirectResponse {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:120'],
+            'name' => ['required', 'string', 'max:'.RecruitmentInput::LIMITS['templateName']],
             'decision_stage' => ['required', Rule::in([RecruitmentStage::Accepted->value, RecruitmentStage::Declined->value])],
-            'subject' => ['required', 'string', 'max:200'],
-            'body' => ['required', 'string', 'max:10000'],
+            'subject' => ['required', 'string', 'max:'.RecruitmentInput::LIMITS['subject']],
+            'body' => ['required', 'string', 'max:'.RecruitmentInput::LIMITS['body']],
             'active' => ['required', 'boolean'],
         ]);
 
@@ -169,9 +170,9 @@ final class RecruitmentManagementController extends Controller
         CreateRecruitmentOnboardingItem $create,
     ): RedirectResponse {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:160'],
-            'description' => ['nullable', 'string', 'max:5000'],
-            'position' => ['required', 'integer', 'min:0', 'max:65535'],
+            'name' => ['required', 'string', 'max:'.RecruitmentInput::LIMITS['onboardingName']],
+            'description' => ['nullable', 'string', 'max:'.RecruitmentInput::LIMITS['description']],
+            'position' => ['required', 'integer', 'min:0', 'max:'.RecruitmentInput::LIMITS['position']],
             'required' => ['required', 'boolean'],
             'active' => ['required', 'boolean'],
         ]);

@@ -17,6 +17,7 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentStageHistory;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentApplicationTokenService;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentInput;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -47,16 +48,10 @@ final class SubmitRecruitmentApplication
         ?string $applicationToken = null,
         ?int $applicantUserId = null,
     ): string {
-        $cleanName = trim($fullName);
-        $normalizedEmail = Str::lower(trim($email));
-
-        if ($cleanName === '') {
-            throw ValidationException::withMessages(['full_name' => 'Your name is required.']);
-        }
-
-        if (! filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL)) {
-            throw ValidationException::withMessages(['email' => 'A valid email address is required.']);
-        }
+        $cleanName = RecruitmentInput::requiredText($fullName, 'full_name', RecruitmentInput::LIMITS['fullName']);
+        $normalizedEmail = RecruitmentInput::email($email);
+        $contactHandle = RecruitmentInput::optionalText($contactHandle, 'contact_handle', RecruitmentInput::LIMITS['contactHandle']);
+        $source = RecruitmentInput::optionalText($source, 'source', RecruitmentInput::LIMITS['source']);
 
         return DB::transaction(function () use (
             $allianceId,
@@ -176,8 +171,8 @@ final class SubmitRecruitmentApplication
                 'application_invite_id' => $applicationInvite?->id,
                 'full_name' => $cleanName,
                 'email' => $normalizedEmail,
-                'contact_handle' => $contactHandle === null ? null : trim($contactHandle),
-                'source' => $source === null ? null : trim($source),
+                'contact_handle' => $contactHandle,
+                'source' => $source,
                 'stage' => RecruitmentStage::New,
                 'submitted_at' => now(),
             ]);
@@ -267,21 +262,31 @@ final class SubmitRecruitmentApplication
         $options = $question->optionValues();
 
         return match ($type) {
-            RecruitmentQuestionType::ShortText, RecruitmentQuestionType::LongText => is_string($answer)
-                ? null
-                : 'This answer must be text.',
+            RecruitmentQuestionType::ShortText, RecruitmentQuestionType::LongText => $this->textAnswerError($answer, $type),
             RecruitmentQuestionType::Select => is_string($answer) && in_array($answer, $options, true)
                 ? null
                 : 'Choose one of the available options.',
             RecruitmentQuestionType::MultiSelect => is_array($answer)
                 && array_is_list($answer)
+                && count($answer) <= RecruitmentInput::LIMITS['options']
                 && array_reduce($answer, static fn (bool $valid, mixed $item): bool => $valid && is_string($item) && in_array($item, $options, true), true)
+                && count(array_unique($answer)) === count($answer)
                 ? null
-                : 'Choose only from the available options.',
+                : 'Choose each available option at most once.',
             RecruitmentQuestionType::Checkbox => is_bool($answer) && (! $question->is_required || $answer)
                 ? null
                 : 'This checkbox must be confirmed.',
         };
+    }
+
+    private function textAnswerError(mixed $answer, RecruitmentQuestionType $type): ?string
+    {
+        if (! is_string($answer)) {
+            return 'This answer must be text.';
+        }
+        $limit = $type === RecruitmentQuestionType::ShortText ? RecruitmentInput::LIMITS['shortAnswer'] : RecruitmentInput::LIMITS['longAnswer'];
+
+        return mb_strlen(trim($answer)) <= $limit ? null : 'Use no more than '.$limit.' characters.';
     }
 
     private function isBlankAnswer(mixed $answer): bool
@@ -308,6 +313,6 @@ final class SubmitRecruitmentApplication
             return ['values' => array_values($answer)];
         }
 
-        return ['value' => $answer];
+        return ['value' => is_string($answer) ? trim($answer) : $answer];
     }
 }

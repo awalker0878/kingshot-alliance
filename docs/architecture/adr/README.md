@@ -48,3 +48,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0038: Current Recruitment visibility in governance history](0038-current-governance-recruitment-visibility.md)
 
 - [ADR-0039: Complete bounded member governance history](0039-complete-bounded-member-governance-history.md)
+
+- [ADR-0040: Recruitment owner input contracts](0040-recruitment-owner-input-contracts.md)

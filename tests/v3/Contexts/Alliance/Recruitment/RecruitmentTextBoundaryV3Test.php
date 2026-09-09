@@ -68,7 +68,10 @@ final class RecruitmentTextBoundaryV3Test extends TestCase
         $allianceFacts = app(PlayerIdentityContextQuery::class)->forPlayers([$player->playerId])[$player->playerId] ?? null;
         $kingdom = app(KingdomAuthorityFactsQuery::class)->findCurrent($player->playerId, $player->kingdomId)->permissionKeysObservedAtRead ?? [];
         $version = app(PlayerAuthorityContextVersion::class)->issue($player, $allianceFacts, $kingdom);
-        $this->actingAs($fixture['user'])->withSession([(string) config('game_world.active_player_session_key') => $fixture['actorId']])
+        $this->actingAs($fixture['user'])->withSession([
+            (string) config('game_world.active_player_session_key') => $fixture['actorId'],
+            'accounts.recent_authentication_at' => now()->timestamp,
+        ])
             ->withHeader(RequireCurrentPlayerContextVersion::HEADER_NAME, $version);
         $this->get(route('alliance.recruitment.candidates.show', $fixture['candidate']))
             ->assertOk()->assertInertia(static function (Assert $page): void {

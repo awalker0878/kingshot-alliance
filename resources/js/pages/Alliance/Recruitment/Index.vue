@@ -7,8 +7,10 @@ import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import CursorPagination from '@/components/ui/CursorPagination.vue';
+import FormError from '@/components/ui/FormError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
+import type { RecruitmentInputLimits } from '@/types/recruitment';
 
 type Candidate = {
   id: string;
@@ -81,6 +83,7 @@ type BulkResult = {
 };
 
 const props = defineProps<{
+  inputLimits: RecruitmentInputLimits;
   reasonMaxLength: number;
   user: { name: string; email: string };
   alliance: { id: string; name: string; slug: string };
@@ -198,17 +201,25 @@ const questionForm = useForm({
 const questionOptions = ref('');
 const applicationLinkCopied = ref(false);
 const questionEdits = reactive<Record<string, QuestionEdit>>({});
-for (const question of props.questions) {
-  questionEdits[question.id] = {
-    prompt: question.prompt,
-    helpText: question.helpText ?? '',
-    type: question.type,
-    optionsText: question.options.join('\n'),
-    required: question.required,
-    position: question.position,
-    active: question.active,
-  };
-}
+const questionErrors = reactive<Record<string, string | undefined>>({});
+watch(
+  () => props.questions,
+  (questions) => {
+    for (const question of questions) {
+      if (questionEdits[question.id]) continue;
+      questionEdits[question.id] = {
+        prompt: question.prompt,
+        helpText: question.helpText ?? '',
+        type: question.type,
+        optionsText: question.options.join('\n'),
+        required: question.required,
+        position: question.position,
+        active: question.active,
+      };
+    }
+  },
+  { immediate: true },
+);
 
 const candidatePlaceholder = '{{candidate_name}}';
 const alliancePlaceholder = '{{alliance_name}}';
@@ -267,6 +278,7 @@ function createQuestion(): void {
 
 function saveQuestion(id: string): void {
   const edit = questionEdit(id);
+  delete questionErrors[id];
   router.post(
     '/alliance/recruitment/questions',
     {
@@ -282,7 +294,12 @@ function saveQuestion(id: string): void {
       position: edit.position,
       active: edit.active,
     },
-    { preserveScroll: true },
+    {
+      preserveScroll: true,
+      onError: (errors) => {
+        questionErrors[id] = Object.values(errors)[0];
+      },
+    },
   );
 }
 
@@ -947,6 +964,7 @@ function humanize(value: string): string {
         </div>
 
         <form class="mt-5 space-y-4" @submit.prevent="saveSettings">
+          <FormError class="sm:col-span-2" :message="Object.values(settingsForm.errors)[0]" />
           <div>
             <label
               class="text-xs font-semibold text-[var(--ks-text-secondary)]"
@@ -971,8 +989,8 @@ function humanize(value: string): string {
               id="recruitment-title"
               v-model="settingsForm.title"
               class="ks-input mt-1.5"
-              maxlength="160"
               required
+              :maxlength="inputLimits.title"
             />
           </div>
           <div>
@@ -986,7 +1004,7 @@ function humanize(value: string): string {
               id="recruitment-introduction"
               v-model="settingsForm.introduction"
               class="ks-input mt-1.5 min-h-28"
-              maxlength="5000"
+              :maxlength="inputLimits.introduction"
             />
           </div>
           <div class="grid gap-4 sm:grid-cols-2">
@@ -1003,7 +1021,7 @@ function humanize(value: string): string {
                 class="ks-input mt-1.5"
                 type="number"
                 min="1"
-                max="3650"
+                :max="inputLimits.retentionDays"
                 required
               />
             </div>
@@ -1057,6 +1075,7 @@ function humanize(value: string): string {
         <div class="ks-divider my-6" />
 
         <form @submit.prevent="issueInvite">
+          <FormError class="sm:col-span-2" :message="Object.values(inviteForm.errors)[0]" />
           <p class="ks-kicker">{{ t('recruitment.inviteLink') }}</p>
           <h3 class="ks-display mt-1 text-lg font-semibold">{{ t('recruitment.issue') }}</h3>
           <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
@@ -1068,13 +1087,14 @@ function humanize(value: string): string {
               class="ks-input"
               type="email"
               :placeholder="t('recruitment.optionalEmail')"
+              :maxlength="inputLimits.email"
             />
             <input
               v-model.number="inviteForm.ttl_hours"
               class="ks-input"
               type="number"
               min="1"
-              max="720"
+              :max="inputLimits.inviteHours"
               :aria-label="t('recruitment.lifetimeHours')"
             />
             <AppButton type="submit" variant="ghost" :disabled="inviteForm.processing">
@@ -1106,6 +1126,7 @@ function humanize(value: string): string {
         </h2>
 
         <form class="mt-5 grid gap-3 sm:grid-cols-2" @submit.prevent="createQuestion">
+          <FormError class="sm:col-span-2" :message="Object.values(questionForm.errors)[0]" />
           <div class="sm:col-span-2">
             <label
               class="text-xs font-semibold text-[var(--ks-text-secondary)]"
@@ -1116,8 +1137,8 @@ function humanize(value: string): string {
               id="question-prompt"
               v-model="questionForm.prompt"
               class="ks-input mt-1.5"
-              maxlength="240"
               required
+              :maxlength="inputLimits.prompt"
             />
           </div>
           <div>
@@ -1144,7 +1165,7 @@ function humanize(value: string): string {
               class="ks-input mt-1.5"
               type="number"
               min="0"
-              max="65535"
+              :max="inputLimits.position"
             />
           </div>
           <div class="sm:col-span-2">
@@ -1157,7 +1178,7 @@ function humanize(value: string): string {
               id="question-help"
               v-model="questionForm.help_text"
               class="ks-input mt-1.5 min-h-20"
-              maxlength="2000"
+              :maxlength="inputLimits.helpText"
             />
           </div>
           <div class="sm:col-span-2">
@@ -1202,7 +1223,11 @@ function humanize(value: string): string {
               </div>
             </summary>
             <div class="mt-4 grid gap-3 sm:grid-cols-2">
-              <input v-model="questionEdit(question.id).prompt" class="ks-input sm:col-span-2" />
+              <input
+                v-model="questionEdit(question.id).prompt"
+                class="ks-input sm:col-span-2"
+                :maxlength="inputLimits.prompt"
+              />
               <select v-model="questionEdit(question.id).type" class="ks-input">
                 <option v-for="type in questionTypes" :key="type" :value="type">
                   {{ humanize(type) }}
@@ -1213,11 +1238,12 @@ function humanize(value: string): string {
                 class="ks-input"
                 type="number"
                 min="0"
-                max="65535"
+                :max="inputLimits.position"
               />
               <textarea
                 v-model="questionEdit(question.id).helpText"
                 class="ks-input min-h-16 sm:col-span-2"
+                :maxlength="inputLimits.helpText"
               />
               <textarea
                 v-model="questionEdit(question.id).optionsText"
@@ -1234,6 +1260,7 @@ function humanize(value: string): string {
                 }}</label
               >
             </div>
+            <FormError :message="questionErrors[question.id]" />
             <AppButton class="mt-3" variant="secondary" @click="saveQuestion(question.id)">
               {{ t('recruitment.saveQuestion') }}
             </AppButton>
@@ -1255,12 +1282,13 @@ function humanize(value: string): string {
           }}
         </p>
         <form class="mt-5 space-y-3" @submit.prevent="createDecisionTemplate">
+          <FormError class="sm:col-span-2" :message="Object.values(decisionForm.errors)[0]" />
           <input
             v-model="decisionForm.name"
             class="ks-input"
             :placeholder="t('recruitment.templateName')"
-            maxlength="120"
             required
+            :maxlength="inputLimits.templateName"
           />
           <select v-model="decisionForm.decision_stage" class="ks-input">
             <option value="accepted">{{ t('recruitment.accepted') }}</option>
@@ -1270,15 +1298,15 @@ function humanize(value: string): string {
             v-model="decisionForm.subject"
             class="ks-input"
             :placeholder="t('recruitment.subject')"
-            maxlength="200"
             required
+            :maxlength="inputLimits.subject"
           />
           <textarea
             v-model="decisionForm.body"
             class="ks-input min-h-28"
             :placeholder="t('recruitment.body')"
-            maxlength="10000"
             required
+            :maxlength="inputLimits.body"
           />
           <label class="flex items-center gap-2 text-sm"
             ><input v-model="decisionForm.active" type="checkbox" />{{
@@ -1315,25 +1343,26 @@ function humanize(value: string): string {
           {{ t('recruitment.onboardingProgress') }}
         </h2>
         <form class="mt-5 space-y-3" @submit.prevent="createOnboardingItem">
+          <FormError class="sm:col-span-2" :message="Object.values(onboardingForm.errors)[0]" />
           <input
             v-model="onboardingForm.name"
             class="ks-input"
             :placeholder="t('recruitment.itemName')"
-            maxlength="160"
             required
+            :maxlength="inputLimits.onboardingName"
           />
           <textarea
             v-model="onboardingForm.description"
             class="ks-input min-h-24"
             :placeholder="t('recruitment.description')"
-            maxlength="5000"
+            :maxlength="inputLimits.description"
           />
           <input
             v-model.number="onboardingForm.position"
             class="ks-input"
             type="number"
             min="0"
-            max="65535"
+            :max="inputLimits.position"
             :aria-label="t('recruitment.position')"
           />
           <div class="flex flex-wrap gap-5">
