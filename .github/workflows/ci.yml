@@ -75,6 +75,9 @@ jobs:
           coverage: none
           tools: composer:v2
 
+      - name: Restore Composer package cache
+        uses: ./.github/actions/composer-package-cache
+
       - name: Validate Composer manifest and lockfile
         run: composer validate --strict
 
