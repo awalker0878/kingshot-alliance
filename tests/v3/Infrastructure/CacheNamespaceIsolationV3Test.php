@@ -29,7 +29,7 @@ final class CacheNamespaceIsolationV3Test extends TestCase
         self::assertNull(Cache::get('namespace-isolation-probe'), 'Cached state leaked into '.$consumer);
         Cache::put('namespace-isolation-probe', $consumer, 60);
         RateLimiter::hit('namespace-isolation-budget', 60);
-        self::assertSame(1, RateLimiter::attempts('namespace-isolation-budget'));
+        self::assertSame(1, (int) RateLimiter::attempts('namespace-isolation-budget'));
         self::assertSame($consumer, Cache::get('namespace-isolation-probe'));
         // Leave expiring entries behind: the next case must be isolated even
         // when a prior case's persistent Redis state has not been deleted.
@@ -46,6 +46,6 @@ final class CacheNamespaceIsolationV3Test extends TestCase
         self::assertSame($driver, config('cache.default'));
         // CI's Redis-backed limiter must retain state across an app reboot;
         // the sequential gate's process-local array store has no such storage.
-        self::assertSame($driver === 'array' ? 0 : 1, RateLimiter::attempts('same-test-reboot-budget'));
+        self::assertSame($driver === 'array' ? 0 : 1, (int) RateLimiter::attempts('same-test-reboot-budget'));
     }
 }

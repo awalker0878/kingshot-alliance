@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `30e7033bbee951c781f479331be811f46cb60a95`.
+- Latest pushed durable checkpoint: `507701a2bde99abfd6ab6cd7b1f209741ddeaad5`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-046 / In progress (role-definition serialization); HARD-045/047/048 are published and in verification.
+- Current item/state: HARD-049/050 / In progress (explicit route budgets and authenticated password-proof throttling); HARD-045–048 are published and in verification.
 - Most recently verified gates: all nine PR workflows pass on `8c6b8a7a29a7d0bc1ecba9a1aa579bc88e828d5e`, including 876 PHP tests / 75,032 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: UpdateAllianceRole, ArchiveAllianceRole, AllianceRoleRevocationConcurrencyV3Test, ADR-0023 and role contracts.
-- Current CI result: 7ae4489c's entire Architecture workflow passes, including 1,026 tests / 76,916 assertions (job 102282372512). Delegation checkpoint 2ad8dfaf completes the Intelligence suite with 1,043 tests / 77,008 assertions and exactly one failure (job 102288101285): the new HTTP fixture omitted current player-context and recent-authentication proof, receiving 409 before its intended delegation validation. The other sixteen delegation cases and all prior Accounts cases pass. The corrected fixture retains all middleware and supplies current owner-issued context. Cache-isolated 30e7033b containing results remain pending.
+- Active files: seven route adapters, RouteThrottleBoundaryV3Test, PasswordProofThrottleV3Test, ADR-0024 and security/API contracts.
+- Current CI result: 507701a2's full PostgreSQL/Redis parallel suite completes 1,054 tests / 77,048 assertions (job 102292896580), passing all Accounts, all seventeen delegation and all eight role-revocation cases. Its only three failures are new HARD-048 harness checks: Redis returns a numeric counter as a string; Laravel's parallel callback replaces config with the process's first prefix, contradicting per-test/reboot namespace expectations. Full Pint/PHPStan/fresh installation and frontend pass. A callback after the maintained parallel cache callback now restores the same pre-boot test namespace; numeric counter assertions normalize the supported store representation. Containing verification remains pending.
 - Remaining current work: verify delegation/cache isolation and role-definition revocation, then continue explicit route budgets and remaining audit areas.
-- Known failures: HARD-045's HTTP fixture setup is corrected in the prepared slice and needs executable verification. HARD-048's former parallel email-verification 429 requires the new cache-isolated containing result. Earlier unsupported passkey-failure claims are superseded by decoded logs recorded in the relevant items.
+- Known failures: HARD-048's three new harness checks require the corrected parallel-callback containing run. HARD-045's context fixture and the former email-verification 429 pass on 507701a2. Earlier unsupported passkey-failure claims are superseded by decoded logs recorded in the relevant items.
 - Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout now tracks remote 2ad8dfaf; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: publish/verify HARD-046's role-definition serialization, inspect the cache-isolated containing suite, then continue HARD-049 explicit route budgets and remaining audit coverage. Do not mark the whole audit complete from an Accounts-only verification result.
+- Exact next action: inspect 507701a2's containing verification, publish/verify HARD-049/050, and continue remaining Alliance Access/role read boundaries and the capability coverage table. Do not mark the whole audit complete from an Accounts-only verification result.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -647,7 +647,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: enforce delegation for every grant, recheck each bulk item, preserve R5/self-rank protections, and align preview/remove behavior without making previews authorization authorities.
 - State: In progress.
 - Verification required: direct and HTTP cross-member rejection, permitted subsets, self/cross-Alliance cases, stale bulk authority, rank grants and removal parity with no audit/outbox on rejected writes.
-- Verification result: shared AllianceRoleDelegation enforces custom permission ceilings for every recipient, with explicit system-role semantics tracked separately under HARD-047. Membership owns a rank ceiling shared by preview and locked commits; removing a role no longer requires removed permissions. Seventeen combined database/HTTP cases cover isolation, subsets, rollback, rank grants, changing bulk authority, system-role/Operations outcomes and constant preview query count. ADR-0022 records the policy. Local source/whitespace and documentation links pass; executable PostgreSQL/static/style checks remain pending.
+- Verification result: shared AllianceRoleDelegation enforces custom permission ceilings for every recipient, with explicit system-role semantics tracked separately under HARD-047. Membership owns a rank ceiling shared by preview and locked commits; removing a role no longer requires removed permissions. Sixteen database cases pass in 2ad8dfaf's completed Intelligence suite (1,043 tests / 77,008 assertions; job 102288101285). Its sole failure was the HTTP fixture lacking the required context-version header; 507701a2 supplies owner-issued current context and recent authentication while retaining middleware. ADR-0022 records the policy. Corrected HTTP and final containing verification remain pending.
 - Completion evidence: pending.
 - Commit SHA: `2ad8dfaf6e797ab51a2f76e7e19f8384742f9520`.
 
@@ -663,7 +663,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Verification required: revocation waits behind an admitted writer; a writer waiting behind revocation rechecks and rejects obsolete authority; different Alliances remain independent and rollback preserves permissions.
 - Verification result: UpdateAllianceRole and ArchiveAllianceRole now acquire the existing exclusive Alliance scope before administrator membership and role state. Eight cases cover actual separate-connection contention in both orders, current rejection on retry, independence of another Alliance in the same Kingdom, and late audit rollback for both update and archive. ADR-0023 records lock order and alternatives. All role-permission/assignment mutation callers were traced; authorization remains lock-free. Source/whitespace and documentation checks pass; PostgreSQL/static/style containing verification remains pending.
 - Completion evidence: pending.
-- Commit SHA: pending.
+- Commit SHA: `507701a2bde99abfd6ab6cd7b1f209741ddeaad5`.
 
 ### HARD-047 — System-role grant authority is incomplete and conflicts with Gift Code commissioning
 
@@ -689,7 +689,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: establish per-test cache namespaces that survive application recreation within that test; verify the failing scenario and full parallel suite without weakening gates.
 - State: In progress.
 - Verification required: separate tests/processes cannot share limiter or cached authority state; one test retains state across its intended application reboots; full parallel PHP and container/recovery checks pass.
-- Verification result: TestCase now sets a unique cache prefix in the maintained environment adapters before parent application/provider boot, preserves it for in-test app reboots, and restores prior environment state on teardown/setup failure. Three behavioral cases exercise independent cached values/limiter attempts and reboot persistence with the configured Redis/array driver. Production configuration, rate limits and Redis-backed CI are retained. Source/whitespace and documentation checks pass; executable containing verification pending. The prior failing run passes all eight HARD-044 cases and every other Accounts case.
+- Verification result: 507701a2's parallel suite completes 1,054 tests / 77,048 assertions with only this item's three new checks failing (job 102292896580); all Accounts/delegation/revocation cases pass. Exact locked Laravel TestCaches source shows a static first-process prefix reapplied after application boot. TestCase now appends a maintained parallel test-case callback that restores the same per-test pre-boot namespace before traits/fixtures, keeping already-resolved stores and configuration aligned across reboots. Redis's numeric-string counter representation is normalized in assertions. Environment restoration, configured Redis gate and production limits remain intact. Corrected containing verification pending.
 - Completion evidence: pending.
 - Commit SHA: `30e7033bbee951c781f479331be811f46cb60a95`.
 
@@ -701,9 +701,93 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: explicit operation or deliberate shared-budget definitions with stable account/client scope; maintained middleware continues enforcing counters.
 - Rationale: limits must protect the intended workload without accidental cross-capability denial or silently losing deliberate aggregate budgets.
 - Remediation: trace each unnamed route's intended budget and consumers; define explicit namespaces/shared limiter groups with unchanged safety limits, then exercise cross-operation isolation and deliberate aggregate throttling in real HTTP tests.
-- State: Planned.
+- State: In progress.
 - Verification required: unrelated operations do not exhaust each other's limits; related/aggregate workloads retain deliberate shared budgets; account/client isolation, retry timing and route boot remain correct.
-- Verification result: routes and maintained framework 718d17db ThrottleRequests.handle/resolveRequestSignature source confirm shared keys. Scope/design and executable remediation remain pending; this production concern is distinct from HARD-048's parallel test-cache isolation.
+- Verification result: all 51 former unnamed declarations now have explicit workload prefixes. Existing endpoint ceilings remain; provider ingress, v1 API, Gift Code redemption and export formats retain deliberate shared budgets. Internal observations also retain their lower 60-request ceiling inside the provider aggregate. ADR-0024 maps all scopes and tradeoffs. Seven booted-route/HTTP cases cover consistent definitions, guest/client isolation, provider and v1 aggregation, internal sublimit, Gift Code workflow aggregation and signed verification after resends/game activity. Source/whitespace and 240 documentation-link checks pass; PostgreSQL/Pint/static/containing execution pending. This production concern is distinct from HARD-048's test-cache isolation.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-050 — Authenticated password-proof endpoints have no attempt limit
+
+- Area: Accounts password confirmation and password change HTTP admission.
+- Finding: POST /confirm-password and PUT /profile/password call current credential validation without a route or owner attempt limit. An authenticated browser can repeatedly guess the account's password across either endpoint, despite bounded login and password-method routes.
+- Current owner: Authentication/Profile Actions and their web route adapters.
+- Intended authoritative owner: explicit shared HTTP password-proof budget, with credential validation and transactional proof publication retained by the existing owners.
+- Rationale: recent-authentication assurance must not expose an unlimited alternate password-verification surface; changing endpoint, client IP or browser session must not multiply the same account's proof budget.
+- Remediation: apply six requests per minute per account to both endpoints under one explicit prefix, distinct from unrelated verification/reset/game workloads. Preserve the maintained 429/Retry-After response and all credential/authority checks.
+- State: In progress.
+- Verification required: mixed attempts across endpoints/IPs/sessions exhaust one account budget; blocked correct credentials change no password/proof/audit; another account retains admission; expiry permits valid proof again.
+- Verification result: two full HTTP cases exercise the configured store and deterministic clock expiry. ADR-0024 and Authentication/security contracts record the policy. Source/whitespace and documentation checks pass; executable verification remains pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-051 — Role input shape and generated-key bounds can produce server errors
+
+- Area: Alliance specialist-role HTTP and owner input boundaries.
+- Finding: The permissions field is optional in validation but unconditionally indexed by create/update controllers; omitted input therefore fails before owner validation. A valid 65–100-character ASCII role name also produces a slug longer than the roles.key 64-character column.
+- Current owner: AllianceRoleController, CreateAllianceRole and UpdateAllianceRole.
+- Intended authoritative owner: Explicit permission replacement at the HTTP boundary and current owner name/storage bounds.
+- Rationale: Missing permission input must not implicitly clear authority or crash, and valid-looking names must not escape as database errors.
+- Remediation: Require an explicit list of distinct known permissions, including a valid empty list; reject names/keys exceeding storage bounds before persistence.
+- State: In progress.
+- Verification required: Real HTTP create/update rejection leaves role/permission/audit/outbox state unchanged; explicit empty permissions work; direct owner calls enforce name/key bounds.
+- Verification result: Controller/owner repair and eight database/HTTP cases are prepared locally; executable verification and publication pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-052 — Role catalogs and management counts grow without bounds
+
+- Area: Alliance role management, dashboard and bulk role selection.
+- Finding: AllianceRoleController loads every active and archived role, then performs one memberships count query per role. Dashboard and bulk role selectors also load unbounded catalogs; the dashboard includes archived roles that cannot be assigned.
+- Current owner: Alliance Access role controller and AllianceDashboard/AllianceGovernance projections.
+- Intended authoritative owner: Owner-scoped bounded role catalog queries with usable pagination/search and grouped counts.
+- Rationale: A local administrator can accumulate role/history rows without a storage cap; every dashboard or management read must not grow with all history or issue a query per role.
+- Remediation: Introduce bounded scoped role reads and appropriate indexes, migrate all catalog consumers and maintain accessible selection/navigation.
+- State: Planned.
+- Verification required: Large same-/cross-Alliance role sets, stable page traversal, invalid/cross-scope cursors, archived-role selection exclusion, constant query count and real frontend navigation.
+- Verification result: All three catalog consumers and role/assignment indexes traced. Implementation and executable coverage pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-053 — Role editor state does not follow retained Inertia props
+
+- Area: Alliance/Roles/Index.vue create/edit feedback.
+- Finding: Drafts are created once from initial roles. Inertia retains component state after create/update, so a newly returned role has no draft although the template dereferences drafts[role.id].name. Existing updates use router.patch without showing row validation errors.
+- Current owner: Alliance Roles frontend page.
+- Intended authoritative owner: Role editor form state keyed to current server roles with visible per-row validation feedback.
+- Rationale: Successful creation must remain usable without a hard reload; rejected owner edits need actionable feedback while preserving the user's draft.
+- Remediation: Initialize/refresh editor state as roles change, preserve in-progress drafts safely, and expose save errors/processing through maintained form behavior.
+- State: Planned.
+- Verification required: Create then edit newly returned role in one retained page, server validation feedback, successful refresh, archive and pagination transitions; frontend type/style and browser behavior.
+- Verification result: Page props, create callbacks and row mutation rendering traced; implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-054 — Concurrent creation of the same role key escapes as a database error
+
+- Area: Alliance Access role-creation idempotency and collision handling.
+- Finding: CreateAllianceRole locks an existence query for a not-yet-existing key while holding only a shared Alliance scope. Two role administrators can both observe absence; the unique constraint rejects the losing insert as an unhandled database exception.
+- Current owner: CreateAllianceRole and the existing Alliance/key unique constraint.
+- Intended authoritative owner: Owner-controlled collision handling using the maintained transaction/unique-key mechanism.
+- Rationale: Same-key contention must produce one complete role and ordinary validation feedback without overwriting the winner or aborting unrelated caller work.
+- Remediation: Retain the database uniqueness authority and translate only the expected creation collision at a recoverable transaction boundary.
+- State: Planned.
+- Verification required: Separate-connection competing creation, one role/permission/audit/outbox outcome, safe retry and unrelated database errors still propagated.
+- Verification result: Shared scope, absent-row existence query and exact roles(alliance_id,key) constraint traced. Implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-055 — Role archival copies every assignment into audit and outbox payloads
+
+- Area: Alliance role archival memory and durable payload size.
+- Finding: ArchiveAllianceRole plucks every assigned membership ID into memory and duplicates that unbounded list in audit/outbox metadata. Suspended historical memberships retain assignments and are not limited by active member capacity. No production consumer reads removed_membership_ids.
+- Current owner: ArchiveAllianceRole and role/assignment persistence.
+- Intended authoritative owner: Atomic owner revocation with bounded summary metadata and indexed set-based assignment removal.
+- Rationale: A single archival should not materialize unbounded historical membership lists or create oversized delivery/audit payloads.
+- Remediation: Preserve immediate atomic revocation while recording a bounded assignment count and using Alliance-scoped indexed SQL removal.
+- State: Planned.
+- Verification required: Large assignment sets, exact bounded count, tenant isolation, no per-assignment reads, idempotent archival and late audit rollback.
+- Verification result: Assignment lifecycle, capacity policy and metadata consumers traced. Implementation pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

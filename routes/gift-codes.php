@@ -19,45 +19,45 @@ Route::middleware(['auth', 'auth.session', 'verified'])->group(function (): void
         ->whereUlid('alliance')
         ->name('gift-codes.workspace.alliance-coverage');
     Route::post('/gift-codes/workspace/sessions', [GiftCodeWorkspaceController::class, 'createSession'])
-        ->middleware('throttle:20,1')
+        ->middleware('throttle:20,1,gift-session-create:')
         ->name('gift-codes.workspace.sessions.store');
     Route::post('/gift-codes/workspace/state/{giftCode}', [GiftCodeWorkspaceController::class, 'updateState'])
         ->whereUlid('giftCode')
-        ->middleware('throttle:30,1')
+        ->middleware('throttle:30,1,gift-redemption:')
         ->name('gift-codes.workspace.state');
     Route::post('/gift-codes/workspace/sessions/{session}/items/{item}/prepare', [GiftCodeWorkspaceController::class, 'prepareItem'])
         ->whereUlid('session')
         ->whereUlid('item')
-        ->middleware('throttle:30,1')
+        ->middleware('throttle:30,1,gift-redemption:')
         ->name('gift-codes.workspace.sessions.items.prepare');
     Route::post('/gift-codes/workspace/sessions/{session}/items/{item}/result', [GiftCodeWorkspaceController::class, 'resultItem'])
         ->whereUlid('session')
         ->whereUlid('item')
-        ->middleware('throttle:30,1')
+        ->middleware('throttle:30,1,gift-redemption:')
         ->name('gift-codes.workspace.sessions.items.result');
     Route::post('/gift-codes/workspace/sessions/{session}/items/{item}/skip', [GiftCodeWorkspaceController::class, 'skipItem'])
         ->whereUlid('session')
         ->whereUlid('item')
-        ->middleware('throttle:30,1')
+        ->middleware('throttle:30,1,gift-redemption:')
         ->name('gift-codes.workspace.sessions.items.skip');
     Route::post('/gift-codes/workspace/sessions/{session}/abandon', [GiftCodeWorkspaceController::class, 'abandon'])
         ->whereUlid('session')
-        ->middleware('throttle:10,1')
+        ->middleware('throttle:10,1,gift-session-abandon:')
         ->name('gift-codes.workspace.sessions.abandon');
 
     Route::get('/gift-codes/{giftCode}', [GiftCodeController::class, 'show'])
         ->whereUlid('giftCode')
         ->name('gift-codes.show');
     Route::post('/gift-codes', [GiftCodeController::class, 'store'])
-        ->middleware('throttle:20,1')
+        ->middleware('throttle:20,1,gift-code-submit:')
         ->name('gift-codes.store');
     Route::post('/gift-codes/{giftCode}/redeem', [GiftCodeController::class, 'redeem'])
         ->whereUlid('giftCode')
-        ->middleware('throttle:30,1')
+        ->middleware('throttle:30,1,gift-redemption:')
         ->name('gift-codes.redeem');
     Route::post('/gift-codes/{giftCode}/result', [GiftCodeController::class, 'result'])
         ->whereUlid('giftCode')
-        ->middleware('throttle:30,1')
+        ->middleware('throttle:30,1,gift-redemption:')
         ->name('gift-codes.result');
 });
 
@@ -67,7 +67,7 @@ Route::middleware(['auth', 'auth.session', 'verified', 'gift-code.curator', 'pas
     ->group(function (): void {
         Route::get('/', [GiftCodeModerationController::class, 'index'])->name('index');
         Route::post('/bulk', [GiftCodeModerationController::class, 'bulk'])
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,gift-curation:')
             ->name('bulk');
         Route::get('/sources', [GiftCodeSourceManagementController::class, 'index'])
             ->name('sources.index');
@@ -76,58 +76,58 @@ Route::middleware(['auth', 'auth.session', 'verified', 'gift-code.curator', 'pas
         Route::get('/sources/evidence-entry', [GiftCodeAcquisitionOperationsController::class, 'evidence'])
             ->name('sources.evidence-entry');
         Route::post('/sources', [GiftCodeModerationController::class, 'storeSource'])
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,gift-curation:')
             ->name('sources.store');
         Route::post('/sources/policy', [GiftCodeSourceManagementController::class, 'store'])
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,gift-curation:')
             ->name('sources.policy');
         Route::post('/sources/evidence', [GiftCodeSourceManagementController::class, 'evidence'])
-            ->middleware('throttle:20,1')
+            ->middleware('throttle:20,1,gift-curation-content:')
             ->name('sources.evidence');
         Route::post('/sources/intelligence/rebuild', [GiftCodeSourceManagementController::class, 'rebuildIntelligence'])
-            ->middleware('throttle:5,1')
+            ->middleware('throttle:5,1,gift-intelligence-rebuild:')
             ->name('sources.intelligence.rebuild');
         Route::post('/sources/{source}/smoke', [GiftCodeSourceManagementController::class, 'smoke'])
             ->whereUlid('source')
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,gift-curation:')
             ->name('sources.smoke');
         Route::post('/sources/{source}/controls', [GiftCodeSourceManagementController::class, 'controls'])
             ->whereUlid('source')
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,gift-curation:')
             ->name('sources.controls');
         Route::post('/sources/{source}/head', [GiftCodeSourceManagementController::class, 'head'])
             ->whereUlid('source')
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,gift-curation:')
             ->name('sources.head');
         Route::post('/sources/{source}/push/subscribe', [GiftCodeSourceManagementController::class, 'subscribePush'])
             ->whereUlid('source')
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,gift-curation:')
             ->name('sources.push.subscribe');
         Route::post('/sources/{source}/push/unsubscribe', [GiftCodeSourceManagementController::class, 'unsubscribePush'])
             ->whereUlid('source')
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,gift-curation:')
             ->name('sources.push.unsubscribe');
         Route::post('/sources/{source}/reconcile', [GiftCodeSourceManagementController::class, 'reconcile'])
             ->whereUlid('source')
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,gift-curation:')
             ->name('sources.reconcile');
         Route::post('/sources/{source}/backfill', [GiftCodeSourceManagementController::class, 'backfill'])
             ->whereUlid('source')
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,gift-curation:')
             ->name('sources.backfill');
         Route::post('/sources/{source}/revoke', [GiftCodeModerationController::class, 'revokeSource'])
             ->whereUlid('source')
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,gift-curation:')
             ->name('sources.revoke');
         Route::post('/curators', [GiftCodeModerationController::class, 'grantCurator'])
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,gift-curation:')
             ->name('curators.store');
         Route::post('/curators/{grant}/revoke', [GiftCodeModerationController::class, 'revokeCurator'])
             ->whereUlid('grant')
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,gift-curation:')
             ->name('curators.revoke');
         Route::post('/{giftCode}', [GiftCodeModerationController::class, 'moderate'])
             ->whereUlid('giftCode')
-            ->middleware('throttle:20,1')
+            ->middleware('throttle:20,1,gift-curation-content:')
             ->name('moderate');
     });

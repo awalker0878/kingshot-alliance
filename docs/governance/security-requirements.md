@@ -11,6 +11,7 @@ These are system-level requirements. Context-specific invariants remain document
 - Alliance/Kingdom/Operations/Intelligence authority is never aggregated across all Players owned by one User.
 - Platform Administrator is a separate User-scoped grant and cannot bypass game-domain authorization.
 - Privileged routes use verified identity/MFA/recent password confirmation where the implemented policy requires it.
+- Authenticated password-proof HTTP entry points are rate limited per account across IPs and sessions. Numeric throttle declarations use explicit workload prefixes with one consistent ceiling per shared counter; unrelated capabilities cannot consume recovery/verification budgets. [ADR-0024](../architecture/adr/0024-explicit-http-rate-limit-budgets.md) records current scopes and deliberate aggregate limits.
 
 ## Sessions and transport
 

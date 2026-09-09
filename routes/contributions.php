@@ -17,7 +17,7 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
     Route::get('/alliance/contributions/manage', [ContributionController::class, 'manage'])
         ->name('alliance.contributions.manage');
     Route::post('/alliance/contributions/self-report', [ContributionController::class, 'storeSelfReport'])
-        ->middleware('throttle:20,1')
+        ->middleware('throttle:20,1,contribution-self-report:')
         ->name('alliance.contributions.self-report.store');
 
     Route::middleware('password.confirm')->group(function (): void {
@@ -46,10 +46,10 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
         Route::post('/alliance/contributions/report-schedules', [ContributionController::class, 'storeReportSchedule'])
             ->name('alliance.contributions.report-schedules.store');
         Route::get('/alliance/contributions/export.csv', [ContributionController::class, 'exportCsv'])
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,contribution-export:')
             ->name('alliance.contributions.export.csv');
         Route::get('/alliance/contributions/export.xls', [ContributionController::class, 'exportSpreadsheet'])
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,contribution-export:')
             ->name('alliance.contributions.export.spreadsheet');
     });
 });

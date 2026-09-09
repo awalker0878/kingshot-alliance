@@ -4,13 +4,29 @@ declare(strict_types=1);
 
 namespace Tests\v3;
 
+use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
+use Illuminate\Support\Facades\ParallelTesting;
 use Throwable;
 
 abstract class TestCase extends LaravelTestCase
 {
     /** @var array{process:string|false,env:mixed,server:mixed}|null */
     private ?array $originalCachePrefix = null;
+
+    public function createApplication(): Application
+    {
+        $app = parent::createApplication();
+        $prefix = (string) $app['config']->get('cache.prefix');
+        // Laravel's parallel callback restores its first process prefix after
+        // boot. Reapply this test's namespace before traits or fixtures run;
+        // providers already resolved their stores against it during boot.
+        ParallelTesting::setUpTestCase(static function () use ($app, $prefix): void {
+            $app['config']->set('cache.prefix', $prefix);
+        });
+
+        return $app;
+    }
 
     protected function setUp(): void
     {

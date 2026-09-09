@@ -24,7 +24,7 @@ Useful targeted commands include Laravel test paths, Pint, Larastan, ESLint, Pre
 
 The application baseline uses PostgreSQL and Redis-backed infrastructure for hosted environments. Local/test configuration may use lighter drivers where repository configuration explicitly allows it.
 
-The V3 TestCase gives each test a unique cache prefix before application/provider boot. This isolates cached authority and rate-limit counters when parallel tests reuse account IDs in separate PostgreSQL databases but share Redis. The namespace stays stable for application reboots within that test and the original environment is restored after teardown or failed setup. The configured cache driver, real middleware and rate limits are retained; CI continues using Redis. Tests must not globally flush a shared Redis database to clean up their own keys.
+The V3 TestCase gives each test a unique cache prefix before application/provider boot. A test-case callback after Laravel's parallel cache callback restores that same prefix before traits/fixtures run; Laravel's process-wide prefix would otherwise replace the per-test configuration after providers have resolved their stores. This isolates cached authority and rate-limit counters when parallel tests reuse account IDs in separate PostgreSQL databases but share Redis. The namespace stays stable for application reboots within that test and the original environment is restored after teardown or failed setup. The configured cache driver, real middleware and rate limits are retained; CI continues using Redis. Tests must not globally flush a shared Redis database to clean up their own keys.
 
 ## Before changing architecture
 
