@@ -254,3 +254,5 @@ Preview calls the same evaluator as live reads and persists nothing. Commit reva
 ## Release checks
 
 Final readiness requires clean database migration, Pint/PHPStan, frontend lint/format/type/build, KingdomTransfers/Evidence V3 tests, architecture/intelligence/visual workflows, CodeQL/Dependency Review, bounded-query and cross-Alliance isolation coverage, plus documentation/source-matrix reconciliation.
+
+Eligibility and screenshot preview load only bounded factual witnesses for the requested participants and source/target Kingdoms, preserving current conflicts and authoritative provenance. Capacity planning counts consuming commitments in SQL against the latest authoritative capacity observation. The Readiness page separately loads complete observation history in current-authorized 25-record pages, with scoped continuation and retry. Recruitment campaign evidence and active-blocker totals are SQL counts over all matching records.

@@ -128,16 +128,8 @@ const props = defineProps<{
           validUntil: string | null;
         }>;
       } | null;
-      evidence: Array<{
-        id: string;
-        kind: string;
-        sourceType: string;
-        sourceReference: string;
-        observedAt: string;
-        validUntil: string | null;
-        evidenceId: string | null;
-      }>;
-      activeBlockers: Array<{ id: string; summary: string }>;
+      evidenceCount: number;
+      activeBlockerCount: number;
       completion: { completedAt: string; rosterEntryId: string | null } | null;
       withdrawnAt: string | null;
     } | null;
@@ -542,14 +534,14 @@ function humanize(value: string): string {
                 <li>
                   {{
                     t('recruitment.transferCampaign.evidenceCount', {
-                      count: formatNumber(transferCampaign.transfer.evidence.length),
+                      count: formatNumber(transferCampaign.transfer.evidenceCount),
                     })
                   }}
                 </li>
                 <li>
                   {{
                     t('recruitment.transferCampaign.blockerCount', {
-                      count: formatNumber(transferCampaign.transfer.activeBlockers.length),
+                      count: formatNumber(transferCampaign.transfer.activeBlockerCount),
                     })
                   }}
                 </li>

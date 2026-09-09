@@ -1,3 +1,5 @@
-# Kingdom Transfer Workflow
+# Kingdom Transfers
 
-Cross-context transfer-cycle orchestration and saga state. The workflow may read context state and invoke context-owned mutation APIs, but it does not directly write GameWorld, Alliance, Operations, or Intelligence aggregates.
+GameWorld owns transfer windows, official groups, participant plans, observations, eligibility interpretation, capacity commitments, blockers and completion facts. HTTP adapters and cross-owner ReadModels consume these owners; transfer workflows coordinate their actions without acquiring a second persistence or eligibility authority.
+
+TransferEligibilityEvidenceQuery selects bounded factual witnesses for requested participants and Kingdoms while preserving live conflicts, uncertainty and provenance. TransferCapacityPlanningQuery selects current authoritative observations and aggregates consuming commitments in SQL. Complete observation history is independently authorized and paginated by TransferObservationHistoryQuery. See [ADR-0041](../../../../docs/architecture/adr/0041-transfer-eligibility-evidence-and-history.md).

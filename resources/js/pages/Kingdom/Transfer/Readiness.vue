@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 
 import TransferEvidencePanel from '@/components/transfers/TransferEvidencePanel.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
@@ -329,6 +329,72 @@ function localInputLater(): string {
 function requirement(p: Participant, key: string): Requirement | undefined {
   return p.eligibility?.requirements.find((r) => r.key === key);
 }
+type ObservationPage = {
+  items: Observation[];
+  nextCursor: string | null;
+  isFirstPage: boolean;
+  pageSize: number;
+  hasMore: boolean;
+};
+type ObservationHistoryState = {
+  page: ObservationPage | null;
+  loading: boolean;
+  error: boolean;
+  open: boolean;
+  cursor: string | null;
+};
+const observationHistories = reactive<Record<string, ObservationHistoryState>>({});
+function observationHistory(id: string): ObservationHistoryState {
+  return (observationHistories[id] ??= {
+    page: null,
+    loading: false,
+    error: false,
+    open: false,
+    cursor: null,
+  });
+}
+async function loadObservationHistory(id: string, cursor: string | null = null): Promise<void> {
+  if (!props.plan) return;
+  const state = observationHistory(id);
+  if (state.loading) return;
+  state.loading = true;
+  state.error = false;
+  state.cursor = cursor;
+  try {
+    const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
+    const response = await fetch(
+      `/alliance/transfers/${props.plan.id}/participants/${id}/observations${query}`,
+      {
+        headers: { Accept: 'application/json' },
+        credentials: 'same-origin',
+      },
+    );
+    if (!response.ok) throw new Error('Observation history unavailable');
+    state.page = (await response.json()) as ObservationPage;
+  } catch {
+    state.page = null;
+    state.error = true;
+  } finally {
+    state.loading = false;
+  }
+}
+function toggleObservationHistory(id: string, event: Event): void {
+  const state = observationHistory(id);
+  state.open = (event.target as HTMLDetailsElement).open;
+  if (state.open && !state.page) void loadObservationHistory(id);
+}
+watch(
+  () => props.participants,
+  () => {
+    for (const [id, previous] of Object.entries(observationHistories)) {
+      delete observationHistories[id];
+      if (previous.open) {
+        observationHistory(id).open = true;
+        void loadObservationHistory(id);
+      }
+    }
+  },
+);
 function timestamp(v: string | null): string {
   return v
     ? formatDate(v, { dateStyle: 'medium', timeStyle: 'short' })
@@ -982,13 +1048,26 @@ function saveInvitationAllocation(p: Participant): void {
               </div>
             </form>
           </details>
-          <details class="mt-4">
+          <details class="mt-4" @toggle="toggleObservationHistory(p.id, $event)">
             <summary class="cursor-pointer font-semibold">
-              {{ t('kingdomP7D.observationHistory') }} ({{ p.observations.length }})
+              {{ t('kingdomP7D.observationHistory') }}
             </summary>
+            <p v-if="observationHistory(p.id).loading" class="mt-3" role="status">
+              {{ t('common.loading') }}
+            </p>
+            <div v-if="observationHistory(p.id).error" class="mt-3" role="alert">
+              <p>{{ t('kingdomP7D.observationHistoryUnavailable') }}</p>
+              <button
+                type="button"
+                class="ks-command-button mt-2"
+                @click="loadObservationHistory(p.id, observationHistory(p.id).cursor)"
+              >
+                {{ t('kingdomP7D.reloadHistory') }}
+              </button>
+            </div>
             <ul class="mt-3 grid gap-2">
               <li
-                v-for="o in p.observations"
+                v-for="o in observationHistory(p.id).page?.items ?? []"
                 :key="o.id"
                 class="rounded-lg border border-[var(--ks-border)] p-3 text-sm"
               >
@@ -1003,6 +1082,40 @@ function saveInvitationAllocation(p: Participant): void {
                 <p v-if="o.details" class="mt-2">{{ o.details }}</p>
               </li>
             </ul>
+            <nav
+              v-if="observationHistory(p.id).page"
+              class="mt-3 flex flex-wrap items-center gap-3"
+              :aria-label="t('common.pagination')"
+            >
+              <p class="text-xs text-[var(--ks-muted)]" aria-live="polite">
+                {{
+                  t('common.historyItemsOnPage', {
+                    count: formatNumber(observationHistory(p.id).page?.items.length ?? 0),
+                    pageSize: formatNumber(25),
+                  })
+                }}
+              </p>
+              <button
+                v-if="!observationHistory(p.id).page?.isFirstPage"
+                type="button"
+                class="ks-command-button"
+                :disabled="observationHistory(p.id).loading"
+                @click="loadObservationHistory(p.id)"
+              >
+                {{ t('common.firstPage') }}
+              </button>
+              <button
+                v-if="observationHistory(p.id).page?.hasMore"
+                type="button"
+                class="ks-command-button"
+                :disabled="observationHistory(p.id).loading"
+                @click="
+                  loadObservationHistory(p.id, observationHistory(p.id).page?.nextCursor ?? null)
+                "
+              >
+                {{ t('common.nextPage') }}
+              </button>
+            </nav>
           </details>
         </div>
 

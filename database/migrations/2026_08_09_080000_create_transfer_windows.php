@@ -72,7 +72,7 @@ return new class extends Migration
             $table->char('fingerprint', 64)->unique();
             $table->foreignUlid('recorded_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamps();
-            $table->index(['alliance_id', 'transfer_window_id', 'kingdom_id', 'observed_at']);
+            $table->index(['alliance_id', 'transfer_window_id', 'kingdom_id', 'observed_at', 'id'], 'transfer_condition_current_fact_idx');
         });
     }
 

@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    observationHistoryUnavailable: 'Riwayat pengamatan tidak dapat dimuat.',
+    reloadHistory: 'Muat ulang riwayat',
     eyebrow: 'Transfer Kerajaan',
     title: 'Perencanaan transfer',
     readinessBoard: 'Kesiapan',

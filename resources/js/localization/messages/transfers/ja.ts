@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    observationHistoryUnavailable: '観測履歴を読み込めませんでした。',
+    reloadHistory: '履歴を再読み込み',
     eyebrow: '王国移民',
     title: '移民計画',
     readinessBoard: '準備状況',

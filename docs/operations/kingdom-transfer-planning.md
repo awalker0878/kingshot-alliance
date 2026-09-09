@@ -200,3 +200,5 @@ Before release/merge readiness:
 13. documentation/source matrix/reference/operations contracts agree with code.
 
 No compatibility shim, legacy alias, dual read/write or migration-backfill path is required for this fresh deployment.
+
+Eligibility and screenshot preview load only bounded factual witnesses for the requested participants and source/target Kingdoms, preserving current conflicts and authoritative provenance. Capacity planning counts consuming commitments in SQL against the latest authoritative capacity observation. The Readiness page separately loads complete observation history in current-authorized 25-record pages, with scoped continuation and retry. Recruitment campaign evidence and active-blocker totals are SQL counts over all matching records.

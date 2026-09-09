@@ -9,13 +9,14 @@ use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferCapacityReservationSta
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationAllocationState;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferInvitationKind;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferRequirementState;
-use App\Contexts\GameWorld\KingdomTransfers\Models\TransferCapacityReservation;
-use App\Contexts\GameWorld\KingdomTransfers\Models\TransferInvitationAllocation;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferSourceType;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomCapacityObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomConditionObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Services\TransferOfficialRulebook;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferKingdomCapacityProjection;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\DB;
 
 final readonly class TransferCapacityPlanningQuery
 {
@@ -32,39 +33,52 @@ final readonly class TransferCapacityPlanningQuery
             return [];
         }
 
+        $sources = array_map(static fn (TransferSourceType $source): string => $source->value, array_values(array_filter(TransferSourceType::cases(), static fn (TransferSourceType $source): bool => $source->isAuthoritative())));
         $conditions = TransferKingdomConditionObservation::query()
-            ->where('alliance_id', $allianceId)
-            ->where('transfer_window_id', $windowId)
-            ->whereIn('kingdom_id', $kingdomIds)
-            ->orderByDesc('observed_at')
-            ->orderByDesc('id')
-            ->get()
-            ->groupBy('kingdom_id');
-        $capacities = TransferKingdomCapacityObservation::query()
-            ->where('alliance_id', $allianceId)
-            ->where('transfer_window_id', $windowId)
-            ->whereIn('kingdom_id', $kingdomIds)
-            ->orderByDesc('observed_at')
-            ->orderByDesc('id')
-            ->get()
-            ->groupBy('kingdom_id');
-        $reservations = TransferCapacityReservation::query()
-            ->where('alliance_id', $allianceId)
-            ->where('transfer_window_id', $windowId)
-            ->whereIn('target_kingdom_id', $kingdomIds)
-            ->get();
-        $allocations = TransferInvitationAllocation::query()
-            ->where('alliance_id', $allianceId)
-            ->where('transfer_window_id', $windowId)
-            ->whereIn('target_kingdom_id', $kingdomIds)
-            ->get();
+            ->selectRaw('DISTINCT ON (kingdom_id) *')
+            ->where('alliance_id', $allianceId)->where('transfer_window_id', $windowId)
+            ->whereIn('kingdom_id', $kingdomIds)->whereIn('source_type', $sources)
+            ->orderBy('kingdom_id')->orderByDesc('observed_at')->orderByDesc('id')->get()->keyBy('kingdom_id');
+        $capacityQuery = TransferKingdomCapacityObservation::query()
+            ->selectRaw('DISTINCT ON (kingdom_id) *')
+            ->where('alliance_id', $allianceId)->where('transfer_window_id', $windowId)
+            ->whereIn('kingdom_id', $kingdomIds)->whereIn('source_type', $sources)
+            ->orderBy('kingdom_id')->orderByDesc('observed_at')->orderByDesc('id');
+        $capacities = (clone $capacityQuery)->get()->keyBy('kingdom_id');
+        $reservations = DB::table('transfer_capacity_reservations as commitment')
+            ->leftJoinSub($capacityQuery->toBase(), 'capacity', 'capacity.kingdom_id', '=', 'commitment.target_kingdom_id')
+            ->where('commitment.alliance_id', $allianceId)->where('commitment.transfer_window_id', $windowId)
+            ->whereIn('commitment.target_kingdom_id', $kingdomIds)
+            ->where(function (Builder $query): void {
+                $query->whereIn('commitment.state', [TransferCapacityReservationState::Planned->value, TransferCapacityReservationState::Reserved->value])
+                    ->orWhere(function (Builder $confirmed): void {
+                        $confirmed->where('commitment.state', TransferCapacityReservationState::Confirmed->value)
+                            ->where(function (Builder $unreflected): void {
+                                $unreflected->whereNull('capacity.id')->orWhereNull('commitment.updated_at')->orWhereColumn('commitment.updated_at', '>', 'capacity.observed_at');
+                            });
+                    });
+            })->select(['commitment.target_kingdom_id', 'commitment.bucket'])->selectRaw('COUNT(*) AS total')
+            ->groupBy('commitment.target_kingdom_id', 'commitment.bucket')->get()->groupBy('target_kingdom_id');
+        $allocations = DB::table('transfer_invitation_allocations as commitment')
+            ->leftJoinSub($capacityQuery->toBase(), 'capacity', 'capacity.kingdom_id', '=', 'commitment.target_kingdom_id')
+            ->where('commitment.alliance_id', $allianceId)->where('commitment.transfer_window_id', $windowId)
+            ->whereIn('commitment.target_kingdom_id', $kingdomIds)
+            ->where('commitment.kind', TransferInvitationKind::Special->value)
+            ->where(function (Builder $query): void {
+                $query->where('commitment.state', TransferInvitationAllocationState::Reserved->value)
+                    ->orWhere(function (Builder $issued): void {
+                        $issued->whereIn('commitment.state', [TransferInvitationAllocationState::Issued->value, TransferInvitationAllocationState::Accepted->value])
+                            ->where(function (Builder $unreflected): void {
+                                $unreflected->whereNull('capacity.id')->orWhereNull('commitment.updated_at')->orWhereColumn('commitment.updated_at', '>', 'capacity.observed_at');
+                            });
+                    });
+            })->select('commitment.target_kingdom_id')->selectRaw('COUNT(*) AS total')
+            ->groupBy('commitment.target_kingdom_id')->get()->keyBy('target_kingdom_id');
 
         $result = [];
         foreach ($kingdomIds as $kingdomId) {
-            $condition = $conditions->get($kingdomId, collect())
-                ->first(static fn (TransferKingdomConditionObservation $row): bool => $row->source_type->isAuthoritative());
-            $capacity = $capacities->get($kingdomId, collect())
-                ->first(static fn (TransferKingdomCapacityObservation $row): bool => $row->source_type->isAuthoritative());
+            $condition = $conditions->get($kingdomId);
+            $capacity = $capacities->get($kingdomId);
             $official = $condition instanceof TransferKingdomConditionObservation && $condition->classification !== null
                 ? $this->rules->capacity($condition->classification)
                 : null;
@@ -74,11 +88,7 @@ final readonly class TransferCapacityPlanningQuery
                     ? TransferRequirementState::Met
                     : TransferRequirementState::Unknown;
 
-            $targetReservations = $reservations->where('target_kingdom_id', $kingdomId)
-                ->filter(fn (TransferCapacityReservation $row): bool => $this->reservationStillConsumes($row, $capacity));
-            $targetAllocations = $allocations->where('target_kingdom_id', $kingdomId)
-                ->filter(fn (TransferInvitationAllocation $row): bool => $this->allocationStillConsumes($row, $capacity));
-
+            $targetReservations = $reservations->get($kingdomId, collect())->keyBy('bucket');
             $result[$kingdomId] = new TransferKingdomCapacityProjection(
                 kingdomId: $kingdomId,
                 state: $state,
@@ -88,9 +98,9 @@ final readonly class TransferCapacityPlanningQuery
                 ordinaryInvitesUsed: $capacity?->ordinary_invites_used,
                 transferOpensUsed: $capacity?->transfer_opens_used,
                 specialInvitesAvailable: $capacity?->special_invites_available,
-                plannedOrdinaryInviteReservations: $targetReservations->where('bucket', TransferCapacityBucket::OrdinaryInvite)->count(),
-                plannedTransferOpenReservations: $targetReservations->where('bucket', TransferCapacityBucket::TransferOpen)->count(),
-                plannedSpecialInviteAllocations: $targetAllocations->where('kind', TransferInvitationKind::Special)->count(),
+                plannedOrdinaryInviteReservations: (int) ($targetReservations->get(TransferCapacityBucket::OrdinaryInvite->value)?->total ?? 0),
+                plannedTransferOpenReservations: (int) ($targetReservations->get(TransferCapacityBucket::TransferOpen->value)?->total ?? 0),
+                plannedSpecialInviteAllocations: (int) ($allocations->get($kingdomId)?->total ?? 0),
                 sourceType: $capacity?->source_type,
                 sourceReference: $capacity?->source_reference,
                 observedAt: $capacity instanceof TransferKingdomCapacityObservation ? CarbonImmutable::instance($capacity->observed_at) : null,
@@ -98,47 +108,5 @@ final readonly class TransferCapacityPlanningQuery
         }
 
         return $result;
-    }
-
-    private function reservationStillConsumes(
-        TransferCapacityReservation $reservation,
-        mixed $capacity,
-    ): bool {
-        if (! $reservation->state->consumesPlannedCapacity()) {
-            return false;
-        }
-
-        if ($reservation->state !== TransferCapacityReservationState::Confirmed) {
-            return true;
-        }
-
-        return ! $this->isReflectedByCapacityObservation($reservation->getAttribute('updated_at'), $capacity);
-    }
-
-    private function allocationStillConsumes(
-        TransferInvitationAllocation $allocation,
-        mixed $capacity,
-    ): bool {
-        if (! $allocation->state->consumesPlannedInventory()) {
-            return false;
-        }
-
-        if (! in_array($allocation->state, [TransferInvitationAllocationState::Issued, TransferInvitationAllocationState::Accepted], true)) {
-            return true;
-        }
-
-        return ! $this->isReflectedByCapacityObservation($allocation->getAttribute('updated_at'), $capacity);
-    }
-
-    private function isReflectedByCapacityObservation(
-        mixed $commitmentUpdatedAt,
-        mixed $capacity,
-    ): bool {
-        if (! $capacity instanceof TransferKingdomCapacityObservation || $commitmentUpdatedAt === null) {
-            return false;
-        }
-
-        return CarbonImmutable::parse((string) $commitmentUpdatedAt)
-            ->lessThanOrEqualTo(CarbonImmutable::instance($capacity->observed_at));
     }
 }

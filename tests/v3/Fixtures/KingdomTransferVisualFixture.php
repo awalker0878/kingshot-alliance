@@ -227,6 +227,21 @@ final class KingdomTransferVisualFixture
             TransferReadinessState::Preparing,
         );
 
+        for ($i = 1; $i <= 55; $i++) {
+            app(RecordTransferObservation::class)->handle(
+                $allianceId,
+                (string) $actor->id,
+                (string) $plan->id,
+                (string) $eligible->id,
+                TransferObservationKind::TransferScore,
+                50,
+                TransferSourceType::InGame,
+                'Historical transfer score '.str_pad((string) $i, 3, '0', STR_PAD_LEFT),
+                $now->subDays(3)->toIso8601String(),
+                $now->subDays(2)->toIso8601String(),
+            );
+        }
+
         self::seedTransferEvidence(
             $allianceId,
             (string) $actor->id,

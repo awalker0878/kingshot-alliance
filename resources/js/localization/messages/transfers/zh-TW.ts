@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    observationHistoryUnavailable: '無法載入觀測歷史。',
+    reloadHistory: '重新載入歷史',
     eyebrow: '王國轉移',
     title: '轉移計畫',
     readinessBoard: '準備情況',

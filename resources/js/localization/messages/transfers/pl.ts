@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    observationHistoryUnavailable: 'Nie udało się wczytać historii obserwacji.',
+    reloadHistory: 'Wczytaj historię ponownie',
     eyebrow: 'Transfer Królestwa',
     title: 'Planowanie transferu',
     readinessBoard: 'Gotowość',

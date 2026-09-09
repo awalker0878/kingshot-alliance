@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    observationHistoryUnavailable: 'تعذر تحميل سجل الملاحظات.',
+    reloadHistory: 'إعادة تحميل السجل',
     eyebrow: 'انتقال المملكة',
     title: 'تخطيط الانتقال',
     readinessBoard: 'الجاهزية',

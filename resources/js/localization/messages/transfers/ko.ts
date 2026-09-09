@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    observationHistoryUnavailable: '관측 기록을 불러오지 못했습니다.',
+    reloadHistory: '기록 새로고침',
     eyebrow: '왕국 이전',
     title: '이전 계획',
     readinessBoard: '준비 상태',

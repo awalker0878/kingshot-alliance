@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    observationHistoryUnavailable: 'ไม่สามารถโหลดประวัติการสังเกตได้',
+    reloadHistory: 'โหลดประวัติใหม่',
     eyebrow: 'การย้ายอาณาจักร',
     title: 'การวางแผนย้าย',
     readinessBoard: 'ความพร้อม',

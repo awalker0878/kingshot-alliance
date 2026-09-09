@@ -31,6 +31,7 @@ final readonly class TransferEligibilityQuery
         private TransferObservationSelector $selector,
         private TransferKingdomConditionSelector $conditionSelector,
         private TransferCapacityPlanningQuery $capacity,
+        private TransferEligibilityEvidenceQuery $evidence,
     ) {}
 
     /**
@@ -46,43 +47,29 @@ final readonly class TransferEligibilityQuery
      */
     public function forPlan(string $allianceId, TransferPlan $plan, Collection $participants): array
     {
+        abort_unless((string) $plan->alliance_id === $allianceId, 404);
         $now = CarbonImmutable::now('UTC');
         $window = $plan->window;
-        $groups = TransferGroup::query()
-            ->where('alliance_id', $allianceId)
-            ->where('transfer_window_id', $window->id)
-            ->whereNull('superseded_at')
-            ->with('kingdoms:id')
-            ->get();
-        $conditions = TransferKingdomConditionObservation::query()
-            ->where('alliance_id', $allianceId)
-            ->where('transfer_window_id', $window->id)
-            ->orderByDesc('observed_at')
-            ->orderByDesc('id')
-            ->get();
-        $observations = TransferObservation::query()
-            ->where('alliance_id', $allianceId)
-            ->where('transfer_plan_id', $plan->id)
-            ->with('targetKingdom:id,number')
-            ->orderByDesc('observed_at')
-            ->orderByDesc('id')
-            ->get()
-            ->groupBy('transfer_participant_id');
-
-        $groupsByKingdom = [];
-        foreach ($groups as $group) {
-            foreach ($group->kingdoms as $kingdom) {
-                $groupsByKingdom[(string) $kingdom->id] = $group;
-            }
-        }
-
         $targetIds = [];
+        $kingdomIds = [];
+        $participantTargets = [];
         foreach ($participants as $participant) {
+            abort_unless((string) $participant->alliance_id === $allianceId
+                && (string) $participant->transfer_plan_id === (string) $plan->id, 404);
             $targetId = $this->targetId($plan, $participant);
+            $participantTargets[(string) $participant->id] = $targetId;
             if ($targetId !== null) {
                 $targetIds[] = $targetId;
+                $kingdomIds[] = $targetId;
+            }
+            if ($participant->source_kingdom_id !== null) {
+                $kingdomIds[] = (string) $participant->source_kingdom_id;
             }
         }
+        $groupsByKingdom = $this->evidence->groups($allianceId, (string) $window->id, array_values(array_unique($kingdomIds)));
+        $conditions = $this->evidence->conditions($allianceId, (string) $window->id, array_values(array_unique($targetIds)));
+        $observations = $this->evidence->observations($allianceId, (string) $plan->id, $participantTargets, $now)
+            ->groupBy('transfer_participant_id');
         $capacityByKingdom = $this->capacity->forTargets($allianceId, (string) $window->id, $targetIds);
 
         $result = [];

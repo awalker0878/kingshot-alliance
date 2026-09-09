@@ -150,3 +150,5 @@ Read models may compose `TransferSelfEligibilityQuery` or other typed KingdomTra
 ## Fresh deployment
 
 No compatibility aliases, legacy planning `TransferGroup`, dual reads/writes, migration backfills or schema shims are retained. The database is treated as fresh deployment state.
+
+Eligibility and screenshot preview load only bounded factual witnesses for the requested participants and source/target Kingdoms, preserving current conflicts and authoritative provenance. Capacity planning counts consuming commitments in SQL against the latest authoritative capacity observation. The Readiness page separately loads complete observation history in current-authorized 25-record pages, with scoped continuation and retry. Recruitment campaign evidence and active-blocker totals are SQL counts over all matching records.

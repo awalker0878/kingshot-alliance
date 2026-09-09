@@ -52,6 +52,7 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
     Route::get('/alliance/transfers', [TransferPlanController::class, 'index'])->name('alliance.transfers.index');
     Route::get('/alliance/transfers/manage', [TransferPlanController::class, 'manage'])->name('alliance.transfers.manage');
     Route::get('/alliance/transfers/readiness', [TransferReadinessController::class, 'index'])->name('alliance.transfers.readiness');
+    Route::get('/alliance/transfers/{plan}/participants/{participant}/observations', [TransferReadinessController::class, 'history'])->name('alliance.transfers.participants.observations.index');
     Route::get('/alliance/transfers/completion', [TransferCompletionController::class, 'index'])->name('alliance.transfers.completion');
     Route::get('/alliance/transfers/{plan}/participants/{participant}/evidence', [TransferEvidenceController::class, 'index'])->name('alliance.transfers.participants.evidence.index');
     Route::get('/alliance/transfers/{plan}/participants/{participant}/evidence/{evidence}/image', [TransferEvidenceController::class, 'image'])->name('alliance.transfers.participants.evidence.image');

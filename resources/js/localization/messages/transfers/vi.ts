@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    observationHistoryUnavailable: 'Không thể tải lịch sử quan sát.',
+    reloadHistory: 'Tải lại lịch sử',
     eyebrow: 'Chuyển Vương quốc',
     title: 'Lập kế hoạch chuyển',
     readinessBoard: 'Chuẩn bị',

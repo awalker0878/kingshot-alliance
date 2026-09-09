@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    observationHistoryUnavailable: '无法加载观测历史。',
+    reloadHistory: '重新加载历史',
     eyebrow: '王国转移',
     title: '转移计划',
     readinessBoard: '准备情况',

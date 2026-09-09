@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    observationHistoryUnavailable: 'Gözlem geçmişi yüklenemedi.',
+    reloadHistory: 'Geçmişi yeniden yükle',
     eyebrow: 'Krallık Transferi',
     title: 'Transfer planlaması',
     readinessBoard: 'Hazırlık',

@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    observationHistoryUnavailable: 'Der Beobachtungsverlauf konnte nicht geladen werden.',
+    reloadHistory: 'Verlauf neu laden',
     eyebrow: 'Königreichstransfer',
     title: 'Transferplanung',
     readinessBoard: 'Bereitschaft',

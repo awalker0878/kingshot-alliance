@@ -70,7 +70,9 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
   await expect(filter).toHaveValue('all');
   await expect(emberCard).toBeVisible();
 
-  const evidenceDetails = northstarCard.locator('details').filter({ hasText: 'Add in-game evidence' });
+  const evidenceDetails = northstarCard
+    .locator('details')
+    .filter({ hasText: 'Add in-game evidence' });
   await evidenceDetails.locator('summary').click();
   await expect(evidenceDetails.getByText('Upload and classify', { exact: true })).toBeVisible();
   if (!(await evidenceDetails.evaluate((element) => (element as HTMLDetailsElement).open))) {
@@ -103,7 +105,9 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
     'Official Transfer Group',
   ]);
 
-  await expect(governorStatusEvidence.getByText('Possible visual duplicate', { exact: true })).toBeVisible();
+  await expect(
+    governorStatusEvidence.getByText('Possible visual duplicate', { exact: true }),
+  ).toBeVisible();
   await expect(
     governorStatusEvidence
       .locator('p:visible', {
@@ -142,7 +146,9 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
   await page
     .getByText(/Destination receipt/)
     .evaluateAll((elements) =>
-      elements.forEach((element) => (element.textContent = 'Succeeded · Destination receipt fixture')),
+      elements.forEach(
+        (element) => (element.textContent = 'Succeeded · Destination receipt fixture'),
+      ),
     );
 
   const screenshot = await page.screenshot({
@@ -159,4 +165,48 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
     actualFingerprint,
     `Update Kingdom Transfer Planning visual fingerprint for ${testInfo.project.name}`,
   ).toBe(expectedFingerprint);
+});
+
+test('Transfer observation history pages independently and retries a failed continuation', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await openTransferPlanning(page);
+  const card = page
+    .locator('article')
+    .filter({
+      has: page.getByRole('heading', { name: 'Northstar Marshal', exact: true, level: 2 }),
+    });
+  const history = card
+    .locator('details')
+    .filter({ has: page.locator('summary', { hasText: /^Observation history$/ }) });
+  await history.locator('summary').click();
+  await expect(history.locator('li')).toHaveCount(25);
+  const first = await history.locator('li').allTextContents();
+  const seen = [...first];
+  await page.route('**/observations?cursor=*', (route) =>
+    route.fulfill({ status: 503, body: '{}' }),
+  );
+  await history.getByRole('button', { name: 'Next page', exact: true }).click();
+  await expect(history.getByRole('alert')).toContainText(
+    'Observation history could not be loaded.',
+  );
+  await page.unroute('**/observations?cursor=*');
+  await history.getByRole('button', { name: 'Reload history', exact: true }).click();
+  await expect(history.locator('li')).toHaveCount(25);
+  seen.push(...(await history.locator('li').allTextContents()));
+  await history.getByRole('button', { name: 'Next page', exact: true }).click();
+  await expect(history.getByRole('button', { name: 'Next page', exact: true })).toHaveCount(0);
+  seen.push(...(await history.locator('li').allTextContents()));
+  expect(seen.filter((text) => text.includes('Historical transfer score'))).toHaveLength(55);
+  expect(new Set(seen).size).toBe(seen.length);
+  await history.getByRole('button', { name: 'First page', exact: true }).click();
+  await expect(history.locator('li')).toHaveText(first);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    ),
+  ).toBe(false);
+  expect(errors).toEqual([]);
 });

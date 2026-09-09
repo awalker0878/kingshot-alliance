@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    observationHistoryUnavailable: 'Observation history could not be loaded.',
+    reloadHistory: 'Reload history',
     eyebrow: 'Kingdom Transfer',
     title: 'Transfer planning',
     subtitle:

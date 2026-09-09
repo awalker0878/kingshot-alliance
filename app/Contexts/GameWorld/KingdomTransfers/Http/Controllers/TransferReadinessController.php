@@ -25,6 +25,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Models\TransferObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferReadinessTransition;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferEligibilityQuery;
+use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferObservationHistoryQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferParticipantQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferPlanQuery;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEligibilityAssessment;
@@ -33,6 +34,7 @@ use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferObservedValue;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferRequirement;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -114,6 +116,19 @@ final class TransferReadinessController extends Controller
                     $planning[(string) $participant->id] ?? null,
                 ))
                 ->all(),
+        ]);
+    }
+
+    public function history(Request $request, AllianceContext $context, TransferObservationHistoryQuery $history, string $plan, string $participant): JsonResponse
+    {
+        /** @var array{cursor?:string|null} $validated */
+        $validated = $request->validate(['cursor' => ['nullable', 'string', 'max:4096']]);
+        $scope = $context->scope();
+        $page = $history->forParticipant($scope->playerId, $scope->allianceId, $plan, $participant, $validated['cursor'] ?? null);
+
+        return response()->json([
+            ...$page->toArray(),
+            'items' => array_map(fn (TransferObservation $row): array => $this->observation($row), $page->items),
         ]);
     }
 
