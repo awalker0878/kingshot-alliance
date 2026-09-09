@@ -26,7 +26,7 @@ use App\Contexts\Accounts\Profile\Actions\RequestAccountEmailChange;
 use App\Contexts\Accounts\Profile\Actions\UpdateProfile;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Laravel\Passkeys\Actions\DeletePasskey;
@@ -38,7 +38,7 @@ use Tests\TestCase;
 
 final class FinalizedAccountMutationV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     /** @return iterable<string,array{string}> */
     public static function ordinaryMutations(): iterable
