@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\Architecture\Contexts\Operations\Events;
 
 use PHPUnit\Framework\TestCase;
 use Tests\Support\RepositoryPath;
 
-final class EventTypeOnboardingArchitectureV3Test extends TestCase
+final class EventTypeOnboardingBoundaryTest extends TestCase
 {
     public function test_verified_event_onboarding_uses_catalogue_resolver_and_typed_workflow_guard(): void
     {

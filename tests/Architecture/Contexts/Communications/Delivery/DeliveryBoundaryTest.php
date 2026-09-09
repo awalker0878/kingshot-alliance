@@ -2,19 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\Architecture\Contexts\Communications\Delivery;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Tests\Support\RepositoryPath;
 
-final class CommunicationsBoundaryV3Test extends TestCase
+final class DeliveryBoundaryTest extends TestCase
 {
     #[Test]
     public function communications_contains_only_the_delivery_capability(): void
     {
-        $root = dirname(__DIR__, 2).'/app/Contexts/Communications';
+        $root = RepositoryPath::fromRoot('app/Contexts/Communications');
         $directories = array_values(array_map('basename', array_filter(glob($root.'/*') ?: [], 'is_dir')));
         sort($directories);
         self::assertSame(['Delivery'], $directories);
@@ -23,7 +24,7 @@ final class CommunicationsBoundaryV3Test extends TestCase
     #[Test]
     public function communications_does_not_encode_source_domain_reminder_semantics(): void
     {
-        $root = dirname(__DIR__, 2).'/app/Contexts/Communications';
+        $root = RepositoryPath::fromRoot('app/Contexts/Communications');
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root));
         $violations = [];
         $forbidden = [
@@ -44,7 +45,7 @@ final class CommunicationsBoundaryV3Test extends TestCase
             self::assertIsString($contents);
             foreach ($forbidden as $term) {
                 if (str_contains($contents, $term)) {
-                    $violations[] = str_replace(dirname(__DIR__, 2).'/', '', $file->getPathname()).' ['.$term.']';
+                    $violations[] = str_replace(RepositoryPath::fromRoot(''), '', $file->getPathname()).' ['.$term.']';
                 }
             }
         }

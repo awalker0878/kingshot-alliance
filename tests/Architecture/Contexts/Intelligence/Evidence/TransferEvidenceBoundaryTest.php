@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\Architecture\Contexts\Intelligence\Evidence;
 
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
@@ -10,7 +10,7 @@ use RecursiveIteratorIterator;
 use SplFileInfo;
 use Tests\Support\RepositoryPath;
 
-final class TransferEvidenceBoundaryV3Test extends TestCase
+final class TransferEvidenceBoundaryTest extends TestCase
 {
     public function test_transfer_evidence_extends_intelligence_evidence_without_new_ocr_context_or_generic_schema(): void
     {

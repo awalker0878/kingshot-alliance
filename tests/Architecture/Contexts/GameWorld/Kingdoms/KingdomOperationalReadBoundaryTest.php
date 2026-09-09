@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\Architecture\Contexts\GameWorld\Kingdoms;
 
 use PHPUnit\Framework\TestCase;
 use Tests\Support\RepositoryPath;
 
-final class KingdomOperationalReadBoundaryV3Test extends TestCase
+final class KingdomOperationalReadBoundaryTest extends TestCase
 {
     public function test_current_operational_surfaces_use_active_kingdom_contracts(): void
     {
