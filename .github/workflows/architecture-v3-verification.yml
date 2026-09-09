@@ -13,7 +13,8 @@ permissions:
 jobs:
   architecture-v3:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    # Full serial coverage includes transaction/lock contention cases.
+    timeout-minutes: 90
 
     services:
       postgres:

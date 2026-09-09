@@ -25,7 +25,8 @@ jobs:
   backend:
     name: Intelligence backend contracts
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    # Full serial coverage includes transaction/lock contention cases.
+    timeout-minutes: 90
     services:
       postgres:
         image: postgres:18-alpine

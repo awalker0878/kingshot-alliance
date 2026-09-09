@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49` (freshly fetched unchanged).
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `460f0f9ae47081b7e30f330eb636dbdddc57875a`.
+- Latest pushed durable checkpoint: `ffbfed1ccab98f553abb1ea8479237e076a48478`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-088 / In progress; candidate attachment pagination and searchable member/roster/template choices implemented, with ten new PHP and two desktop/mobile browser cases. Containing runtime verification remains required.
+- Current item/state: HARD-096 / In progress; full serial Architecture/Intelligence job budgets increased from 45 to 90 minutes with unchanged test commands, assertions and failure handling. HARD-088 awaits containing verification; candidate attachment pagination and searchable member/roster/template choices implemented, with ten new PHP and two desktop/mobile browser cases. Containing runtime verification remains required.
 - Most recently verified gates: on `460f0f9a`, main PHP job 102402657713 passes 1,472 tests / 82,752 assertions in 24:40; fresh PostgreSQL, full frontend, all 60 visual cases, container/staging/recovery, CodeQL, dependency review and capability workflows pass. Architecture passes all 63 architecture tests and PHPStan before its full serial suite times out at 45 minutes. Intelligence's full serial suite also reaches its 45-minute timeout. HARD-096 tracks the gate runtime defect.
 - Local current checks: recovered PHP 8.5.8 and matching locked dependencies support passing PHPStan and 63 Architecture tests / 69,609 assertions. Changed-file Pint, ten-case test discovery, full `npm run check` (including production build/budgets), final browser lint/format and all 258 documentation links pass. Local PostgreSQL execution fails before assertions with connection refused at 127.0.0.1:5432; no local database pass is claimed.
 - Active files: Recruitment candidate projections/controller/route, option picker and 17 locales, merge attachment batching, focused PHP/browser fixtures and current Recruitment architecture/product/frontend contracts.
 - Remaining current work: containing HARD-088 PHP/browser verification; finish transfer participant/history bounds under HARD-095 and the remaining capability-by-capability audit. HARD-093's implementation and its tests now pass the containing main PHP and visual suites.
 - Known failures: two complete serial gate runs time out at 45 minutes; new selector/attachment tests need PostgreSQL/browser execution.
 - Blockers: no local PostgreSQL server; use existing PostgreSQL-backed CI. Local Git write transport lacks credentials; publish exact atomic trees/commits through the configured GitHub connector, validate tree equality and use non-forced branch updates. Earlier unrelated scratch workspaces are preserved.
-- Exact next action: publish the coherent HARD-088 selector/attachment slice after local gates, correct HARD-096's demonstrated CI budget, then continue HARD-095 and remaining audit coverage while containing CI executes.
+- Exact next action: verify containing HARD-088/096 CI and continue HARD-095 participant/history bounds and remaining audit coverage. Recruitment selector/attachment checkpoint `ffbfed1c` is remote and the checkout matches it.
 - Remaining repository-wide gates: final full PHP/architecture/capability/frontend, production image/staging/recovery, security/dependency/visual checks and the remaining capability-by-capability audit on one final containing commit.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -1384,9 +1384,9 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same complete verification gates with an explicit sufficient bounded runtime budget.
 - Rationale: cancellation is not passing evidence, and deleting tests or narrowing the existing full gates would conceal verification gaps.
 - Remediation: allow sufficient bounded runtime for full serial suites and retain their exact test selection and failure semantics; verify a containing complete run.
-- State: Planned.
+- State: In progress.
 - Verification required: both complete serial suites finish successfully on a containing commit.
-- Verification result: Architecture run 34332043959/job 102402657607 passes 63 architecture cases and PHPStan, then cancels after 45 minutes; Intelligence run 34332044046 likewise times out. Main PHP, visual and container/staging/recovery succeed on the same candidate.
+- Verification result: both full serial jobs now allow 90 minutes; YAML parses and the diff changes only the runtime budget/comment, preserving all complete suite commands and their exit handling. Containing completion remains required. Architecture run 34332043959/job 102402657607 passes 63 architecture cases and PHPStan, then cancels after 45 minutes; Intelligence run 34332044046 likewise times out. Main PHP, visual and container/staging/recovery succeed on the same candidate.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
