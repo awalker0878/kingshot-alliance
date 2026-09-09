@@ -28,6 +28,7 @@ Status: Current complete capability
 - Rank grants cannot exceed the actor's current rank; self-rank and R5 leadership protections remain enforced.
 - Self-escalation and cross-Alliance role mutation/assignment are rejected.
 - Inactive/archived roles cannot receive new assignments.
+- Role-definition changes and archives serialize with protected Alliance writes; an operation admitted after revocation cannot use the previous permission definition, while another Alliance remains independent.
 
 ## ACE-04 Membership governance history
 

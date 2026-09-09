@@ -21,6 +21,10 @@ use App\Contexts\Alliance\Membership\Actions\UpdateAllianceRank;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
+use App\Contexts\GameWorld\Players\Http\Middleware\RequireCurrentPlayerContextVersion;
+use App\Contexts\GameWorld\Players\Services\PlayerAuthorityContextVersion;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Access\Services\AllianceOperationsAuthorization;
@@ -64,8 +68,16 @@ final class AllianceDelegationBoundaryV3Test extends TestCase
     {
         $s = $this->delegatedScenario();
         $before = $this->grantSnapshot();
+        $alliance = app(PlayerIdentityContextQuery::class)->forPlayers([$s['actor']->playerId])[$s['actor']->playerId] ?? null;
+        $kingdomPermissions = app(KingdomAuthorityFactsQuery::class)
+            ->findCurrent($s['actor']->playerId, $s['actor']->kingdomId)?->permissionKeysObservedAtRead ?? [];
+        $version = app(PlayerAuthorityContextVersion::class)->issue($s['actor'], $alliance, $kingdomPermissions);
         $this->actingAs($s['actorUser'])
-            ->withSession([(string) config('game_world.active_player_session_key') => $s['actor']->playerId])
+            ->withSession([
+                (string) config('game_world.active_player_session_key') => $s['actor']->playerId,
+                'accounts.recent_authentication_at' => now()->timestamp,
+            ])
+            ->withHeader(RequireCurrentPlayerContextVersion::HEADER_NAME, $version)
             ->putJson(route('alliance.memberships.roles.assign', ['membership' => $s['target']->id, 'role' => $s['roleId']]))
             ->assertUnprocessable()->assertJsonValidationErrors('role');
         self::assertSame($before, $this->grantSnapshot());

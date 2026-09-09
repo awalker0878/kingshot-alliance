@@ -38,7 +38,9 @@ final readonly class UpdateAllianceRole
         }
 
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $roleId, $name, $permissions): string {
-            $context = $this->writeState->lockActiveScope($actorPlayerId, $allianceId);
+            // A definition change affects every holder, including writers that
+            // already acquired their own membership and a shared Alliance lock.
+            $context = $this->writeState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authorization->authorizeContext($context, AlliancePermission::RoleManage);
             foreach ($permissions as $permission) {
                 $this->authorization->authorizeContext($context, $permission);

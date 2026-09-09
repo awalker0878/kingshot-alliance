@@ -25,7 +25,7 @@ final readonly class ArchiveAllianceRole
     public function handle(string $allianceId, string $actorPlayerId, string $roleId): string
     {
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $roleId): string {
-            $context = $this->writeState->lockActiveScope($actorPlayerId, $allianceId);
+            $context = $this->writeState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authorization->authorizeContext($context, AlliancePermission::RoleManage);
 
             $role = Role::query()

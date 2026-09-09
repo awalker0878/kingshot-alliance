@@ -26,3 +26,4 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0020: Complete account login against current credential proof](0020-current-proof-account-login-completion.md)
 - [ADR-0021: Revoke remembered authority and complete browser cleanup on sign-out](0021-account-logout-revocation.md)
 - [ADR-0022: Enforce bounded Alliance delegation at every grant](0022-bounded-alliance-delegation.md)
+- [ADR-0023: Serialize role-definition revocation with Alliance writes](0023-alliance-role-revocation-serialization.md)
