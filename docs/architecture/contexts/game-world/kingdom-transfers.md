@@ -125,6 +125,8 @@ Capacity observation and planning commitment Actions remain explicit owner Actio
 
 ## Idempotency/concurrency
 
+Completion discovers scoped participant routing and acquires its current Alliance authority followed by shared home/destination Kingdom locks in sorted ID order before locking the canonical target Player. It revalidates the locked participant's routing before new handoff. Existing completion is an idempotent return even if the outgoing destination has since archived; new movement still requires an active destination. Transfer authority stabilizes the actor's active membership under the Alliance barrier and reads actor identity without taking an early Player lock. Each roster handoff owner locks its current Player before its roster row. [ADR-0033](../../adr/0033-transfer-kingdom-and-player-lock-order.md) records the lifecycle ordering and verification contract.
+
 - observation writes use deterministic fingerprints;
 - Evidence commit uses stable destination receipt keys;
 - official-group revision is serialized per window;

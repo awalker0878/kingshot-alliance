@@ -68,7 +68,7 @@ final class AllianceCreationAuthorityV3Test extends TestCase
         $attempted = false;
         DB::listen(static function (QueryExecuted $query) use ($account, $holder, $contender, $creationFirst, $create, $change, &$attempted): void {
             if ($attempted || $query->connectionName !== $holder || ! str_starts_with($query->sql, 'select * from "users"')
-                || ! str_contains($query->sql, 'for update') || ! in_array((string) $account->userId, array_map('strval', $query->bindings), true)) {
+                || preg_match('/for (?:no key )?update/', $query->sql) !== 1 || ! in_array((string) $account->userId, array_map('strval', $query->bindings), true)) {
                 return;
             }
             $attempted = true;

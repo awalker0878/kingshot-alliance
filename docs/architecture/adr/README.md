@@ -35,3 +35,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0029: Mutate owned Players under current account and identity locks](0029-current-owned-player-mutations.md)
 - [ADR-0030: Lock Kingdom before neutral identities and bound archival reads](0030-kingdom-first-neutral-identity-locks-and-bounded-archival.md)
 - [ADR-0031: Coordinate current membership admission and roster writes](0031-current-membership-admission-and-roster-lock-order.md)
+- [ADR-0032: Preserve account lifecycle serialization with compatible audit references](0032-account-lifecycle-locks-and-audit-references.md)
+- [ADR-0033: Stabilize transfer Kingdom scope before Player handoff](0033-transfer-kingdom-and-player-lock-order.md)

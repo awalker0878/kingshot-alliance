@@ -11,6 +11,7 @@ use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
 use App\Contexts\Alliance\Membership\ValueObjects\RosterEntryReference;
+use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ final readonly class MarkRosterEntryLeftForTransfer
         private AllianceWriteState $writeState,
         private AllianceAuthorization $authorization,
         private RosterEntryQuery $roster,
+        private PlayerReferenceQuery $players,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -30,6 +32,7 @@ final readonly class MarkRosterEntryLeftForTransfer
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $rosterEntryId, $expectedPlayerId): RosterEntryReference {
             $context = $this->writeState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authorization->authorizeContext($context, AlliancePermission::MembershipManage);
+            $this->players->lockCurrent($expectedPlayerId);
             $entry = AllianceRosterEntry::query()
                 ->where('alliance_id', $allianceId)
                 ->where('player_id', $expectedPlayerId)

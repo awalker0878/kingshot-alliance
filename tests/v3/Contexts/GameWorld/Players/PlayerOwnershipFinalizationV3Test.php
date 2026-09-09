@@ -63,7 +63,7 @@ final class PlayerOwnershipFinalizationV3Test extends TestCase
         $attempted = false;
         $blocked = false;
         DB::listen(static function (QueryExecuted $query) use ($fixture, $primary, &$attempted, &$blocked): void {
-            if ($attempted || $query->connectionName !== $primary || ! str_contains($query->sql, 'from "users"') || ! str_contains($query->sql, 'for update')) {
+            if ($attempted || $query->connectionName !== $primary || ! str_contains($query->sql, 'from "users"') || preg_match('/for (?:no key )?update/', $query->sql) !== 1) {
                 return;
             }
             $attempted = true;
@@ -103,7 +103,7 @@ final class PlayerOwnershipFinalizationV3Test extends TestCase
         $attempted = false;
         $blocked = false;
         DB::listen(static function (QueryExecuted $query) use ($primary, &$attempted, &$blocked): void {
-            if ($attempted || $query->connectionName !== $primary || ! str_contains($query->sql, 'from "users"') || ! str_contains($query->sql, 'for update')) {
+            if ($attempted || $query->connectionName !== $primary || ! str_contains($query->sql, 'from "users"') || preg_match('/for (?:no key )?update/', $query->sql) !== 1) {
                 return;
             }
             $attempted = true;

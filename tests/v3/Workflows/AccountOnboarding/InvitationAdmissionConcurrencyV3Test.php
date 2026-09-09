@@ -134,7 +134,7 @@ final class InvitationAdmissionConcurrencyV3Test extends TestCase
                 'roster departure' => str_starts_with($query->sql, 'select * from "players"') && str_contains($query->sql, 'for update') && in_array($fixture['playerId'], $query->bindings, true),
                 'revocation' => str_starts_with($query->sql, 'select * from "invitations"') && str_contains($query->sql, 'for update'),
                 'suspension' => str_starts_with($query->sql, 'select * from "alliances"') && str_contains($query->sql, $acceptanceFirst ? 'for share' : 'for update'),
-                'account deletion' => str_starts_with($query->sql, 'select * from "users"') && str_contains($query->sql, 'for update') && in_array((string) $fixture['userId'], array_map('strval', $query->bindings), true),
+                'account deletion' => str_starts_with($query->sql, 'select * from "users"') && preg_match('/for (?:no key )?update/', $query->sql) === 1 && in_array((string) $fixture['userId'], array_map('strval', $query->bindings), true),
             };
             if ($attempted || $query->connectionName !== $primary || ! $barrier) {
                 return;
