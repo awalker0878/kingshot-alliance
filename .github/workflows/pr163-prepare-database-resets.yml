@@ -30,9 +30,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = 9d40c2857d2681693207d96d184a23bab2c3c96d
+          test "$(git rev-parse HEAD^)" = d0cba0ca151246a85f257971104b765563a5fb0c
           test -f .github/pr163-optimize-database-resets.py
           python -m py_compile .github/pr163-optimize-database-resets.py
+          rm -rf .github/__pycache__
           python - <<'PY'
           import subprocess
           changed = set(subprocess.check_output(['git', 'diff', '--name-only', 'HEAD^', 'HEAD']).decode().splitlines())
