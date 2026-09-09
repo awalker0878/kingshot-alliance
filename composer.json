@@ -73,6 +73,27 @@
             "@php artisan config:clear --ansi",
             "@php artisan test"
         ],
+        "test:unit": [
+            "@php vendor/bin/phpunit --testsuite Unit"
+        ],
+        "test:architecture": [
+            "@php vendor/bin/phpunit --testsuite Architecture"
+        ],
+        "test:frontend-contracts": [
+            "@php vendor/bin/phpunit --testsuite Frontend"
+        ],
+        "test:fast": [
+            "@php artisan config:clear --ansi",
+            "@php vendor/bin/phpunit --testsuite Unit,Architecture,Frontend"
+        ],
+        "test:feature": [
+            "@php artisan config:clear --ansi",
+            "@php vendor/bin/phpunit --testsuite Feature"
+        ],
+        "test:integration": [
+            "@php artisan config:clear --ansi",
+            "@php vendor/bin/phpunit --testsuite Integration"
+        ],
         "check": [
             "@php scripts/verify-test-layout.php",
             "@lint:check",
