@@ -40,6 +40,9 @@ jobs:
           coverage: none
           tools: composer:v2
 
+      - name: Restore Composer package cache
+        uses: ./.github/actions/composer-package-cache
+
       - name: Install PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
