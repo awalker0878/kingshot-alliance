@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Shared\Infrastructure;
+namespace Tests\Feature\Shared\Infrastructure\Pagination;
 
-use App\Shared\Infrastructure\Pagination\PageSlice;
 use App\Shared\Infrastructure\Pagination\ScopedCursorCodec;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
-final class PaginationBehaviorV3Test extends TestCase
+final class ScopedCursorCodecTest extends TestCase
 {
     public function test_cursor_payloads_are_opaque_and_bound_to_their_view_scope(): void
     {
@@ -30,23 +29,5 @@ final class PaginationBehaviorV3Test extends TestCase
 
         $this->expectException(ValidationException::class);
         $codec->decode($cursor, 'alliance:b:recruitment');
-    }
-
-    public function test_page_slices_publish_one_consistent_transport_shape(): void
-    {
-        $page = new PageSlice(
-            items: [['id' => 'candidate-a']],
-            nextCursor: 'opaque-next-cursor',
-            pageSize: 50,
-            isFirstPage: false,
-        );
-
-        self::assertSame([
-            'items' => [['id' => 'candidate-a']],
-            'nextCursor' => 'opaque-next-cursor',
-            'hasMore' => true,
-            'pageSize' => 50,
-            'isFirstPage' => false,
-        ], $page->toArray());
     }
 }
