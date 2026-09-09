@@ -21,6 +21,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: intelligence-verification-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   backend:
     name: Intelligence backend contracts
