@@ -20,7 +20,7 @@ use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -30,7 +30,7 @@ use Tests\TestCase;
 
 final class RecruitmentPrivateRetentionV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     public function test_private_control_is_audited_until_purge_then_redacted_and_unavailable(): void
     {

@@ -10,7 +10,7 @@ use App\Contexts\Accounts\Credentials\Actions\RemovePassword;
 use App\Contexts\Accounts\Identity\Models\User;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Laravel\Passkeys\Actions\DeletePasskey;
@@ -19,7 +19,7 @@ use Tests\TestCase;
 final class PasskeyMutationSerializationV3Test extends TestCase
 {
     // The competing connection must see committed fixtures, outside a test transaction.
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     public function test_competing_password_removal_cannot_pass_the_check_during_passkey_deletion(): void
     {

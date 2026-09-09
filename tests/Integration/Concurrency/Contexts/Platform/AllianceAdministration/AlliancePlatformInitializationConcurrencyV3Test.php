@@ -10,7 +10,7 @@ use App\Contexts\Platform\AllianceAdministration\Actions\ConfigureAlliancePlatfo
 use App\Contexts\Platform\AllianceAdministration\Actions\InitializeAlliancePlatform;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\ScenarioFactory;
@@ -18,7 +18,7 @@ use Tests\TestCase;
 
 final class AlliancePlatformInitializationConcurrencyV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     /** @return iterable<string,array{bool}> */
     public static function commitOrders(): iterable

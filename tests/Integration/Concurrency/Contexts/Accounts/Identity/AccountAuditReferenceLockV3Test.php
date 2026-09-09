@@ -18,7 +18,7 @@ use App\Contexts\Platform\DataGovernance\Models\AccountDeletionRequest;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
@@ -27,7 +27,7 @@ use Tests\TestCase;
 
 final class AccountAuditReferenceLockV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     /** @return iterable<string,array{bool,bool}> */
     public static function cleanupOrders(): iterable

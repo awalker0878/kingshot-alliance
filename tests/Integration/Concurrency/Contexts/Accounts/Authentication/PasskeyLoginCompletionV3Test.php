@@ -11,7 +11,7 @@ use App\Contexts\Accounts\MultiFactorAuthentication\Services\TotpService;
 use Closure;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Session\ArraySessionHandler;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -30,7 +30,7 @@ use Webauthn\PublicKeyCredentialRequestOptions;
 
 final class PasskeyLoginCompletionV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     protected function setUp(): void
     {

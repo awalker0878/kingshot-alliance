@@ -10,7 +10,7 @@ use App\Contexts\Accounts\Identity\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
@@ -20,7 +20,7 @@ use Tests\TestCase;
 
 final class EmailVerificationAtomicityV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     public function test_verification_commits_with_audit_and_emits_one_event_only_after_the_outermost_commit(): void
     {

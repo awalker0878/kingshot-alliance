@@ -17,7 +17,7 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Events\TransactionCommitted;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -26,7 +26,7 @@ use Tests\TestCase;
 
 final class RecruitmentBulkAuthorityRevocationV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     /** @return iterable<string,array{bool}> */
     public static function revocationPoints(): iterable

@@ -15,7 +15,7 @@ use App\Contexts\Accounts\Profile\Actions\RequestAccountEmailChange;
 use App\Shared\Infrastructure\Messaging\Outbox\Actions\PublishOutboxBatch;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Notifications\Notification as LaravelNotification;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +26,7 @@ use Tests\TestCase;
 
 final class DurableEmailChangeV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     /** @return iterable<string,array{bool,string}> */
     public static function mutations(): iterable

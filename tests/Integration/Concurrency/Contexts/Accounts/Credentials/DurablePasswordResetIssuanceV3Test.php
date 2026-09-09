@@ -21,7 +21,7 @@ use Illuminate\Auth\Events\PasswordResetLinkSent;
 use Illuminate\Auth\Passwords\PasswordBrokerManager;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +35,7 @@ use Tests\TestCase;
 
 final class DurablePasswordResetIssuanceV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     protected function setUp(): void
     {

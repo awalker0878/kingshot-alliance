@@ -21,7 +21,7 @@ use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -32,7 +32,7 @@ use Tests\TestCase;
 
 final class InvitationIssuanceConcurrencyV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     /** @return iterable<string,array{bool,bool}> */
     public static function operationsAndOrders(): iterable

@@ -10,7 +10,7 @@ use App\Contexts\Accounts\Authentication\Models\AccountSession;
 use App\Contexts\Accounts\Identity\Models\User;
 use Illuminate\Auth\Events\CurrentDeviceLogout;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Session\ArraySessionHandler;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +22,7 @@ use Tests\TestCase;
 
 final class AccountLogoutV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     public function test_logout_revokes_current_session_and_remembered_authority_but_preserves_other_active_sessions(): void
     {

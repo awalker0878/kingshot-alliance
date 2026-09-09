@@ -23,7 +23,7 @@ use App\Workflows\AccountOnboarding\Actions\AcceptInvitationForAccount;
 use App\Workflows\AccountOnboarding\Actions\RegisterAccount;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
@@ -33,7 +33,7 @@ use Tests\TestCase;
 
 final class AtomicAccountOnboardingV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     public function test_wrong_email_acceptance_does_not_claim_the_invited_player(): void
     {

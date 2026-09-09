@@ -19,7 +19,7 @@ use App\Contexts\Alliance\Recruitment\ValueObjects\ConvertedRecruitmentCandidate
 use App\Shared\Infrastructure\Messaging\Outbox\Events\OutboxPublished;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -29,7 +29,7 @@ use Tests\TestCase;
 
 final class RecruitmentJoinedHandoffV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     /** @return iterable<string,array{bool}> */
     public static function invitationStates(): iterable

@@ -1,0 +1,298 @@
+{
+  "source_commit": "ba0baff69d30d84ee35b092e66429873bc94c077",
+  "framework": "laravel/framework v13.30.1",
+  "source_reset": "Illuminate\\Foundation\\Testing\\DatabaseMigrations",
+  "target_reset": "Illuminate\\Foundation\\Testing\\DatabaseTruncation",
+  "integration_candidates": 47,
+  "converted": [
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/AccountLoginCompletionV3Test.php",
+      "source_blob": "bb942268707e943bcd2131acbad1f68a3934781d",
+      "result_blob": "c3f8c0df8b3328e1443e8b60a451431260b239fe",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/PasskeyConfirmationAtomicityV3Test.php",
+      "source_blob": "dc62015ae747d966ee5be5ee4e8ff9e2b057418d",
+      "result_blob": "e6479fd4e5096ae3c024a9639185c51c28a957ac",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/PasskeyLoginCompletionV3Test.php",
+      "source_blob": "27c2a54f67be769c8b27e01320e6ea52d60e7932",
+      "result_blob": "8c8f295ac5a3f8cddc6c024e54878748639a2970",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/PasskeyMutationSerializationV3Test.php",
+      "source_blob": "c14592bc5a4773dfae5a45d01bb496244ff33ddf",
+      "result_blob": "71d4f5a450083946dd5394c3526dcc5158041611",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/ProviderIdentitySerializationV3Test.php",
+      "source_blob": "cbf3ddb6950ef46ebccf5021c866276b6c9701e1",
+      "result_blob": "0efa3c2f46292e1bbf64ced180c4295ededd7aa0",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/RememberedAccountSessionV3Test.php",
+      "source_blob": "874e8facb26073fe3062bd71b85a0edb78b8898a",
+      "result_blob": "594a4bc4edce8bf0477b0c38572fa12e6e05404c",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Accounts/Credentials/DurablePasswordResetIssuanceV3Test.php",
+      "source_blob": "fb4ffc31e95fbcd239de939581a79b41029dbbac",
+      "result_blob": "f14d0ed0924e1a3cb71081be30ee5266e35b7699",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Accounts/Credentials/PasswordResetAtomicityV3Test.php",
+      "source_blob": "53b45ce7e100ecebbc33adc0012ccecc3edc04c2",
+      "result_blob": "924d6f09fc151db6092278846ef9fb3f4324d13f",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Accounts/Identity/AccountAuditReferenceLockV3Test.php",
+      "source_blob": "ae6a18dbee1614f74d3b3a087ece4b9457084ec5",
+      "result_blob": "5db1b16b0409c7971635165a6fb36761e0f95933",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Alliance/Access/AllianceRoleCreationConcurrencyV3Test.php",
+      "source_blob": "b71a7c9ef358ed08c146089770aebf6a13884ac4",
+      "result_blob": "711bcadb64daaa0bd6e69e94b74a73aee91543a2",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Alliance/Access/AllianceRoleRevocationConcurrencyV3Test.php",
+      "source_blob": "57d57ef4f473995b570f10d67c0f15b1a1b7ba1b",
+      "result_blob": "f4795ab26a953b5d846e683c2fe0a107e68f3236",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Alliance/Lifecycle/AllianceCreationAuthorityV3Test.php",
+      "source_blob": "35f310ef3cedde33563f9b61a2efd21395210d5d",
+      "result_blob": "3264b40d0e75d9febb77e6743395e77e3e9a0872",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Alliance/Lifecycle/AllianceSlugConcurrencyV3Test.php",
+      "source_blob": "fbe3d0f9d3d5c648480f572de2868a0c61763db6",
+      "result_blob": "6be79e4e10437a45fbe2e5a8efc0fe197136be07",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/InvitationIssuanceConcurrencyV3Test.php",
+      "source_blob": "6655d73b5fae65f8b472ad28a9388474241b1a80",
+      "result_blob": "4ffd7177f234b05ca21d39ce3e560d58e30c1428",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/MembershipActivationConcurrencyV3Test.php",
+      "source_blob": "68b2d022fa29451000698ccb97ca26c196060511",
+      "result_blob": "b458f01aac09979b06a5d347ca7206de9982dd7a",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/MembershipCleanupConcurrencyV3Test.php",
+      "source_blob": "a1b0fb27a34e51f4713841c4d2f67f75011e1e73",
+      "result_blob": "6c4e7ee90f52908413178afdc7cc6e2169bbeae3",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/ProtectedMembershipTargetConcurrencyV3Test.php",
+      "source_blob": "dbddefa22becf99b77637b942212e7f8baa46075",
+      "result_blob": "c89fd70c953b84a0de332fbf6d99d0a3201be94a",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/RosterWriteLockOrderV3Test.php",
+      "source_blob": "a1029bf9fe61ce934e93818c0501fcaf6a3e7f90",
+      "result_blob": "9ac6805b1d90aa80d1a4e9c67fbdf936620b4821",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentConfigurationCapacityV3Test.php",
+      "source_blob": "2887ffc3a3659e4e59a1f04a6307e8bf3005290d",
+      "result_blob": "1f24ae52f50108ba81a2f4f7c889cdc417077dfa",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentIntakeConcurrencyV3Test.php",
+      "source_blob": "9c25ed974ef3fe3b2e9523e7e9d88501437ec7d0",
+      "result_blob": "74a46c68a03969067b3dc93e7a21f6e4e0852f84",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentMembershipLockOrderV3Test.php",
+      "source_blob": "5c988cceb3f3e851f1772da3c09d5d542899d1d1",
+      "result_blob": "bfbb1bbb13bd3e7a73eaab8f9415367cb2b332f3",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentPrivateRetentionV3Test.php",
+      "source_blob": "f0d2493a6ae6807707672da954a0d688bcc29e1a",
+      "result_blob": "242508e8c69609a22ddc1bca3d10165e3e295e0b",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentRetentionAuthorityV3Test.php",
+      "source_blob": "13ba69940b9b65a646c93a44f25501cb3a4ce33a",
+      "result_blob": "c39360dfeda66e0b2b4edf1d1b1736b9e103f773",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/GameWorld/KingdomTransfers/TransferCompletionLockOrderV3Test.php",
+      "source_blob": "12c666f7944bec5634ed9469e0c8310fcbfe8bd9",
+      "result_blob": "e03974f98bf86166affd22fe0ab99bad03cc81f0",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/GameWorld/KingdomTransfers/TransferPlanningIdentityConcurrencyV3Test.php",
+      "source_blob": "139e0586fafa9498dfff9f868de4b9607d60a663",
+      "result_blob": "abb60e58f7cf32d576bb9943f5c5f2a32496ac29",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/GameWorld/Kingdoms/KingdomAllianceLockOrderV3Test.php",
+      "source_blob": "7ea71fcb46278f86f1a47a27eab4d4d87db39a27",
+      "result_blob": "abc1dbb4a2933b300e993a2d7496fe9243d2f15c",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/GameWorld/Players/OwnedPlayerMutationConcurrencyV3Test.php",
+      "source_blob": "aefb437dbd4099e45a99354f499947582d0ed710",
+      "result_blob": "0ca006c9a9041e731badab68de3b050923d09bc0",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/GameWorld/Players/PlayerOwnershipFinalizationV3Test.php",
+      "source_blob": "abda6d1af8b94abfbb359165b83dbdd0cf4a279f",
+      "result_blob": "cf8114a8955f20e728d56800c8eacaf16d186d0d",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/GameWorld/Players/StablePlayerIdentityConcurrencyV3Test.php",
+      "source_blob": "cf0894d364fc4a384cadc579489c9bca7bfde9db",
+      "result_blob": "f428d34cfd1ae596ac808cb7e2694421a3fd4457",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Platform/AllianceAdministration/AlliancePlatformInitializationConcurrencyV3Test.php",
+      "source_blob": "6f1e47e2d1a78e348d430a670d56a9cab0927832",
+      "result_blob": "702774762f67e88dcfc20427c4678eda632179d0",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Contexts/Platform/DataGovernance/AccountDeletionLifecycleAtomicityV3Test.php",
+      "source_blob": "6f34fe8e24965ecd290f30c86655f8e3a8fe7bdc",
+      "result_blob": "2547cb872c8da9718b82970f94882c33487b5f21",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Workflows/AccountOnboarding/AtomicAccountOnboardingV3Test.php",
+      "source_blob": "b3719758a73a0cb4f31628623ef793f5b5b2104b",
+      "result_blob": "bec8fd3503b5be4161100c3215bea83673f48963",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Concurrency/Workflows/AccountOnboarding/InvitationAdmissionConcurrencyV3Test.php",
+      "source_blob": "155b9a369763cde8f41029c91788f4b65f2aa111",
+      "result_blob": "9ea24db1489768afe38681952a65d324952d5e4a",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Contexts/Accounts/Authentication/AccountLogoutV3Test.php",
+      "source_blob": "19a34e301534cb77204e301026832d01df9c242a",
+      "result_blob": "31ec14a8de7b746aa29130f9d16b80abd9806ec6",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Contexts/Accounts/Authentication/AccountSessionRevocationV3Test.php",
+      "source_blob": "9858e9e2ab771f410dff98a289b7ad0eb674260c",
+      "result_blob": "d3a54cb23bc321fed00768b96c50f391ef271068",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Contexts/Accounts/Authentication/CredentialSessionCommitV3Test.php",
+      "source_blob": "f184a1aa03a6c0724e200ea13897966f4ad7f9ef",
+      "result_blob": "5dda3a197aeaa6ef2719b3720320650815301349",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Contexts/Accounts/Authentication/GoogleConfirmationAtomicityV3Test.php",
+      "source_blob": "3d11e06fa174052277da27b4f6ea77ffce36a851",
+      "result_blob": "6b6259531506dc963cbeea45eb9fd59cd1ae3852",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Contexts/Accounts/Authentication/PasswordConfirmationAtomicityV3Test.php",
+      "source_blob": "1614af31309d5fc774b8fbeaa2d5229fba300f39",
+      "result_blob": "ec26ad1492563b4a31bed2aa4ce80c5dee5cd74e",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Contexts/Accounts/EmailVerification/DurableEmailChangeV3Test.php",
+      "source_blob": "91c34d9ca5fa228de074fb788a264eb0b906d190",
+      "result_blob": "42421f697d0d91291cbf710fd7e86fa2d28bd007",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Contexts/Accounts/EmailVerification/DurableEmailVerificationV3Test.php",
+      "source_blob": "b90f3d6c947a1325a1c86ac60d013d99097d77a0",
+      "result_blob": "c04ed3ff82c7f1008d949b9fab2f1489b67d211e",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Contexts/Accounts/EmailVerification/EmailVerificationAtomicityV3Test.php",
+      "source_blob": "011add66ee2de43b77edf597f14ee5950867a1a2",
+      "result_blob": "884c35a210b9ca4fe10c1fbebd0ab63d1c41ec49",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Contexts/Accounts/Identity/AccountFinalizationSessionCommitV3Test.php",
+      "source_blob": "10326d100176873e171ba021a5f5cd9cca11bee7",
+      "result_blob": "067e81748813ebdfabc11dd99d88564c577fd957",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Contexts/Accounts/MultiFactorAuthentication/MfaLoginChallengeV3Test.php",
+      "source_blob": "b65f29113867bbff19992fadf8c65b0464943107",
+      "result_blob": "9f1b71a2a6b595d303fb4fb4a9b4041971cea5df",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Contexts/Accounts/MultiFactorAuthentication/MfaRememberedBrowserInvalidationV3Test.php",
+      "source_blob": "1b70457476ccbf9f52646abed1a7841404340b23",
+      "result_blob": "9eb57afc5d2ff562445b2e34318c3ffb502bacde",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Contexts/Accounts/Profile/EmailSecurityIntentAtomicityV3Test.php",
+      "source_blob": "5d9350c3a58b3727bce0f46deec5e7c3de52c6c5",
+      "result_blob": "61b6e081bd6906d2303236c1763e8f3cc1db1145",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Contexts/Alliance/Recruitment/RecruitmentBulkAuthorityRevocationV3Test.php",
+      "source_blob": "1c36bdec0fae2de423d8c2bad5bff48d58a22334",
+      "result_blob": "2acaddf4a179a7a5e57a9346e1764d3051bdc38b",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    },
+    {
+      "path": "tests/Integration/Contexts/Alliance/Recruitment/RecruitmentJoinedHandoffV3Test.php",
+      "source_blob": "ae8fbe90be9776ff50fdd3fa0ccaf1c788f34d9e",
+      "result_blob": "6946bfab1dba78daf11ebf547caa2cf6973bc9f5",
+      "reason": "Committed-state Integration contract with no schema-mutation pattern; preserve real database semantics while truncating data between tests."
+    }
+  ],
+  "retained_database_migrations": [],
+  "feature_database_migrations_unchanged": [
+    "tests/Feature/Contexts/Accounts/Authentication/GoogleAuthenticationV3Test.php",
+    "tests/Feature/Contexts/Accounts/Authentication/PasswordProofThrottleV3Test.php"
+  ],
+  "behavioral_changes": false,
+  "tests_executed": false
+}

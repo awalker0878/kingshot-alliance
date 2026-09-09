@@ -21,7 +21,7 @@ use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -31,7 +31,7 @@ use Tests\TestCase;
 
 final class TransferPlanningIdentityConcurrencyV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     /** @return iterable<string,array{bool,bool}> */
     public static function archivalOrders(): iterable

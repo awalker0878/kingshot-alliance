@@ -19,7 +19,7 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Passwords\PasswordBrokerManager;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Http\Request;
 use Illuminate\Session\ArraySessionHandler;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +33,7 @@ use Tests\TestCase;
 
 final class RememberedAccountSessionV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     public function test_session_admission_returns_only_a_scalar_account_identity(): void
     {

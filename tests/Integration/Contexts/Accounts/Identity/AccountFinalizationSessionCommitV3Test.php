@@ -12,7 +12,7 @@ use App\Contexts\Platform\DataGovernance\Actions\ProcessAccountDeletionRequests;
 use App\Contexts\Platform\DataGovernance\Actions\RequestAccountDeletion;
 use App\Contexts\Platform\DataGovernance\Models\AccountDeletionRequest;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Session\SessionManager;
 use Illuminate\Session\Store;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +23,7 @@ use Tests\TestCase;
 
 final class AccountFinalizationSessionCommitV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     public function test_raw_cleanup_observes_committed_terminal_state_and_waits_for_the_outermost_commit(): void
     {

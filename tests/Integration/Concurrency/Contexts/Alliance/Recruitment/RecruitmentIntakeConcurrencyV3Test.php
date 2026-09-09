@@ -17,7 +17,7 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\GameWorld\Kingdoms\Actions\ArchiveKingdom;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -28,7 +28,7 @@ use Tests\TestCase;
 
 final class RecruitmentIntakeConcurrencyV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     /** @return iterable<string,array{string,bool}> */
     public static function lifecycleOrders(): iterable

@@ -11,7 +11,7 @@ use App\Contexts\Accounts\Profile\Actions\PromotePendingAccountEmail;
 use App\Contexts\Accounts\Profile\Actions\RequestAccountEmailChange;
 use App\Shared\Infrastructure\Messaging\Outbox\Actions\PublishOutboxBatch;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -21,7 +21,7 @@ use Tests\TestCase;
 
 final class EmailSecurityIntentAtomicityV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     /** @return iterable<string,array{bool}> */
     public static function mutations(): iterable

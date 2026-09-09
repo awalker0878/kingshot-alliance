@@ -24,7 +24,7 @@ use Illuminate\Auth\Passwords\PasswordBrokerManager;
 use Illuminate\Auth\SessionGuard;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Http\Request;
 use Illuminate\Session\ArraySessionHandler;
 use Illuminate\Session\Store;
@@ -43,7 +43,7 @@ use Tests\TestCase;
 
 final class AccountLoginCompletionV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     private const RECOVERY = 'a1b2-c3d4-e5f6-0123';
 

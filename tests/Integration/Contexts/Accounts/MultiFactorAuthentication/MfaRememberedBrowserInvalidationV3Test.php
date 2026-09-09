@@ -8,14 +8,14 @@ use App\Contexts\Accounts\Authentication\Models\AccountSession;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\MultiFactorAuthentication\Services\TotpService;
 use App\Contexts\Accounts\MultiFactorAuthentication\Services\TwoFactorManager;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\Auth;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 final class MfaRememberedBrowserInvalidationV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     /** @return iterable<string,array{string}> */
     public static function transitions(): iterable

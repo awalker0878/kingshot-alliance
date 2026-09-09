@@ -11,7 +11,7 @@ use App\Contexts\Platform\DataGovernance\Actions\RequestAccountDeletion;
 use App\Contexts\Platform\DataGovernance\Models\AccountDeletionRequest;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
@@ -19,7 +19,7 @@ use Tests\TestCase;
 
 final class AccountDeletionLifecycleAtomicityV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     protected function tearDown(): void
     {

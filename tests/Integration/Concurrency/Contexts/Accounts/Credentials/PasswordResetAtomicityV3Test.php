@@ -15,7 +15,7 @@ use Illuminate\Auth\Events\PasswordReset as PasswordResetEvent;
 use Illuminate\Auth\Passwords\PasswordBrokerManager;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
@@ -26,7 +26,7 @@ use Tests\TestCase;
 
 final class PasswordResetAtomicityV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     /** @return iterable<string,array{string}> */
     public static function failures(): iterable

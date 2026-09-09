@@ -9,7 +9,7 @@ use App\Contexts\Accounts\Identity\Actions\AnonymizeAccount;
 use App\Contexts\Accounts\Identity\Models\User;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -27,7 +27,7 @@ use Webauthn\PublicKeyCredentialRequestOptions;
 
 final class PasskeyConfirmationAtomicityV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     protected function setUp(): void
     {

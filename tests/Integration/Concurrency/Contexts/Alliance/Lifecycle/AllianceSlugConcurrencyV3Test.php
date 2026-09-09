@@ -10,7 +10,7 @@ use App\Contexts\Alliance\Lifecycle\Enums\SupportedAllianceLocale;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\UniqueConstraintViolationException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -20,7 +20,7 @@ use Tests\TestCase;
 
 final class AllianceSlugConcurrencyV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     /** @return iterable<string,array{bool,bool,bool}> */
     public static function competingMutations(): iterable

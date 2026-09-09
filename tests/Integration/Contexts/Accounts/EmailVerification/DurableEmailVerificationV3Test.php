@@ -13,7 +13,7 @@ use App\Contexts\Accounts\Registration\Actions\RegisterUser;
 use App\Shared\Infrastructure\Messaging\Outbox\Actions\PublishOutboxBatch;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -24,7 +24,7 @@ use Tests\TestCase;
 
 final class DurableEmailVerificationV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     public function test_registration_saves_delivery_intent_without_contacting_mail_and_the_worker_sends_later(): void
     {

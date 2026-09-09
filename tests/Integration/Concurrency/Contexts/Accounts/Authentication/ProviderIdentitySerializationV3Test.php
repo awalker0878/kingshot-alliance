@@ -11,13 +11,13 @@ use App\Contexts\Accounts\Identity\Models\AccountIdentity;
 use App\Contexts\Accounts\Identity\Models\User;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 final class ProviderIdentitySerializationV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     public function test_provider_use_holds_account_before_identity_so_removal_cannot_take_the_opposite_lock_order(): void
     {

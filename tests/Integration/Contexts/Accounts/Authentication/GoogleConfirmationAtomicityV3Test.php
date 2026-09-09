@@ -10,7 +10,7 @@ use App\Contexts\Accounts\Identity\Actions\RemoveAccountIdentity;
 use App\Contexts\Accounts\Identity\Models\AccountIdentity;
 use App\Contexts\Accounts\Identity\Models\User;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -22,7 +22,7 @@ use Tests\TestCase;
 
 final class GoogleConfirmationAtomicityV3Test extends TestCase
 {
-    use DatabaseMigrations;
+    use DatabaseTruncation;
 
     /** @return iterable<string,array{bool}> */
     public static function failures(): iterable
