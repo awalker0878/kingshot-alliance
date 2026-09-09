@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Architecture;
 
+use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
-use Tests\TestCase;
+use Tests\Support\RepositoryPath;
 
 final class AllianceAssistantArchitectureV3Test extends TestCase
 {
     public function test_assistant_read_model_has_no_persistence_or_domain_write_path(): void
     {
-        $sources = $this->phpSources(base_path('app/ReadModels/AllianceAssistant'));
+        $sources = $this->phpSources(RepositoryPath::fromRoot('app/ReadModels/AllianceAssistant'));
         self::assertNotEmpty($sources);
 
         $forbidden = [
@@ -45,7 +46,7 @@ final class AllianceAssistantArchitectureV3Test extends TestCase
 
     public function test_owner_contexts_do_not_depend_on_alliance_assistant_read_model(): void
     {
-        foreach ($this->phpSources(base_path('app/Contexts')) as $path => $source) {
+        foreach ($this->phpSources(RepositoryPath::fromRoot('app/Contexts')) as $path => $source) {
             self::assertStringNotContainsString(
                 'App\\ReadModels\\AllianceAssistant',
                 $source,
@@ -64,7 +65,7 @@ final class AllianceAssistantArchitectureV3Test extends TestCase
             'curl_',
         ];
 
-        foreach ($this->phpSources(base_path('app/ReadModels/AllianceAssistant')) as $path => $source) {
+        foreach ($this->phpSources(RepositoryPath::fromRoot('app/ReadModels/AllianceAssistant')) as $path => $source) {
             foreach ($forbidden as $needle) {
                 self::assertStringNotContainsString(
                     $needle,
@@ -77,7 +78,7 @@ final class AllianceAssistantArchitectureV3Test extends TestCase
 
     public function test_gameworld_extension_composes_only_narrow_owner_queries(): void
     {
-        $path = base_path('app/ReadModels/AllianceAssistant/Queries/AllianceAssistantQuery.php');
+        $path = RepositoryPath::fromRoot('app/ReadModels/AllianceAssistant/Queries/AllianceAssistantQuery.php');
         $source = file_get_contents($path);
         self::assertIsString($source);
 
@@ -112,7 +113,7 @@ final class AllianceAssistantArchitectureV3Test extends TestCase
 
     public function test_gameworld_extension_preserves_all_nine_bounded_discovery_prompts(): void
     {
-        $source = file_get_contents(base_path('resources/js/pages/Assistant/Index.vue'));
+        $source = file_get_contents(RepositoryPath::fromRoot('resources/js/pages/Assistant/Index.vue'));
         self::assertIsString($source);
         $start = strpos($source, 'const defaultPromptIds: AssistantPrompt[] = [');
         self::assertNotFalse($start);
@@ -144,9 +145,9 @@ final class AllianceAssistantArchitectureV3Test extends TestCase
 
     public function test_assistant_extension_localization_is_typed_for_every_locale_and_lazy_loaded(): void
     {
-        $loader = file_get_contents(base_path('resources/js/localization/loader.ts'));
-        $extension = file_get_contents(base_path('resources/js/localization/assistant-gameworld-extension.ts'));
-        $transferLabels = file_get_contents(base_path('resources/js/localization/assistant-transfer-labels.ts'));
+        $loader = file_get_contents(RepositoryPath::fromRoot('resources/js/localization/loader.ts'));
+        $extension = file_get_contents(RepositoryPath::fromRoot('resources/js/localization/assistant-gameworld-extension.ts'));
+        $transferLabels = file_get_contents(RepositoryPath::fromRoot('resources/js/localization/assistant-transfer-labels.ts'));
         self::assertIsString($loader);
         self::assertIsString($extension);
         self::assertIsString($transferLabels);

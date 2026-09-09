@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Architecture;
 
+use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
-use Tests\TestCase;
+use Tests\Support\RepositoryPath;
 
 final class EventCommandArchitectureV3Test extends TestCase
 {
     public function test_event_command_is_a_read_only_composition_without_new_bounded_context(): void
     {
-        self::assertDirectoryDoesNotExist(base_path('app/Contexts/EventReadiness'));
-        self::assertDirectoryDoesNotExist(base_path('app/Contexts/EventCloseout'));
+        self::assertDirectoryDoesNotExist(RepositoryPath::fromRoot('app/Contexts/EventReadiness'));
+        self::assertDirectoryDoesNotExist(RepositoryPath::fromRoot('app/Contexts/EventCloseout'));
 
         $sources = $this->eventCommandSources();
         self::assertNotEmpty($sources);
@@ -46,8 +47,8 @@ final class EventCommandArchitectureV3Test extends TestCase
     public function test_event_command_derived_truth_is_not_persisted_in_application_or_schema(): void
     {
         $sources = array_merge(
-            $this->phpSources(base_path('app')),
-            $this->phpSources(base_path('database/migrations')),
+            $this->phpSources(RepositoryPath::fromRoot('app')),
+            $this->phpSources(RepositoryPath::fromRoot('database/migrations')),
         );
 
         foreach (['event_ready', 'event_complete', 'readiness_lifecycle', 'closeout_lifecycle'] as $needle) {
@@ -63,7 +64,7 @@ final class EventCommandArchitectureV3Test extends TestCase
 
     public function test_owner_contexts_do_not_depend_on_event_management_read_model(): void
     {
-        foreach ($this->phpSources(base_path('app/Contexts')) as $path => $source) {
+        foreach ($this->phpSources(RepositoryPath::fromRoot('app/Contexts')) as $path => $source) {
             self::assertStringNotContainsString(
                 'App\\ReadModels\\EventManagement',
                 $source,
@@ -103,7 +104,7 @@ final class EventCommandArchitectureV3Test extends TestCase
 
     public function test_event_command_frontend_has_no_domain_write_request(): void
     {
-        $source = file_get_contents(base_path('resources/js/components/events/EventCommandCard.vue'));
+        $source = file_get_contents(RepositoryPath::fromRoot('resources/js/components/events/EventCommandCard.vue'));
         self::assertIsString($source);
 
         foreach (['router.post(', 'router.put(', 'router.patch(', 'router.delete(', 'fetch('] as $needle) {
@@ -124,7 +125,7 @@ final class EventCommandArchitectureV3Test extends TestCase
     private function eventCommandSources(): array
     {
         return array_filter(
-            $this->phpSources(base_path('app/ReadModels/EventManagement')),
+            $this->phpSources(RepositoryPath::fromRoot('app/ReadModels/EventManagement')),
             static fn (string $path): bool => str_contains(basename($path), 'EventCommand'),
             ARRAY_FILTER_USE_KEY,
         );

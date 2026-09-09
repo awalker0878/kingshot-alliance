@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace Tests\Architecture;
 
+use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
-use Tests\TestCase;
+use Tests\Support\RepositoryPath;
 
 final class TransferEvidenceBoundaryV3Test extends TestCase
 {
     public function test_transfer_evidence_extends_intelligence_evidence_without_new_ocr_context_or_generic_schema(): void
     {
-        self::assertDirectoryDoesNotExist(base_path('app/Contexts/TransferOCR'));
-        self::assertDirectoryDoesNotExist(base_path('app/Contexts/Intelligence/TransferOCR'));
+        self::assertDirectoryDoesNotExist(RepositoryPath::fromRoot('app/Contexts/TransferOCR'));
+        self::assertDirectoryDoesNotExist(RepositoryPath::fromRoot('app/Contexts/Intelligence/TransferOCR'));
 
         foreach (['app', 'database', 'routes'] as $root) {
-            foreach ($this->phpFiles(base_path($root)) as $file) {
+            foreach ($this->phpFiles(RepositoryPath::fromRoot($root)) as $file) {
                 $source = file_get_contents($file);
                 self::assertIsString($source, $file);
                 self::assertStringNotContainsString('transfer_ocr', strtolower($source), $file);
@@ -27,7 +28,7 @@ final class TransferEvidenceBoundaryV3Test extends TestCase
 
     public function test_evidence_context_never_imports_kingdom_transfer_eloquent_models(): void
     {
-        foreach ($this->phpFiles(base_path('app/Contexts/Intelligence/Evidence')) as $file) {
+        foreach ($this->phpFiles(RepositoryPath::fromRoot('app/Contexts/Intelligence/Evidence')) as $file) {
             $source = file_get_contents($file);
             self::assertIsString($source, $file);
             self::assertStringNotContainsString(
@@ -47,7 +48,7 @@ final class TransferEvidenceBoundaryV3Test extends TestCase
             'RecordTransferKingdomRulesEvidence.php',
             'RecordOfficialTransferGroupEvidence.php',
         ] as $file) {
-            $path = base_path('app/Contexts/GameWorld/KingdomTransfers/Actions/'.$file);
+            $path = RepositoryPath::fromRoot('app/Contexts/GameWorld/KingdomTransfers/Actions/'.$file);
             self::assertFileExists($path);
             $source = file_get_contents($path);
             self::assertIsString($source);
@@ -67,7 +68,7 @@ final class TransferEvidenceBoundaryV3Test extends TestCase
         ];
 
         foreach ($expectations as $file => $writer) {
-            $source = (string) file_get_contents(base_path('app/Contexts/GameWorld/KingdomTransfers/Actions/'.$file));
+            $source = (string) file_get_contents(RepositoryPath::fromRoot('app/Contexts/GameWorld/KingdomTransfers/Actions/'.$file));
             self::assertStringContainsString($writer, $source, $file);
             self::assertStringNotContainsString('private RecordTransferObservation ', $source, $file);
             self::assertStringNotContainsString('private RecordTransferKingdomCondition ', $source, $file);
@@ -80,7 +81,7 @@ final class TransferEvidenceBoundaryV3Test extends TestCase
             'SaveTransferGroup.php' => 'TransferGroupWriter',
         ];
         foreach ($publicWriters as $file => $writer) {
-            $source = (string) file_get_contents(base_path('app/Contexts/GameWorld/KingdomTransfers/Actions/'.$file));
+            $source = (string) file_get_contents(RepositoryPath::fromRoot('app/Contexts/GameWorld/KingdomTransfers/Actions/'.$file));
             self::assertStringContainsString($writer, $source, $file);
         }
     }
@@ -95,7 +96,7 @@ final class TransferEvidenceBoundaryV3Test extends TestCase
             'TransferTargetKingdomRulesExtractor.php',
             'TransferOfficialGroupExtractor.php',
         ] as $file) {
-            $source = file_get_contents(base_path('app/Contexts/Intelligence/Evidence/Services/'.$file));
+            $source = file_get_contents(RepositoryPath::fromRoot('app/Contexts/Intelligence/Evidence/Services/'.$file));
             self::assertIsString($source);
             self::assertStringNotContainsString('in_game_rules_verified', $source, $file);
         }
@@ -103,7 +104,7 @@ final class TransferEvidenceBoundaryV3Test extends TestCase
 
     public function test_participant_workflow_embeds_transfer_evidence_while_manual_source_picker_remains_narrow(): void
     {
-        $readiness = (string) file_get_contents(base_path('resources/js/pages/Kingdom/Transfer/Readiness.vue'));
+        $readiness = (string) file_get_contents(RepositoryPath::fromRoot('resources/js/pages/Kingdom/Transfer/Readiness.vue'));
         self::assertStringContainsString('TransferEvidencePanel', $readiness);
         self::assertStringContainsString(':participant-id="p.id"', $readiness);
         self::assertStringContainsString("| 'evidence'", $readiness);
@@ -118,7 +119,7 @@ final class TransferEvidenceBoundaryV3Test extends TestCase
 
     public function test_transfer_evidence_mutations_are_password_confirmed_and_reads_are_scoped(): void
     {
-        $routes = (string) file_get_contents(base_path('routes/kingdoms.php'));
+        $routes = (string) file_get_contents(RepositoryPath::fromRoot('routes/kingdoms.php'));
         foreach (['store', 'review', 'resolveDuplicate', 'commit', 'retry', 'destroy'] as $method) {
             self::assertStringContainsString("TransferEvidenceController::class, '{$method}'", $routes);
         }

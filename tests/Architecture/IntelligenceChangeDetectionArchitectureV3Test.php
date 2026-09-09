@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace Tests\Architecture;
 
+use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
-use Tests\TestCase;
+use Tests\Support\RepositoryPath;
 
 final class IntelligenceChangeDetectionArchitectureV3Test extends TestCase
 {
     public function test_change_detection_is_read_side_composition_without_new_bounded_context(): void
     {
         foreach (['IntelligenceChange', 'ChangeDetection', 'Signals'] as $context) {
-            self::assertDirectoryDoesNotExist(base_path('app/Contexts/'.$context));
+            self::assertDirectoryDoesNotExist(RepositoryPath::fromRoot('app/Contexts/'.$context));
         }
 
-        $sources = $this->phpSources(base_path('app/ReadModels/IntelligenceSignals'));
+        $sources = $this->phpSources(RepositoryPath::fromRoot('app/ReadModels/IntelligenceSignals'));
         self::assertNotEmpty($sources);
 
         foreach ([' extends Model', '\\Actions\\', '->save(', '->delete(', '::create(', '::insert(', '::upsert('] as $needle) {
@@ -33,7 +34,7 @@ final class IntelligenceChangeDetectionArchitectureV3Test extends TestCase
 
     public function test_no_authoritative_intelligence_signal_table_is_introduced(): void
     {
-        $sources = $this->phpSources(base_path('database/migrations'));
+        $sources = $this->phpSources(RepositoryPath::fromRoot('database/migrations'));
         foreach (['intelligence_signals', 'derived_intelligence_signals', 'change_detection_signals'] as $table) {
             foreach ($sources as $path => $source) {
                 self::assertStringNotContainsString(
@@ -47,7 +48,7 @@ final class IntelligenceChangeDetectionArchitectureV3Test extends TestCase
 
     public function test_owner_contexts_do_not_depend_on_intelligence_signal_read_model(): void
     {
-        foreach ($this->phpSources(base_path('app/Contexts')) as $path => $source) {
+        foreach ($this->phpSources(RepositoryPath::fromRoot('app/Contexts')) as $path => $source) {
             self::assertStringNotContainsString(
                 'App\\ReadModels\\IntelligenceSignals',
                 $source,
@@ -58,7 +59,7 @@ final class IntelligenceChangeDetectionArchitectureV3Test extends TestCase
 
     public function test_signal_contract_preserves_factual_discipline_and_complete_source_gate(): void
     {
-        $factory = file_get_contents(base_path('app/ReadModels/IntelligenceSignals/Services/IntelligenceSignalFactory.php'));
+        $factory = file_get_contents(RepositoryPath::fromRoot('app/ReadModels/IntelligenceSignals/Services/IntelligenceSignalFactory.php'));
         self::assertIsString($factory);
         self::assertStringContainsString('bool $completeSource', $factory);
         self::assertStringContainsString('if (! $completeSource', $factory);
@@ -66,7 +67,7 @@ final class IntelligenceChangeDetectionArchitectureV3Test extends TestCase
         self::assertStringNotContainsString('good_recruit', $factory);
         self::assertStringNotContainsString('likely_transfer', $factory);
 
-        $query = file_get_contents(base_path('app/ReadModels/IntelligenceSignals/Queries/IntelligenceSignalQuery.php'));
+        $query = file_get_contents(RepositoryPath::fromRoot('app/ReadModels/IntelligenceSignals/Queries/IntelligenceSignalQuery.php'));
         self::assertIsString($query);
         self::assertStringContainsString("->where('alliance_id', \$allianceId)", $query);
         self::assertStringContainsString('complete_roster_capture', $query);
@@ -74,7 +75,7 @@ final class IntelligenceChangeDetectionArchitectureV3Test extends TestCase
 
     public function test_frontend_signal_feed_is_navigation_only_semantically_accessible_and_scope_gated(): void
     {
-        $source = file_get_contents(base_path('resources/js/components/intelligence/IntelligenceSignalFeed.vue'));
+        $source = file_get_contents(RepositoryPath::fromRoot('resources/js/components/intelligence/IntelligenceSignalFeed.vue'));
         self::assertIsString($source);
 
         foreach (['router.post(', 'router.put(', 'router.patch(', 'router.delete(', 'fetch('] as $needle) {
@@ -85,7 +86,7 @@ final class IntelligenceChangeDetectionArchitectureV3Test extends TestCase
         self::assertStringContainsString('signal.sourceOwner', $source);
         self::assertStringContainsString('signal.canonicalUrl', $source);
 
-        $layout = file_get_contents(base_path('resources/js/layouts/AppLayout.vue'));
+        $layout = file_get_contents(RepositoryPath::fromRoot('resources/js/layouts/AppLayout.vue'));
         self::assertIsString($layout);
         self::assertStringContainsString("page.component === 'Dashboard/Home'", $layout);
         self::assertStringContainsString('? props.hasPlayerAlliance', $layout);

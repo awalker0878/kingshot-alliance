@@ -4,24 +4,25 @@ declare(strict_types=1);
 
 namespace Tests\Architecture;
 
+use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
-use Tests\TestCase;
+use Tests\Support\RepositoryPath;
 
 final class ProgressionPlannerArchitectureV3Test extends TestCase
 {
     public function test_progression_calculators_remain_inside_gameworld_progression(): void
     {
-        self::assertDirectoryDoesNotExist(base_path('app/Contexts/Calculators'));
-        self::assertDirectoryDoesNotExist(base_path('app/Contexts/Calculator'));
-        self::assertFileExists(base_path('app/Contexts/GameWorld/Progression/Services/ProgressionCalculator.php'));
-        self::assertFileExists(base_path('app/Contexts/GameWorld/Progression/Queries/CalculatorEligibilityQuery.php'));
+        self::assertDirectoryDoesNotExist(RepositoryPath::fromRoot('app/Contexts/Calculators'));
+        self::assertDirectoryDoesNotExist(RepositoryPath::fromRoot('app/Contexts/Calculator'));
+        self::assertFileExists(RepositoryPath::fromRoot('app/Contexts/GameWorld/Progression/Services/ProgressionCalculator.php'));
+        self::assertFileExists(RepositoryPath::fromRoot('app/Contexts/GameWorld/Progression/Queries/CalculatorEligibilityQuery.php'));
     }
 
     public function test_progression_planner_is_read_only_cross_owner_composition(): void
     {
-        $sources = $this->phpSources(base_path('app/ReadModels/Progression'));
+        $sources = $this->phpSources(RepositoryPath::fromRoot('app/ReadModels/Progression'));
         self::assertNotEmpty($sources);
 
         foreach ([
@@ -50,7 +51,7 @@ final class ProgressionPlannerArchitectureV3Test extends TestCase
 
     public function test_owner_contexts_do_not_depend_on_progression_read_model(): void
     {
-        foreach ($this->phpSources(base_path('app/Contexts')) as $path => $source) {
+        foreach ($this->phpSources(RepositoryPath::fromRoot('app/Contexts')) as $path => $source) {
             self::assertStringNotContainsString(
                 'App\\ReadModels\\Progression',
                 $source,
@@ -61,7 +62,7 @@ final class ProgressionPlannerArchitectureV3Test extends TestCase
 
     public function test_gameworld_progression_does_not_import_alliance_intelligence_or_read_models(): void
     {
-        foreach ($this->phpSources(base_path('app/Contexts/GameWorld/Progression')) as $path => $source) {
+        foreach ($this->phpSources(RepositoryPath::fromRoot('app/Contexts/GameWorld/Progression')) as $path => $source) {
             foreach ([
                 'App\\Contexts\\Alliance',
                 'App\\Contexts\\Intelligence',
@@ -78,7 +79,7 @@ final class ProgressionPlannerArchitectureV3Test extends TestCase
 
     public function test_planner_authorizes_intelligence_before_observation_retrieval(): void
     {
-        $source = file_get_contents(base_path('app/ReadModels/Progression/Http/Controllers/ProgressionPlannerController.php'));
+        $source = file_get_contents(RepositoryPath::fromRoot('app/ReadModels/Progression/Http/Controllers/ProgressionPlannerController.php'));
         self::assertIsString($source);
 
         $authorization = strpos($source, '->allows(');
@@ -94,8 +95,8 @@ final class ProgressionPlannerArchitectureV3Test extends TestCase
 
     public function test_governor_progression_exposes_planner_entry_and_planner_exposes_stale_state(): void
     {
-        $governor = file_get_contents(base_path('resources/js/pages/Kingdom/Progression/Governor.vue'));
-        $planner = file_get_contents(base_path('resources/js/pages/Kingdom/Progression/Planner.vue'));
+        $governor = file_get_contents(RepositoryPath::fromRoot('resources/js/pages/Kingdom/Progression/Governor.vue'));
+        $planner = file_get_contents(RepositoryPath::fromRoot('resources/js/pages/Kingdom/Progression/Planner.vue'));
         self::assertIsString($governor);
         self::assertIsString($planner);
 
@@ -107,7 +108,7 @@ final class ProgressionPlannerArchitectureV3Test extends TestCase
 
     public function test_frontend_contains_no_factual_cost_table_or_calculation_formula(): void
     {
-        $source = file_get_contents(base_path('resources/js/pages/Kingdom/Progression/Planner.vue'));
+        $source = file_get_contents(RepositoryPath::fromRoot('resources/js/pages/Kingdom/Progression/Planner.vue'));
         self::assertIsString($source);
 
         foreach ([
