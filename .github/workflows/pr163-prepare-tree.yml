@@ -65,7 +65,7 @@ jobs:
           PY
           git diff --check
 
-      - name: Prepare exact unreferenced Git tree
+      - name: Prepare non-workflow tree and workflow-entry manifest
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -76,14 +76,35 @@ jobs:
           import json
           import os
           import subprocess
+          import urllib.error
           import urllib.request
           from pathlib import Path
 
           def git(*args: str) -> str:
               return subprocess.check_output(['git', *args]).decode().strip()
 
-          local_tree = git('write-tree')
-          entries = []
+          def post(path: str, payload: dict) -> dict:
+              request = urllib.request.Request(
+                  'https://api.github.com/repos/awalker0878/kingshot-alliance/' + path,
+                  data=json.dumps(payload).encode(),
+                  headers={
+                      'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                      'Accept': 'application/vnd.github+json',
+                      'Content-Type': 'application/json',
+                      'X-GitHub-Api-Version': '2022-11-28',
+                  },
+                  method='POST',
+              )
+              try:
+                  with urllib.request.urlopen(request, timeout=120) as response:
+                      return json.load(response)
+              except urllib.error.HTTPError as error:
+                  print(error.read().decode(), flush=True)
+                  raise
+
+          full_local_tree = git('write-tree')
+          regular_entries = []
+          workflow_entries = []
           raw = subprocess.check_output(
               ['git', 'diff', '--cached', '--name-status', '--no-renames', '-z']
           ).decode().split('\0')
@@ -95,40 +116,57 @@ jobs:
                   or path in {'composer.json', 'phpunit.xml', 'app/Contexts/README.md'}
               )
               assert allowed, path
+
+              if path.startswith('.github/workflows/'):
+                  entry = {'path': path, 'mode': '100644', 'type': 'blob'}
+                  if status == 'D':
+                      entry['sha'] = None
+                  else:
+                      blob = post('git/blobs', {'content': Path(path).read_text(), 'encoding': 'utf-8'})
+                      entry['sha'] = blob['sha']
+                  workflow_entries.append(entry)
+                  continue
+
               entry = {'path': path, 'mode': '100644', 'type': 'blob'}
               if status == 'D':
                   entry['sha'] = None
               else:
                   entry['content'] = Path(path).read_text()
-              entries.append(entry)
+              regular_entries.append(entry)
 
-          payload = json.dumps({'base_tree': git('rev-parse', 'HEAD^{tree}'), 'tree': entries}).encode()
-          request = urllib.request.Request(
-              'https://api.github.com/repos/awalker0878/kingshot-alliance/git/trees',
-              data=payload,
-              headers={
-                  'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
-                  'Accept': 'application/vnd.github+json',
-                  'Content-Type': 'application/json',
-                  'X-GitHub-Api-Version': '2022-11-28',
-              },
-              method='POST',
-          )
-          with urllib.request.urlopen(request, timeout=120) as response:
-              result = json.load(response)
+          partial_tree = post(
+              'git/trees',
+              {'base_tree': git('rev-parse', 'HEAD^{tree}'), 'tree': regular_entries},
+          )['sha']
 
-          assert result['sha'] == local_tree, (result['sha'], local_tree)
-          evidence = {
+          workflow_manifest = {
               'source_commit': git('rev-parse', 'HEAD'),
-              'tree_sha': local_tree,
+              'partial_tree_sha': partial_tree,
+              'expected_full_tree_sha': full_local_tree,
+              'entries': workflow_entries,
+              'tests_executed': False,
+          }
+          manifest_blob = post(
+              'git/blobs',
+              {'content': json.dumps(workflow_manifest, indent=2) + '\n', 'encoding': 'utf-8'},
+          )['sha']
+
+          evidence = {
+              'source_commit': workflow_manifest['source_commit'],
+              'partial_tree_sha': partial_tree,
+              'expected_full_tree_sha': full_local_tree,
+              'workflow_manifest_blob_sha': manifest_blob,
               'php_classes': 283,
               'tests_executed': False,
               'branch_updated': False,
           }
-          out = Path(os.environ['RUNNER_TEMP'], 'prepared-tree.json')
-          out.write_text(json.dumps(evidence, indent=2) + '\n')
+          Path(os.environ['RUNNER_TEMP'], 'prepared-tree.json').write_text(
+              json.dumps(evidence, indent=2) + '\n'
+          )
           with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as env:
-              env.write(f'PREPARED_TREE_SHA={local_tree}\n')
+              env.write(f'PARTIAL_TREE_SHA={partial_tree}\n')
+              env.write(f'EXPECTED_FULL_TREE_SHA={full_local_tree}\n')
+              env.write(f'WORKFLOW_MANIFEST_BLOB_SHA={manifest_blob}\n')
           print(json.dumps(evidence))
           PY
 
@@ -138,13 +176,21 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          curl --fail-with-body --silent --show-error \
-            -X POST \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
-            -d "{\"state\":\"success\",\"context\":\"test-layout-preparation-no-tests\",\"description\":\"tree ${PREPARED_TREE_SHA}; no tests executed\"}"
+          set -euo pipefail
+          publish() {
+            local context="$1"
+            local description="$2"
+            curl --fail-with-body --silent --show-error \
+              -X POST \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+              -d "{\"state\":\"success\",\"context\":\"${context}\",\"description\":\"${description}\"}"
+          }
+          publish test-layout-preparation-no-tests "partial tree ${PARTIAL_TREE_SHA}; no tests executed"
+          publish test-layout-expected-tree-no-tests "expected tree ${EXPECTED_FULL_TREE_SHA}; no tests executed"
+          publish test-layout-workflow-manifest-no-tests "manifest blob ${WORKFLOW_MANIFEST_BLOB_SHA}; no tests executed"
 
       - name: Publish preparation failure status
         if: failure()
