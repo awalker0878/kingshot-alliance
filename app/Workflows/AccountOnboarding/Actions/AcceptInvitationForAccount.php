@@ -6,18 +6,17 @@ namespace App\Workflows\AccountOnboarding\Actions;
 
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Alliance\Membership\Actions\AcceptInvitation;
-use App\Contexts\Alliance\Membership\Queries\FindPendingInvitation;
+use App\Contexts\Alliance\Membership\Services\InvitationAcceptanceScope;
 use App\Contexts\GameWorld\Players\Actions\ClaimPlayerAccount;
 use App\Workflows\AccountOnboarding\Data\InvitationAcceptanceResult;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 final readonly class AcceptInvitationForAccount
 {
     public function __construct(
         private AccountIdentityQuery $accounts,
-        private FindPendingInvitation $invitations,
+        private InvitationAcceptanceScope $invitationScope,
         private ClaimPlayerAccount $claimPlayerAccount,
         private AcceptInvitation $acceptInvitation,
     ) {}
@@ -30,21 +29,13 @@ final readonly class AcceptInvitationForAccount
                 throw new AuthorizationException;
             }
 
-            $invitation = $this->invitations->byToken($token);
-
-            if ($invitation === null) {
-                throw ValidationException::withMessages([
-                    'invitation' => 'This invitation is no longer available.',
-                ]);
-            }
+            $invitation = $this->invitationScope->lock($token);
 
             $player = $this->claimPlayerAccount->handle($invitation->playerId, $account->userId);
             $membership = $this->acceptInvitation->handle(
                 userId: $account->userId,
-                userEmail: $account->email,
                 token: $token,
                 playerId: $player->playerId,
-                playerKingdomId: $player->kingdomId,
             );
 
             return new InvitationAcceptanceResult(

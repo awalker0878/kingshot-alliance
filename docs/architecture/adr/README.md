@@ -34,3 +34,4 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0028: Platform owns initialization and entitlement facts](0028-platform-owned-initialization-and-entitlement-facts.md)
 - [ADR-0029: Mutate owned Players under current account and identity locks](0029-current-owned-player-mutations.md)
 - [ADR-0030: Lock Kingdom before neutral identities and bound archival reads](0030-kingdom-first-neutral-identity-locks-and-bounded-archival.md)
+- [ADR-0031: Coordinate current membership admission and roster writes](0031-current-membership-admission-and-roster-lock-order.md)

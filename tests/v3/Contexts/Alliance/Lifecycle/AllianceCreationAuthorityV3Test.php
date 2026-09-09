@@ -181,7 +181,15 @@ final class AllianceCreationAuthorityV3Test extends TestCase
         }
     }
 
-    public function test_competing_membership_activation_leaves_one_membership_and_no_partial_alliance(): void
+    /** @return iterable<string,array{bool}> */
+    public static function admissionOrders(): iterable
+    {
+        yield 'creation first' => [true];
+        yield 'activation first' => [false];
+    }
+
+    #[DataProvider('admissionOrders')]
+    public function test_competing_membership_activation_leaves_one_membership_and_no_partial_alliance(bool $creationFirst): void
     {
         $factory = app(ScenarioFactory::class);
         $account = $factory->account();
@@ -193,36 +201,46 @@ final class AllianceCreationAuthorityV3Test extends TestCase
             'alliance_id' => $alliance->allianceId, 'player_id' => $player->playerId,
             'status' => MembershipStatus::Suspended, 'rank' => AllianceRank::R1,
         ]);
+        $create = static fn () => app(CreateAlliance::class)->handle($account->userId, $player->playerId, 'Competing Membership', 'competing-membership');
+        $activate = static fn () => app(UpdateMembershipStatus::class)->handle($alliance->allianceId, $officer->playerId, (string) $membership->id, MembershipStatus::Active);
         $primary = DB::getDefaultConnection();
         config()->set('database.connections.membership_activator', array_replace(DB::connection()->getConfig(), ['name' => 'membership_activator']));
         DB::connection('membership_activator')->statement("SET lock_timeout = '100ms'");
         $activated = false;
-        DB::listen(static function (QueryExecuted $query) use ($alliance, $officer, $membership, $primary, &$activated): void {
-            if ($activated || $query->connectionName !== $primary || ! str_starts_with($query->sql, 'select * from "alliances"') || ! in_array('competing-membership', $query->bindings, true)) {
+        DB::listen(static function (QueryExecuted $query) use ($player, $creationFirst, $create, $activate, $primary, &$activated): void {
+            if ($activated || $query->connectionName !== $primary || ! str_starts_with($query->sql, 'select * from "players"')
+                || ! str_contains($query->sql, $creationFirst ? 'for update' : 'for share') || ! in_array($player->playerId, $query->bindings, true)) {
                 return;
             }
             $activated = true;
             DB::setDefaultConnection('membership_activator');
             try {
-                app(UpdateMembershipStatus::class)->handle($alliance->allianceId, $officer->playerId, (string) $membership->id, MembershipStatus::Active);
+                try {
+                    $creationFirst ? $activate() : $create();
+                    self::fail('Creation and activation must serialize on current Player identity.');
+                } catch (QueryException $exception) {
+                    self::assertSame('55P03', $exception->errorInfo[0] ?? null);
+                }
             } finally {
                 DB::setDefaultConnection($primary);
             }
         });
         try {
-            DB::transaction(function () use ($account, $player): void {
+            $creationFirst ? $create() : $activate();
+            DB::transaction(static function () use ($creationFirst, $create, $activate): void {
                 try {
-                    app(CreateAlliance::class)->handle($account->userId, $player->playerId, 'Competing Membership', 'competing-membership');
+                    $creationFirst ? $activate() : $create();
                     self::fail('The competing active membership must be preserved.');
                 } catch (ValidationException $exception) {
-                    self::assertArrayHasKey('player', $exception->errors());
+                    self::assertArrayHasKey($creationFirst ? 'status' : 'player', $exception->errors());
                 }
                 self::assertSame(1, (int) DB::selectOne('select 1 as usable')->usable);
             });
             self::assertTrue($activated);
-            self::assertSame(MembershipStatus::Active, $membership->fresh()?->status);
-            self::assertSame(1, Alliance::query()->count());
-            self::assertSame(0, Alliance::query()->where('slug', 'competing-membership')->count());
+            self::assertSame($creationFirst ? MembershipStatus::Suspended : MembershipStatus::Active, $membership->fresh()?->status);
+            self::assertSame($creationFirst ? 2 : 1, Alliance::query()->count());
+            self::assertSame($creationFirst ? 1 : 0, Alliance::query()->where('slug', 'competing-membership')->count());
+            self::assertSame(1, AllianceMembership::query()->where('player_id', $player->playerId)->where('status', 'active')->count());
         } finally {
             DB::setDefaultConnection($primary);
             DB::purge('membership_activator');

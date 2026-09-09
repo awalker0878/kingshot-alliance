@@ -11,10 +11,12 @@ use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Policies\MemberCapacityPolicy;
+use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
 use App\Contexts\Alliance\Membership\Services\MembershipAdministrationGuard;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -27,6 +29,7 @@ final readonly class UpdateMembershipStatus
         private MemberCapacityPolicy $entitlements,
         private AuditRecorder $audit,
         private PlayerReferenceQuery $players,
+        private PlayerMembershipQuery $memberships,
         private OutboxRecorder $outbox,
     ) {}
 
@@ -59,30 +62,30 @@ final readonly class UpdateMembershipStatus
                     $this->entitlements->assertCapacity($context->alliance);
                 }
 
-                $player = $this->players->require((string) $membership->player_id);
+                $player = $this->players->lockCurrentShared((string) $membership->player_id);
                 if ($player->kingdomId !== (string) $context->alliance->kingdom_id) {
                     throw ValidationException::withMessages(['status' => 'The Player must belong to the Alliance Kingdom before this membership can be activated.']);
                 }
 
-                $otherActiveMembership = AllianceMembership::query()
-                    ->where('player_id', $membership->player_id)
-                    ->where('status', MembershipStatus::Active->value)
-                    ->where('id', '<>', $membership->id)
-                    ->orderBy('id')
-                    ->lockForUpdate()
-                    ->first();
-                if ($otherActiveMembership instanceof AllianceMembership) {
+                if ($previousStatus !== MembershipStatus::Active && $this->memberships->hasAnyActiveForPlayer((string) $membership->player_id)) {
                     throw ValidationException::withMessages(['status' => 'The Player already has an active Alliance membership.']);
                 }
             }
 
             if ($previousStatus !== $status) {
-                $membership->forceFill([
-                    'status' => $status,
-                    'rank' => $status === MembershipStatus::Active && $previousStatus === MembershipStatus::Removed ? AllianceRank::R1 : $membership->rank,
-                    'joined_at' => $status === MembershipStatus::Active ? ($membership->joined_at ?? now()) : $membership->joined_at,
-                    'left_at' => $status === MembershipStatus::Removed ? now() : null,
-                ])->save();
+                try {
+                    DB::transaction(static fn () => $membership->forceFill([
+                        'status' => $status,
+                        'rank' => $status === MembershipStatus::Active && $previousStatus === MembershipStatus::Removed ? AllianceRank::R1 : $membership->rank,
+                        'joined_at' => $status === MembershipStatus::Active ? ($membership->joined_at ?? now()) : $membership->joined_at,
+                        'left_at' => $status === MembershipStatus::Removed ? now() : null,
+                    ])->save());
+                } catch (UniqueConstraintViolationException $exception) {
+                    if ($status !== MembershipStatus::Active || ! $this->memberships->hasAnyActiveForPlayer((string) $membership->player_id)) {
+                        throw $exception;
+                    }
+                    throw ValidationException::withMessages(['status' => 'The Player already has an active Alliance membership.']);
+                }
 
                 if ($status === MembershipStatus::Removed) {
                     $membership->roles()->detach();
