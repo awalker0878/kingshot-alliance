@@ -41,7 +41,7 @@ final readonly class MembershipGovernanceHistoryQuery
         private ScopedCursorCodec $cursors,
     ) {}
 
-    /** @return PageSlice<array<string,mixed>> */
+    /** @return PageSlice<array{id:string,type:string,occurredAt:string,actor:array{playerId:string,name:string}|null,metadata:array<string,mixed>,source:string}> */
     public function forPlayer(string $viewerPlayerId, string $allianceId, string $playerId, ?string $cursor = null, int $limit = 50): PageSlice
     {
         $this->access->authorize($viewerPlayerId, $allianceId);

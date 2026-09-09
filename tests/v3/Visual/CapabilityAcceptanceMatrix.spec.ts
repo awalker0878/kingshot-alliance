@@ -14,7 +14,7 @@ type Surface =
 const fingerprints: Record<string, Record<Surface, string>> = {
   desktop: {
     rallyBuilder: 'cdb85d962ede7f68b9ee078625b46aa19f2f25fdcf3237db79fd60a6bb887601',
-    memberProfile: '2dedf685fd738cd117460c8b22431299f89a3a5355f466756c4b41c3e645782a',
+    memberProfile: '019114f75edb7fe116c3e17aeb77cb43874111d8b037ce960267982bdc42521e',
     transferCampaign: '108d65aedb6e80d979d220b44ef2b66490b9a0b0c9ff6064bb23be75fcab7e43',
     intelligenceTimeline: 'e2e727d74fd513e2479ca1730bd79c7117743cf9f44003c05e8e919096c78a50',
     allianceCommand: 'de7aab8f5eee1fde41a164f08ec9c881fa91f56f8650394b9463123a8d70aa01',
@@ -23,7 +23,7 @@ const fingerprints: Record<string, Record<Surface, string>> = {
   },
   mobile: {
     rallyBuilder: '83c0f81ab893ae413016045bd4e64144fc1e00731b58a5a84e39769f8fd67d8a',
-    memberProfile: '9c21deec081a27886e38d3825b309d807a3235519c786b27f3eaf01678bff76e',
+    memberProfile: '66b9033ff1029f8fb35e6099a5982e39f2a26887446c18e92a6d489cd91c7cd1',
     transferCampaign: '2ff40faaae87d4ee51f359cdc8562fdf44b035f86a1e52296409457349edf132',
     intelligenceTimeline: '23da633df74ceeb3e68a3e688b6d58ad34f22ffe2fec3fd08c2cd7ce77edd46e',
     allianceCommand: 'cc53e997be8fb9c6762df3590b17a0518455d180307adb283567eaaa83f1f970',

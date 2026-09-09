@@ -22,7 +22,7 @@ test('member history opens from its profile and reaches older records', async ({
     await page.waitForURL('**/dashboard');
   }
   await page.goto('/alliance/roster/intelligence');
-  await page.locator('a[href^="/alliance/roster/"][href$="/history"]').first().click();
+  await page.locator('a[href^="/alliance/roster/"][href$="/history"]:visible').first().click();
   const profile = page.locator('section[aria-labelledby="member-capability-profile"]');
   await expect(
     profile.getByText('12 records on this page (up to 12).', { exact: true }),
