@@ -26,7 +26,37 @@ Those baseline versions and timings are evidence from the recorded baseline; the
 | `tests/Browser` | End-to-end and visual user journeys | Playwright/browser/runtime assets only when a browser is genuinely required |
 | `tests/Fixtures`, `tests/Support`, `tests/TestCase.php` | Shared test infrastructure | Not independent PHPUnit suites |
 
-The standard-layout migration records the exact old-to-new file mapping in `docs/codebase/test-layout-migration.json`. At migration time the 283 PHP test classes were assigned as 10 Unit, 194 Feature, 52 Integration, 24 Architecture and 3 Frontend classes. A later source-only pass moves four pure classes to Unit, recorded in [test-pure-bootstrap-migration.json](test-pure-bootstrap-migration.json), and adds one reference-reset regression class. The resulting 284 source files are 14 Unit, 190 Feature, 53 Integration, 24 Architecture and 3 Frontend; execution/discovery reconciliation remains pending.
+The standard-layout migration records the exact old-to-new file mapping in `docs/codebase/test-layout-migration.json`. At migration time the 283 PHP test classes were assigned as 10 Unit, 194 Feature, 52 Integration, 24 Architecture and 3 Frontend classes. Subsequent source-only passes move five pure classes to Unit and add one reference-reset regression class. The first four moves are recorded in [test-pure-bootstrap-migration.json](test-pure-bootstrap-migration.json); the fifth and the source-only Architecture conversions are recorded below. The resulting 284 source files are 15 Unit, 189 Feature, 53 Integration, 24 Architecture and 3 Frontend; execution/discovery reconciliation remains pending.
+
+## Source-only architecture contracts
+
+Use `PHPUnit\Framework\TestCase` for tests that only inspect repository files or independent value objects. `Tests\Support\RepositoryPath::fromRoot()` resolves repository-relative paths without constructing Laravel. It does not cache file contents: each source assertion still reads the current file. Keep architecture contracts in `tests/Architecture`, even when they no longer need the application; execution cost must not create a second, overlapping discovery suite.
+
+Keep `Tests\TestCase` when the assertion depends on the actual application container, registered routes/middleware, booted scheduler, encryption or persistence. In particular, the Scheduler ownership, Published Integration, Alliance Content HTTP and Governor Progression Evidence Reference boundary classes still verify booted application contracts. Replacing their runtime checks with source strings or direct construction would change what they protect.
+
+### No-test bootstrap continuation
+
+Source parent: `19374960a38733162b2cbda870808441e0c55b05`. Code checkpoint: `8ec6b376ebfc41611bd28fe74e1de185dde7fea4`.
+
+Commits `53d60114` and `d5e9495a` remove unnecessary Laravel startup from these existing classes. The nine Architecture classes keep their paths and names; only the value-object class moves from `tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantEvidenceV3Test.php` to the matching `tests/Unit/ReadModels/AllianceAssistant/` path.
+
+| Existing class | Suite after change | Preserved source test methods |
+| --- | --- | ---: |
+| `ProgressionDatasetAbsenceBoundaryV3Test` | Architecture | 1 |
+| `KingdomOperationalReadBoundaryV3Test` | Architecture | 3 |
+| `EventTypeOnboardingArchitectureV3Test` | Architecture | 3 |
+| `PwaContractV3Test` | Architecture | 1 |
+| `EventCommandArchitectureV3Test` | Architecture | 5 |
+| `ProgressionPlannerArchitectureV3Test` | Architecture | 7 |
+| `IntelligenceChangeDetectionArchitectureV3Test` | Architecture | 5 |
+| `AllianceAssistantArchitectureV3Test` | Architecture | 6 |
+| `TransferEvidenceBoundaryV3Test` | Architecture | 7 |
+| `AllianceAssistantEvidenceV3Test` | Unit | 3 |
+| **Total** | **10 existing classes** | **41** |
+
+Inverse source transformations reproduce all ten original files exactly after reversing the base imports, repository-path calls and the one namespace move. Remote Git blob reconciliation caught one omitted Event Type source assertion in the connector payload; `8ec6b37` restores it before this checkpoint. The final source assertions, method bodies and traversal logic are unchanged. The small repository-path helper is shared support, not a new test suite.
+
+Validation used the previously completed source/dependency artifact from `b50e9869`, reconciled against the complete connector comparison to the source parent. Its installed packages are Laravel 13.30.1, PHPUnit 12.5.33, ParaTest 7.20.0 and Pint 1.30.4. PHP 8.5.10 syntax checks and Pint formatting checks pass for all eleven changed PHP files. Git metadata and the explicit moves reconcile 284 PHP test source files; this is not runner discovery. No PHPUnit discovery, test execution, benchmark, browser command, migration or new CI dispatch was performed for this continuation. Commits use `[skip ci]` during the explicit execution hold; no required gate is marked as passed or permanently disabled. Wall-clock savings, final discovery and behavioral verification remain unmeasured.
 
 ## Database reset contracts
 
@@ -131,6 +161,8 @@ Until an equivalent post-optimization run is recorded, treat the baseline as the
 ## CI dependency and specialized-gate policy
 
 PHP workflows may reuse Composer's **download archive cache** keyed by `composer.lock`, but they must still execute a normal locked `composer install`. Do not cache `vendor/`, generated application configuration, database state or test outputs as a substitute for installation/isolation.
+
+Architecture Verification deliberately separates locked dependency installation from its mandatory strict autoload generation: `composer install --no-interaction --no-progress --prefer-dist --no-autoloader`, then `composer dump-autoload --optimize --strict-psr`. Commit `a829f2f0` removes the duplicate initial autoload generation and post-autoload package discovery. The final dump still executes the normal hooks and fails on PSR-4 violations; neither scripts nor platform requirements are disabled. Keep these steps adjacent. Adding an install hook that needs application autoloading requires reviewing this ordering. The changed YAML was structurally checked, but the revised installation path has not yet executed and has no measured duration.
 
 The mandatory main CI remains authoritative for full PHP, full frontend, fresh PostgreSQL installation, security and downstream container/staging/recovery coverage. Specialized workflows should add earlier domain-specific signal or unique contracts, not repeat an entire main-CI lane. Exact subset frontend lanes for Gift Code and Intelligence were removed for this reason; King Perks' targeted build and KingdomMaps' geometry/source checks remain because they exercise distinct configurations/contracts.
 
