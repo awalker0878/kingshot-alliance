@@ -8,7 +8,6 @@ use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Alliance\Access\Services\AllianceRoleProvisioner;
 use App\Contexts\Alliance\Lifecycle\Enums\AllianceStatus;
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
-use App\Contexts\Alliance\Lifecycle\Services\AllianceBootstrapProvisioner;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceSettingsInput;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
@@ -16,6 +15,7 @@ use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
+use App\Contexts\Platform\AllianceAdministration\Actions\InitializeAlliancePlatform;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -28,7 +28,7 @@ final readonly class CreateAlliance
     public function __construct(
         private AllianceRoleProvisioner $roles,
         private AuditRecorder $audit,
-        private AllianceBootstrapProvisioner $platformDefaults,
+        private InitializeAlliancePlatform $platformDefaults,
         private PlayerReferenceQuery $players,
         private AccountIdentityQuery $accounts,
         private KingdomReferenceQuery $kingdoms,
@@ -87,7 +87,7 @@ final readonly class CreateAlliance
             // Provision specialist roles, including Gift Code Coordinator, without
             // assigning coverage authority by rank or implicitly to the creator.
             $this->roles->provision($alliance);
-            $this->platformDefaults->provision($alliance);
+            $this->platformDefaults->handle((string) $alliance->id);
             $this->audit->record('alliance.created', $owner, $alliance, $alliance, ['name' => $alliance->name, 'slug' => $alliance->slug]);
             OutboxMessage::query()->create([
                 'alliance_id' => $alliance->id,

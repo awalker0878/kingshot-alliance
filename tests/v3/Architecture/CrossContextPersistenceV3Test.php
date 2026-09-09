@@ -12,6 +12,29 @@ use RecursiveIteratorIterator;
 final class CrossContextPersistenceV3Test extends TestCase
 {
     #[Test]
+    public function foreign_contexts_consume_platform_plan_and_settings_owner_contracts(): void
+    {
+        $repository = dirname(__DIR__, 3);
+        $violations = [];
+        foreach (glob($repository.'/app/Contexts/*', GLOB_ONLYDIR) ?: [] as $contextPath) {
+            if (basename($contextPath) === 'Platform') {
+                continue;
+            }
+            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($contextPath)) as $file) {
+                if (! $file->isFile() || $file->getExtension() !== 'php') {
+                    continue;
+                }
+                $contents = file_get_contents($file->getPathname());
+                self::assertIsString($contents);
+                if (preg_match('/[\'\"](?:platform_plans|platform_plan_entitlements|alliance_plan_assignments|alliance_platform_settings)[\'\"]/', $contents) === 1) {
+                    $violations[] = str_replace($repository.'/', '', $file->getPathname());
+                }
+            }
+        }
+        self::assertSame([], $violations, 'Platform plan/settings tables must remain behind Platform owner contracts.');
+    }
+
+    #[Test]
     public function business_contexts_do_not_import_foreign_context_models(): void
     {
         $repository = dirname(__DIR__, 3);

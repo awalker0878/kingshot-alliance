@@ -20,3 +20,5 @@ Membership administration lists use the Alliance Dashboard ReadModel and a scope
 Specialist permission interpretation belongs to `Alliance/Access`.
 
 Rank administration also requires current role-management permission. Its target rank cannot exceed the actor's current rank, because ranks carry implicit authority in other contexts. The Membership rank enum owns that ceiling; preview uses current membership and each commit rechecks locked membership. Self-rank changes remain prohibited and R5 changes require leadership transfer. See [ADR-0022](../../adr/0022-bounded-alliance-delegation.md).
+
+Account deletion holds the account owner barrier while RemovePlayersFromAlliances discovers all historical membership scopes. Cleanup acquires Alliance shared locks in ID order before current active membership locks, including inactive scopes whose members could be reactivated. It rejects newly appeared scopes before writes, rechecks current R5 protection, and commits status changes, role detachment, audit and outbox atomically. Repeated cleanup emits no new transition. The account barrier excludes new Alliance creation and invitation acceptance during deletion.

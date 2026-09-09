@@ -13,6 +13,7 @@ use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 final readonly class RemovePlayersFromAlliances
 {
@@ -34,15 +35,12 @@ final readonly class RemovePlayersFromAlliances
         }
 
         DB::transaction(function () use ($playersById): void {
-            $memberships = AllianceMembership::query()
+            // Account deletion holds the account owner barrier, excluding new
+            // creation/acceptance. Include historical scopes so reactivation
+            // cannot slip past cleanup while these Alliance locks are held.
+            $allianceIds = AllianceMembership::query()
                 ->whereIn('player_id', array_keys($playersById))
-                ->where('status', MembershipStatus::Active->value)
                 ->orderBy('alliance_id')
-                ->orderBy('id')
-                ->lockForUpdate()
-                ->get();
-
-            $allianceIds = $memberships
                 ->pluck('alliance_id')
                 ->map(static fn ($id): string => (string) $id)
                 ->unique()
@@ -55,6 +53,24 @@ final readonly class RemovePlayersFromAlliances
                 ->sharedLock()
                 ->get()
                 ->keyBy('id');
+
+            // Revalidate discovery without locking a membership in an
+            // unacquired scope. A direct caller can safely retry changed scope.
+            if (AllianceMembership::query()
+                ->whereIn('player_id', array_keys($playersById))
+                ->whereNotIn('alliance_id', $allianceIds)
+                ->exists()) {
+                throw ValidationException::withMessages(['membership' => 'Alliance membership changed. Retry account cleanup with current membership scopes.']);
+            }
+
+            $memberships = AllianceMembership::query()
+                ->whereIn('player_id', array_keys($playersById))
+                ->whereIn('alliance_id', $allianceIds)
+                ->where('status', MembershipStatus::Active->value)
+                ->orderBy('alliance_id')
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
 
             foreach ($memberships as $membership) {
                 $this->guard->assertCanDeactivate($membership);

@@ -6,9 +6,9 @@ namespace App\Contexts\Platform\Integrations\Actions;
 
 use App\Contexts\Alliance\Access\Services\AllianceWriteAuthorization;
 use App\Contexts\Platform\AllianceAdministration\Models\AlliancePlatformSetting;
-use App\Contexts\Platform\AllianceAdministration\Services\PlanEntitlementService;
 use App\Contexts\Platform\Integrations\Contracts\WebhookEventCatalog;
 use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
+use App\Contexts\Platform\Integrations\Policies\IntegrationCapacityPolicy;
 use App\Contexts\Platform\Integrations\Services\WebhookEndpointPolicy;
 use App\Contexts\Platform\Integrations\ValueObjects\IssuedWebhookSubscription;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -20,7 +20,7 @@ final readonly class CreateWebhookSubscription
 {
     public function __construct(
         private AllianceWriteAuthorization $allianceAuthority,
-        private PlanEntitlementService $entitlements,
+        private IntegrationCapacityPolicy $entitlements,
         private WebhookEndpointPolicy $endpointPolicy,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,

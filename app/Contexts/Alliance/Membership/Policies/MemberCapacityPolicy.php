@@ -9,15 +9,17 @@ use App\Contexts\Alliance\Membership\Enums\InvitationStatus;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\Invitation;
-use Illuminate\Support\Facades\DB;
+use App\Contexts\Platform\AllianceAdministration\Queries\PlanEntitlementQuery;
 use Illuminate\Validation\ValidationException;
 
-final class MemberCapacityPolicy
+final readonly class MemberCapacityPolicy
 {
+    public function __construct(private PlanEntitlementQuery $entitlements) {}
+
     public function assertCapacity(Alliance $alliance): void
     {
-        $limit = $this->limit($alliance, 'members.max');
         if ($this->remainingCapacity($alliance) < 1) {
+            $limit = $this->entitlements->limit((string) $alliance->id, 'members.max');
             throw ValidationException::withMessages(['quota' => sprintf('The alliance has reached its plan limit for members (%d).', $limit)]);
         }
     }
@@ -34,18 +36,6 @@ final class MemberCapacityPolicy
             ->where('expires_at', '>', now())
             ->count();
 
-        return max(0, $this->limit($alliance, 'members.max') - $active - $pending);
-    }
-
-    private function limit(Alliance $alliance, string $key): int
-    {
-        $planCode = DB::table('alliance_plan_assignments')->where('alliance_id', $alliance->id)->value('plan_code');
-        $planCode = is_string($planCode) && $planCode !== '' ? $planCode : 'standard';
-        $value = DB::table('platform_plan_entitlements')->where('plan_code', $planCode)->where('entitlement_key', $key)->value('limit_value');
-        if (! is_numeric($value)) {
-            throw ValidationException::withMessages(['plan' => sprintf('The current plan does not define the %s entitlement.', $key)]);
-        }
-
-        return max(0, (int) $value);
+        return max(0, $this->entitlements->limit((string) $alliance->id, 'members.max') - $active - $pending);
     }
 }

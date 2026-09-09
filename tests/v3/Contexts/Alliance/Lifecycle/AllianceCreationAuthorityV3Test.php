@@ -11,10 +11,10 @@ use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Kingdoms\Actions\ArchiveKingdom;
-use App\Contexts\GameWorld\Players\Actions\MoveOwnedPlayerToKingdom;
 use App\Contexts\GameWorld\Players\Actions\PersistPlayerIdentity;
 use App\Contexts\GameWorld\Players\Actions\ReconcilePlayers;
 use App\Contexts\GameWorld\Players\Actions\ReleasePlayerAccount;
+use App\Contexts\GameWorld\Players\Enums\PlayerIdentitySource;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Platform\DataGovernance\Actions\ProcessAccountDeletionRequests;
 use App\Contexts\Platform\DataGovernance\Models\AccountDeletionRequest;
@@ -146,14 +146,21 @@ final class AllianceCreationAuthorityV3Test extends TestCase
         config()->set('database.connections.moving_player', array_replace(DB::connection()->getConfig(), ['name' => 'moving_player']));
         DB::connection('moving_player')->statement("SET lock_timeout = '100ms'");
         $moved = false;
-        DB::listen(static function (QueryExecuted $query) use ($account, $player, $destination, $primary, &$moved): void {
+        DB::listen(static function (QueryExecuted $query) use ($player, $destination, $primary, &$moved): void {
             if ($moved || $query->connectionName !== $primary || ! str_starts_with($query->sql, 'select * from "kingdoms"') || ! str_contains($query->sql, 'for share')) {
                 return;
             }
             $moved = true;
             DB::setDefaultConnection('moving_player');
             try {
-                app(MoveOwnedPlayerToKingdom::class)->handle($account->userId, $player->playerId, $destination->kingdomId);
+                app(PersistPlayerIdentity::class)->handle(
+                    $destination->kingdomId,
+                    $player->currentName,
+                    $player->gamePlayerId,
+                    $player->playerId,
+                    PlayerIdentitySource::Import,
+                    reason: 'Current placement observed by system ingestion.',
+                );
             } finally {
                 DB::setDefaultConnection($primary);
             }

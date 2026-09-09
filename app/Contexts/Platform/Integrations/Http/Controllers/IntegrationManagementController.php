@@ -10,7 +10,7 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Platform\AllianceAdministration\Models\AlliancePlatformSetting;
-use App\Contexts\Platform\AllianceAdministration\Services\PlanEntitlementService;
+use App\Contexts\Platform\AllianceAdministration\Queries\PlanEntitlementQuery;
 use App\Contexts\Platform\Integrations\Actions\CreateApiCredential;
 use App\Contexts\Platform\Integrations\Actions\CreateWebhookSubscription;
 use App\Contexts\Platform\Integrations\Actions\QueueWebhookTestDelivery;
@@ -40,7 +40,7 @@ final class IntegrationManagementController extends Controller
         Request $request,
         AllianceContext $context,
         AllianceAuthorization $authorization,
-        PlanEntitlementService $entitlements,
+        PlanEntitlementQuery $entitlements,
     ): Response {
         $identifier = $request->user()?->getAuthIdentifier();
         abort_unless(is_numeric($identifier), 401);

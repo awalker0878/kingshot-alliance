@@ -5,16 +5,16 @@
 - Program state: In progress.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49`.
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `29eb4b1b3caa7130e6ca373c5b03c41d50ef19cf`.
+- Latest pushed durable checkpoint: `ef17148c33422775d3640630c1f885c9261c9bc5`.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163).
-- Current item/state: HARD-060/061 / In progress; URL collision recovery and current authenticated creation authority are prepared. Platform ownership and cleanup lock-order repairs follow under HARD-062/063; adjacent GameWorld findings are recorded under HARD-064/065.
-- Most recently verified gates: all nine PR workflows pass on `8c6b8a7a29a7d0bc1ecba9a1aa579bc88e828d5e`, including 876 PHP tests / 75,032 assertions, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, visual and security.
-- Active files: CreateAlliance, UpdateAllianceSettings, authenticated caller contracts, two lifecycle concurrency regressions and ADR-0027.
-- Current CI result: 29eb4b1b passes full PHPStan, Pint (1,909 files), fresh schema and all 1,100 parallel PHP tests / 78,155 assertions (job 102314204456). Frontend, all 50 visual cases, dependency review, CodeQL, Gift Code, King Perks and KingdomMaps pass. Container/staging/recovery and serial Architecture/Intelligence remain running. Earlier 6726d1fd general CI was superseded; its independent serial workflows remain running.
-- Remaining current work: Finish containing verification, publish/verify HARD-060/061, implement HARD-062–065, then continue remaining lifecycle/membership/recruitment/content and repository audit.
-- Known failures: No completed failure on 29eb4b1b has been observed. The twenty new lifecycle concurrency/rollback cases await executable verification.
+- Current item/state: HARD-062/063 / In progress; Platform-owned initialization/entitlement facts and Alliance-first membership cleanup are prepared. HARD-060/061 creation concurrency is in executable verification.
+- Most recently verified gates: all nine PR workflows pass on `29eb4b1b3caa7130e6ca373c5b03c41d50ef19cf`, including 1,100 PHP tests / 78,155 assertions in both parallel and serial suites, fresh PostgreSQL, frontend, image/staging/recovery, architecture/capabilities, all 50 visual cases and security.
+- Active files: Platform initialization/entitlement query, capability capacity policies, RemovePlayersFromAlliances, owner/concurrency regressions, architecture enforcement and ADR-0028.
+- Current CI result: All nine workflows pass on 29eb4b1b. PHP job 102314204456, Architecture job 102314140093 and Intelligence job 102314140340 each pass 1,100 tests / 78,155 assertions. ef17148c fixes the repeated-observation PHPStan issue, passes full PHPStan/Pint/fresh schema and runs 1,120 parallel tests / 78,270 assertions (job 102318635060) with one fixture error: the account-audited movement's audit FK correctly waits on creation's account lock. The fixture now uses actual system identity ingestion to exercise placement revalidation. All other nineteen new creation/URL cases pass; serial verification remains running.
+- Remaining current work: Verify HARD-060/061, publish/verify HARD-062/063, repair HARD-064–066 and continue the remaining capability-by-capability repository audit.
+- Known failures: The ef17148c placement fixture is corrected locally using system ingestion; its executable verification remains pending. Nineteen new Platform/cleanup behavior cases and the additional architecture rule are prepared but not yet executed.
 - Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout tracks the latest remote checkpoint; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
-- Exact next action: Finish the current container gate before publishing the creation concurrency slice, then centralize Platform provisioning/entitlement facts and repair membership cleanup ordering while its CI runs.
+- Exact next action: Finish the current creation gate, publish the coherent Platform/cleanup slice and continue current Governor movement, bounded Kingdom archival and membership-activation races.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -566,11 +566,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: the existing CI service with explicit capacity for its parallel fresh-schema workload.
 - Rationale: service resource exhaustion must not be confused with domain failures or worked around by skipping the migration/parallel checks. PostgreSQL documents this as a server-start setting; see [lock management](https://www.postgresql.org/docs/18/runtime-config-locks.html).
 - Remediation: set max_locks_per_transaction to 256 on the ephemeral CI service, restart it before migrations, wait for readiness and verify the effective value. Preserve all existing gates and parallel execution.
-- State: In progress.
+- State: Complete.
 - Verification required: the full parallel PHP gate rebuilds all isolated schemas without lock exhaustion; fresh-schema and container recovery checks remain green.
-- Verification result: diagnosed from CI 34279237528 / PHP 102239722423. The effective setting/readiness and fresh installation pass in CI 34280724036 / PHP 102244549681. All 949 tests complete without lock exhaustion; one independent reset scenario collides with the shared IP limiter and is corrected with per-scenario clients. Containing verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: All required owner/HTTP/concurrency/browser cases pass in containing checkpoint 29eb4b1b. Full parallel PHP, Architecture and Intelligence suites each pass 1,100 tests / 78,155 assertions; full Pint/PHPStan, fresh schema, frontend, all 50 visual cases, container/staging/backup-and-restore and security gates pass.
+- Completion evidence: All nine workflows pass together on `29eb4b1b3caa7130e6ca373c5b03c41d50ef19cf`. This closes this finding; repository audit coverage and later findings remain in progress.
+- Commit SHA: `29eb4b1b3caa7130e6ca373c5b03c41d50ef19cf`.
 
 ### HARD-040 — Newly disclosed js-yaml denial-of-service advisory blocks dependency review
 
@@ -638,10 +638,10 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Accounts revokes current-session and remembered authority atomically; maintained browser cleanup runs outside locks and always clears transient state.
 - Rationale: sign-out must invalidate replayable credentials, and a failed cleanup consumer must not leave authenticated browser state. One account-scoped remember token cannot selectively preserve other remembered cookies safely.
 - Remediation: rotate existing token with revocation/audit; defer CurrentDeviceLogout through cleanup, suppress success on persistence failure, always forget/flush/regenerate, and report bounded raw cleanup failures; preserve other active sessions. ADR-0021 supersedes the prior remember-preserving policy.
-- State: In progress.
+- State: Complete.
 - Verification required: current/other session policy, password/provider cookie replay, audit/token rollback with no success event, false/throwing raw storage with stale replay, throwing listener, enclosing transaction rejection, PHPStan/Pint/Architecture and containing suite.
-- Verification result: exact locked Laravel framework 718d17db source confirms event-before-user-clear and destroy-before-ID-generation behavior. All eight HTTP/owner cases pass in the full PostgreSQL parallel run on 7ae4489c (CI job 102282433482: 1,026 tests / 76,911 assertions), with only an unrelated email-verification throttle collision under HARD-048. Full Pint/PHPStan and fresh installation pass before tests; latest Architecture static/invariant steps also pass. Containing all-workflow verification remains pending.
-- Completion evidence: pending.
+- Verification result: All required owner/HTTP/concurrency/browser cases pass in containing checkpoint 29eb4b1b. Full parallel PHP, Architecture and Intelligence suites each pass 1,100 tests / 78,155 assertions; full Pint/PHPStan, fresh schema, frontend, all 50 visual cases, container/staging/backup-and-restore and security gates pass.
+- Completion evidence: All nine workflows pass together on `29eb4b1b3caa7130e6ca373c5b03c41d50ef19cf`. This closes this finding; repository audit coverage and later findings remain in progress.
 - Commit SHA: `7ae4489c49d99871d8c418829480c571f7367b77`.
 
 ### HARD-045 — Direct role assignment bypasses bounded permission delegation
@@ -697,10 +697,10 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: test-only cache namespacing established before application/provider boot, preserving the real Redis-backed gate and production rate limits.
 - Rationale: database isolation without cache isolation makes valid tests order/process dependent. Disabling throttles, raising limits or replacing the Redis-backed gate is not a fix.
 - Remediation: establish per-test cache namespaces that survive application recreation within that test; verify the failing scenario and full parallel suite without weakening gates.
-- State: In progress.
+- State: Complete.
 - Verification required: separate tests/processes cannot share limiter or cached authority state; one test retains state across its intended application reboots; full parallel PHP and container/recovery checks pass.
-- Verification result: All three cache cases and all other behavior pass in 533275da's full Redis-backed suite; its sole remaining failure is the unrelated package upload budget. The maintained post-parallel callback keeps per-test configuration, pre-boot stores and in-test reboots aligned. Final passing parallel/container gates still required.
-- Completion evidence: pending.
+- Verification result: All required owner/HTTP/concurrency/browser cases pass in containing checkpoint 29eb4b1b. Full parallel PHP, Architecture and Intelligence suites each pass 1,100 tests / 78,155 assertions; full Pint/PHPStan, fresh schema, frontend, all 50 visual cases, container/staging/backup-and-restore and security gates pass.
+- Completion evidence: All nine workflows pass together on `29eb4b1b3caa7130e6ca373c5b03c41d50ef19cf`. This closes this finding; repository audit coverage and later findings remain in progress.
 - Commit SHA: `30e7033bbee951c781f479331be811f46cb60a95`.
 
 ### HARD-049 — Unnamed route throttles unintentionally share counters across unrelated operations
@@ -754,11 +754,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Owner-scoped bounded role catalog queries with usable pagination/search and grouped counts.
 - Rationale: A local administrator can accumulate role/history rows without a storage cap; every dashboard or management read must not grow with all history or issue a query per role.
 - Remediation: Introduce bounded scoped role reads and appropriate indexes, migrate all catalog consumers and maintain accessible selection/navigation.
-- State: In progress.
+- State: Complete.
 - Verification required: Large same-/cross-Alliance role sets, stable page traversal, invalid/cross-scope cursors, archived-role selection exclusion, constant query count and real frontend navigation.
-- Verification result: Catalog traversal/filter/count cases and desktop/mobile pickers pass after explicit list normalization. The combined HTTP fixture now invalidates its session before each actor, retaining authentication middleware and original expectations. All catalog/HTTP cases pass in the full 29eb4b1b parallel run (1,100 tests / 78,155 assertions); all 50 visual cases pass. Serial containing verification remains pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: All required owner/HTTP/concurrency/browser cases pass in containing checkpoint 29eb4b1b. Full parallel PHP, Architecture and Intelligence suites each pass 1,100 tests / 78,155 assertions; full Pint/PHPStan, fresh schema, frontend, all 50 visual cases, container/staging/backup-and-restore and security gates pass.
+- Completion evidence: All nine workflows pass together on `29eb4b1b3caa7130e6ca373c5b03c41d50ef19cf`. This closes this finding; repository audit coverage and later findings remain in progress.
+- Commit SHA: `29eb4b1b3caa7130e6ca373c5b03c41d50ef19cf`.
 
 ### HARD-053 — Role editor state does not follow retained Inertia props
 
@@ -838,11 +838,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: The same locked owner mutation, deriving event creation from an actual affected assignment.
 - Rationale: Retrying a completed mutation must not manufacture a new business fact; a genuinely later transition must remain independently deliverable.
 - Remediation: Return after a zero-row detach only after current authority/tenant checks; use a ULID delivery key for each actual removal.
-- State: In progress.
+- State: Complete.
 - Verification required: Absent/repeated removal, distinct same-time transitions, current authority on retries and late outbox rollback followed by successful retry.
-- Verification result: Direct/bulk owners and governance history consumer traced. All four PostgreSQL regression cases pass in the full 29eb4b1b parallel run (1,100 tests / 78,155 assertions), along with full PHPStan/Pint. Serial containing verification remains pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: All required owner/HTTP/concurrency/browser cases pass in containing checkpoint 29eb4b1b. Full parallel PHP, Architecture and Intelligence suites each pass 1,100 tests / 78,155 assertions; full Pint/PHPStan, fresh schema, frontend, all 50 visual cases, container/staging/backup-and-restore and security gates pass.
+- Completion evidence: All nine workflows pass together on `29eb4b1b3caa7130e6ca373c5b03c41d50ef19cf`. This closes this finding; repository audit coverage and later findings remain in progress.
+- Commit SHA: `29eb4b1b3caa7130e6ca373c5b03c41d50ef19cf`.
 
 ### HARD-059 — Alliance creation and settings use inconsistent input invariants
 
@@ -852,11 +852,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: One immutable AllianceSettingsInput contract shared by both owner Actions.
 - Rationale: Every creation/update path must produce usable settings within schema bounds and the same closed language vocabulary.
 - Remediation: Share normalization, reserved names, storage limits, supported locales and IANA timezone validation; retain controller input-shape feedback and no-op update behavior.
-- State: In progress.
+- State: Complete.
 - Verification required: Both direct owners reject malformed/expanded values without partial writes, real HTTP creation rejects reserved URLs/unsupported languages, valid storage boundaries persist and same-value updates remain no-ops.
-- Verification result: Shared input contract and all nine PostgreSQL/HTTP cases pass in the full 29eb4b1b parallel run (1,100 tests / 78,155 assertions), along with full PHPStan/Pint and all visual cases. Serial containing verification remains pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: All required owner/HTTP/concurrency/browser cases pass in containing checkpoint 29eb4b1b. Full parallel PHP, Architecture and Intelligence suites each pass 1,100 tests / 78,155 assertions; full Pint/PHPStan, fresh schema, frontend, all 50 visual cases, container/staging/backup-and-restore and security gates pass.
+- Completion evidence: All nine workflows pass together on `29eb4b1b3caa7130e6ca373c5b03c41d50ef19cf`. This closes this finding; repository audit coverage and later findings remain in progress.
+- Commit SHA: `29eb4b1b3caa7130e6ca373c5b03c41d50ef19cf`.
 
 ### HARD-060 — Concurrent Alliance URL claims escape as database errors
 
@@ -882,7 +882,7 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Remediation: Acquire current owner locks through reference APIs, recheck candidate identities, coordinate one-active-membership outcomes and preserve atomic bootstrap/audit/outbox.
 - State: In progress.
 - Verification required: Real competing ownership release/finalization/reconciliation, both commit orders, same-Player creation, inactive Kingdom, changed owner and late rollback; no new lock-order inversion.
-- Verification result: CreateAlliance now requires the authenticated account ID; all HTTP/scenario/visual callers and the exact behavior contract are migrated. Account, Kingdom and Player owner locks establish current ownership and placement; a savepoint translates competing active membership without partial creation. Eleven separate-connection/authority cases cover both orders against release, deletion, reconciliation and creation, inactive Kingdom, foreign account, concurrent placement change and membership activation. ADR-0027 accepted; PostgreSQL execution pending.
+- Verification result: CreateAlliance requires the authenticated account ID; all HTTP/scenario/visual callers and the exact behavior contract are migrated. Account, Kingdom and Player owner locks establish current ownership and placement; a savepoint translates competing active membership without partial creation. Ten of eleven authority cases pass on ef17148c, including both orders against release, deletion, reconciliation and creation plus membership activation. The placement fixture's account-audited move correctly blocks at its audit User FK; it now uses actual system ingestion to exercise concurrent placement revalidation. PHPStan/Pint/fresh schema pass; corrected-fixture and containing verification remain pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -894,9 +894,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Platform owns initial plan/settings persistence and entitlement lookup; Alliance owns its usage/capacity decisions through explicit owner contracts.
 - Rationale: Plan/default changes must have one authority and initialization retries must preserve administrative changes.
 - Remediation: Move initial persistence behind a Platform owner Action and centralize entitlement facts, migrate current consumers and remove superseded copies with architecture protection.
-- State: Planned.
+- State: In progress.
 - Verification required: Atomic initial provisioning and failure rollback, duplicate initialization preserves settings, consistent missing/custom plan limits, current capacity behavior and dependency/ownership tests.
-- Verification result: All raw plan/settings callers and duplicate lookup implementations traced; architecture decision and implementation pending.
+- Verification result: InitializeAlliancePlatform now owns atomic missing-only plan/settings persistence, serialized with administration. PlanEntitlementQuery centralizes limits; capability policies retain usage decisions; duplicate services/lookups are removed. Eleven PostgreSQL cases cover safe retries, partial/composed rollback, custom/default/missing limits, a two-query projection and both administrative commit orders. Architecture enforcement rejects foreign plan/settings table references; ADR-0028 accepted. Local whitespace and documentation links pass; executable verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -908,9 +908,9 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: The same owner cleanup following the established Alliance-before-membership lock order.
 - Rationale: Account cleanup and administrative writes must not deadlock because they acquire identical rows in opposite order.
 - Remediation: Discover candidate scopes, acquire ordered Alliance locks before current membership locks, revalidate current rows and preserve atomic rank guards, detach and durable records.
-- State: Planned.
+- State: In progress.
 - Verification required: Two-connection cleanup/administration contention, current R5 protection, scoped multi-Alliance cleanup, new/changed membership handling and late rollback.
-- Verification result: RemovePlayersFromAlliances and AllianceWriteState lock sequences traced; implementation pending.
+- Verification result: Cleanup discovers all historical membership scopes without row locks, acquires ordered Alliance shared locks, rejects newly appeared scopes and only then locks current active memberships. The deletion workflow's account barrier excludes new creation/acceptance; historical scope locks cover reactivation. Eight PostgreSQL cases assert both lock orders for active/historical members, current R5 protection, late new scopes, multi-Alliance isolation, retry safety and full role/audit/outbox rollback. Executable verification pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 
@@ -939,6 +939,20 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - State: Planned.
 - Verification required: More than one batch, stable child ordering, exact audit/count behavior, repeat archival, competing child changes and late full rollback.
 - Verification result: ArchiveKingdom cascade traced during HARD-061 inactive-Kingdom verification; implementation pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-066 — Membership activation uses unlocked Player facts and absent exclusivity locks
+
+- Area: UpdateMembershipStatus activation versus identity changes and other Alliance activation.
+- Finding: Activation reads Player Kingdom without a current Player/ownership barrier, then locks any other active membership. Two independent Alliance activations can both find no active row and expose a unique-constraint error; release or Kingdom movement can also change the checked Player facts before activation commits.
+- Current owner: Membership activation Action and active-membership database constraint.
+- Intended authoritative owner: Current membership activation coordinated with identity lifecycle through explicit owner locks and recoverable database exclusivity.
+- Rationale: Reactivation must preserve current Player placement/lifecycle and report a competing membership as ordinary owner validation.
+- Remediation: Establish a consistent creation/acceptance/activation/identity lock protocol, recheck current Player facts and recover exact exclusivity conflicts without locking unrelated membership scopes in reverse order.
+- State: Planned.
+- Verification required: Both activation commit orders across Alliances, release/reconciliation/Kingdom movement, safe retries, caller transaction recovery, current authority and complete event rollback.
+- Verification result: Actual activation, creation, acceptance workflow and identity lifecycle policy traced while repairing cleanup. Creation and acceptance hold the account barrier; activation does not. Protocol and implementation pending.
 - Completion evidence: pending.
 - Commit SHA: pending.
 

@@ -31,3 +31,4 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0025: Bound role catalogs and keep editors aligned with current roles](0025-bounded-role-catalogs-and-current-editors.md)
 - [ADR-0026: Recover role-creation collisions and bound archival records](0026-recoverable-role-creation-and-bounded-archival.md)
 - [ADR-0027: Create Alliances with current ownership and recover URL claims](0027-current-alliance-creation-authority-and-url-claims.md)
+- [ADR-0028: Platform owns initialization and entitlement facts](0028-platform-owned-initialization-and-entitlement-facts.md)
