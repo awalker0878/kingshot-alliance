@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests;
 
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Foundation\Testing\TestCase as LaravelTestCase;
 use Illuminate\Support\Facades\ParallelTesting;
 use Throwable;
@@ -54,10 +55,29 @@ abstract class TestCase extends LaravelTestCase
     protected function tearDown(): void
     {
         try {
+            // Laravel truncates at the start of DatabaseTruncation tests. A
+            // later RefreshDatabase test in the same worker would otherwise
+            // inherit committed rows because both traits share the migrated
+            // schema state. Clean again before destroying this application's
+            // container so test order cannot change the starting database.
+            if ($this->app !== null && in_array(DatabaseTruncation::class, class_uses_recursive(static::class), true)) {
+                $this->truncateTablesForAllConnections();
+            }
+
             parent::tearDown();
         } finally {
             $this->restoreCacheEnvironment();
         }
+    }
+
+    /**
+     * DatabaseTruncation declares the real implementation in subclasses using
+     * that trait. Keeping the inherited hook as a no-op lets the shared base
+     * invoke it without changing non-truncation tests.
+     */
+    protected function truncateTablesForAllConnections(): void
+    {
+        // Overridden by Illuminate\Foundation\Testing\DatabaseTruncation.
     }
 
     private function restoreCacheEnvironment(): void
