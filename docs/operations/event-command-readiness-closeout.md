@@ -61,7 +61,7 @@ Owner summaries must avoid per-Governor, per-Evidence and per-delivery retrieval
 
 ## Visual/accessibility verification
 
-`tests/v3/Visual/EventCommand.spec.ts` covers desktop and mobile Event Command cards for both closeout-required and ready states. It verifies:
+`tests/Browser/EventCommand.spec.ts` covers desktop and mobile Event Command cards for both closeout-required and ready states. It verifies:
 
 - primary state text is visible without relying on color;
 - owner attribution and canonical action are visible;

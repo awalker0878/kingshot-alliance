@@ -136,4 +136,4 @@ npm run check
 npm run build
 ```
 
-The Playwright suite under `tests/v3/Visual` must include Territory Command desktop/mobile/reduced-motion coverage once the capability routes are enabled.
+The Playwright suite under `tests/Browser` must include Territory Command desktop/mobile/reduced-motion coverage once the capability routes are enabled.

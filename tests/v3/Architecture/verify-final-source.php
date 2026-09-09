@@ -83,9 +83,9 @@ if (! str_contains($phpunit, '<directory>tests/v3</directory>') || str_contains(
     $record('PHPUNIT_SUITE_NOT_V3_ONLY', 'phpunit.xml must execute tests/v3 only.');
 }
 
-$visualSpec = $root.'/tests/v3/Visual/ApplicationShell.spec.ts';
+$visualSpec = $root.'/tests/Browser/ApplicationShell.spec.ts';
 if (! is_file($visualSpec)) {
-    $record('CURRENT_VISUAL_SUITE_MISSING', 'The current application-shell visual contract must remain under tests/v3/Visual.');
+    $record('CURRENT_VISUAL_SUITE_MISSING', 'The current application-shell visual contract must remain under tests/Browser.');
 }
 
 if ($violations !== []) {
