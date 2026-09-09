@@ -122,10 +122,7 @@ final class TransferEligibilityEvidenceBoundsV3Test extends TestCase
     public function test_single_participant_evaluation_excludes_unrelated_participants_and_targets_before_hydration(): void
     {
         $f = $this->fixture();
-        $other = TransferParticipant::query()->create([
-            'alliance_id' => $f['alliance']->allianceId, 'transfer_plan_id' => $f['plan']->id,
-            'direction' => 'incoming', 'observed_name' => 'Other Governor',
-        ]);
+        $other = $this->extraParticipant($f);
         $unrelatedKingdom = app(ScenarioFactory::class)->kingdom(59303);
         for ($i = 0; $i < 501; $i++) {
             $this->observation($f, ['transfer_participant_id' => $other->id]);
@@ -330,9 +327,12 @@ final class TransferEligibilityEvidenceBoundsV3Test extends TestCase
     /** @param array{actor:PlayerReference,alliance:AllianceReference,plan:TransferPlan,participant:TransferParticipant,user:User} $f */
     private function extraParticipant(array $f): TransferParticipant
     {
+        $player = app(ScenarioFactory::class)->unclaimedPlayer(59303);
+
         return TransferParticipant::query()->create([
             'alliance_id' => $f['alliance']->allianceId, 'transfer_plan_id' => $f['plan']->id,
-            'direction' => 'incoming', 'observed_name' => 'Additional Governor',
+            'direction' => 'incoming', 'observed_name' => $player->currentName, 'player_id' => $player->playerId,
+            'source_kingdom_id' => $player->kingdomId, 'destination_kingdom_id' => $f['participant']->destination_kingdom_id,
         ]);
     }
 

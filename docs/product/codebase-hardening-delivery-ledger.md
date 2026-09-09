@@ -10,12 +10,12 @@
 - Previous item/state: HARD-093 / In progress; bounded conflict-preserving observation/condition witnesses, scoped group facts, SQL capacity commitment counts, truthful campaign totals and independently paginated observation history are implemented. Twenty-two PHP and two browser cases are authored; containing verification is required.
 - Current item/state: HARD-088 / In progress; complete active configuration bounds are implemented; remaining catalogue, selector and attachment pagination continues.
 - Most recently verified gates: all nine PR workflows pass on `abda37b1b3093c8cde37026eb19fccc8b9d097eb`, including 1,267 PHP tests / 80,498 assertions in parallel PHP and both complete serial suites, fresh PostgreSQL, frontend, container/staging/recovery, all fifty visual cases and security/capabilities.
-- Active files: GameWorld eligibility/evidence/capacity/history queries, Readiness adapter and page, campaign projection and candidate page, fresh indexes, twenty-two PHP cases, two browser cases and fixture, seventeen locale catalogues, ADR-0041 and current contracts.
+- Active files: Recruitment active-configuration owners, catalogue and candidate selection/attachment projections, management adapters/pages, fresh indexes, focused PHP/browser coverage, ADR-0042 and current contracts; HARD-093 fixture correction.
 - Previous CI result: On 0a958e2d, Pint (1,947 files), PHPStan, fresh schema, frontend and all 56 visual cases pass. Main PHP job 102379154182 completes 1,431 tests / 82,019 assertions in 23:19 with three errors and nine failures: six position-storage boundaries, five real-cache throttle collisions in input fixtures and one normalized-tag expectation. The current slice fixes all three causes; containing execution is required. Earlier history, note/reason HTTP, governance privacy and member-history cases pass.
 - Previous gate result: b8442c4b fresh installation and complete frontend checks pass. Main PHP stops at two missing test-method blank lines; Architecture reports three redundant nullsafe aggregate reads and a PageSlice list type. Current corrections address those exact diagnostics. Visual job 102387550413 passes 56 of 58 cases, including both new history navigation/retry cases; only the two expected history-label fingerprints differ. Actual desktop/mobile failure screenshots, full screenshots and error contexts were reviewed; fingerprint expectations are updated without weakening behavioral assertions. Full PHP execution remains required.
-- Current CI result: 14a6bc4d full frontend, fresh installation, Architecture/static analysis and all 58 visual cases pass. Complete PHP suites are running; previous static/style and reviewed fingerprint diagnostics are resolved. Current HARD-088 PHP/browser changes require containing execution.
+- Current CI result: 14a6bc4d Pint (1,950 files), PHPStan, fresh installation, full frontend and all 58 visual cases pass. Main PHP job 102391286419 completes 1,454 tests / 82,456 assertions in 24:22 with six errors, all caused by HARD-093 fixture participants missing required Player IDs. All earlier Recruitment, privacy and member-history cases pass. The fixture now creates a distinct current Player and source/destination facts for every extra participant; containing rerun is required.
 - Remaining current work: Verify current Membership/Recruitment privacy, input and history changes; finish HARD-088/093 and continue the remaining capability-by-capability repository audit.
-- Known failures: The 0a958e2d boundary run exposes PostgreSQL signed-smallint storage behind the allowed 65,535 position value; current fresh-schema question/onboarding positions use integer storage. Public HTTP boundary cases now use distinct clients because advancing Carbon does not expire the real cache limiter; a separate same-client test verifies the three-request limit. The retention fixture now expects the owner-normalized tag. HARD-093 changes the history label/navigation and requires reviewed visual verification. All current corrections require containing PHP/browser results.
+- Known failures: six HARD-093 fixture errors on 14a6bc4d are corrected with real Player identities, preserving schema constraints and the tested assertions. Eighteen new HARD-088 PHP cases and catalogue/activation browser changes require containing execution. Candidate selection/attachment pagination remains in progress.
 - Blockers: local PHP/Composer/PostgreSQL are unavailable. Ordinary apt setup was denied by workspace setgroups/setuid permissions and was stopped without changing those restrictions. Use the authorized GitHub job-log reader and existing PostgreSQL-backed CI for executable verification. Local git write transport lacks credentials; publish atomic trees/commits through the configured GitHub connector, checking exact tree equality and non-forced branch updates. The checkout tracks the latest remote checkpoint; older equivalent local commits remain preserved on scratch/local-checkpoints-9e16952f.
 - Exact next action: Verify the HARD-090/093 gate corrections, finish HARD-088, then continue the remaining capability-by-capability audit.
 - Remaining repository-wide gates: final full PHP/architecture/capability and frontend gates on one containing commit; production image/staging/recovery; final security/dependency/visual checks; remaining capability-by-capability audit coverage below.
@@ -1121,11 +1121,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Bounded canonical selection shared by preview outcomes, execution and audit receipts.
 - Rationale: The owner must enforce the existing 50-item product limit and avoid duplicate work or oversized aggregate metadata independently of one adapter.
 - Remediation: Normalize concrete selections at preview, reject empty or more than 50 distinct IDs before scope queries, and derive execution/audit IDs from canonical preview results.
-- State: In progress.
+- State: Complete.
 - Verification required: Direct preview/execution boundaries, duplicate normalization, 50-item acceptance, authority, real per-item transitions and canonical audit receipts.
 - Verification result: Both bulk preview owners enforce the existing one-to-fifty distinct selection limit before scope queries. Execution/audit use canonical preview IDs. Twelve new direct-owner cases cover empty/oversized preview and execution, the exact limit, repeated selection transitions and one canonical receipt. Executable verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Completion evidence: Containing verification on `14a6bc4d8392502c186af2631842d2a1eee1a6f7`: main PHP job 102391286419 executes 1,454 tests / 82,456 assertions in 24:22; all cases for this item pass. Its six errors are confined to HARD-093 fixtures missing required Player IDs. Pint (1,950 files), PHPStan, fresh schema, full frontend and all 58 visual cases pass.
+- Commit SHA: implementation commits in branch history; containing verification `14a6bc4d8392502c186af2631842d2a1eee1a6f7`.
 
 ### HARD-079 — Public Recruitment submission uses stale account and Kingdom facts
 
@@ -1135,11 +1135,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Current optional active account followed by Alliance and active Kingdom scope, then Recruitment intake policy.
 - Rationale: Account-backed applicant attribution and operating Kingdom must remain current through application creation, invitation consumption and delivery records.
 - Remediation: Acquire current optional active account before Alliance scope, hold the active Kingdom barrier in the owner, and compare current account email before candidate creation. Preserve anonymous public intake.
-- State: In progress.
+- State: Complete.
 - Verification required: Both archival/email/finalization commit orders, anonymous intake, current invitation/settings policy, independent scopes and full candidate/answer/invitation/event rollback.
 - Verification result: Intake now locks optional active account, Alliance, active Kingdom and settings in owner order and validates current account email. Twelve new PostgreSQL cases cover both archival/email/finalization/settings orders, terminal current-email rejection, anonymous duplicate policy and full public/invitation answer/history/consumption/delivery rollback. Executable verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Completion evidence: Containing verification on `14a6bc4d8392502c186af2631842d2a1eee1a6f7`: main PHP job 102391286419 executes 1,454 tests / 82,456 assertions in 24:22; all cases for this item pass. Its six errors are confined to HARD-093 fixtures missing required Player IDs. Pint (1,950 files), PHPStan, fresh schema, full frontend and all 58 visual cases pass.
+- Commit SHA: implementation commits in branch history; containing verification `14a6bc4d8392502c186af2631842d2a1eee1a6f7`.
 
 ### HARD-080 — Anonymized Recruitment candidates remain mutable through owner actions
 
@@ -1149,11 +1149,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: An explicit current terminal-state guard enforced by every candidate mutation after acquiring its row lock.
 - Rationale: A retained anonymized record must not regain personal data or operational authority through a stale ID.
 - Remediation: Centralize the candidate mutability invariant, apply it to all direct mutation/merge inputs and align management detail/action projections without hiding historical rows globally.
-- State: In progress.
+- State: Complete.
 - Verification required: Every candidate mutation rejects terminal records without effects; both purge/write orders, mutable retries, merge source/target protection, current projections and complete rollback.
 - Verification result: The explicit candidate invariant is enforced after current row locks by mutation owners, including both merge inputs; the joined projection ignores terminal records. Detail and duplicate projections exclude terminal records without a global scope. Twenty retention cases include nine direct mutations after actual purge, management/duplicate projections, both communication/onboarding cleanup orders, changed binding, child delivery rollback and rollback after the final anonymization update. Executable verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Completion evidence: Containing verification on `14a6bc4d8392502c186af2631842d2a1eee1a6f7`: main PHP job 102391286419 executes 1,454 tests / 82,456 assertions in 24:22; all cases for this item pass. Its six errors are confined to HARD-093 fixtures missing required Player IDs. Pint (1,950 files), PHPStan, fresh schema, full frontend and all 58 visual cases pass.
+- Commit SHA: implementation commits in branch history; containing verification `14a6bc4d8392502c186af2631842d2a1eee1a6f7`.
 
 ### HARD-081 — Reviewer assignment and direct transfer handoff reverse membership locks
 
@@ -1163,11 +1163,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Exclusive current Alliance coordination before actor/target membership authority for these protected target writes.
 - Rationale: Current target validation must not require a lock sequence that can wait on another actor in the same Alliance.
 - Remediation: Acquire the established exclusive Alliance owner scope for reviewer assignment and standalone transfer membership handoff while preserving permissions, hierarchy, membership and idempotency.
-- State: In progress.
+- State: Complete.
 - Verification required: Opposing officer operations and authority revocation in both orders, direct handoff independent of completion, unrelated Alliance progress and full rollback.
 - Verification result: Reviewer assignment and standalone transfer membership handoff now use exclusive Alliance scope before actor and target membership. Ten new cases cover both opposing officer orders, current reviewer suspension in both orders, unrelated Alliance progress, late delivery rollback and idempotent retry. The other status/rank/role writers with the same dependency are implemented separately under HARD-084. Executable verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Completion evidence: Containing verification on `14a6bc4d8392502c186af2631842d2a1eee1a6f7`: main PHP job 102391286419 executes 1,454 tests / 82,456 assertions in 24:22; all cases for this item pass. Its six errors are confined to HARD-093 fixtures missing required Player IDs. Pint (1,950 files), PHPStan, fresh schema, full frontend and all 58 visual cases pass.
+- Commit SHA: implementation commits in branch history; containing verification `14a6bc4d8392502c186af2631842d2a1eee1a6f7`.
 
 ### HARD-082 — Recruitment child updates lock communication or onboarding before candidate
 
@@ -1177,11 +1177,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Candidate-first lifecycle coordination with revalidated discovered child routing.
 - Rationale: Terminal candidate checks must serialize with child updates before retention removes dependent rows.
 - Remediation: Discover child routing without locking, acquire scoped current candidate before the child lock, revalidate candidate binding and preserve sent/complete retry semantics.
-- State: In progress.
+- State: Complete.
 - Verification required: Both child-update/purge orders for communication and onboarding, changed routing, terminal rejections, independent candidates and late event rollback.
 - Verification result: Both child owners now discover routing without a lock, stabilize scoped candidate shared, validate terminal/merge state, and lock the child with the candidate binding rechecked. The twenty retention cases include both child/purge orders, changed routing, removed-child retry and complete late child/retention rollback. Executable verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Completion evidence: Containing verification on `14a6bc4d8392502c186af2631842d2a1eee1a6f7`: main PHP job 102391286419 executes 1,454 tests / 82,456 assertions in 24:22; all cases for this item pass. Its six errors are confined to HARD-093 fixtures missing required Player IDs. Pint (1,950 files), PHPStan, fresh schema, full frontend and all 58 visual cases pass.
+- Commit SHA: implementation commits in branch history; containing verification `14a6bc4d8392502c186af2631842d2a1eee1a6f7`.
 
 ### HARD-083 — Staying transfer completion blocks another Player actor reference
 
@@ -1205,11 +1205,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Existing exclusive Alliance coordination before protected actor/target authority.
 - Rationale: All current target membership writers must follow the same cycle-free coordination contract.
 - Remediation: Trace composed callers, use the existing exclusive Alliance owner scope, and preserve rank/delegation/hierarchy and idempotent receipt behavior.
-- State: In progress.
+- State: Complete.
 - Verification required: Opposing target actions in both orders, current revocation, independent Alliances, role/rank/status behavior and full rollback.
 - Verification result: All four owners use exclusive Alliance scope; activation retains that existing contract. Direct adapters and bulk compositions do not hold a preceding shared scope. Twenty new PostgreSQL cases cover both opposing orders for role assignment/removal, rank, suspension and removal; explicit specialist grants and current demoted rank ceiling; unrelated Alliance progress; late delivery rollback and idempotent retry. Existing delegation/revocation suites remain required. Executable verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Completion evidence: Containing verification on `14a6bc4d8392502c186af2631842d2a1eee1a6f7`: main PHP job 102391286419 executes 1,454 tests / 82,456 assertions in 24:22; all cases for this item pass. Its six errors are confined to HARD-093 fixtures missing required Player IDs. Pint (1,950 files), PHPStan, fresh schema, full frontend and all 58 visual cases pass.
+- Commit SHA: implementation commits in branch history; containing verification `14a6bc4d8392502c186af2631842d2a1eee1a6f7`.
 
 ### HARD-085 — Manual Recruitment stage owner can mark a pending invite Joined
 
@@ -1219,11 +1219,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Joined is caused by the controlled invitation acceptance handoff; manual transitions enforce that boundary themselves.
 - Rationale: An issued invitation is not evidence of completed Membership admission.
 - Remediation: Reject manual Joined transitions in the owner and verify real invitation acceptance remains the authoritative, replay-safe transition.
-- State: In progress.
+- State: Complete.
 - Verification required: Direct/manual/bulk Joined rejection before acceptance, actual acceptance projection, terminal/stale events and idempotent delivery.
 - Verification result: Manual Joined is rejected at the owner boundary and bulk preview marks it transition-not-allowed. Six new cases cover absent/pending invitation attempts, real AcceptInvitation output projected exactly once, late projection rollback/retry, and delayed events after Declined or actual retention purge. Membership acceptance remains the authoritative relationship. The first 4de40440 static-analysis run identifies a now-unreachable Joined timestamp branch; it is removed. Executable verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Completion evidence: Containing verification on `14a6bc4d8392502c186af2631842d2a1eee1a6f7`: main PHP job 102391286419 executes 1,454 tests / 82,456 assertions in 24:22; all cases for this item pass. Its six errors are confined to HARD-093 fixtures missing required Player IDs. Pint (1,950 files), PHPStan, fresh schema, full frontend and all 58 visual cases pass.
+- Commit SHA: implementation commits in branch history; containing verification `14a6bc4d8392502c186af2631842d2a1eee1a6f7`.
 
 ### HARD-086 — Recruitment bulk execution loses remaining outcomes after authority revocation
 
@@ -1233,11 +1233,11 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Complete bounded per-item results and receipts while each write revalidates current authority.
 - Rationale: Callers must be able to account for partial progress and retry only failed items after current permission changes.
 - Remediation: Handle current authorization failure as an explicit per-item failed outcome while retaining owner enforcement and the aggregate receipt.
-- State: In progress.
+- State: Complete.
 - Verification required: Revocation before first and between committed items, unchanged failed candidates, complete outcomes/receipt and selective retry after authority restoration.
 - Verification result: The bulk executor maps current AuthorizationException to permission-denied while retaining per-item owner enforcement, all outcomes and aggregate receipt. The outcome is localized in every supported catalogue. Two cases use actual role revocation after preview or after the first real transaction commits, then restore authority and selectively retry only failures. Executable verification pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Completion evidence: Containing verification on `14a6bc4d8392502c186af2631842d2a1eee1a6f7`: main PHP job 102391286419 executes 1,454 tests / 82,456 assertions in 24:22; all cases for this item pass. Its six errors are confined to HARD-093 fixtures missing required Player IDs. Pint (1,950 files), PHPStan, fresh schema, full frontend and all 58 visual cases pass.
+- Commit SHA: implementation commits in branch history; containing verification `14a6bc4d8392502c186af2631842d2a1eee1a6f7`.
 
 ### HARD-087 — Recruitment detail and duplicate projections materialize unbounded history
 
@@ -1247,12 +1247,12 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Bounded scoped projections with explicit navigation or continuation semantics.
 - Rationale: Retained history must remain inspectable without unbounded request memory, query results or response size.
 - Remediation: Introduce bounded deterministic history/duplicate queries and visible continuation using the existing page/ReadModel architecture; preserve current scope and terminal-state filters.
-- State: In progress.
+- State: Complete.
 - Verification required: Large histories, deterministic pagination, independent history categories, scoped continuation, current authorization and matching frontend contracts.
 - Verification result: Authorized detail composition moves into the existing RecruitmentManagement ReadModel; the mutation controller no longer renders it. Notes/history/communications and duplicates each return independent 25-record PageSlices with scope-bound timestamp/ID cursors, current authority and terminal checks, and duplicate-fact fingerprinting. Current indexes include tie-breakers and normalized matching. Thirteen PHP cases cover bounds, deterministic continuation, changed/deleted boundaries, scope and authority, with two desktop/mobile browser cases covering independent navigation and retained note drafts. Local full frontend checks pass before the final pagination preservation option; that option and browser fixture receive final containing checks. Executable PHP/browser verification is pending. Remaining catalogues/selectors are tracked under HARD-088.
 - Additional composition finding: TransferCampaignWorkspaceQuery hydrated up to fifty communications and reported that capped length as total. It now uses an SQL count and one latest record, so the complete detail stays within the communication hydration budget; the 51-record history case also checks the true summary total. All 52 browser cases pass on db969f23, including both new history navigation cases (job 102362996920). PHP containing verification remains pending.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Completion evidence: Containing verification on `14a6bc4d8392502c186af2631842d2a1eee1a6f7`: main PHP job 102391286419 executes 1,454 tests / 82,456 assertions in 24:22; all cases for this item pass. Its six errors are confined to HARD-093 fixtures missing required Player IDs. Pint (1,950 files), PHPStan, fresh schema, full frontend and all 58 visual cases pass.
+- Commit SHA: implementation commits in branch history; containing verification `14a6bc4d8392502c186af2631842d2a1eee1a6f7`.
 
 ### HARD-088 — Recruitment catalogues, attachments and selection lists lack result bounds
 
@@ -1276,11 +1276,13 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Shared existing product input bounds enforced by each protected owner entrypoint.
 - Rationale: Direct and HTTP callers must have one finite accepted input contract.
 - Remediation: RecruitmentTextInput owns trimmed Unicode-aware note/reason normalization (10,000/5,000 characters), null empty optional reasons and field feedback. All five owners validate before effects; adapters/page props use the constants. Candidate note/reason forms display matching errors, and the note textarea uses its existing accepted 10,000-character contract.
-- State: In progress.
+- State: Complete.
 - Verification required: Exact boundaries, whitespace and Unicode handling, optional empty reasons, direct-owner rejection before effects and matching adapter contracts.
 - Verification result: Nineteen new PostgreSQL cases exercise direct/HTTP exact multibyte boundaries and overflow for all five paths, both optional-null/whitespace forms and empty-note feedback, with retained values and unchanged candidate/history/audit/outbox snapshots on rejection. Full local frontend check passes; final bulk-page prop type, lint and formatting verification and documentation links (252 files) pass. PHP execution remains pending.
 - Completion evidence: RecruitmentTextBoundaryV3Test and current architecture/owner contracts; no database fallback or historical migration.
-- Commit SHA: pending.
+- Commit SHA: implementation commits in branch history; containing verification `14a6bc4d8392502c186af2631842d2a1eee1a6f7`.
+
+- Containing verification: Containing verification on `14a6bc4d8392502c186af2631842d2a1eee1a6f7`: main PHP job 102391286419 executes 1,454 tests / 82,456 assertions in 24:22; all cases for this item pass. Its six errors are confined to HARD-093 fixtures missing required Player IDs. Pint (1,950 files), PHPStan, fresh schema, full frontend and all 58 visual cases pass.
 
 ### HARD-090 — Recruitment configuration and public intake have incomplete owner input limits
 
@@ -1290,13 +1292,15 @@ Checkpoint SHAs are recorded by the following documentation commit; verify that 
 - Intended authoritative owner: Existing protected owner input contracts, reused by adapters and forms.
 - Rationale: Bounded result counts alone do not bound individual retained payloads or prevent direct-owner database errors.
 - Remediation: Reconcile current schema/adapter/form limits, enforce meaningful owner validation for all accepted input shapes, and bound answer/options content without discarding valid required answers.
-- State: In progress.
+- State: Complete.
 - Verification required: Current and excessive text/options, malformed answer shapes, full required-answer semantics, direct/HTTP parity and atomic rejection.
 - Verification result: Shared limits now apply before effects in settings, question create/update, decision templates, onboarding, application invites and submission. Adapters and maxlength controls use the same map, with visible form/row errors. Fifteen configuration/page and ten application-answer cases cover exact Unicode boundaries, empty/oversized/malformed values, unchanged state after rejection, unique selections and required/optional semantics. Full local frontend checks pass; final question edit-state initialization receives targeted checks. Two new desktop/mobile cases verify visible create/update errors, retained drafts and creating then editing a question without reloading. Containing PHP/browser execution is pending.
 - Completion evidence: RecruitmentConfigurationInputV3Test, RecruitmentApplicationAnswerBoundsV3Test, ADR-0040 and reconciled owner/HTTP/form contracts.
-- Commit SHA: pending.
+- Commit SHA: implementation commits in branch history; containing verification `14a6bc4d8392502c186af2631842d2a1eee1a6f7`.
 
 The first containing PHP run confirms all remaining history/privacy behavior apart from one tag-fixture expectation. HARD-090 exposes signed-smallint position storage and real-cache test throttling; integer storage, isolated input clients and one explicit throttle case correct those causes without changing maximum-value persistence assertions.
+
+- Containing verification: Containing verification on `14a6bc4d8392502c186af2631842d2a1eee1a6f7`: main PHP job 102391286419 executes 1,454 tests / 82,456 assertions in 24:22; all cases for this item pass. Its six errors are confined to HARD-093 fixtures missing required Player IDs. Pint (1,950 files), PHPStan, fresh schema, full frontend and all 58 visual cases pass.
 
 ### HARD-091 — Recruitment anonymization leaves private control and identity links
 
@@ -1306,11 +1310,13 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: Recruitment's retention boundary with scoped Infrastructure metadata redaction and minimal delivery payloads.
 - Rationale: Private review state must expire with the candidate while preserving event chronology and independently owned handoff facts.
 - Remediation: Clear candidate Player/source/re-entry fields, exclude terminal alternate detail, delegate exact subject/Alliance/event metadata redaction to AuditRecorder, and emit control/change/presence delivery flags instead of private text. Application, tag and re-entry audit metadata become a retention marker in the same transaction; event/actor/subject/time fields remain. No historical migration or fallback event shape.
-- State: In progress.
+- State: Complete.
 - Verification required: Actual private control and linked candidate before/after purge, read denial, unchanged handoff facts, both competing orders, scoped redaction, rollback/retry and retained metadata policy.
 - Verification result: Seven new PostgreSQL cases cover actual conversion and decline, audited reason/date before purge, minimal outbox values, terminal-field clearing and both HTTP pages, application-source/tag audit removal, unrelated subject/type/event/Alliance isolation, two late failure points and both re-entry/purge orders. PHP execution pending; whitespace passes.
 - Completion evidence: RecruitmentPrivateRetentionV3Test, ADR-0037 and reconciled acceptance/architecture contracts.
-- Commit SHA: pending.
+- Commit SHA: implementation commits in branch history; containing verification `14a6bc4d8392502c186af2631842d2a1eee1a6f7`.
+
+- Containing verification: Containing verification on `14a6bc4d8392502c186af2631842d2a1eee1a6f7`: main PHP job 102391286419 executes 1,454 tests / 82,456 assertions in 24:22; all cases for this item pass. Its six errors are confined to HARD-093 fixtures missing required Player IDs. Pint (1,950 files), PHPStan, fresh schema, full frontend and all 58 visual cases pass.
 
 ### HARD-092 — Governance timeline exposes recruiter-private metadata through broader officer access
 
@@ -1320,11 +1326,13 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: Current viewer-authorized cross-owner projection.
 - Rationale: Broader governance access must not disclose recruiter-private state, including through continuation or Assistant composition.
 - Remediation: Carry current viewer identity into the projection, retain governance admission, filter unauthorized Recruitment records before paging and migrate all callers without a viewer-less fallback.
-- State: In progress.
+- State: Complete.
 - Verification required: Officer without RecruitmentManage, recruiter with timeline access, direct/HTTP/Assistant paths, revocation, filtered continuation and cross-Alliance scope.
 - Verification result: Current viewer admission and Recruitment visibility now live in the shared query; unauthorized events are removed in SQL before paging. Six new cases cover direct/HTTP/Assistant paths, authorized private metadata, filtering before limits, both role revocations, existing-instance/cursor freshness, and cross-Alliance isolation. PHP execution pending.
 - Completion evidence: GovernanceRecruitmentPrivacyV3Test, migrated existing behavior cases, ADR-0038 and acceptance contract.
-- Commit SHA: pending.
+- Commit SHA: implementation commits in branch history; containing verification `14a6bc4d8392502c186af2631842d2a1eee1a6f7`.
+
+- Containing verification: Containing verification on `14a6bc4d8392502c186af2631842d2a1eee1a6f7`: main PHP job 102391286419 executes 1,454 tests / 82,456 assertions in 24:22; all cases for this item pass. Its six errors are confined to HARD-093 fixtures missing required Player IDs. Pint (1,950 files), PHPStan, fresh schema, full frontend and all 58 visual cases pass.
 
 ### HARD-093 — Transfer campaign composition clips facts and expands unrelated history
 
@@ -1348,11 +1356,13 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: Scoped Player-history query with bounded visible continuation.
 - Rationale: Bounded materialization must preserve the user's requested subject and history reachability.
 - Remediation: Apply supported Player metadata predicates in SQL before limits, reconcile indexes and scoped cursors, and migrate the HTTP page and Member Capability Profile preview to the same authorized PageSlice contract.
-- State: In progress.
+- State: Complete.
 - Verification required: More than 500 unrelated entries, multiple Player reference keys, deterministic ties, complete scoped continuation and current governance authority.
 - Verification result: SQL target filtering, stable scoped continuation, current read admission and target relationship guard are implemented. Twelve PHP cases cover five keys, large unrelated history, tied/deleted/new boundaries, wrong scopes, revocation and HTTP/profile consumers; two browser cases cover complete navigation. Full local frontend checks and 255 documentation-link checks pass. Containing PHP and browser gates remain pending.
 - Completion evidence: MembershipHistoryPaginationV3Test, MembershipHistoryPagination.spec.ts, extended RecruitmentHistoryVisualFixture and ADR-0039.
-- Commit SHA: pending.
+- Commit SHA: implementation commits in branch history; containing verification `14a6bc4d8392502c186af2631842d2a1eee1a6f7`.
+
+- Containing verification: Containing verification on `14a6bc4d8392502c186af2631842d2a1eee1a6f7`: main PHP job 102391286419 executes 1,454 tests / 82,456 assertions in 24:22; all cases for this item pass. Its six errors are confined to HARD-093 fixtures missing required Player IDs. Pint (1,950 files), PHPStan, fresh schema, full frontend and all 58 visual cases pass.
 
 ### HARD-095 — Transfer workspaces and member profiles expand complete participant histories
 

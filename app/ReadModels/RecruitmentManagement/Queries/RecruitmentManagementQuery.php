@@ -189,6 +189,7 @@ final readonly class RecruitmentManagementQuery
 
     /**
      * @template T of Model
+     *
      * @param  Builder<T>  $query
      * @return PageSlice<T>
      */
