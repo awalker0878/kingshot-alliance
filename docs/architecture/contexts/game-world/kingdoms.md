@@ -59,7 +59,7 @@ History carries lightweight provenance (`source_type`, source reference, observe
 
 Reconciliation:
 
-1. locks both direct identities;
+1. discovers and locks the canonical Kingdom, then locks both direct identities in ID order within that scope;
 2. requires the same active Kingdom and an active canonical target;
 3. rejects conflicting stable game IDs;
 4. transfers a late stable ID to the canonical identity when safe;
@@ -72,6 +72,8 @@ No fuzzy name/tag process may call reconciliation automatically.
 ## Lifecycle
 
 Lifecycle changes go through `ArchiveKingdom`, `RestoreKingdom`, `ArchiveKingdomAlliance` and `RestoreKingdomAlliance`. Resolution never implicitly restores archived state, and reconciled aliases cannot be restored as independent identities.
+
+Neutral Alliance update, restore, archive and reconciliation acquire the Kingdom before child identity locks and revalidate expected/discovered scope. Kingdom archival reads at most 200 active children per ascending-ID batch under its parent lifecycle barrier, preserving individual audit records and an exact total count. All batches and the parent transition remain one transaction; retries produce no additional archival events. See [ADR-0030](../../adr/0030-kingdom-first-neutral-identity-locks-and-bounded-archival.md).
 
 ## Integrity
 

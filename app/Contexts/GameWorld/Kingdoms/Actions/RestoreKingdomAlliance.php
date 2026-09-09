@@ -25,14 +25,15 @@ final readonly class RestoreKingdomAlliance
     public function handle(string $kingdomAllianceId, ?AuditActor $actor = null, ?string $reason = null): KingdomAllianceReference
     {
         DB::transaction(function () use ($kingdomAllianceId, $actor, $reason): void {
-            $alliance = KingdomAlliance::query()->whereKey($kingdomAllianceId)->lockForUpdate()->firstOrFail();
+            $candidate = KingdomAlliance::query()->whereKey($kingdomAllianceId)->firstOrFail(['id', 'kingdom_id']);
+            $kingdom = Kingdom::query()->whereKey($candidate->kingdom_id)->lockForUpdate()->firstOrFail();
+            $alliance = KingdomAlliance::query()->whereKey($kingdomAllianceId)->where('kingdom_id', $kingdom->id)->lockForUpdate()->firstOrFail();
             if ($alliance->canonical_kingdom_alliance_id !== null) {
                 throw ValidationException::withMessages([
                     'kingdom_alliance' => 'A reconciled alias cannot be restored. Use its canonical Alliance identity.',
                 ]);
             }
 
-            $kingdom = Kingdom::query()->whereKey($alliance->kingdom_id)->lockForUpdate()->firstOrFail();
             if ($kingdom->status !== KingdomStatus::Active) {
                 throw ValidationException::withMessages([
                     'kingdom' => 'An Alliance identity cannot be restored while its Kingdom is archived.',

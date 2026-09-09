@@ -31,6 +31,8 @@ Player-owned intent Actions include creation for an account, safe owned identity
 
 Ownership changes acquire the current Accounts lock before Player locks. Claim, creation, voluntary release and reconciliation consume `AccountIdentityQuery::lockActive`, which rejects finalized accounts while allowing accounts in the cooling-off period. DataGovernance release uses the current account lock already held by finalization. Accounts owns lifecycle validation; GameWorld owns every Player and history write.
 
+Owned identity edits and Kingdom movement obtain OwnedPlayerWriteState within their mutation transaction: active account, active intended Kingdom, then current owned canonical Player. Changed placement is rejected after locking; movement uses the current name/stable ID and identity edits retain the current Kingdom. Both compose PersistPlayerIdentity so current projection, history and audit remain one atomic owner write. See [ADR-0029](../../adr/0029-current-owned-player-mutations.md).
+
 Reconciliation first discovers the two current owner IDs, locks those accounts in ascending order, then locks Players in ascending order and compares current owners with the discovery snapshot. A changed owner causes a retryable validation rejection before any identity write. Finalization holds the same account lock while enumerating and releasing the complete current ownership set, so assignments cannot arrive after enumeration.
 
 The first-class `/governors` surface exposes the safe self-service subset. Voluntary release is recent-auth protected and subject to lifecycle blockers.

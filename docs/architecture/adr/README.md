@@ -32,3 +32,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0026: Recover role-creation collisions and bound archival records](0026-recoverable-role-creation-and-bounded-archival.md)
 - [ADR-0027: Create Alliances with current ownership and recover URL claims](0027-current-alliance-creation-authority-and-url-claims.md)
 - [ADR-0028: Platform owns initialization and entitlement facts](0028-platform-owned-initialization-and-entitlement-facts.md)
+- [ADR-0029: Mutate owned Players under current account and identity locks](0029-current-owned-player-mutations.md)
+- [ADR-0030: Lock Kingdom before neutral identities and bound archival reads](0030-kingdom-first-neutral-identity-locks-and-bounded-archival.md)

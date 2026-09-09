@@ -29,11 +29,12 @@ final readonly class ArchiveKingdom
                 return;
             }
 
+            $archivedCount = 0;
             $alliances = KingdomAlliance::query()
                 ->where('kingdom_id', $kingdomId)
                 ->where('status', KingdomAllianceStatus::Active->value)
                 ->lockForUpdate()
-                ->get();
+                ->lazyById(200);
 
             foreach ($alliances as $alliance) {
                 $alliance->forceFill(['status' => KingdomAllianceStatus::Archived])->save();
@@ -42,12 +43,13 @@ final readonly class ArchiveKingdom
                     'reason' => $reason,
                     'cascade_from_kingdom' => true,
                 ]);
+                $archivedCount++;
             }
 
             $kingdom->forceFill(['status' => KingdomStatus::Archived])->save();
             $this->audit->record('kingdoms.kingdom_archived', $actor, $kingdom, null, [
                 'reason' => $reason,
-                'archived_alliance_count' => $alliances->count(),
+                'archived_alliance_count' => $archivedCount,
             ]);
         });
 

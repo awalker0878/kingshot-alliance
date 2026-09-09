@@ -57,14 +57,18 @@ final readonly class ReconcileKingdomAlliances
         ): void {
             $ids = [$canonicalKingdomAllianceId, $duplicateKingdomAllianceId];
             sort($ids, SORT_STRING);
-            $locked = KingdomAlliance::query()->whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            $candidate = KingdomAlliance::query()->findOrFail($canonicalKingdomAllianceId);
+            $kingdom = Kingdom::query()->whereKey($candidate->kingdom_id)->lockForUpdate()->firstOrFail();
+            $locked = KingdomAlliance::query()->whereIn('id', $ids)->where('kingdom_id', $kingdom->id)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
             $canonical = $locked->get($canonicalKingdomAllianceId);
             $duplicate = $locked->get($duplicateKingdomAllianceId);
             if ($canonical === null) {
                 KingdomAlliance::query()->findOrFail($canonicalKingdomAllianceId);
+                throw ValidationException::withMessages(['kingdom_alliance' => 'The canonical identity no longer belongs to the expected Kingdom.']);
             }
             if ($duplicate === null) {
                 KingdomAlliance::query()->findOrFail($duplicateKingdomAllianceId);
+                throw ValidationException::withMessages(['kingdom_alliance' => 'Alliance identities from different Kingdoms cannot be reconciled.']);
             }
             /** @var KingdomAlliance $canonical */
             /** @var KingdomAlliance $duplicate */
@@ -83,7 +87,6 @@ final readonly class ReconcileKingdomAlliances
                 throw ValidationException::withMessages(['canonical_kingdom_alliance_id' => 'The canonical Alliance identity must be active.']);
             }
 
-            $kingdom = Kingdom::query()->whereKey($canonical->kingdom_id)->lockForUpdate()->firstOrFail();
             if ($kingdom->status !== KingdomStatus::Active) {
                 throw ValidationException::withMessages(['kingdom' => 'Alliance identities cannot be reconciled while their Kingdom is archived.']);
             }
