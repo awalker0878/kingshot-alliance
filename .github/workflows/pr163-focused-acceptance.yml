@@ -83,6 +83,15 @@ jobs:
       - name: Install locked PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
+      - name: Verify Composer runner arguments and empty-selection failure
+        shell: bash
+        run: |
+          composer test:unit -- --filter JUnitTimingReportTest --log-junit "${RUNNER_TEMP}/reporter-command.xml"
+          status=0
+          composer test:unit -- --filter __no_matching_acceptance_case__ > "${RUNNER_TEMP}/empty-command.log" 2>&1 || status=$?
+          cat "${RUNNER_TEMP}/empty-command.log"
+          test "$status" = 1
+
       - name: Configure Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
@@ -126,7 +135,7 @@ jobs:
           exit 1
 
       - name: Run visual regression
-        run: npm run test:visual -- tests/System/Acceptance/Browser/CapabilityAcceptanceMatrix.spec.ts --retries=0
+        run: npm run test:visual -- tests/System/Acceptance/Browser/CapabilityAcceptanceMatrix.spec.ts --repeat-each=2 --retries=0
 
       - name: Print application failure log
         if: failure()
@@ -140,6 +149,8 @@ jobs:
           name: acceptance-review
           path: |
             ${{ runner.temp }}/ux-p9-server.log
+            ${{ runner.temp }}/reporter-command.xml
+            ${{ runner.temp }}/empty-command.log
             test-results/visual
             playwright-report
           if-no-files-found: ignore

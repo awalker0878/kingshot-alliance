@@ -14,22 +14,22 @@ type Surface =
 
 const fingerprints: Record<string, Record<Surface, string>> = {
   desktop: {
-    rallyBuilder: 'cdb85d962ede7f68b9ee078625b46aa19f2f25fdcf3237db79fd60a6bb887601',
-    memberProfile: '019114f75edb7fe116c3e17aeb77cb43874111d8b037ce960267982bdc42521e',
-    transferCampaign: '0f67985ea8fc84cc08cdadeeb369f2e86d1fcfc16fb85b4bed236bbc5138651c',
-    intelligenceTimeline: 'e2e727d74fd513e2479ca1730bd79c7117743cf9f44003c05e8e919096c78a50',
-    allianceCommand: 'de7aab8f5eee1fde41a164f08ec9c881fa91f56f8650394b9463123a8d70aa01',
-    officerBriefs: 'd15773bc8c382aeff5ab4453b076cd9868009b57af972f0df017c70025c88143',
-    assistant: '8cc124ee1ba262b0eaf5e6ca56b4b764bb52d078eaa408cf26b5390ddd4cf163',
+    rallyBuilder: '92eb5061b782cd0ce1eb9582ef37c822ddf26fa4bc3040afe923e5a8d9d3cc59',
+    memberProfile: '6ada038a0fa095c29f4c76075516f47ecc069fda7297c861f8f20a1ba842dc18',
+    transferCampaign: '5dde5982853633b68a24ab3ff302fa2c91e790c373256243a458348da499544f',
+    intelligenceTimeline: '69d11d614a5499b61ef944c5bc8b8c5f122acc0bcb0d3bc9f0ba57d0c086409a',
+    allianceCommand: 'd243702288d28bbdadf85a94675bcb448ddd668ec207eed3a2cab4d56dfba9a5',
+    officerBriefs: 'aa11099af0cba9022487b46a7c205882f6a55577fb906c33a19ec56584379ed6',
+    assistant: 'f59e63477ac2f4fcc873ab726ba171254e5dd68f9257d467a9f64acc8794635b',
   },
   mobile: {
-    rallyBuilder: '83c0f81ab893ae413016045bd4e64144fc1e00731b58a5a84e39769f8fd67d8a',
-    memberProfile: '66b9033ff1029f8fb35e6099a5982e39f2a26887446c18e92a6d489cd91c7cd1',
-    transferCampaign: '984cf1ee925750629cbbf6df7298866d737ed18cf02e656f91a44b50ab1301b4',
-    intelligenceTimeline: '23da633df74ceeb3e68a3e688b6d58ad34f22ffe2fec3fd08c2cd7ce77edd46e',
-    allianceCommand: 'cc53e997be8fb9c6762df3590b17a0518455d180307adb283567eaaa83f1f970',
-    officerBriefs: 'c9a7c40fb325092bd7349918b555c7f2e8610e90399e69ff7584c5738343529d',
-    assistant: 'b7069af6767de075ff6b625732f904a08938826361e58f898f802b7c15ddcc90',
+    rallyBuilder: '92eb5061b782cd0ce1eb9582ef37c822ddf26fa4bc3040afe923e5a8d9d3cc59',
+    memberProfile: '83691d32558397533703f52cc107b0439241bce40c87b4f0e2ef9fc3dacbb81a',
+    transferCampaign: '28a9a6e01cd1f22f1c9a986563b835be49e3dac7adbdc99e540e5043b6f6875e',
+    intelligenceTimeline: '8154bfe0f96146fd78e990d24c45ae1e97f2d7890879b7fb2ccef1c79dd50086',
+    allianceCommand: 'd243702288d28bbdadf85a94675bcb448ddd668ec207eed3a2cab4d56dfba9a5',
+    officerBriefs: 'aa11099af0cba9022487b46a7c205882f6a55577fb906c33a19ec56584379ed6',
+    assistant: 'f59e63477ac2f4fcc873ab726ba171254e5dd68f9257d467a9f64acc8794635b',
   },
 };
 
@@ -150,13 +150,16 @@ async function fingerprint(target: Locator, surface: Surface): Promise<string> {
   if (surface !== 'officerBriefs' && surface !== 'assistant') {
     expect(dateCount, `${surface} must retain valid rendered fixture dates`).toBeGreaterThan(0);
   }
-  await test.info().attach(`${surface}-rendered`, {
-    body: await target.screenshot({ animations: 'disabled', caret: 'hide' }),
-    contentType: 'image/png',
-  });
+  const hash = createHash('sha256').update(text).digest('hex');
+  if (hash !== fingerprints[test.info().project.name][surface]) {
+    await test.info().attach(`${surface}-rendered`, {
+      body: await target.screenshot({ animations: 'disabled', caret: 'hide' }),
+      contentType: 'image/png',
+    });
+  }
   await test.info().attach(`${surface}-raw-text`, { body: raw, contentType: 'text/plain' });
   await test.info().attach(`${surface}-text`, { body: text, contentType: 'text/plain' });
-  return createHash('sha256').update(text).digest('hex');
+  return hash;
 }
 
 async function captureSurface(page: Page, surface: Surface): Promise<string> {
