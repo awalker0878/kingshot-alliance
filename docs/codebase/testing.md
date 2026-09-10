@@ -13,13 +13,13 @@ The physical layout is owner-first, but PHPUnit exposes five disjoint execution 
 | Suite | Responsibility and resource boundary | Current source files |
 | --- | --- | ---: |
 | Unit | Isolated logic and inert contracts; pure PHPUnit without application startup | 17 |
-| Feature | Actual HTTP, authorization, validation, encryption, persistence and application interactions | 189 |
+| Feature | Actual HTTP, authorization, validation, encryption, persistence and application interactions | 190 |
 | Integration | Committed-state, after-commit, independent connections and infrastructure | 53 |
 | Architecture | Ownership/source/reflection contracts and real application registration where required | 28 |
 | Frontend | PHP-side frontend source contracts; not browser journeys | 3 |
-| **Total PHP** | **Each source file assigned once** | **290** |
+| **Total PHP** | **Each source file assigned once** | **291** |
 
-These are source-file counts, not discovered or executed case counts. The latest increase from 288 is one class split plus one new result-reporter test class. Browser remains a separate runner with 17 specifications and 12 reviewed PNG baselines. Owner-local Support/Fixtures and the common TestCase are not suites. Keep only execution folders an area needs; concurrency belongs in its `Integration/Concurrency`, and genuine migration-lifecycle contracts in `Integration/Schema`.
+These are source-file counts, not discovered or executed case counts. The latest increase from 290 is one existing adapter class split by resource requirements; no scenario was added or duplicated. Browser remains a separate runner with 17 specifications and 12 reviewed PNG baselines. Owner-local Support/Fixtures and the common TestCase are not suites. Keep only execution folders an area needs; concurrency belongs in its `Integration/Concurrency`, and genuine migration-lifecycle contracts in `Integration/Schema`.
 
 `phpunit.xml` explicitly lists each owner/type directory and recursively discovers `*Test.php` within it. New files under an existing directory need no per-file manifest entry. After creating or removing an owner/type directory, synchronize and commit the configuration:
 
@@ -96,7 +96,11 @@ The owner-first migration from `b901f527` to `b824797` records 326 moves in the 
 
 The prior cost-separation checkpoint `7009517f` preserves eight original methods: pure Transfer frontend checks, an extracted Alliance Rules lock-source contract and per-method real prerequisite datasets. The prerequisite class's successful paths have 18 dataset loads before and four after, a static operation count rather than elapsed evidence. No cross-test/static cache was introduced, and integrity/tamper reloads remain unchanged.
 
-The latest checkpoint `88c9e667` separates real notification registration from database delivery setup, adds a result-only timing reporter and makes CI phases observable. Its original six notification methods remain once; the new reporter has sixteen authored, unexecuted cases. [Performance reporting](test-performance-reporting.md) records exact files, commits, old-artifact processing and source-check limitations.
+The reporting checkpoint `88c9e667` separates real notification registration from database delivery setup, adds a result-only timing reporter and makes CI phases observable. Its original six notification methods remain once; subsequent reporter hardening brings it to eighteen authored, unexecuted cases. [Performance reporting](test-performance-reporting.md) records exact files, commits, old-artifact processing and source-check limitations.
+
+The adapter-split checkpoint `6bd54287` keeps seven registry/document-parsing methods under the Gift Code owner without database reset, while the two persisted ingestion methods retain RefreshDatabase. All nine original methods and both helpers are byte-identical and occur once. Both classes retain actual Laravel wiring; only the adapter-only class adds class-local stray-request prevention. The [owner guide](../../tests/Contexts/GameWorld/GiftCodes/README.md) records the mapping and complementary commands. Seven fewer reset requests is a source-derived operation count, not a timing result. Existing owner-local discovery already covers both files.
+
+Commit `311ae1ca` adds the empty-suite failure flag to the existing Gift Code and KingdomMaps CI selections and captures both statuses of Intelligence's runner-to-tee pipeline. A runner failure keeps its exit code; otherwise a failed diagnostic write remains a failure. Selected paths, database engines/settings, job triggers, retries and worker counts are unchanged. PHP 8.5.10 syntax and Pint 1.30.4 checked the two split files; source-method and remote-hash comparisons preserve the original scenarios. Parsed YAML comparison and Bash syntax checks cover the three workflow command changes, not executed failure-path tests. The no-test hold remains in place.
 
 No test runner/discovery, provider evaluation, browser journey, seeder, application migration, benchmark or CI dispatch ran in this continuation. PHP syntax/formatting, path/layout guards, source equivalence, existing-report processing and workflow syntax are not full regression or static-analysis certification. Commits carry `[skip ci]` during the explicit hold; this neither marks required gates passed nor permanently disables them. Complete discovery, order/isolation, report edge cases, hosted CI and full regression remain pending.
 
