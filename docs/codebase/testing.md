@@ -1,27 +1,27 @@
 # Testing
 
-Status: Current owner-first layout; runtime verification pending.
+Status: Owner-first layout implemented; runtime verification authorized and recorded on 2026-09-10.
 
-Start with **what is being tested**, then its execution type. Use `Contexts/<Context>/<Capability>/<Tier>`, `ReadModels/<Composition>/<Tier>`, `Workflows/<Workflow>/<Tier>` and `Shared/<Area>[/<Concern>]/<Tier>` beneath tests. Repository-wide architecture checks live in `System/Architecture`; cross-application acceptance lives in `System/Acceptance/{Feature,Browser}`.
+Start with the owner, then execution type: `Contexts/<Context>/<Capability>/<Tier>`, `ReadModels/<Composition>/<Tier>`, `Workflows/<Workflow>/<Tier>` and `Shared/<Area>[/<Concern>]/<Tier>`. Repository-wide architecture lives in `System/Architecture`; cross-application acceptance lives in `System/Acceptance/{Feature,Browser}`. Create only the types an owner needs.
 
-[ADR-0043](../architecture/adr/0043-owner-first-tests-and-disjoint-execution-suites.md) records the decision. [Test navigation](../../tests/README.md), [Contexts](../../tests/Contexts/README.md), [ReadModels](../../tests/ReadModels/README.md), [shared support](../../tests/Support/README.md) and [Browser testing](browser-testing.md) explain placement and naming. [Performance reporting](test-performance-reporting.md) owns result diagnostics and measurement interpretation.
+[ADR-0043](../architecture/adr/0043-owner-first-tests-and-disjoint-execution-suites.md) records the decision. [Test navigation](../../tests/README.md), [shared support](../../tests/Support/README.md), [Browser testing](browser-testing.md), [performance reporting](test-performance-reporting.md) and the [runtime validation report](test-validation-2026-09-10.md) contain operating rules and evidence. Earlier source-only receipts remain historical; the execution hold has been lifted.
 
 ## Execution views and discovery
 
-The physical layout is owner-first, but PHPUnit exposes five disjoint execution suites. An owner is not an additional overlapping suite.
+Owner folders provide navigation, not overlapping suites. PHPUnit retains five disjoint views:
 
-| Suite | Responsibility and resource boundary | Current source files |
-| --- | --- | ---: |
-| Unit | Isolated logic and inert contracts; pure PHPUnit without application startup | 18 |
-| Feature | Actual HTTP, authorization, validation, encryption, persistence and application interactions | 190 |
-| Integration | Committed-state, after-commit, independent connections and infrastructure | 53 |
-| Architecture | Ownership/source/reflection contracts and real application registration where required | 28 |
-| Frontend | PHP-side frontend source contracts; not browser journeys | 3 |
-| **Total PHP** | **Each source file assigned once** | **292** |
+| Suite | Resource boundary | PHP files | Expanded cases |
+| --- | --- | ---: | ---: |
+| Unit | Independent logic with pure PHPUnit, no application startup | 18 | 125 |
+| Feature | Actual HTTP, validation, authorization, encryption, persistence and composed behavior | 190 | 786 |
+| Integration | Committed state, independent connections, locking, after-commit and infrastructure | 53 | 512 |
+| Architecture | Source/reflection and actual application registration where required | 28 | 74 |
+| Frontend | PHP-side frontend source contracts, not browser journeys | 3 | 10 |
+| **PHP total** | **Each file and case assigned once** | **292** | **1,507** |
 
-These are source-file counts, not discovered or executed case counts. The latest increase from 291 separates one existing geometry class into pure placement and application-backed analysis contracts; no scenario was added or duplicated. Browser remains a separate runner with 17 specifications and 12 reviewed PNG baselines. Owner-local Support/Fixtures and the common TestCase are not suites. Keep only execution folders an area needs; concurrency belongs in its `Integration/Concurrency`, and genuine migration-lifecycle contracts in `Integration/Schema`.
+Playwright separately discovers **62 cases in 17 specs**, with the existing **12 PNG baselines**. Node separately runs **11 source contracts in two owner-local files**. Node contracts may share Unit/Frontend directory names but are neither PHP nor Playwright cases. Support/Fixtures are not suites. Concurrency belongs in owner-local Integration/Concurrency; intentional migration lifecycle belongs in Integration/Schema.
 
-`phpunit.xml` explicitly lists each owner/type directory and recursively discovers `*Test.php` within it. New files under an existing directory need no per-file manifest entry. After creating or removing an owner/type directory, synchronize and commit the configuration:
+`phpunit.xml` lists owner/type directories and recursively discovers `*Test.php`. New files under an existing directory need no per-file registry. After adding or removing an owner/type directory:
 
 ```sh
 php scripts/sync-test-suites.php
@@ -29,89 +29,73 @@ php scripts/sync-test-suites.php --check
 php scripts/verify-test-layout.php
 ```
 
-These scripts inspect paths/source without loading tests, evaluating providers or bootstrapping Laravel. Synchronization changes only the testsuites block; check mode fails on stale configuration. The guard rejects missing/duplicate directories, invalid or multiple execution types, namespace/file mismatches, duplicate declarations, non-pure Unit bases, ordinary per-test schema rebuilds and tier-first/versioned roots. Empty inventories and suites cannot silently succeed. Do not bypass failures with exclusions.
+These scripts inspect paths without loading tests or providers. Synchronization changes only the testsuites block. Guards reject stale/missing/duplicate directories, unassigned files, namespace/file mismatches, duplicate declarations, non-pure Unit bases, inappropriate schema rebuilds and tier-first roots. Unexpectedly empty selections fail. Do not hide guard failures with exclusions.
 
-## Exact development commands
+## Commands and staged validation
 
-Use a prepared PHP 8.5 environment at the repository root. Named Composer test commands check suite freshness before running; runner arguments are not forwarded into their preflight/config-clear steps. Direct PHPUnit invocations do not invoke that Composer preflight automatically. During an explicit no-test hold, the runner commands below are documented only.
+Use locked dependencies with **PHP 8.5, Node 24 and npm 11**. Check installed patch versions instead of assuming an artifact matches the current machine. Composer argument isolation requires Composer 2.8 or newer; hosted verification used 2.10.3.
 
 ```sh
-# Fast PHP feedback across owners
+# Fast PHP feedback: Unit + Architecture + Frontend
 composer test:fast
 
-# One execution type across owners
+# One PHP execution type
 composer test:unit
 composer test:feature
 composer test:integration
 composer test:architecture
 composer test:frontend-contracts
 
-# A capability's PHP tests across its types
+# One owner across its PHP types
 vendor/bin/phpunit --fail-on-empty-test-suite tests/Contexts/Alliance/Recruitment
 
-# Its real concurrency contracts
-vendor/bin/phpunit --fail-on-empty-test-suite \
-  tests/Contexts/Alliance/Recruitment/Integration/Concurrency
-
-# A separately owned composed page and its browser journeys
+# A separately owned composition and browser journeys
 vendor/bin/phpunit --fail-on-empty-test-suite tests/ReadModels/RecruitmentManagement/Feature
 npm run test:visual -- tests/ReadModels/RecruitmentManagement/Browser
 
-# Full PHP regression: serial, local parallel, fixed two-worker CI
+# Independent Node source contracts; no browser startup
+npm run test:source-contracts
+
+# Complete PHP: serial, existing local parallel, fixed two-worker CI
 composer test
 composer test:parallel
 composer test:ci
 
-# Complete PHP source-quality and regression checks
+# Complete PHP quality/regression, frontend quality/build and browser checks
 composer check:ci
-
-# Full browser/visual regression
+npm run check
 npm run test:visual
 
-# Summarize a result file that already exists; does not run tests
+# Existing result analysis; does not rerun tests
 php scripts/summarize-test-timings.php /path/to/existing-junit.xml --limit=15
 ```
 
-An owner selection includes its PHP files, not separately owned dependencies or browser execution. Never label a targeted run as full-application verification. Keep empty-selection failures visible. There is no authoritative changed-code selector: filename matches, uncertain dependency mappings and zero selections do not certify coverage.
+Composer commands check suite freshness and keep runner arguments away from preflight/config-clear commands. Direct PHPUnit does not run that preflight automatically. Mandatory `npm run check` includes the Node contracts. Playwright discovers owner-local Browser/**/*.spec.ts, not Node *.test.ts files.
 
-During editing, run directly relevant tests. After a coherent change, include affected owners and dependencies. Before completion, run required complete PHP, frontend, browser, security, acceptance and deployment checks. Avoid duplicate full-suite launches after every edit and competing contributors using the same resources. Broaden for base tests/support/fixtures, providers, authentication/authorization, migrations, transaction helpers, shared persistence, dependencies, runner configuration, CI and selection logic. Uncertain mappings require broader verification.
+During editing, run relevant files. After a coherent change, include affected owners and dependencies. Before acceptance, run complete PHP/frontend/browser/security/deployment gates. An owner run does not certify separately owned contexts, read models, workflows or browser behavior. Avoid duplicate full-suite launches after every edit and contributors contending for resources.
 
-## Preserve isolation and meaningful integration
+No automatic changed-code selector is enabled. Select owners explicitly and broaden for shared helpers, providers, authentication/authorization, migrations, transaction/persistence infrastructure, dependencies, runner configuration and CI. Uncertain mappings require broader verification, not empty success. Normal feedback does not enable coverage instrumentation. Preserve applicable coverage thresholds; case counts are not a line-coverage percentage.
 
-Use pure PHPUnit for source/reflection and independent logic. `Tests\Support\RepositoryPath::fromRoot()` resolves repository source regardless of test depth and does not cache contents. Real container, route, scheduler, validation, encryption and persistence contracts retain `Tests\TestCase`. Colocation does not justify a common expensive base or mocks replacing meaningful integration boundaries.
+## Integration and isolation
 
-Choose database reset by the contract. An outer rollback transaction is appropriate only when it does not invalidate committed visibility, competing connections, real locks or after-commit behavior. Schema-stable committed-state tests use DatabaseTruncation; DatabaseMigrations belongs only in intentional owner-local `Integration/Schema` contracts. Never change engines, constraints, durability, security settings or rate limits for speed.
+Independent source/reflection tests use pure PHPUnit. RepositoryPath locates files without Laravel or caching. Real route/container/scheduler, validation, encryption, authentication and persistence checks retain actual resources. The [Gift Code](../../tests/Contexts/GameWorld/GiftCodes/README.md) and [KingdomMaps](../../tests/Contexts/GameWorld/KingdomMaps/README.md) guides record mixed-resource separations. Unsaved adapter contracts retain Laravel and HTTP fixtures with class-local stray-request prevention; persisted ingestion keeps database verification.
 
-Truncation tests extend Tests\TestCase. The existing MigrationReferenceData helper captures actual migration-created plans, entitlements and event catalogue rows only after fresh migration and restores them after cleanup and teardown. Mutable reference tables are not exempt. Snapshots are process-local and keyed by the actual worker database. A prior transactional test without a snapshot can require one additional fresh migration. Never capture unknown fixture history; create fixtures after parent::setUp(), not in earlier fixture-mutating trait hooks. New migration-populated tables require review of reference insertion order and identity handling; unclassified populated tables fail closed.
+Rollback transactions are appropriate only when they do not invalidate committed visibility, independent connections, locks or after-commit behavior. Schema-stable committed-state tests use DatabaseTruncation. DatabaseMigrations belongs only in genuine Integration/Schema contracts. Never change engines, constraints, durability, production timeouts, rate limits or security controls for speed.
 
-**The earlier reference-reset repair and its six authored regression cases remain runtime-unverified.** Validate mixed reset-trait ordering, committed fixture removal, reference mutation recovery, identity handling and failure teardown before accepting it. Source reorganization/reporting does not validate or alter that repair.
+Truncation tests extend TestCase. MigrationReferenceData snapshots the five tables actually populated by the complete migration chain and restores exact rows and the entitlement identity sequence after cleanup/teardown. Current migrations intentionally leave event_metric_definitions empty: it remains ordinary mutable data subject to truncation and dirty-baseline rejection, not exempt reference data. Its regression inserts a metric, rejects it as reference data and verifies removal after reset. Never capture unknown fixture history; create fixtures after parent setup. New populated migration tables require reviewing the explicit reference contract.
 
-PHP CI retains two workers; local parallel execution retains its existing default. Playwright retains one worker and non-parallel files. Check databases, caches, queues, sessions, files, temporary/storage prefixes, ports, browser profiles, external identifiers and global/static state before increasing concurrency. Keep serial cases where concurrency changes the meaning of the test. No added retries or weaker assertions are a substitute for isolation. File moves can change IDs and order; source equivalence is not order-independence proof.
+The repaired reset path has targeted, mixed-order and complete-suite evidence in the dated report. Process-local snapshots are keyed by actual worker databases. This is not proof for arbitrary new fixture hooks or more workers. Keep two CI PHP workers and one non-parallel browser worker until measurements justify changes. Isolate databases, caches, queues, sessions, temporary files, storage prefixes, ports, profiles and external identifiers. Keep serial execution where concurrency invalidates the contract.
 
-## Toolchain and source-only evidence
+Inertia AJAX tests must send the actual asset version when verifying page responses. Do not disable middleware to remove build-state sensitivity. Corrected rules/debrief requests passed with and without the manifest; complete local PHP also passed with built assets.
 
-The required PHP series is 8.5. The inspected dependency snapshot contains Laravel 13.30.1, PHPUnit 12.5.33, ParaTest 7.20.0, Pint 1.30.4 and browser package Playwright 1.62.1. Recheck installed versions in the environment used for runtime verification; historical artifacts do not establish another machine's toolchain.
+## Measurement and CI policy
 
-The owner-first migration from `b901f527` to `b824797` records 326 moves in the [migration manifest](test-owner-first-migration.json), with an independent [source audit](test-owner-first-source-audit.json). These receipts preserve that checkpoint's file hashes and counts rather than acting as mutable current inventories. PHP changes were constrained to namespaces, equivalent ancestor depths and known references. Browser specs and PNGs retained their bytes. Later owner-local fixture moves preserve bodies/data and update explicit consumers. Preparation-only tooling is no longer on the branch.
+The dated report records revisions, conditions, defects and discovery mapping. A six-run class comparison measured median **37.57 to 14.70 seconds** for per-case migration versus schema reuse, with the same **26 cases/90 assertions** passing every trial at one worker. That is a **60.9% class-level wall reduction**, not a whole-application percentage. Complete local default/random-order runs passed 1,507 cases in **313.50/315.11 seconds** at two workers. Hosted conditions differ; do not compare them directly to local or treat the historical 575.23-second run as a matched baseline.
 
-The prior cost-separation checkpoint `7009517f` preserves eight original methods: pure Transfer frontend checks, an extracted Alliance Rules lock-source contract and per-method real prerequisite datasets. The prerequisite class's successful paths have 18 dataset loads before and four after, a static operation count rather than elapsed evidence. No cross-test/static cache was introduced, and integrity/tamper reloads remain unchanged.
+For this local environment, roughly **two seconds for fast PHP** and **five to six minutes for complete two-worker execution** are investigation references, not portable timeouts or relaxed thresholds. Keep existing CI timeouts until comparable repeated hosted evidence supports a budget. Selecting fewer cases or adding workers is not the same as reducing their cost.
 
-The reporting checkpoint `88c9e667` separates real notification registration from database delivery setup, adds a result-only timing reporter and makes CI phases observable. Its original six notification methods remain once; subsequent reporter hardening brings it to eighteen authored, unexecuted cases. [Performance reporting](test-performance-reporting.md) records exact files, commits, old-artifact processing and source-check limitations.
+Main CI runs layout, formatting, static analysis and complete regression once each, rejects drift from check:ci and checks layout before dependencies. Dependency/security checks, fresh durable PostgreSQL, container/staging/recovery and visual gates remain blocking. Cache download archives, not vendor/database/test state. Architecture installation generates autoload metadata once while retaining strict PSR checks and normal hooks.
 
-The adapter-split checkpoint `6bd54287` keeps seven registry/document-parsing methods under the Gift Code owner without database reset, while the two persisted ingestion methods retain RefreshDatabase. All nine original methods and both helpers are byte-identical and occur once. Both classes retain actual Laravel wiring; only the adapter-only class adds class-local stray-request prevention. The [owner guide](../../tests/Contexts/GameWorld/GiftCodes/README.md) records the mapping and complementary commands. Seven fewer reset requests is a source-derived operation count, not a timing result. Existing owner-local discovery already covers both files.
+The phpunit-results artifact preserves raw JUnit, ranked outcomes/timings, actual checkout revision and versions, process wall/CPU/memory and reporter diagnostics. Runner and writer failures remain visible. Missing results after attempted execution are failures, not empty success. Never subtract parallel aggregate case duration from wall time to estimate setup. Record cache conditions and repetitions, separating measurable setup phases.
 
-Commit `311ae1ca` adds the empty-suite failure flag to the existing Gift Code and KingdomMaps CI selections and captures both statuses of Intelligence's runner-to-tee pipeline. A runner failure keeps its exit code; otherwise a failed diagnostic write remains a failure. Selected paths, database engines/settings, job triggers, retries and worker counts are unchanged. PHP 8.5.10 syntax and Pint 1.30.4 checked the two split files; source-method and remote-hash comparisons preserve the original scenarios. Parsed YAML comparison and Bash syntax checks cover the three workflow command changes, not executed failure-path tests. The no-test hold remains in place.
-
-The geometry checkpoint `85086b17` separates the eleven golden placement rows into KingdomMaps/Unit, constructing the real validator and coverage geometry directly. The original analysis method remains unchanged under Feature, resolving the actual TerritoryLayoutAnalyzer and its telemetry through Laravel. Both use one owner-local fixture reader without cached state; the shared PHP/JavaScript JSON fixture is unchanged. PHPUnit adds only the new Unit directory, and KingdomMaps Assurance selects the owner's PHP tests across both tiers. Its path trigger also covers Support and Fixtures. The [KingdomMaps guide](../../tests/Contexts/GameWorld/KingdomMaps/README.md) records preservation and validation scopes. One fewer application bootstrap and eleven avoided container resolutions are source-derived counts, not measured speedups. PHP 8.5.10 syntax and Pint 1.30.4 checked all three resulting PHP files; exact source reconstruction, XML/YAML comparisons and path-only reconciliation account for 292 files assigned once. No geometry or browser parity cases were executed.
-
-No test runner/discovery, provider evaluation, browser journey, seeder, application migration, benchmark or CI dispatch ran in this continuation. PHP syntax/formatting, path/layout guards, source equivalence, existing-report processing and workflow syntax are not full regression or static-analysis certification. Commits carry `[skip ci]` during the explicit hold; this neither marks required gates passed nor permanently disables them. Complete discovery, order/isolation, report edge cases, hosted CI and full regression remain pending.
-
-## Profiling, budgets and complete certification
-
-The [historical successful baseline](test-performance-baseline-2026-09-09.md) recorded 1,482 tests / 82,984 assertions in 9:35.23 wall time, with 1,131.400 seconds aggregate JUnit duration, PHP 8.5.10, PHPUnit 12.5.33, ParaTest 7.20.0, PostgreSQL 18.6 and two workers. These are historical results, not current discovered counts. No comparable successful after-run exists and no new budget or speedup is established.
-
-When execution is authorized, profile with `php artisan test --parallel --processes=2 --log-junit /path/to/profile-junit.xml`. Keep immutable revision, commands, hardware/versions, workers, failures/skips, cold/warm cache conditions and repetitions. Main CI retains raw XML, ranked timings, environment, process wall/CPU data and reporter diagnostics in `phpunit-results`. Separate measured phase overhead from aggregate case time; never subtract parallel aggregate duration from elapsed time as an estimate of setup. See [measurement boundaries](test-performance-reporting.md).
-
-Ordinary feedback stays free of unnecessary coverage instrumentation. No dedicated coverage command is introduced; preserve applicable thresholds and use the explicitly prepared coverage environment when required. Cache dependency downloads, not vendor trees, generated configuration, databases or test outputs. Every PHP job still performs locked installation. Architecture CI's prior no-autoloader install and subsequent strict optimized autoload generation retain normal hooks and platform checks; runtime/timing verification remains pending.
-
-Main CI keeps layout, formatting, static analysis and full regression in the same order, each once, with a guard against drift from the aggregate Composer script. Fresh PostgreSQL installation, dependency/security checks and downstream container/staging/recovery remain blocking. Preserve database durability and lock-capacity checks, failing exits and artifacts. Cancellation does not certify the final revision. Review intended visual changes before changing baselines; never remove scenarios, relax tolerances or blindly regenerate snapshots to obtain green results.
+Only intentional, reviewed rendered changes justify fingerprint or snapshot updates. The [acceptance review](acceptance-baseline-review-2026-09-10.md) records all seven surfaces, stronger raw semantic checks and bounded normalization. Both viewports passed twice with retries disabled; all twelve PNG baselines remained unchanged. Final normal CI must cover the complete containing revision and is recorded in the PR checks/conversation. PR #163 remains draft and unmerged.
