@@ -1,46 +1,41 @@
-# Test navigation and ownership
+# Tests by owner and area
 
-Execution commands, database reset/isolation requirements and verification status live in [Testing](../docs/codebase/testing.md). This page answers where a test belongs and how to name it.
+Start with **what is being tested**, then choose its execution type. Commands and resource rules live in [Testing](../docs/codebase/testing.md); browser conventions live in [Browser testing](../docs/codebase/browser-testing.md).
 
-## One execution tier, one owner
+## Folder convention
 
-Use `tests/<Tier>/Contexts/<Context>/<Capability>` for a capability-owned contract and `tests/<Tier>/ReadModels/<Composition>` for a composed read surface. Use `Workflows/<Workflow>` for cross-owner command orchestration and `Shared/Infrastructure/<Concern>` for business-neutral infrastructure. Tests of the test harness itself belong under `Integration/Shared/Testing`, alongside cache namespace and migration-reference isolation contracts.
+```text
+tests/
+  Contexts/<Context>/<Capability>/<Tier>/
+  ReadModels/<Composition>/<Tier>/
+  Workflows/<Workflow>/<Tier>/
+  Shared/<Area>[/<Concern>]/<Tier>/
+  System/Architecture/
+  System/Acceptance/Feature/
+  System/Acceptance/Browser/
+  Support/
+  Fixtures/
+  TestCase.php
+```
 
-Keep Unit, Feature, Integration, Architecture and Frontend as disjoint execution roots. A domain can legitimately have complementary tests in several roots. Do not collapse them into one application-booting base class or create an additional overlapping domain suite just to present one folder. Browser journeys use the same ownership vocabulary within the separate `tests/Browser` root.
+`Tier` is Unit, Feature, Integration, Architecture, Frontend or Browser. Create only the types an area needs. For example, `Contexts/Alliance/Recruitment/Feature` and `Contexts/Alliance/Recruitment/Integration/Concurrency` stay together, while the composed management page has its own `ReadModels/RecruitmentManagement/Feature` and `Browser` directories.
 
-The existing `Integration/Concurrency/Contexts` and `Integration/Concurrency/Workflows` trees remain explicit committed-state/independent-connection contracts. Include them when selecting an affected owner's tests. Their resource strategy and scheduling have not been changed by the ownership cleanup.
+Contexts and ReadModels remain different owners. Do not put a composed read surface inside the context merely because their business names are similar. Use Workflows for cross-owner commands, Shared for business-neutral concerns, and System for genuinely repository-wide contracts. [Contexts](Contexts/README.md) and [ReadModels](ReadModels/README.md) provide navigation.
 
-## Current ownership navigation
+## Separate resource requirements, not ownership
 
-| Test concern | Location |
-| --- | --- |
-| Read-model source/dependency/no-write boundaries | [Architecture/ReadModels](ReadModels/README.md) |
-| Capability-owned architecture and container contracts | [Architecture/Contexts](Contexts/README.md) |
-| Browser journeys, rendered surfaces and snapshot ownership | [Browser](../docs/codebase/browser-testing.md) |
-| Active Player shell, switching and stale-context UX | `Frontend/Contexts/GameWorld/Players` |
-| Alliance Content localization and reaction UX | `Frontend/Contexts/Alliance/Content` |
-| Transfer manual/evidence UX | `Frontend/Contexts/GameWorld/KingdomTransfers` |
-| Real cross-route throttle-budget isolation | `Feature/Shared/Infrastructure/Security` |
-| Opaque scoped cursor encryption and rejection | `Feature/Shared/Infrastructure/Pagination` |
-| Plain pagination response shape | `Unit/Shared/Infrastructure/Pagination` |
-| Test cache namespace and migration-reference recovery | `Integration/Shared/Testing` |
-| Repository-wide architecture, scheduler, namespace and persistence rules | Architecture root |
-| Cross-application acceptance matrices | `Feature/Acceptance` and `Browser/Acceptance` |
+Unit uses pure PHPUnit without Laravel bootstrapping. Feature retains actual HTTP, validation, encryption, authorization and application interactions. Integration retains committed-state, independent-connection and after-commit semantics; concurrency cases belong in the owner's `Integration/Concurrency`. Genuine migration-lifecycle checks belong in owner-local `Integration/Schema`.
 
-The frontend PHP contracts inspect source only. They complement rather than replace actual browser, HTTP, authorization or persistence verification. File paths use `Tests\Support\RepositoryPath` instead of depending on how deeply a test is nested.
+Architecture uses pure PHPUnit for source/reflection but the real application for container, route or scheduler registration. Frontend contains PHP source contracts, not browser journeys. Browser specifications live inside each rendered surface's Browser folder; reviewed PNGs live beside that specification under `Browser/__screenshots__/<SpecName>/<Project>/`.
 
-## Names that explain the contract
+Shared test-harness checks belong in `Shared/Testing/Integration`. General helpers remain in Support and data fixtures in Fixtures. A folder move must not make an isolated test inherit an expensive application base, or replace a meaningful integration boundary with a mock.
 
-Use a class/file name ending in `Test.php`, with a matching namespace. Prefer the subject and observable responsibility: `EventCommandBoundaryTest`, `EvidenceReferenceContractTest`, `EvidenceReferenceBindingTest`, `TransferEvidenceReferenceGuardTest`, `ScopedCursorCodecTest`, `PageSliceTest`, or `CacheNamespaceIsolationTest`.
+## Naming and maintenance
 
-Use `Boundary` for ownership/security/dependency constraints, `Contract` for an interface or source/API shape, `Binding` for real application registration, and `Http` or `Concurrency` when those execution semantics are the point of the test. Test methods should describe the condition and expected outcome. Keep data-provider labels meaningful and stable.
+PHP class and file names match and end in `Test`; namespaces mirror the complete path below tests. Prefer subject plus observable responsibility, such as `PageSliceTest`, `ScopedCursorCodecTest`, `EvidenceReferenceBindingTest` and `TransferEvidenceWriteBoundaryTest`. Keep useful provider labels and method names stable. Architectural revision suffixes are not required for new tests; retain meaningful protocol/dataset versions.
 
-Do not add an architectural revision suffix to a new test merely because the repository is called Architecture V3. Existing versioned names can be changed in focused owner cleanup, with references reconciled; a version that actually identifies the dataset/protocol under test is meaningful and must not be casually removed. Never rename methods/providers simply to make the count or failure history look different.
+Group related scenarios, but split mixed classes when their setup or resources differ. Do not combine assertions merely to reduce counts, copy tests between owners, or create overlapping owner suites. The five PHPUnit suites are execution views of these folders, not additional copies of the files.
 
-## Consolidate folders, not distinct evidence
+After adding a new PHP owner/type directory, run `php scripts/sync-test-suites.php` and commit the updated `phpunit.xml`. `php scripts/verify-test-layout.php` rejects unassigned, overlapping or stale suite paths and namespace/file mismatches without loading tests. Existing directories discover new `*Test.php` files recursively.
 
-Group tests by the owner of the behavior, not by the latest development task, transport label or every dependency they read. Do not copy a test into each referenced owner's folder. Keep pure logic, application wiring, HTTP behavior, committed transactions, concurrency and browser journeys separate when their fixtures or resources differ.
-
-Split a mixed class when one concern unnecessarily inherits another's setup. Evidence interface reflection and transfer source assertions use pure PHPUnit; the consolidated general/progression binding class still boots the real application. Transfer guard behavior retains Laravel validation and its original lookup fixture. Pagination likewise separates the plain response object from real encrypted/scoped cursor behavior. Every extracted method retains its assertions; grouping bindings does not combine or delete their distinct scenarios.
-
-For renames or splits, review namespace/autoload alignment, method/provider identities, relative paths, direct CLI/CI selections, scripts and documentation. Browser moves must also relocate existing snapshots according to the configured path template and account for changed file-based IDs/order. Source equivalence is useful review evidence but is not runtime discovery, order-isolation proof or a passing regression run.
+For moves, reconcile namespaces, relative paths, imports, CLI/CI selections, documentation and browser snapshot paths. Source/hash preservation does not establish runtime discovery, order independence or passing regression results.

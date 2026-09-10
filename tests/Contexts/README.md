@@ -1,21 +1,13 @@
-# Context-owned architecture contracts
+# Context-owned tests
 
-Use `Contexts/<Context>/<Capability>` for a boundary owned by that capability. Tests may inspect consumers in other owners without creating duplicate copies under those consumers. Repository-wide naming, dependency, scheduler and persistence rules remain at the Architecture root rather than being assigned to an arbitrary business owner.
+Use `tests/Contexts/<Context>/<Capability>/<Tier>`: Accounts, Alliance, GameWorld, Operations, Intelligence, Communications and Platform keep the same ownership boundaries as the application. A capability folder brings its Unit, Feature, Integration, Architecture, Frontend and Browser coverage together where those types exist.
 
-| Owner | Focused contracts |
-| --- | --- |
-| Communications/Delivery | `DeliveryBoundaryTest`: generic delivery only; no source-domain reminder policy. |
-| GameWorld/Kingdoms | `KingdomOperationalReadBoundaryTest`: active versus historical kingdom resolution across consumers. |
-| GameWorld/KingdomTransfers | `TransferEvidenceWriteBoundaryTest`: every evidence-accepting writer uses the guard and preserves provenance in its idempotency fingerprint. |
-| Operations/Events | `EventTypeOnboardingBoundaryTest`: catalogue/profile/workflow-dimension boundaries. |
-| Intelligence/Evidence | `TransferEvidenceBoundaryTest`: evidence/transfer ownership, destination writers and scoped UI/API boundaries. |
-| Intelligence/Evidence | `EvidenceReferenceContractTest`: pure reflection of the family-neutral reference interface. |
-| Intelligence/Evidence | `EvidenceReferenceBindingTest`: real application-container registration of both the general and dedicated progression reference contracts. |
+Examples include `Alliance/Recruitment/Feature`, `Alliance/Recruitment/Integration/Concurrency`, `GameWorld/KingdomTransfers/Architecture` and `Intelligence/Evidence/Unit`. Do not create empty execution folders or duplicate a test under every owner it reads.
 
-Reflection/source and application binding deliberately retain separate resource requirements. `EvidenceReferenceBindingTest` consolidates the general contract binding formerly embedded in the Transfer Feature class with the unchanged progression binding method; both still resolve the real Laravel container. `TransferEvidenceWriteBoundaryTest` owns the two unchanged source contracts, using repository-relative paths without Laravel startup. No binding assertion has been replaced with a source-string check or mock.
+Source boundaries stay with the owner of the invariant. `Communications/Delivery/Architecture` protects generic delivery policy; `GameWorld/Kingdoms/Architecture` protects active/historical resolution; `Operations/Events/Architecture` protects catalogue and workflow-dimension boundaries.
 
-`Feature/Contexts/GameWorld/KingdomTransfers/TransferEvidenceReferenceGuardTest` retains the two behavioral methods and their original lookup fixture. It still boots Laravel because rejection goes through the real validation service. Its dependent evidence-pipeline, persistence, authorization and concurrency tests remain separate and must be included for behavioral changes.
+`Intelligence/Evidence/Architecture/EvidenceReferenceContractTest.php` inspects the family-neutral interface without application startup. Its sibling `EvidenceReferenceBindingTest.php` verifies both real application bindings. `GameWorld/KingdomTransfers/Architecture/TransferEvidenceWriteBoundaryTest.php` checks source ownership and fingerprints, while the corresponding Feature guard test retains Laravel validation. These are complementary contracts, not duplicates to merge for speed.
 
-Existing Alliance/Content HTTP and Platform/Integrations contracts continue using their actual application boundaries. Folder placement does not imply that every Architecture test is pure or that a source assertion replaces an integration check.
+Select an owner with `vendor/bin/phpunit --fail-on-empty-test-suite tests/Contexts/Alliance/Recruitment`, or append a type such as `Feature`. An owner selection does not include its separately owned read models, cross-owner workflows or browser runner. Include them when affected, and broaden for shared infrastructure changes.
 
-Run `composer test:architecture` for the complete tier, or select the exact owner path with `vendor/bin/phpunit --fail-on-empty-test-suite tests/Contexts/Intelligence/Evidence/Architecture`. Add the corresponding Feature/Integration paths for behavioral changes; see [Testing](../../docs/codebase/testing.md). These organization changes are source-checked only while test execution is paused.
+Repository-wide architecture contracts live under `tests/System/Architecture`, not an arbitrary business context. See [test navigation](../README.md) and [Testing](../../docs/codebase/testing.md).

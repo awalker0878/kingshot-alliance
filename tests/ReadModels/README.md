@@ -1,22 +1,19 @@
-# Read-model architecture contracts
+# Read-model tests
 
-These folders mirror `app/ReadModels/<Owner>`. Each class protects a read composition's dependency, no-write, authorization-order or presentation boundary. The owner is the composition being protected, not every context it happens to read.
+Use `tests/ReadModels/<Composition>/<Tier>`. A composed read surface owns its Feature behavior, Architecture boundaries, Frontend source contracts and Browser journeys where they exist. Its underlying business rules remain in the corresponding Context tests.
 
-| Owner | Contracts in this folder | Complementary behavior |
-| --- | --- | --- |
-| AllianceAssistant | `AllianceAssistantBoundaryTest` | `tests/ReadModels/AllianceAssistant/Feature` and `tests/ReadModels/AllianceAssistant/Unit` |
-| EventManagement | `EventCommandBoundaryTest` | `tests/ReadModels/EventManagement/Feature` |
-| IntelligenceSignals | `IntelligenceChangeDetectionArchitectureV3Test` | `tests/ReadModels/IntelligenceSignals/Feature` |
-| Progression | `ProgressionPlannerBoundaryTest`, `ProgressionDatasetAbsenceBoundaryV3Test` | `tests/ReadModels/Progression/Feature` |
+| Composition | Existing coverage to inspect together |
+| --- | --- |
+| AllianceAssistant | Unit, Feature, Architecture, Browser |
+| EventManagement | Feature, Architecture, Browser |
+| IntelligenceSignals | Feature, Architecture |
+| Progression | Feature, Architecture, Browser |
+| RecruitmentManagement | Feature, Browser |
+| Roster | Feature, Browser |
+| TerritoryPlanning | Feature, Browser |
 
-The complete Architecture suite discovers these folders recursively. Source assertions still read their original application/frontend targets through `Tests\Support\RepositoryPath`; moving the test must never narrow the files checked. HTTP, persistence, application-container and browser verification remain separate, complementary contracts, not interchangeable duplicates.
+Source-only boundary classes remain pure PHPUnit. Actual HTTP, authorization, persistence and container checks still use the real application; placing them together does not make their setup interchangeable.
 
-For a Progression change, an explicit development selection is:
+`vendor/bin/phpunit --fail-on-empty-test-suite tests/ReadModels/Progression` selects that composition's PHP tests. `npm run test:visual -- tests/ReadModels/Progression/Browser` selects its browser journeys separately. Neither command proves the whole application passes; include affected Context/Workflow dependencies and required full verification.
 
-```sh
-vendor/bin/phpunit --fail-on-empty-test-suite \
-  tests/ReadModels/Progression/Architecture \
-  tests/ReadModels/Progression/Feature
-```
-
-That selection does not certify the entire application. Broaden for shared dependencies and use the full checks described in [Testing](../../docs/codebase/testing.md). The ownership moves were source-checked only; runtime discovery and execution remain pending during the no-test hold.
+See [test navigation](../README.md), [Testing](../../docs/codebase/testing.md) and [Browser testing](../../docs/codebase/browser-testing.md).
