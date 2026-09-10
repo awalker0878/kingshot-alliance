@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\System\Architecture;
+namespace Tests\Shared\ApplicationShell\Architecture;
 
 use JsonException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\RepositoryPath;
 
-final class PwaContractV3Test extends TestCase
+final class PwaOfflinePrivacyContractTest extends TestCase
 {
     /**
      * @throws JsonException

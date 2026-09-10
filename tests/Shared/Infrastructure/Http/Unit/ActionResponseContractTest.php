@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Shared\Infrastructure\Unit;
+namespace Tests\Shared\Infrastructure\Http\Unit;
 
 use App\Shared\Infrastructure\Http\ActionReceipt;
 use App\Shared\Infrastructure\Http\BulkActionResult;
@@ -10,7 +10,7 @@ use App\Shared\Infrastructure\Http\BulkItemResult;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
-final class ActionReceiptBehaviorV3Test extends TestCase
+final class ActionResponseContractTest extends TestCase
 {
     public function test_success_receipt_serializes_a_stable_localizable_contract(): void
     {

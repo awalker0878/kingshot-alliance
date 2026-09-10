@@ -12,8 +12,8 @@
             <directory suffix="Test.php">tests/Contexts/Operations/Events/Unit</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/KingPerks/Unit</directory>
             <directory suffix="Test.php">tests/ReadModels/AllianceAssistant/Unit</directory>
+            <directory suffix="Test.php">tests/Shared/Infrastructure/Http/Unit</directory>
             <directory suffix="Test.php">tests/Shared/Infrastructure/Pagination/Unit</directory>
-            <directory suffix="Test.php">tests/Shared/Infrastructure/Unit</directory>
         </testsuite>
         <testsuite name="Feature">
             <directory suffix="Test.php">tests/Contexts/Accounts/Authentication/Feature</directory>
@@ -102,6 +102,7 @@
             <directory suffix="Test.php">tests/ReadModels/EventManagement/Architecture</directory>
             <directory suffix="Test.php">tests/ReadModels/IntelligenceSignals/Architecture</directory>
             <directory suffix="Test.php">tests/ReadModels/Progression/Architecture</directory>
+            <directory suffix="Test.php">tests/Shared/ApplicationShell/Architecture</directory>
             <directory suffix="Test.php">tests/System/Architecture</directory>
         </testsuite>
         <testsuite name="Frontend">
