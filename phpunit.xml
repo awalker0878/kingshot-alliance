@@ -12,7 +12,8 @@
             <directory suffix="Test.php">tests/Contexts/Operations/Events/Unit</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/KingPerks/Unit</directory>
             <directory suffix="Test.php">tests/ReadModels/AllianceAssistant/Unit</directory>
-            <directory suffix="Test.php">tests/Unit</directory>
+            <directory suffix="Test.php">tests/Shared/Infrastructure/Pagination/Unit</directory>
+            <directory suffix="Test.php">tests/Shared/Infrastructure/Unit</directory>
         </testsuite>
         <testsuite name="Feature">
             <directory suffix="Test.php">tests/Contexts/Accounts/Authentication/Feature</directory>
@@ -63,6 +64,8 @@
             <directory suffix="Test.php">tests/ReadModels/RecruitmentManagement/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/Roster/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/TerritoryPlanning/Feature</directory>
+            <directory suffix="Test.php">tests/Shared/Infrastructure/Pagination/Feature</directory>
+            <directory suffix="Test.php">tests/Shared/Infrastructure/Security/Feature</directory>
             <directory suffix="Test.php">tests/Workflows/NotificationDelivery/Feature</directory>
         </testsuite>
         <testsuite name="Integration">
@@ -83,7 +86,8 @@
             <directory suffix="Test.php">tests/Contexts/Operations/TerritoryPlanning/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/Platform/AllianceAdministration/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/Platform/DataGovernance/Integration</directory>
-            <directory suffix="Test.php">tests/Integration</directory>
+            <directory suffix="Test.php">tests/Shared/Infrastructure/Integration</directory>
+            <directory suffix="Test.php">tests/Shared/Testing/Integration</directory>
             <directory suffix="Test.php">tests/Workflows/AccountOnboarding/Integration</directory>
         </testsuite>
         <testsuite name="Architecture">

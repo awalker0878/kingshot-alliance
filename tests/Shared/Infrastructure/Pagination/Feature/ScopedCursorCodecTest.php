@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Shared\Infrastructure\Pagination;
+namespace Tests\Shared\Infrastructure\Pagination\Feature;
 
 use App\Shared\Infrastructure\Pagination\ScopedCursorCodec;
 use Illuminate\Validation\ValidationException;

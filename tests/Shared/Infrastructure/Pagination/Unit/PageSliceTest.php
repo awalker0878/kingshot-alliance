@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Shared\Infrastructure\Pagination;
+namespace Tests\Shared\Infrastructure\Pagination\Unit;
 
 use App\Shared\Infrastructure\Pagination\PageSlice;
 use PHPUnit\Framework\TestCase;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Shared\Infrastructure;
+namespace Tests\Shared\Infrastructure\Unit;
 
 use App\Shared\Infrastructure\Http\ActionReceipt;
 use App\Shared\Infrastructure\Http\BulkActionResult;

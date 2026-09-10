@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Integration\Shared\Testing;
+namespace Tests\Shared\Testing\Integration;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;

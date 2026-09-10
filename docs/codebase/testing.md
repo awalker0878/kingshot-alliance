@@ -68,8 +68,8 @@ vendor/bin/phpunit --fail-on-empty-test-suite \
 
 # Pagination data and real encrypted-cursor behavior
 vendor/bin/phpunit --fail-on-empty-test-suite \
-  tests/Unit/Shared/Infrastructure/Pagination \
-  tests/Feature/Shared/Infrastructure/Pagination
+  tests/Shared/Infrastructure/Pagination/Unit \
+  tests/Shared/Infrastructure/Pagination/Feature
 
 # Real Evidence registration contracts
 vendor/bin/phpunit --fail-on-empty-test-suite \

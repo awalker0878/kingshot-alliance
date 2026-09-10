@@ -36,7 +36,7 @@ $requiredBehaviorTests = [
     'tests/Contexts/Operations/KingPerks/Unit/KingPerkPolicyBehaviorV3Test.php',
     'tests/Contexts/Platform/Administration/Feature/PlatformAdministrationBehaviorV3Test.php',
     'tests/Contexts/Platform/Administration/Feature/PlatformAdministratorIsolationV3Test.php',
-    'tests/Integration/Shared/Infrastructure/InfrastructureBehaviorV3Test.php',
+    'tests/Shared/Infrastructure/Integration/InfrastructureBehaviorV3Test.php',
 ];
 foreach ($requiredBehaviorTests as $relative) {
     if (! is_file($root.'/'.$relative)) {

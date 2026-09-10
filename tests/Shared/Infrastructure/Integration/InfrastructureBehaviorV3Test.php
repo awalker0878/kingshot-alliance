@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Integration\Shared\Infrastructure;
+namespace Tests\Shared\Infrastructure\Integration;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
