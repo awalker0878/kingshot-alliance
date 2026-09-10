@@ -26,9 +26,9 @@ if ($legacyFiles !== []) {
 
 $requiredBehaviorTests = [
     'tests/Contexts/Accounts/Registration/Feature/AccountRegistrationBehaviorV3Test.php',
-    'tests/Feature/Contexts/GameWorld/Players/PlayerIdentityBehaviorV3Test.php',
-    'tests/Feature/Contexts/GameWorld/Players/PlayerContextSelectionBehaviorV3Test.php',
-    'tests/Feature/Contexts/GameWorld/Governance/KingdomGovernanceBehaviorV3Test.php',
+    'tests/Contexts/GameWorld/Players/Feature/PlayerIdentityBehaviorV3Test.php',
+    'tests/Contexts/GameWorld/Players/Feature/PlayerContextSelectionBehaviorV3Test.php',
+    'tests/Contexts/GameWorld/Governance/Feature/KingdomGovernanceBehaviorV3Test.php',
     'tests/Contexts/Alliance/Access/Feature/AllianceAuthorityIsolationV3Test.php',
     'tests/Contexts/Alliance/Lifecycle/Feature/AllianceLifecycleBehaviorV3Test.php',
     'tests/Contexts/Alliance/Membership/Feature/MemberCapacityPolicyBehaviorV3Test.php',
