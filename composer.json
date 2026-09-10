@@ -6,7 +6,8 @@
     "keywords": [
         "laravel",
         "kingshot",
-        "alliance"
+        "alliance",
+        "community"
     ],
     "license": "GPL-3.0-only",
     "require": {
