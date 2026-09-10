@@ -1,0 +1,61 @@
+{
+  "purpose": "Immutable source-only reconciliation of the owner-first migration; not a permanent test registry or behavioral certification.",
+  "source_archive_revision": "b640ee571e3f9a5e4074c91bb67064b0b7623afa",
+  "preparation_revision": "db264b53bfd683ee615ddff184b470dc2e20f669",
+  "migration_revision": "b824797aea35d2b4e69539b97013f3bce07a6298",
+  "migration_tree": "608e871f4469ac5f5c60a26de6355694f0f633ab",
+  "preparation_run_id": 34419861324,
+  "preparation_artifact_id": 10130485744,
+  "manifest": "docs/codebase/test-owner-first-migration.json",
+  "source_comparisons": {
+    "manifest_entries_with_matching_source_and_result_blob_hashes": 326,
+    "php_source_files_before": 287,
+    "php_source_files_after": 287,
+    "preserved_method_declarations_including_helpers_and_providers": 1697,
+    "method_declaration_names_and_provider_attributes_equal": true,
+    "prepared_tree_matches_independent_git_index": true,
+    "phpunit_configuration_outside_testsuites_unchanged": true,
+    "browser_spec_files_with_identical_bytes": 17,
+    "png_baselines_with_identical_bytes": 12,
+    "php_source_files_assigned_to_exactly_one_suite": 287,
+    "suite_source_file_counts": {
+      "Unit": 16,
+      "Feature": 189,
+      "Integration": 53,
+      "Architecture": 26,
+      "Frontend": 3
+    },
+    "specialized_workflow_referenced_php_path_sets_preserved": {
+      "gift-code-verification.yml": 15,
+      "intelligence-verification.yml": 41,
+      "king-perks-verification.yml": 1,
+      "kingdom-maps-assurance.yml": 2
+    }
+  },
+  "checks": {
+    "preparation_php": "8.5.10",
+    "preparation_checks": "PHP syntax, deterministic source transformation, namespace/path and disjoint-suite layout reconciliation across twelve stages; no application/test classes loaded.",
+    "independent_host_php": "8.4.23",
+    "independent_host_node": "22.16.0",
+    "independent_manifest_command": "php scripts/sync-test-suites.php --check",
+    "independent_manifest_result": "Source path check passed for 287 PHP files; no tests loaded.",
+    "independent_documentation_command": "node scripts/check-documentation-links.mjs",
+    "independent_documentation_result": "262 documentation files checked during source preparation.",
+    "independent_full_layout_guard": "Not completed on the host because its PHP lacks SimpleXML; target-PHP source preparation performed this check.",
+    "method_count_note": "1697 includes helpers/providers and is not a discovered or executed test-case count.",
+    "workflow_count_note": "Static equality of referenced PHP file sets after path mapping; no workflow test jobs were run."
+  },
+  "test_execution": false,
+  "runner_discovery": false,
+  "browser_execution": false,
+  "migrations_executed": false,
+  "performance_measured": false,
+  "remaining_verification": [
+    "Target-runtime runner discovery and full test identity reconciliation",
+    "Composer preflight and additional-argument forwarding in a prepared environment",
+    "Randomized/mixed-order database isolation including the earlier reference-reset repair",
+    "Browser snapshot resolution, desktop/mobile inventory and changed file-order isolation",
+    "Required full PHP, frontend, browser, security and deployment verification",
+    "Comparable cold/warm before-and-after timing with the same worker count"
+  ]
+}
