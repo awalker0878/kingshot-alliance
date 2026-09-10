@@ -16,6 +16,11 @@
             <directory suffix="Test.php">tests/Contexts/Accounts/MultiFactorAuthentication/Feature</directory>
             <directory suffix="Test.php">tests/Contexts/Accounts/Profile/Feature</directory>
             <directory suffix="Test.php">tests/Contexts/Accounts/Registration/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Alliance/Access/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Alliance/Content/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Alliance/Lifecycle/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Alliance/Membership/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Alliance/Recruitment/Feature</directory>
             <directory suffix="Test.php">tests/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/AllianceAssistant/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/AllianceDashboard/Feature</directory>
@@ -39,16 +44,22 @@
             <directory suffix="Test.php">tests/Contexts/Accounts/Identity/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/Accounts/MultiFactorAuthentication/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/Accounts/Profile/Integration</directory>
+            <directory suffix="Test.php">tests/Contexts/Alliance/Access/Integration</directory>
+            <directory suffix="Test.php">tests/Contexts/Alliance/Lifecycle/Integration</directory>
+            <directory suffix="Test.php">tests/Contexts/Alliance/Membership/Integration</directory>
+            <directory suffix="Test.php">tests/Contexts/Alliance/Recruitment/Integration</directory>
             <directory suffix="Test.php">tests/Integration</directory>
         </testsuite>
         <testsuite name="Architecture">
             <directory suffix="Test.php">tests/Architecture</directory>
+            <directory suffix="Test.php">tests/Contexts/Alliance/Content/Architecture</directory>
             <directory suffix="Test.php">tests/ReadModels/AllianceAssistant/Architecture</directory>
             <directory suffix="Test.php">tests/ReadModels/EventManagement/Architecture</directory>
             <directory suffix="Test.php">tests/ReadModels/IntelligenceSignals/Architecture</directory>
             <directory suffix="Test.php">tests/ReadModels/Progression/Architecture</directory>
         </testsuite>
         <testsuite name="Frontend">
+            <directory suffix="Test.php">tests/Contexts/Alliance/Content/Frontend</directory>
             <directory suffix="Test.php">tests/Frontend</directory>
         </testsuite>
     </testsuites>
