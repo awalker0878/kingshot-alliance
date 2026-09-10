@@ -13,7 +13,7 @@ function testLayoutSuites(): array
  *
  * @return array<string, array{suite: string, directory: string}>
  */
-function testLayoutInventory(string $root, bool $allowLegacy = false): array
+function testLayoutInventory(string $root): array
 {
     $inventory = [];
     $suites = testLayoutSuites();
@@ -35,7 +35,7 @@ function testLayoutInventory(string $root, bool $allowLegacy = false): array
             'ReadModels', 'Workflows' => $position === 3,
             'Shared' => $position >= 3,
             'System' => $position === 2 || ($parts[2] === 'Acceptance' && $position === 3),
-            default => $allowLegacy && $position === 1,
+            default => false,
         };
         if (! $valid || count($parts) <= $position + 1) {
             throw new RuntimeException('Expected owner/area before execution tier: '.$path);

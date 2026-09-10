@@ -30,7 +30,7 @@ Source-method comparisons, browser blob/snapshot reconciliation and host PHP 8.4
 
 `tests/Browser` contains Playwright journeys grouped by rendered-surface ownership. `tests/Fixtures`, `tests/Support` and `tests/TestCase.php` are support, not execution suites.
 
-Use `Contexts/<Context>/<Capability>`, `ReadModels/<Composition>`, `Workflows/<Workflow>` and `Shared/Infrastructure/<Concern>` below the appropriate tier. The read-model boundary classes live under [Architecture/ReadModels](../../tests/ReadModels/README.md); capability boundaries live under [Architecture/Contexts](../../tests/Architecture/Contexts/README.md). Repository-wide rules and cross-application acceptance matrices remain explicitly cross-cutting instead of being assigned to an arbitrary context.
+Use `Contexts/<Context>/<Capability>`, `ReadModels/<Composition>`, `Workflows/<Workflow>` and `Shared/Infrastructure/<Concern>` below the appropriate tier. The read-model boundary classes live under [Architecture/ReadModels](../../tests/ReadModels/README.md); capability boundaries live under [Architecture/Contexts](../../tests/Contexts/README.md). Repository-wide rules and cross-application acceptance matrices remain explicitly cross-cutting instead of being assigned to an arbitrary context.
 
 Frontend contracts are grouped under GameWorld/Players, Alliance/Content and GameWorld/KingdomTransfers. Cross-route throttle behavior is under `Feature/Shared/Infrastructure/Security`; cache namespace and migration-reference harness checks are under `Integration/Shared/Testing`. The separate top-level Feature/Infrastructure and Integration/Infrastructure buckets are gone.
 

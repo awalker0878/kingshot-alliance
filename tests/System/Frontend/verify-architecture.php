@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-$root = dirname(__DIR__, 2);
+$root = dirname(__DIR__, 3);
 $pages = $root.'/resources/js/pages';
 $allowed = ['Command', 'Accounts', 'Alliance', 'Operations', 'Intelligence', 'Kingdom', 'Citadel', 'Public'];
 $forbidden = ['ReadModels', 'GameWorld', 'Platform', 'Auth', 'Events', 'KingPerks', 'Contributions'];

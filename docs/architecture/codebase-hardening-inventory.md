@@ -41,7 +41,7 @@ Source notification meaning stays with source owners/workflows. Communications d
 | Gate owner | Entry point/evidence |
 | --- | --- |
 | PHP quality | `composer.json`: validate/lock installation, Pint, PHPStan, parallel PHPUnit |
-| Architecture | `tests/Architecture`, `tests/Architecture/verify.php`; strict PSR-4, syntax and boot routes in Architecture V3 workflow |
+| Architecture | `tests/System/Architecture`, `tests/System/Architecture/verify.php`; strict PSR-4, syntax and boot routes in Architecture V3 workflow |
 | Schema/transactions | CI fresh PostgreSQL installation, capability behavior and concurrency suites |
 | Frontend | `package.json`: lint, Prettier, Vue/TypeScript, accessibility, documentation/localization/receipts, product language, territory contracts, build/chunks/budgets |
 | Behavior/visual | Intelligence, Gift Code, King Perk and KingdomMaps workflow suites; Playwright visual regression |

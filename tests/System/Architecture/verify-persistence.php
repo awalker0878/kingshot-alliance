@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-$root = dirname(__DIR__, 2);
+$root = dirname(__DIR__, 3);
 $failures = [];
 
 $check = static function (bool $condition, string $message) use (&$failures): void {

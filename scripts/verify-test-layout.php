@@ -8,8 +8,7 @@ require_once __DIR__.'/test-layout.php';
 (static function (): void {
     $root = dirname(__DIR__);
     $errors = [];
-    // Transitional support is removed when the owner-first migration is complete.
-    $inventory = testLayoutInventory($root, allowLegacy: true);
+    $inventory = testLayoutInventory($root);
     $suites = testLayoutSuites();
     $configuration = simplexml_load_file($root.'/phpunit.xml');
     if ($configuration === false) {
@@ -46,7 +45,7 @@ require_once __DIR__.'/test-layout.php';
     if (array_diff($suites, array_keys($actual)) !== []) {
         $errors[] = 'One or more required test suites are missing.';
     }
-    foreach (['v2', 'v3'] as $legacy) {
+    foreach (array_merge(['v2', 'v3', 'Browser'], $suites) as $legacy) {
         if (is_dir($root.'/tests/'.$legacy)) {
             $errors[] = 'Legacy test root remains: '.$legacy;
         }

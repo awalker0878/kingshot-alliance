@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\System\Architecture;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -14,7 +14,7 @@ final class ThinHttpAdaptersV3Test extends TestCase
     #[Test]
     public function http_adapters_and_routes_do_not_own_business_persistence_or_locks(): void
     {
-        $repository = dirname(__DIR__, 2);
+        $repository = dirname(__DIR__, 3);
         $files = [];
 
         $iterator = new RecursiveIteratorIterator(

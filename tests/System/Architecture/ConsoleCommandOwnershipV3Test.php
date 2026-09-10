@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\System\Architecture;
 
 use Illuminate\Console\Command;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,7 +13,7 @@ final class ConsoleCommandOwnershipV3Test extends TestCase
     #[Test]
     public function console_routes_only_define_explicit_application_wide_closure_commands(): void
     {
-        $path = dirname(__DIR__, 2).'/routes/console.php';
+        $path = dirname(__DIR__, 3).'/routes/console.php';
         $source = file_get_contents($path);
         self::assertIsString($source);
 
@@ -34,7 +34,7 @@ final class ConsoleCommandOwnershipV3Test extends TestCase
     #[Test]
     public function application_console_commands_are_class_based_and_registered_by_their_owning_provider(): void
     {
-        $app = dirname(__DIR__, 2).'/app';
+        $app = dirname(__DIR__, 3).'/app';
         $patterns = [
             $app.'/Contexts/*/*/Console/Commands/*Command.php',
             $app.'/Contexts/*/*/*/Console/Commands/*Command.php',

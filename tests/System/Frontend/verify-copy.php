@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-$root = dirname(__DIR__, 2);
+$root = dirname(__DIR__, 3);
 $targets = [$root.'/resources/js/pages', $root.'/resources/js/layouts', $root.'/resources/js/components', $root.'/resources/js/localization/messages'];
 $forbidden = ['read model', 'readmodel', 'security principal', 'mutation authority', 'persistence layer', 'platform administration', 'tenant context', 'domain context', 'capability layer', 'backend action', 'backend service', 'queue worker', 'outbox', 'api credential', 'webhook delivery', 'candidate pipeline', 'contribution report', 'manager', 'pipeline', 'snapshot', 'workflow', 'tenant', 'platform', 'administrator', 'configuration', 'configured', 'reporting', 'metadata', 'active player', 'player authority', 'game-domain', 'player', 'api', 'webhook', 'queue', 'runtime', 'adapter', 'ingestion', 'endpoint', 'credential', 'integration', 'capabilities', 'event system', 'translation key', 'idempotent', 'lifecycle', 'operational modules', 'event context', 'kingdom context', 'historical context', 'private context', 'url slug', 'export json'];
 $v = [];

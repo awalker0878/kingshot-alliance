@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\System\Architecture;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -43,7 +43,7 @@ final class NamespaceLocationV3Test extends TestCase
         ];
 
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator(dirname(__DIR__, 2).'/app'),
+            new RecursiveDirectoryIterator(dirname(__DIR__, 3).'/app'),
         );
 
         foreach ($iterator as $file) {

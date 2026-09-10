@@ -18,4 +18,4 @@ Reflection/source and application binding deliberately retain separate resource 
 
 Existing Alliance/Content HTTP and Platform/Integrations contracts continue using their actual application boundaries. Folder placement does not imply that every Architecture test is pure or that a source assertion replaces an integration check.
 
-Run `composer test:architecture` for the complete tier, or select the exact owner path with `vendor/bin/phpunit --fail-on-empty-test-suite tests/Contexts/Intelligence/Evidence/Architecture`. Add the corresponding Feature/Integration paths for behavioral changes; see [Testing](../../../docs/codebase/testing.md). These organization changes are source-checked only while test execution is paused.
+Run `composer test:architecture` for the complete tier, or select the exact owner path with `vendor/bin/phpunit --fail-on-empty-test-suite tests/Contexts/Intelligence/Evidence/Architecture`. Add the corresponding Feature/Integration paths for behavioral changes; see [Testing](../../docs/codebase/testing.md). These organization changes are source-checked only while test execution is paused.

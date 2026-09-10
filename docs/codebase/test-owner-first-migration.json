@@ -1,0 +1,1971 @@
+{
+  "source_revision": "b901f527c4fb533c29ff708af8ebc8da54c7f0a5",
+  "php_test_files": 287,
+  "browser_spec_files": 17,
+  "snapshot_files": 12,
+  "tests_executed": false,
+  "runner_discovery_executed": false,
+  "allowed_php_changes": [
+    "matching namespace",
+    "equivalent ancestor depth",
+    "known test references"
+  ],
+  "files": [
+    {
+      "old_path": "tests/Architecture/ArchitectureEnforcementV3Test.php",
+      "new_path": "tests/System/Architecture/ArchitectureEnforcementV3Test.php",
+      "source_blob": "8815bb1534f63ce0903c369891665aa918d9d514",
+      "result_blob": "849ae1feaab586748c6ac7bb25d8a73838eb59da"
+    },
+    {
+      "old_path": "tests/Architecture/ArchitectureV3Test.php",
+      "new_path": "tests/System/Architecture/ArchitectureV3Test.php",
+      "source_blob": "f33ccb3b9a78a2bb8b42ec6cc1dad9d45ba96531",
+      "result_blob": "8fcf79a229da89538bcba2956cd44c7739398514"
+    },
+    {
+      "old_path": "tests/Architecture/BehaviorContractsV3Test.php",
+      "new_path": "tests/System/Architecture/BehaviorContractsV3Test.php",
+      "source_blob": "a6a6328595b161743326aaf398a7da4164d2360e",
+      "result_blob": "f3a7506d782006707104f56cf0b7f62dc36d0b64"
+    },
+    {
+      "old_path": "tests/Architecture/CapabilityFirstSourceLayoutV3Test.php",
+      "new_path": "tests/System/Architecture/CapabilityFirstSourceLayoutV3Test.php",
+      "source_blob": "b31851f4272ac09f39a5c011382dbf37dc1ca60f",
+      "result_blob": "6cb235b87e762ad5ec14ccc70d0f67e78a22e6ab"
+    },
+    {
+      "old_path": "tests/Architecture/ConsoleCommandOwnershipV3Test.php",
+      "new_path": "tests/System/Architecture/ConsoleCommandOwnershipV3Test.php",
+      "source_blob": "3b912e8a8f643996858088a6af349d183304776f",
+      "result_blob": "1fa570aa850037739b54fe5e231378c80c789810"
+    },
+    {
+      "old_path": "tests/Architecture/Contexts/Alliance/Content/AllianceContentGameParityHttpContractV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Content/Architecture/AllianceContentGameParityHttpContractV3Test.php",
+      "source_blob": "172b6e7325d9ec4dc6c785a74a5083032a29efe0",
+      "result_blob": "5d52f72bf2fd27fe97676b5a2c76458709b48729"
+    },
+    {
+      "old_path": "tests/Architecture/Contexts/Communications/Delivery/DeliveryBoundaryTest.php",
+      "new_path": "tests/Contexts/Communications/Delivery/Architecture/DeliveryBoundaryTest.php",
+      "source_blob": "482b72f1fc5c328b72397ea1e34edd2973b8dc58",
+      "result_blob": "3a92cbbe02a5636042c38433fa8fca80a4627e55"
+    },
+    {
+      "old_path": "tests/Architecture/Contexts/GameWorld/KingdomTransfers/TransferEvidenceWriteBoundaryTest.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Architecture/TransferEvidenceWriteBoundaryTest.php",
+      "source_blob": "0ced62546c45dfc151bda8df04329ffbb1cbd495",
+      "result_blob": "c6938cc75486c51c95f0c773073156ccdcec10ec"
+    },
+    {
+      "old_path": "tests/Architecture/Contexts/GameWorld/Kingdoms/KingdomOperationalReadBoundaryTest.php",
+      "new_path": "tests/Contexts/GameWorld/Kingdoms/Architecture/KingdomOperationalReadBoundaryTest.php",
+      "source_blob": "dacfd906d0cc5d506992732b29c55300261785e2",
+      "result_blob": "7b778449d8d32f372bdc8bc8ecffa8608cdefbc9"
+    },
+    {
+      "old_path": "tests/Architecture/Contexts/Intelligence/Evidence/EvidenceReferenceBindingTest.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Architecture/EvidenceReferenceBindingTest.php",
+      "source_blob": "afcfccd9e6e1c33d16319725d85dc3ab227ecace",
+      "result_blob": "4c4db5edff896a32308a0248de20a4de2182798c"
+    },
+    {
+      "old_path": "tests/Architecture/Contexts/Intelligence/Evidence/EvidenceReferenceContractTest.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Architecture/EvidenceReferenceContractTest.php",
+      "source_blob": "793e2fe5c29d98af889e903d14d07bcbb0ca0ed2",
+      "result_blob": "7f4f75c1bb2be98af5fd4a576055fb0426896c33"
+    },
+    {
+      "old_path": "tests/Architecture/Contexts/Intelligence/Evidence/TransferEvidenceBoundaryTest.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Architecture/TransferEvidenceBoundaryTest.php",
+      "source_blob": "76fc2069205b5dba0d26f45e09666009be971864",
+      "result_blob": "9780c5bfa6bdf5134c569a7edf9ef01c8eb76756"
+    },
+    {
+      "old_path": "tests/Architecture/Contexts/Operations/Events/EventTypeOnboardingBoundaryTest.php",
+      "new_path": "tests/Contexts/Operations/Events/Architecture/EventTypeOnboardingBoundaryTest.php",
+      "source_blob": "92d714464f640c4774324d91424110811ee5bd8f",
+      "result_blob": "b1c720cef592287af47aad68d4f504747396c3f9"
+    },
+    {
+      "old_path": "tests/Architecture/Contexts/Platform/Integrations/PublishedIntegrationContractV3Test.php",
+      "new_path": "tests/Contexts/Platform/Integrations/Architecture/PublishedIntegrationContractV3Test.php",
+      "source_blob": "71a643b5468f52a05c9e30538b758e2ce99eb916",
+      "result_blob": "34503c1f7046a358bf829dc9951f966d03acb399"
+    },
+    {
+      "old_path": "tests/Architecture/Contexts/README.md",
+      "new_path": "tests/Contexts/README.md",
+      "source_blob": "4ca2365d3853de79f11eec940b3c6f2d8904c75d",
+      "result_blob": "bf919e31e92deafdd93e8b2e3818a6157a608e3c"
+    },
+    {
+      "old_path": "tests/Architecture/CrossContextPersistenceV3Test.php",
+      "new_path": "tests/System/Architecture/CrossContextPersistenceV3Test.php",
+      "source_blob": "538f67fe8c84cf645d6c0dd59c977ac3a1e286b8",
+      "result_blob": "e83e7780e91721d1d54e1a7cb22721c486c2d39a"
+    },
+    {
+      "old_path": "tests/Architecture/FinalSourceCertificationV3Test.php",
+      "new_path": "tests/System/Architecture/FinalSourceCertificationV3Test.php",
+      "source_blob": "00a9d583bc51053c9894a97c29bbd10202f85005",
+      "result_blob": "3223e30de1187f4f560d37f7f5abe5ec0b3f81a0"
+    },
+    {
+      "old_path": "tests/Architecture/NamespaceLocationV3Test.php",
+      "new_path": "tests/System/Architecture/NamespaceLocationV3Test.php",
+      "source_blob": "8318ad84ffe9fc4ffbe15392414b8f8e72317c2f",
+      "result_blob": "9dc79070d1e75187d44008269b258b7fdbbaa5a2"
+    },
+    {
+      "old_path": "tests/Architecture/PersistenceV3Test.php",
+      "new_path": "tests/System/Architecture/PersistenceV3Test.php",
+      "source_blob": "1b4abd7ffddbd98af31228e736b0b745fb528da4",
+      "result_blob": "04f7457e1c92e57773d392c7a5ae44ea4d25a09d"
+    },
+    {
+      "old_path": "tests/Architecture/PwaContractV3Test.php",
+      "new_path": "tests/System/Architecture/PwaContractV3Test.php",
+      "source_blob": "5f3d1fcf8a320a4c85a310f566f52043574d8232",
+      "result_blob": "b8d85fe0595854c51ae46605b06cc6e0a375736e"
+    },
+    {
+      "old_path": "tests/Architecture/ReadModels/AllianceAssistant/AllianceAssistantBoundaryTest.php",
+      "new_path": "tests/ReadModels/AllianceAssistant/Architecture/AllianceAssistantBoundaryTest.php",
+      "source_blob": "44f254c24716baa5181fb3f8c10141e13cb85755",
+      "result_blob": "d91bc7458008ba520bf698c1f07bc82356e31148"
+    },
+    {
+      "old_path": "tests/Architecture/ReadModels/EventManagement/EventCommandBoundaryTest.php",
+      "new_path": "tests/ReadModels/EventManagement/Architecture/EventCommandBoundaryTest.php",
+      "source_blob": "58ebdfe8ff3b6922f276fd8e283fcc84e1a1af8c",
+      "result_blob": "328d4337dd93afc8d5f3f7aa79ad4739d6888d7a"
+    },
+    {
+      "old_path": "tests/Architecture/ReadModels/IntelligenceSignals/IntelligenceChangeDetectionArchitectureV3Test.php",
+      "new_path": "tests/ReadModels/IntelligenceSignals/Architecture/IntelligenceChangeDetectionArchitectureV3Test.php",
+      "source_blob": "cb695a047acd8dbfbea59772088c4aaa4e5c0cbb",
+      "result_blob": "777d2ad0687129eea259f1549ef6e7b44073b2f3"
+    },
+    {
+      "old_path": "tests/Architecture/ReadModels/Progression/ProgressionDatasetAbsenceBoundaryV3Test.php",
+      "new_path": "tests/ReadModels/Progression/Architecture/ProgressionDatasetAbsenceBoundaryV3Test.php",
+      "source_blob": "1b2d256db242ca9cc1597579585ed772cd70e6c6",
+      "result_blob": "6cc865fadff3cca28eb8246c6407043fef0529df"
+    },
+    {
+      "old_path": "tests/Architecture/ReadModels/Progression/ProgressionPlannerBoundaryTest.php",
+      "new_path": "tests/ReadModels/Progression/Architecture/ProgressionPlannerBoundaryTest.php",
+      "source_blob": "d2be6f4e5467d0eb1fa4d1a103cb6a13e9c1d0b6",
+      "result_blob": "587c28a1585bae7a62d35290a7c54d9556dc40fe"
+    },
+    {
+      "old_path": "tests/Architecture/ReadModels/README.md",
+      "new_path": "tests/ReadModels/README.md",
+      "source_blob": "07f9b4685b82cd33dac58306f0bd870870d47d38",
+      "result_blob": "a19f46561409e5f6be441e9454a2b5b6281be4de"
+    },
+    {
+      "old_path": "tests/Architecture/SchedulerOwnershipV3Test.php",
+      "new_path": "tests/System/Architecture/SchedulerOwnershipV3Test.php",
+      "source_blob": "cf23f4b8b114474c5f990280a4a7fe81c20920f3",
+      "result_blob": "b5de8d2815951547a11de81c3613b2a0303e02bd"
+    },
+    {
+      "old_path": "tests/Architecture/ThinHttpAdaptersV3Test.php",
+      "new_path": "tests/System/Architecture/ThinHttpAdaptersV3Test.php",
+      "source_blob": "51421f8f8c66123e2e1eab5a32e0b19812677299",
+      "result_blob": "e59ae6eb0962a83ba20cef7fae920c15095e1619"
+    },
+    {
+      "old_path": "tests/Architecture/verify-behavior-contracts.php",
+      "new_path": "tests/System/Architecture/verify-behavior-contracts.php",
+      "source_blob": "0797c9b480f6accb6802ae071d446330156eedb4",
+      "result_blob": "9c01ff19bcd1e337e0122e27833e23e41382284a"
+    },
+    {
+      "old_path": "tests/Architecture/verify-final-source.php",
+      "new_path": "tests/System/Architecture/verify-final-source.php",
+      "source_blob": "cc20bb920475576e3f7d59489c31a816d2b7a34b",
+      "result_blob": "121421b7a69e3c5b4837b95934d181c9139149d3"
+    },
+    {
+      "old_path": "tests/Architecture/verify-persistence.php",
+      "new_path": "tests/System/Architecture/verify-persistence.php",
+      "source_blob": "ac3646ab5b56799523ca81e3209eb3a0b805f378",
+      "result_blob": "72a2332e5406e58edfb1dbad45cd496572824253"
+    },
+    {
+      "old_path": "tests/Architecture/verify.php",
+      "new_path": "tests/System/Architecture/verify.php",
+      "source_blob": "777c328bafec3dbb4d6beccec278f4833c247ffc",
+      "result_blob": "2fa1d9de537d4a2a705065b7cf2ab3a8bc40f9b8"
+    },
+    {
+      "old_path": "tests/Browser/Acceptance/CapabilityAcceptanceMatrix.spec.ts",
+      "new_path": "tests/System/Acceptance/Browser/CapabilityAcceptanceMatrix.spec.ts",
+      "source_blob": "40ed3549b8fe3e435ef0181ac8406edd987f2cee",
+      "result_blob": "40ed3549b8fe3e435ef0181ac8406edd987f2cee"
+    },
+    {
+      "old_path": "tests/Browser/Contexts/Alliance/Access/AllianceRoleManagement.spec.ts",
+      "new_path": "tests/Contexts/Alliance/Access/Browser/AllianceRoleManagement.spec.ts",
+      "source_blob": "daa999f93b4b44ae9883ac7edff0b37db428731c",
+      "result_blob": "daa999f93b4b44ae9883ac7edff0b37db428731c"
+    },
+    {
+      "old_path": "tests/Browser/Contexts/Alliance/Content/AllianceContentGameParity.spec.ts",
+      "new_path": "tests/Contexts/Alliance/Content/Browser/AllianceContentGameParity.spec.ts",
+      "source_blob": "d211e14341028a64bc191c8ca3e09fcfa45c35eb",
+      "result_blob": "d211e14341028a64bc191c8ca3e09fcfa45c35eb"
+    },
+    {
+      "old_path": "tests/Browser/Contexts/GameWorld/KingdomTransfers/KingdomTransferPlanning.spec.ts",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Browser/KingdomTransferPlanning.spec.ts",
+      "source_blob": "f5b92114b3601c0284c9844d68b4bd00ad53f79c",
+      "result_blob": "f5b92114b3601c0284c9844d68b4bd00ad53f79c"
+    },
+    {
+      "old_path": "tests/Browser/README.md",
+      "new_path": "docs/codebase/browser-testing.md",
+      "source_blob": "43ec21838489f66692d2fb397bf2a1b582c32c0a",
+      "result_blob": "a6789fcc7cd506079f6b5a09eb9d11e2d984dfd5"
+    },
+    {
+      "old_path": "tests/Browser/ReadModels/AllianceAssistant/AllianceAssistant.spec.ts",
+      "new_path": "tests/ReadModels/AllianceAssistant/Browser/AllianceAssistant.spec.ts",
+      "source_blob": "6fe2a09a6fa82fb2194e908b70a1029d86f81b69",
+      "result_blob": "6fe2a09a6fa82fb2194e908b70a1029d86f81b69"
+    },
+    {
+      "old_path": "tests/Browser/ReadModels/EventAnalysis/BearHuntDebrief.spec.ts",
+      "new_path": "tests/ReadModels/EventAnalysis/Browser/BearHuntDebrief.spec.ts",
+      "source_blob": "91aa7741eb3a2e15e082c04bf4714cc71a8fe855",
+      "result_blob": "91aa7741eb3a2e15e082c04bf4714cc71a8fe855"
+    },
+    {
+      "old_path": "tests/Browser/ReadModels/EventManagement/EventCommand.spec.ts",
+      "new_path": "tests/ReadModels/EventManagement/Browser/EventCommand.spec.ts",
+      "source_blob": "b6f75ec34a875467847a3c28c24e15b4e123e1f1",
+      "result_blob": "b6f75ec34a875467847a3c28c24e15b4e123e1f1"
+    },
+    {
+      "old_path": "tests/Browser/ReadModels/GiftCodes/GiftCodes.spec.ts",
+      "new_path": "tests/ReadModels/GiftCodes/Browser/GiftCodes.spec.ts",
+      "source_blob": "fac146098bd611597a07fafc99fd0c45b3ec46fd",
+      "result_blob": "fac146098bd611597a07fafc99fd0c45b3ec46fd"
+    },
+    {
+      "old_path": "tests/Browser/ReadModels/Progression/FactualProgression.spec.ts",
+      "new_path": "tests/ReadModels/Progression/Browser/FactualProgression.spec.ts",
+      "source_blob": "99e561ff46e410b290c2e4417741a0faea6fbe7c",
+      "result_blob": "99e561ff46e410b290c2e4417741a0faea6fbe7c"
+    },
+    {
+      "old_path": "tests/Browser/ReadModels/RecruitmentManagement/RecruitmentCandidateCollections.spec.ts",
+      "new_path": "tests/ReadModels/RecruitmentManagement/Browser/RecruitmentCandidateCollections.spec.ts",
+      "source_blob": "8dd157333192a1673bdc01bb3471a0e126eb96de",
+      "result_blob": "8dd157333192a1673bdc01bb3471a0e126eb96de"
+    },
+    {
+      "old_path": "tests/Browser/ReadModels/RecruitmentManagement/RecruitmentCataloguePagination.spec.ts",
+      "new_path": "tests/ReadModels/RecruitmentManagement/Browser/RecruitmentCataloguePagination.spec.ts",
+      "source_blob": "ef18373278054173da187912a2942c7dfdc3ec7f",
+      "result_blob": "ef18373278054173da187912a2942c7dfdc3ec7f"
+    },
+    {
+      "old_path": "tests/Browser/ReadModels/RecruitmentManagement/RecruitmentConfigurationInput.spec.ts",
+      "new_path": "tests/ReadModels/RecruitmentManagement/Browser/RecruitmentConfigurationInput.spec.ts",
+      "source_blob": "e6fbe6d7bf85853f8fd8cdfd9e5eda9296384067",
+      "result_blob": "e6fbe6d7bf85853f8fd8cdfd9e5eda9296384067"
+    },
+    {
+      "old_path": "tests/Browser/ReadModels/RecruitmentManagement/RecruitmentHistoryPagination.spec.ts",
+      "new_path": "tests/ReadModels/RecruitmentManagement/Browser/RecruitmentHistoryPagination.spec.ts",
+      "source_blob": "99e7bc3d632c8c9add5c46e1bcc1a9a435042edb",
+      "result_blob": "99e7bc3d632c8c9add5c46e1bcc1a9a435042edb"
+    },
+    {
+      "old_path": "tests/Browser/ReadModels/Roster/MembershipHistoryPagination.spec.ts",
+      "new_path": "tests/ReadModels/Roster/Browser/MembershipHistoryPagination.spec.ts",
+      "source_blob": "d3179383dfdb3a557f2f1aaa186d71573c4694f1",
+      "result_blob": "d3179383dfdb3a557f2f1aaa186d71573c4694f1"
+    },
+    {
+      "old_path": "tests/Browser/ReadModels/ScreenshotIntake/ScreenshotIntake.spec.ts",
+      "new_path": "tests/ReadModels/ScreenshotIntake/Browser/ScreenshotIntake.spec.ts",
+      "source_blob": "cab9e32be25ec654871098217e172dfdad6a441e",
+      "result_blob": "cab9e32be25ec654871098217e172dfdad6a441e"
+    },
+    {
+      "old_path": "tests/Browser/ReadModels/TerritoryPlanning/TerritoryPlanner.spec.ts",
+      "new_path": "tests/ReadModels/TerritoryPlanning/Browser/TerritoryPlanner.spec.ts",
+      "source_blob": "148a23a5e453193ea90381d4718af36e1c15bf28",
+      "result_blob": "148a23a5e453193ea90381d4718af36e1c15bf28"
+    },
+    {
+      "old_path": "tests/Browser/Shared/ApplicationShell.spec.ts",
+      "new_path": "tests/Shared/ApplicationShell/Browser/ApplicationShell.spec.ts",
+      "source_blob": "1ffb770b8da8c9c44629946d78a0e7f04e5fb813",
+      "result_blob": "1ffb770b8da8c9c44629946d78a0e7f04e5fb813"
+    },
+    {
+      "old_path": "tests/Browser/__screenshots__/Shared/ApplicationShell.spec.ts/desktop/governor-switcher-open.png",
+      "new_path": "tests/Shared/ApplicationShell/Browser/__screenshots__/ApplicationShell.spec.ts/desktop/governor-switcher-open.png",
+      "source_blob": "90d8ed4db14b094e2ae3b6960e331224814dcc64",
+      "result_blob": "90d8ed4db14b094e2ae3b6960e331224814dcc64"
+    },
+    {
+      "old_path": "tests/Browser/__screenshots__/Shared/ApplicationShell.spec.ts/desktop/home-active-governor.png",
+      "new_path": "tests/Shared/ApplicationShell/Browser/__screenshots__/ApplicationShell.spec.ts/desktop/home-active-governor.png",
+      "source_blob": "f91d53d98567825d8b09ad19d56f1af2f2f59b95",
+      "result_blob": "f91d53d98567825d8b09ad19d56f1af2f2f59b95"
+    },
+    {
+      "old_path": "tests/Browser/__screenshots__/Shared/ApplicationShell.spec.ts/desktop/home-select-governor.png",
+      "new_path": "tests/Shared/ApplicationShell/Browser/__screenshots__/ApplicationShell.spec.ts/desktop/home-select-governor.png",
+      "source_blob": "d53cb8072eb1887740ac30091158624120c4f26c",
+      "result_blob": "d53cb8072eb1887740ac30091158624120c4f26c"
+    },
+    {
+      "old_path": "tests/Browser/__screenshots__/Shared/ApplicationShell.spec.ts/desktop/home.png",
+      "new_path": "tests/Shared/ApplicationShell/Browser/__screenshots__/ApplicationShell.spec.ts/desktop/home.png",
+      "source_blob": "c4b11fd9cb5cbbf85ad3484de7f27a5da3fa8105",
+      "result_blob": "c4b11fd9cb5cbbf85ad3484de7f27a5da3fa8105"
+    },
+    {
+      "old_path": "tests/Browser/__screenshots__/Shared/ApplicationShell.spec.ts/desktop/registration.png",
+      "new_path": "tests/Shared/ApplicationShell/Browser/__screenshots__/ApplicationShell.spec.ts/desktop/registration.png",
+      "source_blob": "7756869f9489d14efdcec1c83cd9dc926b1b1f27",
+      "result_blob": "7756869f9489d14efdcec1c83cd9dc926b1b1f27"
+    },
+    {
+      "old_path": "tests/Browser/__screenshots__/Shared/ApplicationShell.spec.ts/desktop/sign-in.png",
+      "new_path": "tests/Shared/ApplicationShell/Browser/__screenshots__/ApplicationShell.spec.ts/desktop/sign-in.png",
+      "source_blob": "b461625b19609e99ac099fa9b4ef8927cb77fb1c",
+      "result_blob": "b461625b19609e99ac099fa9b4ef8927cb77fb1c"
+    },
+    {
+      "old_path": "tests/Browser/__screenshots__/Shared/ApplicationShell.spec.ts/mobile/governor-switcher-open.png",
+      "new_path": "tests/Shared/ApplicationShell/Browser/__screenshots__/ApplicationShell.spec.ts/mobile/governor-switcher-open.png",
+      "source_blob": "3d254d6be4201233c8265caa255db417cb5c3f3f",
+      "result_blob": "3d254d6be4201233c8265caa255db417cb5c3f3f"
+    },
+    {
+      "old_path": "tests/Browser/__screenshots__/Shared/ApplicationShell.spec.ts/mobile/home-active-governor.png",
+      "new_path": "tests/Shared/ApplicationShell/Browser/__screenshots__/ApplicationShell.spec.ts/mobile/home-active-governor.png",
+      "source_blob": "148760cfb0a2c781c3da35c00653f50317d5cfa7",
+      "result_blob": "148760cfb0a2c781c3da35c00653f50317d5cfa7"
+    },
+    {
+      "old_path": "tests/Browser/__screenshots__/Shared/ApplicationShell.spec.ts/mobile/home-select-governor.png",
+      "new_path": "tests/Shared/ApplicationShell/Browser/__screenshots__/ApplicationShell.spec.ts/mobile/home-select-governor.png",
+      "source_blob": "93cf796516b0fb432ddab4fad12840a63b548424",
+      "result_blob": "93cf796516b0fb432ddab4fad12840a63b548424"
+    },
+    {
+      "old_path": "tests/Browser/__screenshots__/Shared/ApplicationShell.spec.ts/mobile/home.png",
+      "new_path": "tests/Shared/ApplicationShell/Browser/__screenshots__/ApplicationShell.spec.ts/mobile/home.png",
+      "source_blob": "c96981b5fa6665033a72dba5f4089f91f13398b6",
+      "result_blob": "c96981b5fa6665033a72dba5f4089f91f13398b6"
+    },
+    {
+      "old_path": "tests/Browser/__screenshots__/Shared/ApplicationShell.spec.ts/mobile/registration.png",
+      "new_path": "tests/Shared/ApplicationShell/Browser/__screenshots__/ApplicationShell.spec.ts/mobile/registration.png",
+      "source_blob": "96f35bbaa37e7790d27ba78fefd6267c135797c5",
+      "result_blob": "96f35bbaa37e7790d27ba78fefd6267c135797c5"
+    },
+    {
+      "old_path": "tests/Browser/__screenshots__/Shared/ApplicationShell.spec.ts/mobile/sign-in.png",
+      "new_path": "tests/Shared/ApplicationShell/Browser/__screenshots__/ApplicationShell.spec.ts/mobile/sign-in.png",
+      "source_blob": "3aa2af3390e2e5c072a4b0ff7f332a759a146f90",
+      "result_blob": "3aa2af3390e2e5c072a4b0ff7f332a759a146f90"
+    },
+    {
+      "old_path": "tests/Feature/Acceptance/CapabilityReadModelBudgetAndTelemetryV3Test.php",
+      "new_path": "tests/System/Acceptance/Feature/CapabilityReadModelBudgetAndTelemetryV3Test.php",
+      "source_blob": "d8954e4b0042f2595f956b9df9a2a7bfed73ce08",
+      "result_blob": "5b2dabd3037743fbe7e899f7fffb2352a7b3cba1"
+    },
+    {
+      "old_path": "tests/Feature/Acceptance/CapabilitySurfaceHttpMatrixV3Test.php",
+      "new_path": "tests/System/Acceptance/Feature/CapabilitySurfaceHttpMatrixV3Test.php",
+      "source_blob": "1a75a0a0af9750e4d8693b72e72a7dbc740302bb",
+      "result_blob": "a31f7bb7ecbc34128d9fe273fccbc9779efee59a"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Authentication/AccountSessionV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Feature/AccountSessionV3Test.php",
+      "source_blob": "bba6c41dca08220d5092514f5ebbd90927d126b1",
+      "result_blob": "10f659d9352053d47861b7f42728b862f5ca6d1f"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Authentication/CredentialMutationV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Feature/CredentialMutationV3Test.php",
+      "source_blob": "383c652b22363d31b3d521e0ed9dde29d998882e",
+      "result_blob": "6e800cef7614e2e1fccc6319ee66616e6446b9ec"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Authentication/CredentialSecurityIntentAtomicityV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Feature/CredentialSecurityIntentAtomicityV3Test.php",
+      "source_blob": "f3c9877a61025efd131d59558b9da7a79310664a",
+      "result_blob": "e17f05ed13c8ad30bc165e29987df065621729f7"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Authentication/GoogleAuthenticationV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Feature/GoogleAuthenticationV3Test.php",
+      "source_blob": "4b00789db7797a5b0a3763eeb408b9c72ba13606",
+      "result_blob": "420214177a19bc6b33e62d873ee332ac5dda0777"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Authentication/GoogleCredentialAtomicityV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Feature/GoogleCredentialAtomicityV3Test.php",
+      "source_blob": "3d7a1b64cd0f279f50db339a7c33119aea72f88c",
+      "result_blob": "a0b6772dfa4d3b9710239dd51f1f7235eec837c6"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Authentication/PasskeySecurityIntentAtomicityV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Feature/PasskeySecurityIntentAtomicityV3Test.php",
+      "source_blob": "64b233ed729fb4175c2fd83d2ebe048ee401ddd7",
+      "result_blob": "1899b9ef4674954050d42d90ccdd54ee93619533"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Authentication/PasskeySecurityV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Feature/PasskeySecurityV3Test.php",
+      "source_blob": "3a9d07c04b8be24c1417c5b314016333f23afe06",
+      "result_blob": "2c00e3bdb02159b54e0d08de896585853b6f1ac0"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Authentication/PasswordProofThrottleV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Feature/PasswordProofThrottleV3Test.php",
+      "source_blob": "38457eb68d335b65ae5b2d6826bd28d630c97130",
+      "result_blob": "c6096383189fe080f8113b47ed6c6bdbd6d4fbd7"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Authentication/RecentAuthenticationV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Feature/RecentAuthenticationV3Test.php",
+      "source_blob": "c8626f6995669fa1e864e4674aa4558570e6019e",
+      "result_blob": "4532ec171ab8220dd295c111e97e1948afa445b1"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Authentication/SignInMethodPolicyV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Feature/SignInMethodPolicyV3Test.php",
+      "source_blob": "02480323e458b5f579e2b357a9105f8001babacb",
+      "result_blob": "e91899126db76d5ecf5b9e43fe7ae8bd8433ef7b"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Credentials/PasswordAuthenticationBoundaryV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Credentials/Feature/PasswordAuthenticationBoundaryV3Test.php",
+      "source_blob": "eddf2d0b81d9a7808e789e84f293235a9f29ac00",
+      "result_blob": "1f537328ee0a12b275e3956f27b9768ef15d22d4"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/EmailVerification/AccountSecurityMailRenderingV3Test.php",
+      "new_path": "tests/Contexts/Accounts/EmailVerification/Feature/AccountSecurityMailRenderingV3Test.php",
+      "source_blob": "162237696f35895d570af5b539f6723d0b43e5b6",
+      "result_blob": "51b8c42c0721d857ba9d5d929343eb3acd29de5f"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/MultiFactorAuthentication/MfaEnrollmentV3Test.php",
+      "new_path": "tests/Contexts/Accounts/MultiFactorAuthentication/Feature/MfaEnrollmentV3Test.php",
+      "source_blob": "54c6d21127c9fb90fc38d366f79ef26c67353aed",
+      "result_blob": "05b0894b4f084da2bcc73383e8f88fbc059655fb"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Profile/AccountsSecurityCloseoutV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Profile/Feature/AccountsSecurityCloseoutV3Test.php",
+      "source_blob": "ef769818871b26967430acaa4e445079d2408cea",
+      "result_blob": "6669b95b75a6db0f6dc019a44af643c6d0b7ad96"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Profile/EmailChangeThrottleV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Profile/Feature/EmailChangeThrottleV3Test.php",
+      "source_blob": "72111b24178898c15ddfcd79d3ca15523a3e1781",
+      "result_blob": "3d75b4b6e1d34e455247f79ba5013b7e12581dbc"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Profile/ProfileCredentialQueryBudgetV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Profile/Feature/ProfileCredentialQueryBudgetV3Test.php",
+      "source_blob": "1d7150ea48dc96ca19484a3e93796d07de132ada",
+      "result_blob": "5051d5d09f158f4d189d3e177137234bb72144b7"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Accounts/Registration/AccountRegistrationBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Registration/Feature/AccountRegistrationBehaviorV3Test.php",
+      "source_blob": "172e84142a7a767fbda7b54bf27db0846086eaba",
+      "result_blob": "7bb484845f090d915d0a933d5f65fc6ab88efa76"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Access/AllianceAuthorityIsolationV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Access/Feature/AllianceAuthorityIsolationV3Test.php",
+      "source_blob": "801976383026b660b2fc0822c4523f4a6f1c76e8",
+      "result_blob": "23b481afc4cc5f768dd54ece8d3e43476aefbb8c"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Access/AllianceDelegationBoundaryV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Access/Feature/AllianceDelegationBoundaryV3Test.php",
+      "source_blob": "8f057ad8c5890b9bab081482de25a5978f6b9d54",
+      "result_blob": "43e55961c79f63101932d785acf0f5cf1d17e789"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Access/AllianceRoleAdministrationBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Access/Feature/AllianceRoleAdministrationBehaviorV3Test.php",
+      "source_blob": "8067613384eae21760145eba0b2094456e3f85f1",
+      "result_blob": "ae727c5d22d5fe97d3364ab876b38b9cabef5cb0"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Access/AllianceRoleArchivePayloadV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Access/Feature/AllianceRoleArchivePayloadV3Test.php",
+      "source_blob": "b93f98d55230f4a9ea402da1c45f30c53f36ff97",
+      "result_blob": "0120d8a139ec175902defba689ce901e90b16522"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Access/AllianceRoleCatalogV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Access/Feature/AllianceRoleCatalogV3Test.php",
+      "source_blob": "9c704083820f9b791144dcc0ff1eb94dcf3ba4f2",
+      "result_blob": "cdeffb7337218f7e6a59b91a7cb66fc3672b6483"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Access/AllianceRoleInputBoundaryV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Access/Feature/AllianceRoleInputBoundaryV3Test.php",
+      "source_blob": "9b112c1607a1a93f0ad9e26f7e5fa4fd062c6915",
+      "result_blob": "178f17005ec77d6d20b74de208d9cb7707a1d27c"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Access/AllianceRoleRemovalRetryV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Access/Feature/AllianceRoleRemovalRetryV3Test.php",
+      "source_blob": "f60688769dfbab1315918bf916ac02e128c1b967",
+      "result_blob": "e3107a5a3f80dd828c93b8de59c11d0b68f921f8"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Content/AllianceAnnouncementBroadcastBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Content/Feature/AllianceAnnouncementBroadcastBehaviorV3Test.php",
+      "source_blob": "df4a731ad980d4353b7628c4e60eb7e513cb605b",
+      "result_blob": "fecd865257cc78fc7f07e2f9d055bd042d323259"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Content/AllianceContentGameParityBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Content/Feature/AllianceContentGameParityBehaviorV3Test.php",
+      "source_blob": "858df3623bd9883f0e54aff0f7e33cf760d328da",
+      "result_blob": "60ecc693c7417062abfde7bd8c36e88d8a40dc7a"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Content/AllianceNoticeReactionHttpBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Content/Feature/AllianceNoticeReactionHttpBehaviorV3Test.php",
+      "source_blob": "ee6c508befef7bb98b707caa6fe9ef77f9e55bad",
+      "result_blob": "71a6173787074ea833c87e3864627f452fafc5ed"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Content/AllianceNoticeReactionTargetValidationV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Content/Feature/AllianceNoticeReactionTargetValidationV3Test.php",
+      "source_blob": "ad52d587041eee67889b1d8ec8a2b8cee0c21352",
+      "result_blob": "0077605b885386f271b4ec0bb44b338d346a7bf0"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Content/AllianceRulesHttpBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Content/Feature/AllianceRulesHttpBehaviorV3Test.php",
+      "source_blob": "211ea8fbd0ae476affc0e8153b65e6e5c1d4d21f",
+      "result_blob": "0f4cbff7760f741ee59c74b031baa8ae52540d83"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Content/AllianceRulesOwnerValidationV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Content/Feature/AllianceRulesOwnerValidationV3Test.php",
+      "source_blob": "67e07658400137b93667871e72ed3c9948a07fb0",
+      "result_blob": "ab285a7b758c2b6a6df9f469611bf5267949d73e"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Content/AllianceRulesOwnershipBoundaryV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Content/Feature/AllianceRulesOwnershipBoundaryV3Test.php",
+      "source_blob": "85deabb6aa8cf8285f144ff86ed2ed0c8e39c98b",
+      "result_blob": "75ceadbff90ab1d8f43cebced8bf43f38769fc0d"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Content/ContentProvenanceBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Content/Feature/ContentProvenanceBehaviorV3Test.php",
+      "source_blob": "ae32753005fcdf095ff16f9f6a8c6e5142ef42e4",
+      "result_blob": "0b6154cf612c2d7afe359d734a61a3a8bae4aabf"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Content/NoticeReactionSummaryPerformanceV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Content/Feature/NoticeReactionSummaryPerformanceV3Test.php",
+      "source_blob": "29175717e2cfb53555cb8443b2c91f6452d6696a",
+      "result_blob": "6ae7b1e9aec6e07f82302eaeffa730c993e305ed"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Lifecycle/AllianceLifecycleBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Lifecycle/Feature/AllianceLifecycleBehaviorV3Test.php",
+      "source_blob": "2ec93928f6ea9a9a3611f801f153678a0ab65493",
+      "result_blob": "38c3f1d82e2044949fcb4b72831415582b4d550c"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Lifecycle/AllianceSettingsBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Lifecycle/Feature/AllianceSettingsBehaviorV3Test.php",
+      "source_blob": "af2ecc01e303fbc2dc3ae9a2cf0f6b5f1fb36cd0",
+      "result_blob": "be75a7eae00d092dfef506bea5940c3efe7e6640"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Lifecycle/AllianceSettingsInputBoundaryV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Lifecycle/Feature/AllianceSettingsInputBoundaryV3Test.php",
+      "source_blob": "44b4be5950fd28a6a8e4c38d0d2ce88357f93412",
+      "result_blob": "2b5bb8b857b1cc71e899d6dc9e207b960d59cda7"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Membership/AllianceBulkAdministrationBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Membership/Feature/AllianceBulkAdministrationBehaviorV3Test.php",
+      "source_blob": "b4de085e7c0d9f0407a57ff17f72948d182cf0e9",
+      "result_blob": "e214211b4e563665ab72ec33581e063454d18bf8"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Membership/MemberCapacityPolicyBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Membership/Feature/MemberCapacityPolicyBehaviorV3Test.php",
+      "source_blob": "4dfa50d95e87db3b39e6d04708a895eb8da7930e",
+      "result_blob": "fde0570a21213833860af61be3919158833a66f8"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Membership/MembershipBulkStatusBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Membership/Feature/MembershipBulkStatusBehaviorV3Test.php",
+      "source_blob": "b8a2124233fae73fe8a48b2d00d539fca224b2dd",
+      "result_blob": "6bfe2c583e83b7c39e4d5abc59501310cc4841d4"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Recruitment/RecruitmentApplicationAnswerBoundsV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Recruitment/Feature/RecruitmentApplicationAnswerBoundsV3Test.php",
+      "source_blob": "f8927290fe60760087d034371dcffbe583fb991b",
+      "result_blob": "56b9175dbd5f950894b1e1112231334d5618e740"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Recruitment/RecruitmentBulkStageBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Recruitment/Feature/RecruitmentBulkStageBehaviorV3Test.php",
+      "source_blob": "ec76d3df7e79f7ab37a0f47ce76b0b66ec8d3aac",
+      "result_blob": "004da0fd661a6970d869f359f1a05deaaefa2571"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Recruitment/RecruitmentConfigurationInputV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Recruitment/Feature/RecruitmentConfigurationInputV3Test.php",
+      "source_blob": "42b74beb1ae2174c0eb6b81b2e306f5557946ed6",
+      "result_blob": "eb0193255195d00e8380b0749c1c4b83f5bbfa8e"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Recruitment/RecruitmentReentryBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Recruitment/Feature/RecruitmentReentryBehaviorV3Test.php",
+      "source_blob": "8011f7825acc624a8e832b0cf02e911239411ef9",
+      "result_blob": "430146ac9192f3555e8128c69a553be1d1afd367"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Alliance/Recruitment/RecruitmentTextBoundaryV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Recruitment/Feature/RecruitmentTextBoundaryV3Test.php",
+      "source_blob": "fe7784c3226afd397ee8d9156370a19fad14837d",
+      "result_blob": "2eab96313b9707f0aacc36389d293faab1dad829"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Communications/Delivery/CommunicationsRecipientDeliveryAcceptanceV3Test.php",
+      "new_path": "tests/Contexts/Communications/Delivery/Feature/CommunicationsRecipientDeliveryAcceptanceV3Test.php",
+      "source_blob": "94ced0ed934156a113d5c4246f4b736d7badf997",
+      "result_blob": "3a0403789ace8a2957092311c37432a6c1db426f"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Communications/Delivery/NotificationDeliveryBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Communications/Delivery/Feature/NotificationDeliveryBehaviorV3Test.php",
+      "source_blob": "a8fcfa288fe487eb76cbb4a9418faedfe62f8dc4",
+      "result_blob": "aa559b872899a8029e6a9db858aff8c4a382463b"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Communications/Delivery/NotificationRouteReplayV3Test.php",
+      "new_path": "tests/Contexts/Communications/Delivery/Feature/NotificationRouteReplayV3Test.php",
+      "source_blob": "e84d4cb4ef158e52214e27b526e2435f3f5a9e71",
+      "result_blob": "92bdfe4cf6be714843611faeefc15ee2a00fed0b"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeAllianceCoverageV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodeAllianceCoverageV3Test.php",
+      "source_blob": "7232f9c862527a895a584c9191dbf55954872b60",
+      "result_blob": "c0677ee38ce49bf2dfecf7cc6a1a3d9cc3f38c21"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeBehaviorV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodeBehaviorV3Test.php",
+      "source_blob": "2dee6da989f314c366daf9095418881ff993b57c",
+      "result_blob": "478823f12fe9e16221e9acbf2878c426e97b0d3f"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeModerationHttpV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodeModerationHttpV3Test.php",
+      "source_blob": "c966ca75086457ba7af03b133e07b6a08af46100",
+      "result_blob": "a5c7a1673a52719c3e313678416e5bd6c26a2921"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeProviderFailureMatrixV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodeProviderFailureMatrixV3Test.php",
+      "source_blob": "2c1dcca160879b5baad2875520a62e64319d781e",
+      "result_blob": "569a3596a6fbd3c1f91ebc260665225ac30c0160"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodePullAdapterConformanceV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodePullAdapterConformanceV3Test.php",
+      "source_blob": "a6953ccf24255930d4c75d16bcc3e4ef9e42498e",
+      "result_blob": "02c08c670313eb0d5134b4207f44bf1305be9dc4"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodePushTransportConformanceV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodePushTransportConformanceV3Test.php",
+      "source_blob": "1e9aabc3530755372412451854ded12a346e3de0",
+      "result_blob": "519f90a69d88eef5a3eafd78ac331272b60174b4"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeRedemptionWorkspaceV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodeRedemptionWorkspaceV3Test.php",
+      "source_blob": "efac2f5bc648b3166f6c5c343b96d0fb9f0c4d22",
+      "result_blob": "98af899f40665a5f07bad4c7dade96246a5acbff"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeReminderOccurrenceV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodeReminderOccurrenceV3Test.php",
+      "source_blob": "22c02fdcf6928f2c4966ce632486ba9ae468a6c1",
+      "result_blob": "e68b2d31b48f445e49dce9d2c29a4d408b0b08d8"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeResearchBackedAcquisitionV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodeResearchBackedAcquisitionV3Test.php",
+      "source_blob": "f520fdd028656c19cf15ed47a11b2dfd29a86e88",
+      "result_blob": "2fa43765ef8f9b7b901cd75d73d34b08850ec1d3"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeResearchedPlatformAdaptersV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodeResearchedPlatformAdaptersV3Test.php",
+      "source_blob": "8e3d052640d8faf71adb85afb2875844e71cbbd7",
+      "result_blob": "4b3ee6c1838a07e33d7f2bf5bd9b783cc263e1cc"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeResearchedSourceAdaptersV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodeResearchedSourceAdaptersV3Test.php",
+      "source_blob": "b4f2f3807d1d4bfb02a8be3f0221f9859390fd9c",
+      "result_blob": "2ac3587992af8b6f5cec92d7e1954bb58816c0a2"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeSessionAcceptanceV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodeSessionAcceptanceV3Test.php",
+      "source_blob": "4b0a4f36eacee9469232a9915b6b495a744656ee",
+      "result_blob": "1c81fc7cc8f44d65bf4155212a317e796ad3034f"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeSourceAcquisitionHardeningV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodeSourceAcquisitionHardeningV3Test.php",
+      "source_blob": "e0b78202fef9db26d86fc93158de4d1180f28529",
+      "result_blob": "9bb0068ae10334ba9278d7906e3f744fc6e2c74b"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeSourceAdaptersV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodeSourceAdaptersV3Test.php",
+      "source_blob": "ca3df401e83ea06e0d1e5507291cd20ccc652726",
+      "result_blob": "a26433b86ff57cb5405aa4f84f49ef75dadbd763"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeWorkspaceV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/GiftCodes/Feature/GiftCodeWorkspaceV3Test.php",
+      "source_blob": "db134b6de0433bd213e0cb2ed56d2343c8c47d51",
+      "result_blob": "5e5543f737836a3e9e5e578c3a1447ce5c7b1f54"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Governance/KingdomAdministratorRecoveryV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Governance/Feature/KingdomAdministratorRecoveryV3Test.php",
+      "source_blob": "8d6380d0eb46272d7a4db7adf47e3d4fd362b605",
+      "result_blob": "252619683d321ea9a71929cd6413967fe7901bc2"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Governance/KingdomGovernanceAdministrationV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Governance/Feature/KingdomGovernanceAdministrationV3Test.php",
+      "source_blob": "aa68465a247318d1f1b6da0af68b9d541458cd4c",
+      "result_blob": "e44f17eb365ecd93f70e555f6046afa8d22baee7"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Governance/KingdomGovernanceBehaviorV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Governance/Feature/KingdomGovernanceBehaviorV3Test.php",
+      "source_blob": "f456f65f179e883a9f48eecfda10cf2dc04d147a",
+      "result_blob": "39708331a71a74f19a7639fbcaf1ce20aea0c84c"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Governance/KingdomPermissionReconciliationV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Governance/Feature/KingdomPermissionReconciliationV3Test.php",
+      "source_blob": "890d6fa1d8035d9b7d40da5cf8a2d11d713116bb",
+      "result_blob": "7b011d684e810545b543372503d883bca1bced19"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/KingdomMaps/KingdomMapDatasetV2Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomMaps/Feature/KingdomMapDatasetV2Test.php",
+      "source_blob": "fee0c932b63cda959e4f2ce5186cfbf402982869",
+      "result_blob": "6f1ff1881fc6e76d70c135f5c12ef6f11c2faebc"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/KingdomMaps/KingdomMapGeometryParityV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomMaps/Feature/KingdomMapGeometryParityV3Test.php",
+      "source_blob": "6babdc9aae825f4960fbc577d5ef5bad68440ce2",
+      "result_blob": "0653639e06333cf2b15bf4c756e3ecfe0247ac4e"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferCompletionCapacityReconciliationV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Feature/TransferCompletionCapacityReconciliationV3Test.php",
+      "source_blob": "630cf26fa6d95e71db4f6ae30e7ebbf346cf85b7",
+      "result_blob": "c8cbb9e202e0c261fc7333acd92fe4e6029a9d1d"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferEligibilityEvidenceBoundsV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Feature/TransferEligibilityEvidenceBoundsV3Test.php",
+      "source_blob": "fe89130aa2e707199c72dd3de1cbf65a8b0b74bb",
+      "result_blob": "5d41242df519303230b7f02a3faf0e1a4bfd5714"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferEvidenceDestinationV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Feature/TransferEvidenceDestinationV3Test.php",
+      "source_blob": "fc2f7d9b26bedce5629796f54c4e1fc42775e6d2",
+      "result_blob": "f787385e816de4225f1e1905e9a6cd43f1194140"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferEvidenceReferenceGuardTest.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Feature/TransferEvidenceReferenceGuardTest.php",
+      "source_blob": "4ff0c1e600ac42a5cbbc32161fd0b4f99ed840f4",
+      "result_blob": "20730c8177d393e44be20b09cc4dbd914efbd901"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferObservationSelectorBooleanV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Feature/TransferObservationSelectorBooleanV3Test.php",
+      "source_blob": "30f06e648c1bb88e1efe431b52c96899dc416c7e",
+      "result_blob": "cc7930eb2af5440e5c8f027252c24619c4d3fa50"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferPlanningBehaviorV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Feature/TransferPlanningBehaviorV3Test.php",
+      "source_blob": "cc8b9e5ffb56371da54693394e75ac07bc9de6b4",
+      "result_blob": "b4d901db7ccd989ff844eec2ad6da2eafd57ba10"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferPlanningCompletenessV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Feature/TransferPlanningCompletenessV3Test.php",
+      "source_blob": "2879d30c132e2e9b69163ae48bf1b7bb39794dc1",
+      "result_blob": "c46cff0e558c84d0ceb6447585810bddd4683e42"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferPlanningContractV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Feature/TransferPlanningContractV3Test.php",
+      "source_blob": "2ebceb5e3a42f1e6615db0cd53cb5cd6b40b85d5",
+      "result_blob": "1c597a7e1d5df556d4a39d2bccaf8538cd1c4438"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferSelfEligibilityQueryV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Feature/TransferSelfEligibilityQueryV3Test.php",
+      "source_blob": "ee080110fca48e0fa0d2efaf8635ebbabc0c23c6",
+      "result_blob": "2fa0ff8e3f372a589da1883b224cc636609b95cf"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Kingdoms/KingdomAllianceReconciliationBehaviorV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Kingdoms/Feature/KingdomAllianceReconciliationBehaviorV3Test.php",
+      "source_blob": "de327314c379269662f20c8ee9a2eb991a1d4ff6",
+      "result_blob": "eb4f26fbb7994f53c1d4fd266c3a3a2d8a040257"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Kingdoms/KingdomArchivalScalingV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Kingdoms/Feature/KingdomArchivalScalingV3Test.php",
+      "source_blob": "8d95a03f107ff1c48897f1a1aa26713963fa00f2",
+      "result_blob": "6053dce6608cc1d8e4b54a478a919ea0261edbbf"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Kingdoms/KingdomDownstreamActiveBoundaryV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Kingdoms/Feature/KingdomDownstreamActiveBoundaryV3Test.php",
+      "source_blob": "91155643080487d954e9a7dbf2eef682a1d65839",
+      "result_blob": "882fdb8d0492e9c69a5c247d24148602e482ac5c"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Kingdoms/KingdomIdentityLifecycleBehaviorV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Kingdoms/Feature/KingdomIdentityLifecycleBehaviorV3Test.php",
+      "source_blob": "0ec739be7b917f0ce93ccbd7a6b8a5d9d5f1095e",
+      "result_blob": "cf3b9e70e8a649a77faa18499ef853e4b7a6a0c3"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Players/GovernorManagementHttpV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Players/Feature/GovernorManagementHttpV3Test.php",
+      "source_blob": "3ef0c7e6ccbc967b6e2be329eb45da383ed6efe6",
+      "result_blob": "8200fb3dc8f25e353d1f3198b70bc6cf2d452d1f"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Players/PlayerAuthorityContextPreconditionV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Players/Feature/PlayerAuthorityContextPreconditionV3Test.php",
+      "source_blob": "36b1bde08d50ebe95e11bd249264721c74b09421",
+      "result_blob": "38f3f3f3472b256dd8ef0138864658ac260a5b05"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Players/PlayerContextSelectionBehaviorV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Players/Feature/PlayerContextSelectionBehaviorV3Test.php",
+      "source_blob": "52ecdb309558e4f1f1a572f36e886036236bbd09",
+      "result_blob": "e1f219032d0a34342644fa0b4bf088695d3a5243"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Players/PlayerIdentityBehaviorV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Players/Feature/PlayerIdentityBehaviorV3Test.php",
+      "source_blob": "fc587b470034af0c8112178551d9750899017fd4",
+      "result_blob": "184069bf465d588cc02b5f0128ad17b86e4ccf70"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Players/PlayerIdentityLifecycleExpansionV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Players/Feature/PlayerIdentityLifecycleExpansionV3Test.php",
+      "source_blob": "0152a199af501bd09e93390419774504440e1e68",
+      "result_blob": "800b538a018aaa492ba5dbbb4223d97fa1295988"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Players/PlayerReconciliationBehaviorV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Players/Feature/PlayerReconciliationBehaviorV3Test.php",
+      "source_blob": "c04a93595d748d0207af29ddc48c47d78fe1ef8c",
+      "result_blob": "1eca8177b3be17ad6b409683cc9dedc89da72e56"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Players/PlayerReferenceQueryContractV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Players/Feature/PlayerReferenceQueryContractV3Test.php",
+      "source_blob": "7cb6151e944ee58a96229f138258db7f414f73fc",
+      "result_blob": "f5cd448fe9c0de47474608a049289e0f77c38e49"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Progression/ProgressionCalculatorV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Progression/Feature/ProgressionCalculatorV3Test.php",
+      "source_blob": "0a1cf5c8415ea93ca9956023fc2f947c24b96f3b",
+      "result_blob": "d2a7acc2aafdc1c471bd117da397a9a49aedfb50"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Progression/ProgressionDatasetAvailabilityV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Progression/Feature/ProgressionDatasetAvailabilityV3Test.php",
+      "source_blob": "b329b2f0a4b61056c917a96374cda138eaa369c0",
+      "result_blob": "cc3f6e08609b24ad59a8891194411f58fe69f96b"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Progression/ProgressionDatasetV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Progression/Feature/ProgressionDatasetV3Test.php",
+      "source_blob": "6c9bc1ed12cb4d111ec86e21e303cafae6248b0a",
+      "result_blob": "305ad9b489e0ef2861dc20f25e0ba791aabafa7b"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Progression/ProgressionFactConflictV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Progression/Feature/ProgressionFactConflictV3Test.php",
+      "source_blob": "3bd50a5dcf4be78abf61fb07bec140cb433a20c3",
+      "result_blob": "f1d5467f25206ebfd0bbe21f22e3cf955dc86af0"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Progression/ProgressionFactQueryV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Progression/Feature/ProgressionFactQueryV3Test.php",
+      "source_blob": "d1ec497a57b7baf58225df4f11ef80e9b96ee20c",
+      "result_blob": "ccb9403b8addcd2e35ff2d8e4016221e7ec78da3"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Progression/ProgressionFamilyQueryV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Progression/Feature/ProgressionFamilyQueryV3Test.php",
+      "source_blob": "910721fa16a37e13f03841d97949b553b8422468",
+      "result_blob": "d038190641022c376ae07c5b6f9a98abe80f98ad"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/GameWorld/Progression/ProgressionTopologyV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Progression/Feature/ProgressionTopologyV3Test.php",
+      "source_blob": "6492d8ede9b0fa9ba1dca4810e14fbdf06a5e6b9",
+      "result_blob": "4486b29c7b7ab89015ecdfb891ac05eab30775cc"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Contributions/ContributionBulkApprovalBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Contributions/Feature/ContributionBulkApprovalBehaviorV3Test.php",
+      "source_blob": "aa28cd5da7f2d51940b8e6263300d520daced366",
+      "result_blob": "cc72b5cdeece5f4ef2727ef714d95fbf7e360393"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/AllianceRosterEvidenceBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/AllianceRosterEvidenceBehaviorV3Test.php",
+      "source_blob": "48f665283e40a689205e4d3cfb1f01446733de03",
+      "result_blob": "74de2b570c24c9e52e2c6b5fee59e1ed720ef9ef"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/BearHuntUnmatchedGovernorExclusionV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/BearHuntUnmatchedGovernorExclusionV3Test.php",
+      "source_blob": "2afce46f6c2daf7a23080b22fa41c7058f7cd475",
+      "result_blob": "f7b74ca81c8c240fef5c4d88727969c3ff39856f"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/BearHuntUnmatchedGovernorQueryV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/BearHuntUnmatchedGovernorQueryV3Test.php",
+      "source_blob": "1626e8a9d9e55613b8f265a3148daf0e81d763de",
+      "result_blob": "43f7f8bbfa35406d1c2f0af8e34aa19af9067a04"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceAuthorizationV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/EvidenceAuthorizationV3Test.php",
+      "source_blob": "c2a4b121952c3809cdffff60643c4b8932369338",
+      "result_blob": "b863edaa656a990e5269e983e9d676f67cce543b"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceCommitRecoveryV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/EvidenceCommitRecoveryV3Test.php",
+      "source_blob": "87b94cb38b789284699ff6fe40dbd61430ea5800",
+      "result_blob": "c06bca5ff8818a9b6e710b7ae7655019da717410"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceDuplicateV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/EvidenceDuplicateV3Test.php",
+      "source_blob": "f62405a55f70d4bd9ee4c2ee6bc38093690f0be2",
+      "result_blob": "2e7f01f6bae3b4c4c011535639c1194a65168037"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceLifecycleV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/EvidenceLifecycleV3Test.php",
+      "source_blob": "54090762a8d7c86e3ac91abc767193a9eec56b09",
+      "result_blob": "2d5db3353c89c6961b01226881838fafd377ad57"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceRetentionQueueV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/EvidenceRetentionQueueV3Test.php",
+      "source_blob": "c1ac19edd6173c4b48b8aeb2541d912cb4029080",
+      "result_blob": "6dc7e228649fb3da1efd28c3970546c14436bc88"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceRetentionV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/EvidenceRetentionV3Test.php",
+      "source_blob": "a8ae2e174504d4f557c9d3b48eed495bf6f642aa",
+      "result_blob": "af01bd68fe07769a890a67316ef4ad4e3b99f37a"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceReviewV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/EvidenceReviewV3Test.php",
+      "source_blob": "7c82bf9b2596d4b5551155f9028dfda9ed1a30a3",
+      "result_blob": "294bb55ff6ddd9c6c8180760bdfc5a074dc04142"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceUploadSecurityV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/EvidenceUploadSecurityV3Test.php",
+      "source_blob": "c07a7b9a0efbbbcea1c49b122b1b878d1e1dc592",
+      "result_blob": "0026d8e364fd353ec9e428ea39b6a7a6c69d38af"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/GovernorProgressionDatasetPinRetryV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/GovernorProgressionDatasetPinRetryV3Test.php",
+      "source_blob": "94cc2c9773fd15676cd521b1468051ea87758fa5",
+      "result_blob": "42cd35cd8cf1c0228a67b9c27b66b638ed3c060b"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceSummaryBudgetV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/GovernorProgressionEvidenceSummaryBudgetV3Test.php",
+      "source_blob": "6694345741805678da2c814ee6ec5fb782871d64",
+      "result_blob": "f6dfaf8b9187cd4a659225180d1f9d3d55dc33a0"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/RoutedEvidenceExtractorV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/RoutedEvidenceExtractorV3Test.php",
+      "source_blob": "b89e4e516d7fc78555864ef386393b7f2c7c69eb",
+      "result_blob": "81298097a78a398e13b2ceed7b5125ecca30c73b"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/StructuredGovernorProgressionPipelineV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/StructuredGovernorProgressionPipelineV3Test.php",
+      "source_blob": "6aa9a2daf1b30270e5223a65af5fb15300831acc",
+      "result_blob": "6774f4765e815d9cb31407fa41341eb49eb905cd"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Evidence/TransferEvidenceReviewV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Feature/TransferEvidenceReviewV3Test.php",
+      "source_blob": "b54ad16b2bcda448c4c3489855221c8f9c316096",
+      "result_blob": "e98a68819f5dca76c1e368de0da44aebd6f64a00"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Observations/SpatialObservationEvidenceV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Observations/Feature/SpatialObservationEvidenceV3Test.php",
+      "source_blob": "c40bed019f1e567a186eccb8a0f81b69440100c2",
+      "result_blob": "9599e1df2ffce3f1740f81bf5ff6381c458fe426"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Roster/GovernorProgressionCharmIdentityBoundaryV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Roster/Feature/GovernorProgressionCharmIdentityBoundaryV3Test.php",
+      "source_blob": "334a2aed79d3a816a1ab54602172a1b04ace70cd",
+      "result_blob": "474899aabb359103659f39a37925ab65877fbf49"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Roster/GovernorProgressionObservationQueryV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Roster/Feature/GovernorProgressionObservationQueryV3Test.php",
+      "source_blob": "c6b0d3ceb1fd41988a2f4474dd4f3b70c9e045fb",
+      "result_blob": "559461a6bec1137f612355931c92bb74e269ed88"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Roster/GovernorProgressionObservationWriterV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Roster/Feature/GovernorProgressionObservationWriterV3Test.php",
+      "source_blob": "84d921c0642358640b8c9862c466976db1bcf0b6",
+      "result_blob": "8d151186c3c3afa9e80559754ab447a8cd1db8bb"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Roster/GovernorProgressionPinnedCatalogueValidationV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Roster/Feature/GovernorProgressionPinnedCatalogueValidationV3Test.php",
+      "source_blob": "001c15a4aa502793915988e8906d5471563b4fb0",
+      "result_blob": "88cf15079ef9974101952c71a7562ec706aee7af"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Roster/PlayerSnapshotProgressionPinV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Roster/Feature/PlayerSnapshotProgressionPinV3Test.php",
+      "source_blob": "1804229ebdd2c587848f240b80abaffaf0c458ec",
+      "result_blob": "9edcbe0c48b820e2adc2c89c2056c637286adff8"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Intelligence/Roster/StructuredProgressionEvidenceContractV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Roster/Feature/StructuredProgressionEvidenceContractV3Test.php",
+      "source_blob": "ec5531ea39ab04ea1e45d44a29148298a46a7d47",
+      "result_blob": "4fa3918939881a4a90fb35bcadcce89e7fbf11b8"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/BattlePlans/PlayerBattlePlanQueryV3Test.php",
+      "new_path": "tests/Contexts/Operations/BattlePlans/Feature/PlayerBattlePlanQueryV3Test.php",
+      "source_blob": "5bcca789a4391d6c43e67cccdd7fb137e4f7787b",
+      "result_blob": "b06c0a4c8d8c8cb6806e7c9166c26ccfcec9ce39"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/Events/EventBulkCancellationBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Operations/Events/Feature/EventBulkCancellationBehaviorV3Test.php",
+      "source_blob": "c9dc5e591c17a00093814cd64372a17da2784193",
+      "result_blob": "9d8d5ad9ea415784e4589619ca77bcef70d74a82"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/Events/EventTypeProfileResolverV3Test.php",
+      "new_path": "tests/Contexts/Operations/Events/Feature/EventTypeProfileResolverV3Test.php",
+      "source_blob": "33667c965480da050ea75e8caa79a6052885424c",
+      "result_blob": "c132eb9db200ce8fb9c22e96c03fbe058f54e0e5"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/Participation/BearHuntAttendanceSummaryV3Test.php",
+      "new_path": "tests/Contexts/Operations/Participation/Feature/BearHuntAttendanceSummaryV3Test.php",
+      "source_blob": "91bc5dc5edca2b0545d23f75811c9bd501408463",
+      "result_blob": "1843ad5263e8965ef769c564202b397e155188bd"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/Participation/EventParticipationQueryV3Test.php",
+      "new_path": "tests/Contexts/Operations/Participation/Feature/EventParticipationQueryV3Test.php",
+      "source_blob": "77e496a5c83a5b896e8d8c1f25cb84c8118325f7",
+      "result_blob": "f4c025807fe5cd1018782c2a3160ac0f9b207c60"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/Rallies/BearHuntRallyParticipationSummaryV3Test.php",
+      "new_path": "tests/Contexts/Operations/Rallies/Feature/BearHuntRallyParticipationSummaryV3Test.php",
+      "source_blob": "5fabf59b2f3b5cd7eb775d819088fa6bdb6710a7",
+      "result_blob": "dcc50f6e739d7ca27d1031b008912d7939eba563"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/Rallies/PlayerFormationProgressionPinV3Test.php",
+      "new_path": "tests/Contexts/Operations/Rallies/Feature/PlayerFormationProgressionPinV3Test.php",
+      "source_blob": "786806c3b06ceec85fd6351d2c98798761b92f87",
+      "result_blob": "c1edf7edf94fa24ecbf6146dc342306e07930ece"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/Results/BearHuntBattleReportLedgerV3Test.php",
+      "new_path": "tests/Contexts/Operations/Results/Feature/BearHuntBattleReportLedgerV3Test.php",
+      "source_blob": "e38012125027f2f62d8f06633c97a8105264b4c2",
+      "result_blob": "2dfe80de3d8e211e471a4189840ff5c71aa2b7d1"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/TerritoryPlanning/KingdomTerritoryPlanningBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Operations/TerritoryPlanning/Feature/KingdomTerritoryPlanningBehaviorV3Test.php",
+      "source_blob": "9cfe52b23deb08603de26297e40572e4bcf0d659",
+      "result_blob": "3ded77f7cbfb48fb0b42858244ab773c76b4be63"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/TerritoryPlanning/PublishedEventTerritoryRevisionQueryV3Test.php",
+      "new_path": "tests/Contexts/Operations/TerritoryPlanning/Feature/PublishedEventTerritoryRevisionQueryV3Test.php",
+      "source_blob": "0705a14a30444984386f9f35a8524d5bcbd3427d",
+      "result_blob": "d708257daf6862681c0cfb0838a031b58ad0d57f"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/TerritoryPlanning/TerritoryAnalysisTelemetryV3Test.php",
+      "new_path": "tests/Contexts/Operations/TerritoryPlanning/Feature/TerritoryAnalysisTelemetryV3Test.php",
+      "source_blob": "5865bce952a7cf0f4dbd8c0992d90bde07af610b",
+      "result_blob": "206372598f4fe40c2c3b97d3b922d3fd9a8edb02"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/TerritoryPlanning/TerritoryImportBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Operations/TerritoryPlanning/Feature/TerritoryImportBehaviorV3Test.php",
+      "source_blob": "f9a54ca3f091d15622351fdc09e532656a177d81",
+      "result_blob": "6164b3c1ee538b304ed1ef95e75c6ab158b7bfdc"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/TerritoryPlanning/TerritoryPlanLifecycleBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Operations/TerritoryPlanning/Feature/TerritoryPlanLifecycleBehaviorV3Test.php",
+      "source_blob": "5c84b66435ed681b807c2c661b513c7593289a6f",
+      "result_blob": "23c24e00cc94a8029ba71c6e24f6f198950d4df5"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Operations/TerritoryPlanning/TerritoryStableKeyBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Operations/TerritoryPlanning/Feature/TerritoryStableKeyBehaviorV3Test.php",
+      "source_blob": "671d1f336cd4ae1a1381cc2f0c9c92fb03c28ffb",
+      "result_blob": "b99eba88234872595c08de5ca950008bb9f601dc"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Platform/Administration/PlatformAdministrationBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Platform/Administration/Feature/PlatformAdministrationBehaviorV3Test.php",
+      "source_blob": "56ede7cf5e6c58330ddc28d971bdc424db1e08c8",
+      "result_blob": "582adb11b9eaff5cbc7aef05851d581f774187f5"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Platform/Administration/PlatformAdministratorIsolationV3Test.php",
+      "new_path": "tests/Contexts/Platform/Administration/Feature/PlatformAdministratorIsolationV3Test.php",
+      "source_blob": "7b44d90a44f170f30074ffd05f836fc638381a2e",
+      "result_blob": "bf506d29038a75047416a2960c9831079fcad2f0"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Platform/AllianceAdministration/AlliancePlatformOwnershipV3Test.php",
+      "new_path": "tests/Contexts/Platform/AllianceAdministration/Feature/AlliancePlatformOwnershipV3Test.php",
+      "source_blob": "7b72136d92787ae4138705dfb9810e470d6e38d8",
+      "result_blob": "6403453553d809fe9efc1651a735306d1b04da20"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Platform/DataGovernance/AccountDeletionRetryFairnessV3Test.php",
+      "new_path": "tests/Contexts/Platform/DataGovernance/Feature/AccountDeletionRetryFairnessV3Test.php",
+      "source_blob": "9fe68be0524098a8f0920e2d3c46ff91dcb325ae",
+      "result_blob": "a1f381394cb13943e700eb5ac15ac96019ddd9ed"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Platform/DataGovernance/PlayerReleaseOnAccountDeletionV3Test.php",
+      "new_path": "tests/Contexts/Platform/DataGovernance/Feature/PlayerReleaseOnAccountDeletionV3Test.php",
+      "source_blob": "6ac52c7b3720e82d60cc9dcc191895e89b326d68",
+      "result_blob": "38ad76f2d8f15a6439a02c9199aa52d1f515e551"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Platform/Integrations/ExternalActorParityBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Platform/Integrations/Feature/ExternalActorParityBehaviorV3Test.php",
+      "source_blob": "9b521f900ce05e6c59c1fdc877c6a13df6a1c679",
+      "result_blob": "fa7376dd1e9f1b3e5152f30246c23d393bfa21a4"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Platform/Integrations/WebhookContractBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Platform/Integrations/Feature/WebhookContractBehaviorV3Test.php",
+      "source_blob": "8e716296828336537fe41675ecdf8d0ecefe1bb9",
+      "result_blob": "a8ff909c0b0e204fb9b6e3efca7e3af0b3f14882"
+    },
+    {
+      "old_path": "tests/Feature/Contexts/Platform/Integrations/WebhookDeliveryRecoveryBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Platform/Integrations/Feature/WebhookDeliveryRecoveryBehaviorV3Test.php",
+      "source_blob": "9a1f0a28ff975845df454e66f0a4bf083581a54d",
+      "result_blob": "1a22608dc57c8c5a6262567ed6bcaf78bb426572"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantBoundaryV3Test.php",
+      "new_path": "tests/ReadModels/AllianceAssistant/Feature/AllianceAssistantBoundaryV3Test.php",
+      "source_blob": "a67c1a9f85521b6d886ba8d850d74808446851c7",
+      "result_blob": "4f5d8fbd36f2130c98a0e0bddd5977d5c7ffcdc4"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantContentV3Test.php",
+      "new_path": "tests/ReadModels/AllianceAssistant/Feature/AllianceAssistantContentV3Test.php",
+      "source_blob": "456de71a464cb8501de4bff3194b12d68a21a603",
+      "result_blob": "1260b681c4dff5aab3eabe21ffb1b896de49fc72"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantGameWorldHttpV3Test.php",
+      "new_path": "tests/ReadModels/AllianceAssistant/Feature/AllianceAssistantGameWorldHttpV3Test.php",
+      "source_blob": "72106dfcc0dde611ef1bf2afcb796cff93a6c70e",
+      "result_blob": "1f9ca762cf455800bffd9c6a63bd7d69c752a675"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantHttpV3Test.php",
+      "new_path": "tests/ReadModels/AllianceAssistant/Feature/AllianceAssistantHttpV3Test.php",
+      "source_blob": "ff5993936669fb3cb65d245f13464cdc19bb5f4c",
+      "result_blob": "8e63a6e9e9925c3e6aef9c071e9b8b9948b34a7f"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantObservationV3Test.php",
+      "new_path": "tests/ReadModels/AllianceAssistant/Feature/AllianceAssistantObservationV3Test.php",
+      "source_blob": "b9cf7a8bb714636ab82c05ffe6638cf856d0122e",
+      "result_blob": "76d2cfd119128d681854845b896544afad0b1deb"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantPerformanceV3Test.php",
+      "new_path": "tests/ReadModels/AllianceAssistant/Feature/AllianceAssistantPerformanceV3Test.php",
+      "source_blob": "eb2391ffd6ac251ba212b3d13d34504aa55d2e74",
+      "result_blob": "1dd8248a452ff97ac0079a8cb2283cb01cd9444b"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantTelemetryV3Test.php",
+      "new_path": "tests/ReadModels/AllianceAssistant/Feature/AllianceAssistantTelemetryV3Test.php",
+      "source_blob": "6a2d1c7e6b8dc8e86f2bb87c07ec28a52da7249a",
+      "result_blob": "d04ca781c94ea038a40635229e7f7f92a93a14d2"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceGovernanceAssistantV3Test.php",
+      "new_path": "tests/ReadModels/AllianceAssistant/Feature/AllianceGovernanceAssistantV3Test.php",
+      "source_blob": "992e5dcf852903fe014414c7ad233dd7969f14c6",
+      "result_blob": "c13005d3c95270a719a001c1de0da7f6af10169f"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceOperationalAssistantV3Test.php",
+      "new_path": "tests/ReadModels/AllianceAssistant/Feature/AllianceOperationalAssistantV3Test.php",
+      "source_blob": "e782d83ea9530d9c54f0fac2ad0d7c44b0cdc3a7",
+      "result_blob": "9b0ea78f60dbe2df1a06a2eb8dbdcbcca568ba4d"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceAssistant/IntelligenceChangeAssistantQueryV3Test.php",
+      "new_path": "tests/ReadModels/AllianceAssistant/Feature/IntelligenceChangeAssistantQueryV3Test.php",
+      "source_blob": "40b32769a5a3116ea4c7d527ac2d0158e947252f",
+      "result_blob": "9507ec354377862f57ccb100f089fbb807414a2f"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceDashboard/MembershipManagementQueryBehaviorV3Test.php",
+      "new_path": "tests/ReadModels/AllianceDashboard/Feature/MembershipManagementQueryBehaviorV3Test.php",
+      "source_blob": "f2c9d65b47396518728e94e577ca371e2baea4af",
+      "result_blob": "94c046fde3cd95aee4c0186bca87997db40b5989"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceGovernance/AllianceGovernanceReadModelsBehaviorV3Test.php",
+      "new_path": "tests/ReadModels/AllianceGovernance/Feature/AllianceGovernanceReadModelsBehaviorV3Test.php",
+      "source_blob": "7cf3b585b66eaca0754b38f91c02840f08a7f1b8",
+      "result_blob": "956b484609550b7c95f9955f918526f9441b02f9"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceGovernance/GovernanceRecruitmentPrivacyV3Test.php",
+      "new_path": "tests/ReadModels/AllianceGovernance/Feature/GovernanceRecruitmentPrivacyV3Test.php",
+      "source_blob": "df0dc45992a46b815893ca58c193c0ba6e017f95",
+      "result_blob": "fc40e6fc82bd90737371d320f03779c5ddfb1c40"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/AllianceGovernance/MembershipHistoryPaginationV3Test.php",
+      "new_path": "tests/ReadModels/AllianceGovernance/Feature/MembershipHistoryPaginationV3Test.php",
+      "source_blob": "9ec8e9d93415ddef326a9ecc4aeabd25f0e7e9ba",
+      "result_blob": "9ab99e53948c8e250d88acfe19c8e1525fe9871f"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/BotCommands/BotCommandApiBehaviorV3Test.php",
+      "new_path": "tests/ReadModels/BotCommands/Feature/BotCommandApiBehaviorV3Test.php",
+      "source_blob": "f10d5a3d77a9d03bc420fd835fd88ba40bd0bce7",
+      "result_blob": "23dbb3ec726f8e174a868b90392987efb682a365"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/CommandOverview/AllianceCommandAndBriefV3Test.php",
+      "new_path": "tests/ReadModels/CommandOverview/Feature/AllianceCommandAndBriefV3Test.php",
+      "source_blob": "996fbe1d418dfcb9a3f798208dcc5bbda58e63e9",
+      "result_blob": "fee5d38d7e7520db0e454a485c948814da66a6a0"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/CommandOverview/CommandOverviewBehaviorV3Test.php",
+      "new_path": "tests/ReadModels/CommandOverview/Feature/CommandOverviewBehaviorV3Test.php",
+      "source_blob": "fe81ac88dbd1ee5ce69c9826fb04028fd6f04362",
+      "result_blob": "ac36e708566ee38a80caf2712b532c458e34f2e9"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/EventAnalysis/BearHuntDebriefComparisonV3Test.php",
+      "new_path": "tests/ReadModels/EventAnalysis/Feature/BearHuntDebriefComparisonV3Test.php",
+      "source_blob": "4d1035b2d8da7fff2e840034dd887c84880fa6cd",
+      "result_blob": "1d1f9f2c7a090c1834897fa136e48b348c81bee0"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/EventAnalysis/BearHuntDebriefHttpV3Test.php",
+      "new_path": "tests/ReadModels/EventAnalysis/Feature/BearHuntDebriefHttpV3Test.php",
+      "source_blob": "e6ca7f1ebf16958c4a4b5bfabcd15d94fa7a5b03",
+      "result_blob": "712b77d864a4139b3dc7c5acca2c4295fa1577cb"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/EventAnalysis/BearHuntDebriefReadModelV3Test.php",
+      "new_path": "tests/ReadModels/EventAnalysis/Feature/BearHuntDebriefReadModelV3Test.php",
+      "source_blob": "d621e768c0bffaf1af3dd1749576052228216c2d",
+      "result_blob": "7dcc98fffb142f13781dba1d88cc6695ecbbe058"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/EventAnalysis/BearHuntDebriefReportRemovalV3Test.php",
+      "new_path": "tests/ReadModels/EventAnalysis/Feature/BearHuntDebriefReportRemovalV3Test.php",
+      "source_blob": "00934eb85344fa9cbe98fe7732de2158104902b5",
+      "result_blob": "c0c102a70c2dbfddbce60140589e3fd1b698b806"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/EventAnalysis/BearHuntDebriefV3Test.php",
+      "new_path": "tests/ReadModels/EventAnalysis/Feature/BearHuntDebriefV3Test.php",
+      "source_blob": "3b8d3b3bfb35bc48a99f87d7257c06f1ab75af8b",
+      "result_blob": "f7f9ff329a2354697828766562b58ba271985a2d"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/EventManagement/EventCommandBehaviorV3Test.php",
+      "new_path": "tests/ReadModels/EventManagement/Feature/EventCommandBehaviorV3Test.php",
+      "source_blob": "dbbc7de88422db6a154e820d9c15da95549772fb",
+      "result_blob": "5ce2eb1edf0c23b4c3d3dc51dd20572f9d87e10e"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/EventManagement/EventCommandQueryBudgetV3Test.php",
+      "new_path": "tests/ReadModels/EventManagement/Feature/EventCommandQueryBudgetV3Test.php",
+      "source_blob": "974ca944846e66352f92971812a7b7d4a8369437",
+      "result_blob": "23d527ecbf8e70eecb606b468611b55f4231c13b"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/EventManagement/EventManagementPageV3Test.php",
+      "new_path": "tests/ReadModels/EventManagement/Feature/EventManagementPageV3Test.php",
+      "source_blob": "6a45bb754ade29b6e5cdc5434027a949b6e9bcf7",
+      "result_blob": "6b3fa079c97b6f40e5c38b8114ac7eeb9d537a89"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/EventManagement/RallyRosterBuilderV3Test.php",
+      "new_path": "tests/ReadModels/EventManagement/Feature/RallyRosterBuilderV3Test.php",
+      "source_blob": "7e7a113bd60e3883107badf9bb1cc39a9014e887",
+      "result_blob": "2c10939de163401522cc1d3ec6f19345ee294b2c"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/IntelligenceSignals/IntelligenceSignalFactoryV3Test.php",
+      "new_path": "tests/ReadModels/IntelligenceSignals/Feature/IntelligenceSignalFactoryV3Test.php",
+      "source_blob": "2d54d4ca83c87db4c46ba467449209c5cdc314dc",
+      "result_blob": "9c3d4d53fa464cf08f9eb4f9707798c61adeb481"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/KingdomIntelligence/KingdomIntelligenceTimelineV3Test.php",
+      "new_path": "tests/ReadModels/KingdomIntelligence/Feature/KingdomIntelligenceTimelineV3Test.php",
+      "source_blob": "42258e677944286230c9f54c7f3a896c213e07d5",
+      "result_blob": "356b08aca686d1e8d09ad24286cb0e37de32245c"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/Progression/ProgressionPlannerQueryV3Test.php",
+      "new_path": "tests/ReadModels/Progression/Feature/ProgressionPlannerQueryV3Test.php",
+      "source_blob": "4f008c8c64ac4a252116f9da2098b77b89b3d03d",
+      "result_blob": "7fe1a8e438d9890606e2f1b03345dc01b33e48a0"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/Progression/ProgressionPrerequisiteEvaluatorV3Test.php",
+      "new_path": "tests/ReadModels/Progression/Feature/ProgressionPrerequisiteEvaluatorV3Test.php",
+      "source_blob": "6a2063875e714659c181b952b32315ecd4c0a971",
+      "result_blob": "f94a7af160c9e984374627b3204b3cd954989faa"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/RecruitmentDiscovery/PublicRecruitmentBoardQueryBehaviorV3Test.php",
+      "new_path": "tests/ReadModels/RecruitmentDiscovery/Feature/PublicRecruitmentBoardQueryBehaviorV3Test.php",
+      "source_blob": "075fdd3050fbde8dab7b1252ab1da276426b343e",
+      "result_blob": "a77144f333810d8a6f98a82dff5da4c4dc7c03d6"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/RecruitmentManagement/RecruitmentCandidateCollectionsV3Test.php",
+      "new_path": "tests/ReadModels/RecruitmentManagement/Feature/RecruitmentCandidateCollectionsV3Test.php",
+      "source_blob": "a766b64291e0775e8f95bb60e2d1dc8e70307f8a",
+      "result_blob": "03c1ea7e243438a5b28ab52c735bdb05c9f2b98c"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/RecruitmentManagement/RecruitmentCandidateHistoryPaginationV3Test.php",
+      "new_path": "tests/ReadModels/RecruitmentManagement/Feature/RecruitmentCandidateHistoryPaginationV3Test.php",
+      "source_blob": "f08a54855c4e3653a01ce4b142523ef2536292bf",
+      "result_blob": "8a51b23af3d385a1718910fdb50652475ef33bd5"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/RecruitmentManagement/RecruitmentCataloguePaginationV3Test.php",
+      "new_path": "tests/ReadModels/RecruitmentManagement/Feature/RecruitmentCataloguePaginationV3Test.php",
+      "source_blob": "0fb95684ffca84224d8eea7e17bf2fb527a984e1",
+      "result_blob": "bc4e038073999323c50479bfe468a726360f81cb"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/RecruitmentManagement/RecruitmentManagementQueryBehaviorV3Test.php",
+      "new_path": "tests/ReadModels/RecruitmentManagement/Feature/RecruitmentManagementQueryBehaviorV3Test.php",
+      "source_blob": "fcb97e20ca6e70ba5c962a4446092d2dcada1cc4",
+      "result_blob": "55828a774b766e38a7938549175b18528940e6ee"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/RecruitmentManagement/TransferCampaignWorkspaceV3Test.php",
+      "new_path": "tests/ReadModels/RecruitmentManagement/Feature/TransferCampaignWorkspaceV3Test.php",
+      "source_blob": "8ee8341474b19d64a6f240d53475a9e0095c2bc2",
+      "result_blob": "a2fc604e1b71bfb61fb1e2dd660805f2b5aca487"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/Roster/MemberCapabilityProfileV3Test.php",
+      "new_path": "tests/ReadModels/Roster/Feature/MemberCapabilityProfileV3Test.php",
+      "source_blob": "d1dda69a1749ddf2f01ae384c6b7b177990d83eb",
+      "result_blob": "9d2a7a8d5210662981f17616a9c4ae9d3a44b140"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/Roster/PlayerProgressionTimelineBehaviorV3Test.php",
+      "new_path": "tests/ReadModels/Roster/Feature/PlayerProgressionTimelineBehaviorV3Test.php",
+      "source_blob": "33c906b942510552eff5f9924dc6a4ab2871bd54",
+      "result_blob": "1a0c54549a7647eb24821186b638698c3c513be0"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/Roster/RosterPaginationBehaviorV3Test.php",
+      "new_path": "tests/ReadModels/Roster/Feature/RosterPaginationBehaviorV3Test.php",
+      "source_blob": "51d288a1d20113f3c64e695abfc0e1325719b2f3",
+      "result_blob": "9072b9eded7dbb6a12536e7072a8e55857da6a23"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/TerritoryPlanning/TerritoryPlanObservedRealityV3Test.php",
+      "new_path": "tests/ReadModels/TerritoryPlanning/Feature/TerritoryPlanObservedRealityV3Test.php",
+      "source_blob": "47a5cb4a8b7220660170a4fc2efd3d2ff6cc0340",
+      "result_blob": "2b4d4fc606901e7c386a224d38bd03f71d954e6d"
+    },
+    {
+      "old_path": "tests/Feature/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php",
+      "new_path": "tests/ReadModels/TerritoryPlanning/Feature/TerritoryReconciliationBoundariesV3Test.php",
+      "source_blob": "5749b4f6ab5391284cd02bc9be892849bf82c3eb",
+      "result_blob": "a807737e4637f332083cb1b12d4b8520a81a8b95"
+    },
+    {
+      "old_path": "tests/Feature/Shared/Infrastructure/Pagination/ScopedCursorCodecTest.php",
+      "new_path": "tests/Shared/Infrastructure/Pagination/Feature/ScopedCursorCodecTest.php",
+      "source_blob": "38f26c283441d055660f127600622609977c773b",
+      "result_blob": "594ba19d674641430922ddf23a0c05fce3c3203e"
+    },
+    {
+      "old_path": "tests/Feature/Shared/Infrastructure/Security/RouteThrottleBoundaryV3Test.php",
+      "new_path": "tests/Shared/Infrastructure/Security/Feature/RouteThrottleBoundaryV3Test.php",
+      "source_blob": "a818aba9f00020e10c740645693c49fb635e2637",
+      "result_blob": "284e1b0c8608a89921b3c8b4cdf5219b3af8a6b4"
+    },
+    {
+      "old_path": "tests/Feature/Workflows/NotificationDelivery/IntelligenceSignalNotificationPublisherV3Test.php",
+      "new_path": "tests/Workflows/NotificationDelivery/Feature/IntelligenceSignalNotificationPublisherV3Test.php",
+      "source_blob": "eb8c49773f997235e360ddfc7e06513f15a51712",
+      "result_blob": "1ec4862c47ff85dc7229dcb3c35204e61ed583bb"
+    },
+    {
+      "old_path": "tests/Feature/Workflows/NotificationDelivery/NotificationQueueDeliveryV3Test.php",
+      "new_path": "tests/Workflows/NotificationDelivery/Feature/NotificationQueueDeliveryV3Test.php",
+      "source_blob": "9129f9178786216360a7f41dfa5df5ccfd8a14ad",
+      "result_blob": "846ab6bc6f17e17f780ebcdeaf15d7e33302ef5f"
+    },
+    {
+      "old_path": "tests/Feature/Workflows/NotificationDelivery/OfficerBriefNotificationPublisherV3Test.php",
+      "new_path": "tests/Workflows/NotificationDelivery/Feature/OfficerBriefNotificationPublisherV3Test.php",
+      "source_blob": "bd02ed87bd38d9ec22f9e0acc9cdf33289204bc3",
+      "result_blob": "db2f534c65a54ec2d40261df22d750191d16062b"
+    },
+    {
+      "old_path": "tests/Frontend/Contexts/Alliance/Content/AllianceContentFrontendContractTest.php",
+      "new_path": "tests/Contexts/Alliance/Content/Frontend/AllianceContentFrontendContractTest.php",
+      "source_blob": "b78b811dcd4a64879048bf91326fc991a55998fa",
+      "result_blob": "f6a2ff1cc147b206d45bdeb287ee008270d7fc77"
+    },
+    {
+      "old_path": "tests/Frontend/Contexts/GameWorld/KingdomTransfers/TransferManualEvidenceUxV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Frontend/TransferManualEvidenceUxV3Test.php",
+      "source_blob": "4c7a932786310d47477dcae7dfc81cfe432ddfad",
+      "result_blob": "29b736d4c9715da6c93ac37169d4fde0ebea77e7"
+    },
+    {
+      "old_path": "tests/Frontend/Contexts/GameWorld/Players/ActivePlayerUxContractTest.php",
+      "new_path": "tests/Contexts/GameWorld/Players/Frontend/ActivePlayerUxContractTest.php",
+      "source_blob": "fa3774dc31b40bc8a91b65a5612f6ea4c8b48a0f",
+      "result_blob": "de62e07a80c02adf8b697d6df58633fe7bb98dba"
+    },
+    {
+      "old_path": "tests/Frontend/verify-architecture.php",
+      "new_path": "tests/System/Frontend/verify-architecture.php",
+      "source_blob": "430827922e4b411dab3db81fdba65df6557b79bf",
+      "result_blob": "b8f901b970c6d26e8ba2049e4a53811dc88c4d23"
+    },
+    {
+      "old_path": "tests/Frontend/verify-copy.php",
+      "new_path": "tests/System/Frontend/verify-copy.php",
+      "source_blob": "7672eef3577860a8b46ddbb1ad9133cad4eb8796",
+      "result_blob": "7267c1c5e868c341491354816c340b7466e03cbe"
+    },
+    {
+      "old_path": "tests/Frontend/verify-source.php",
+      "new_path": "tests/System/Frontend/verify-source.php",
+      "source_blob": "8aaecd5b4419a654cc4ac0f5a1085fb4a8839a16",
+      "result_blob": "bca58833b1285d166b92f1b70f6b0fd4c7877f04"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/AccountLoginCompletionV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Integration/Concurrency/AccountLoginCompletionV3Test.php",
+      "source_blob": "c3f8c0df8b3328e1443e8b60a451431260b239fe",
+      "result_blob": "2ea6ba2b9864a7261978932ec34f9b83142b6d91"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/PasskeyConfirmationAtomicityV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Integration/Concurrency/PasskeyConfirmationAtomicityV3Test.php",
+      "source_blob": "e6479fd4e5096ae3c024a9639185c51c28a957ac",
+      "result_blob": "eacf756aa1a0e92e45cbc49ac4a48ed845ae7b46"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/PasskeyLoginCompletionV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Integration/Concurrency/PasskeyLoginCompletionV3Test.php",
+      "source_blob": "8c8f295ac5a3f8cddc6c024e54878748639a2970",
+      "result_blob": "65f60eefe12ac4005fb64c9bb6e4fa4d1e44d285"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/PasskeyMutationSerializationV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Integration/Concurrency/PasskeyMutationSerializationV3Test.php",
+      "source_blob": "71d4f5a450083946dd5394c3526dcc5158041611",
+      "result_blob": "9242d4d3ef12776fb4d4ab0e45c61fd9a0b17ba4"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/ProviderIdentitySerializationV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Integration/Concurrency/ProviderIdentitySerializationV3Test.php",
+      "source_blob": "0efa3c2f46292e1bbf64ced180c4295ededd7aa0",
+      "result_blob": "091ff855959f398eddad5c5bc78790d181ba19b5"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/RememberedAccountSessionV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Integration/Concurrency/RememberedAccountSessionV3Test.php",
+      "source_blob": "594a4bc4edce8bf0477b0c38572fa12e6e05404c",
+      "result_blob": "0f78d6cc7b40479ed00c0a7602d82ada295ee75e"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Accounts/Credentials/DurablePasswordResetIssuanceV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Credentials/Integration/Concurrency/DurablePasswordResetIssuanceV3Test.php",
+      "source_blob": "f14d0ed0924e1a3cb71081be30ee5266e35b7699",
+      "result_blob": "ca8c52b2f0f035c905ea56f200a145f89e7cc932"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Accounts/Credentials/PasswordResetAtomicityV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Credentials/Integration/Concurrency/PasswordResetAtomicityV3Test.php",
+      "source_blob": "924d6f09fc151db6092278846ef9fb3f4324d13f",
+      "result_blob": "b68f7e3f4c6f19f07fbc309d8bfdf2d883282c84"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Accounts/Identity/AccountAuditReferenceLockV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Identity/Integration/Concurrency/AccountAuditReferenceLockV3Test.php",
+      "source_blob": "5db1b16b0409c7971635165a6fb36761e0f95933",
+      "result_blob": "daad15e458be049fe12d963e1f65e14463899485"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Accounts/Identity/FinalizedAccountMutationV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Identity/Integration/Concurrency/FinalizedAccountMutationV3Test.php",
+      "source_blob": "0294ef4ebd63b8f1ce87d1b83f54b1beefd4d8be",
+      "result_blob": "c6080d0db8d100c08adc361553528c3da62348fc"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Alliance/Access/AllianceRoleCreationConcurrencyV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Access/Integration/Concurrency/AllianceRoleCreationConcurrencyV3Test.php",
+      "source_blob": "711bcadb64daaa0bd6e69e94b74a73aee91543a2",
+      "result_blob": "5a9d0db1ec13d5b508629ea50c056d10a3e38d29"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Alliance/Access/AllianceRoleRevocationConcurrencyV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Access/Integration/Concurrency/AllianceRoleRevocationConcurrencyV3Test.php",
+      "source_blob": "f4795ab26a953b5d846e683c2fe0a107e68f3236",
+      "result_blob": "5a05ffc9df695abaaddd6432f7b107f68a62b171"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Alliance/Lifecycle/AllianceCreationAuthorityV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Lifecycle/Integration/Concurrency/AllianceCreationAuthorityV3Test.php",
+      "source_blob": "3264b40d0e75d9febb77e6743395e77e3e9a0872",
+      "result_blob": "5abc343e0f2f6b383aa78e142292da99f84b1eec"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Alliance/Lifecycle/AllianceSlugConcurrencyV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Lifecycle/Integration/Concurrency/AllianceSlugConcurrencyV3Test.php",
+      "source_blob": "6be79e4e10437a45fbe2e5a8efc0fe197136be07",
+      "result_blob": "ae1b6b4a317b16f21c0b8de1876f76b68007dc9a"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/InvitationIssuanceConcurrencyV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Membership/Integration/Concurrency/InvitationIssuanceConcurrencyV3Test.php",
+      "source_blob": "4ffd7177f234b05ca21d39ce3e560d58e30c1428",
+      "result_blob": "272f3a1b165720abe46aa4373aa0f4c7b9e0e3b7"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/MembershipActivationConcurrencyV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Membership/Integration/Concurrency/MembershipActivationConcurrencyV3Test.php",
+      "source_blob": "b458f01aac09979b06a5d347ca7206de9982dd7a",
+      "result_blob": "18b8d45fdb1fb448b75b246c2571d9e681fd5773"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/MembershipCleanupConcurrencyV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Membership/Integration/Concurrency/MembershipCleanupConcurrencyV3Test.php",
+      "source_blob": "6c4e7ee90f52908413178afdc7cc6e2169bbeae3",
+      "result_blob": "309b5f10b80c4757ed2bbb0a07c2875a348c6e10"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/ProtectedMembershipTargetConcurrencyV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Membership/Integration/Concurrency/ProtectedMembershipTargetConcurrencyV3Test.php",
+      "source_blob": "c89fd70c953b84a0de332fbf6d99d0a3201be94a",
+      "result_blob": "f044a2355b704888b19084972bc8b3aea85da6df"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/RosterWriteLockOrderV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Membership/Integration/Concurrency/RosterWriteLockOrderV3Test.php",
+      "source_blob": "9ac6805b1d90aa80d1a4e9c67fbdf936620b4821",
+      "result_blob": "075c729b56057ef008e2af6d96ba8359bc311028"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentConfigurationCapacityV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Recruitment/Integration/Concurrency/RecruitmentConfigurationCapacityV3Test.php",
+      "source_blob": "1f24ae52f50108ba81a2f4f7c889cdc417077dfa",
+      "result_blob": "110b196b8ecedece7a86b7e0518c213eeaf8936d"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentIntakeConcurrencyV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Recruitment/Integration/Concurrency/RecruitmentIntakeConcurrencyV3Test.php",
+      "source_blob": "74a46c68a03969067b3dc93e7a21f6e4e0852f84",
+      "result_blob": "1f3bb0b7f8c2e7403b55527a09944b834999f37c"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentMembershipLockOrderV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Recruitment/Integration/Concurrency/RecruitmentMembershipLockOrderV3Test.php",
+      "source_blob": "bfbb1bbb13bd3e7a73eaab8f9415367cb2b332f3",
+      "result_blob": "1fb8214423edef3a19ea5818db76b9a69068fb0e"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentPrivateRetentionV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Recruitment/Integration/Concurrency/RecruitmentPrivateRetentionV3Test.php",
+      "source_blob": "242508e8c69609a22ddc1bca3d10165e3e295e0b",
+      "result_blob": "757f8711350f251d7bdbc14836637de1556e3ebf"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentRetentionAuthorityV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Recruitment/Integration/Concurrency/RecruitmentRetentionAuthorityV3Test.php",
+      "source_blob": "c39360dfeda66e0b2b4edf1d1b1736b9e103f773",
+      "result_blob": "9b5970ee2fdbd77b87da06d9e130e860fa0fe3ab"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/GameWorld/KingdomTransfers/TransferCompletionLockOrderV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Integration/Concurrency/TransferCompletionLockOrderV3Test.php",
+      "source_blob": "e03974f98bf86166affd22fe0ab99bad03cc81f0",
+      "result_blob": "07f382b37b65f59d93dafa9520b1299d8ebe7761"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/GameWorld/KingdomTransfers/TransferPlanningIdentityConcurrencyV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Integration/Concurrency/TransferPlanningIdentityConcurrencyV3Test.php",
+      "source_blob": "abb60e58f7cf32d576bb9943f5c5f2a32496ac29",
+      "result_blob": "0fcdc7e219517729dcee711a1bd2bb5e5b3744ea"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/GameWorld/Kingdoms/KingdomAllianceLockOrderV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Kingdoms/Integration/Concurrency/KingdomAllianceLockOrderV3Test.php",
+      "source_blob": "abc1dbb4a2933b300e993a2d7496fe9243d2f15c",
+      "result_blob": "a5d30f442f6820607c6aec1cda6c6bc0413beb96"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/GameWorld/Players/OwnedPlayerMutationConcurrencyV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Players/Integration/Concurrency/OwnedPlayerMutationConcurrencyV3Test.php",
+      "source_blob": "0ca006c9a9041e731badab68de3b050923d09bc0",
+      "result_blob": "e74d8acccc673410e147e8aa6a74c39ab36a3483"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/GameWorld/Players/PlayerOwnershipFinalizationV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Players/Integration/Concurrency/PlayerOwnershipFinalizationV3Test.php",
+      "source_blob": "cf8114a8955f20e728d56800c8eacaf16d186d0d",
+      "result_blob": "0f2fed252d5713abf08dbacd51b5d5eb4cb5b8b1"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/GameWorld/Players/StablePlayerIdentityConcurrencyV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Players/Integration/Concurrency/StablePlayerIdentityConcurrencyV3Test.php",
+      "source_blob": "f428d34cfd1ae596ac808cb7e2694421a3fd4457",
+      "result_blob": "0ec58da81ad44310e91aef5ddc9cc9b15b7295b1"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Platform/AllianceAdministration/AlliancePlatformInitializationConcurrencyV3Test.php",
+      "new_path": "tests/Contexts/Platform/AllianceAdministration/Integration/Concurrency/AlliancePlatformInitializationConcurrencyV3Test.php",
+      "source_blob": "702774762f67e88dcfc20427c4678eda632179d0",
+      "result_blob": "be322b9e830682b40720df368890493d69cd8aea"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Contexts/Platform/DataGovernance/AccountDeletionLifecycleAtomicityV3Test.php",
+      "new_path": "tests/Contexts/Platform/DataGovernance/Integration/Concurrency/AccountDeletionLifecycleAtomicityV3Test.php",
+      "source_blob": "2547cb872c8da9718b82970f94882c33487b5f21",
+      "result_blob": "9bb5017b37e50041d7f3b7e8c5e3b78a821bee15"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Workflows/AccountOnboarding/AtomicAccountOnboardingV3Test.php",
+      "new_path": "tests/Workflows/AccountOnboarding/Integration/Concurrency/AtomicAccountOnboardingV3Test.php",
+      "source_blob": "bec8fd3503b5be4161100c3215bea83673f48963",
+      "result_blob": "50646567c2cc2d4030107a2ec0c7612828050808"
+    },
+    {
+      "old_path": "tests/Integration/Concurrency/Workflows/AccountOnboarding/InvitationAdmissionConcurrencyV3Test.php",
+      "new_path": "tests/Workflows/AccountOnboarding/Integration/Concurrency/InvitationAdmissionConcurrencyV3Test.php",
+      "source_blob": "9ea24db1489768afe38681952a65d324952d5e4a",
+      "result_blob": "0d01f49c765431e3670250f6d62c054999f07ca0"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Accounts/Authentication/AccountLogoutV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Integration/AccountLogoutV3Test.php",
+      "source_blob": "31ec14a8de7b746aa29130f9d16b80abd9806ec6",
+      "result_blob": "3f81e2e381e2cd82487f2dfbb3fad88e7c783177"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Accounts/Authentication/AccountSessionRevocationV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Integration/AccountSessionRevocationV3Test.php",
+      "source_blob": "d3a54cb23bc321fed00768b96c50f391ef271068",
+      "result_blob": "6c627b9e53de529237c560f6564d945eaaad4a04"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Accounts/Authentication/CredentialSessionCommitV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Integration/CredentialSessionCommitV3Test.php",
+      "source_blob": "5dda3a197aeaa6ef2719b3720320650815301349",
+      "result_blob": "a5ce16e924f05b5a1d6d72034c33f6509db99540"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Accounts/Authentication/GoogleConfirmationAtomicityV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Integration/GoogleConfirmationAtomicityV3Test.php",
+      "source_blob": "6b6259531506dc963cbeea45eb9fd59cd1ae3852",
+      "result_blob": "17110c544df5b1625acf7140f2ceb6a1f5d3ab8a"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Accounts/Authentication/PasswordConfirmationAtomicityV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Authentication/Integration/PasswordConfirmationAtomicityV3Test.php",
+      "source_blob": "ec26ad1492563b4a31bed2aa4ce80c5dee5cd74e",
+      "result_blob": "564f4c5be07705de7f2b77579c10164cf49423c7"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Accounts/EmailVerification/DurableEmailChangeV3Test.php",
+      "new_path": "tests/Contexts/Accounts/EmailVerification/Integration/DurableEmailChangeV3Test.php",
+      "source_blob": "42421f697d0d91291cbf710fd7e86fa2d28bd007",
+      "result_blob": "38311706acd5e410049e9e653a3db9427db24feb"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Accounts/EmailVerification/DurableEmailVerificationV3Test.php",
+      "new_path": "tests/Contexts/Accounts/EmailVerification/Integration/DurableEmailVerificationV3Test.php",
+      "source_blob": "c04ed3ff82c7f1008d949b9fab2f1489b67d211e",
+      "result_blob": "e480f1284751fbf089c9ba5c10a413cfd9a4a3ab"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Accounts/EmailVerification/EmailVerificationAtomicityV3Test.php",
+      "new_path": "tests/Contexts/Accounts/EmailVerification/Integration/EmailVerificationAtomicityV3Test.php",
+      "source_blob": "884c35a210b9ca4fe10c1fbebd0ab63d1c41ec49",
+      "result_blob": "abaeb6fef8e52bea0ca1b2f78de3486e89eccfae"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Accounts/Identity/AccountFinalizationSessionCommitV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Identity/Integration/AccountFinalizationSessionCommitV3Test.php",
+      "source_blob": "067e81748813ebdfabc11dd99d88564c577fd957",
+      "result_blob": "6759756b0d0bf3819ec443cc62d3364d4498b25a"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Accounts/MultiFactorAuthentication/MfaLoginChallengeV3Test.php",
+      "new_path": "tests/Contexts/Accounts/MultiFactorAuthentication/Integration/MfaLoginChallengeV3Test.php",
+      "source_blob": "9f1b71a2a6b595d303fb4fb4a9b4041971cea5df",
+      "result_blob": "fc1e5655d65d4b79dea22c4a67ad22ea4fd79084"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Accounts/MultiFactorAuthentication/MfaRememberedBrowserInvalidationV3Test.php",
+      "new_path": "tests/Contexts/Accounts/MultiFactorAuthentication/Integration/MfaRememberedBrowserInvalidationV3Test.php",
+      "source_blob": "9eb57afc5d2ff562445b2e34318c3ffb502bacde",
+      "result_blob": "9acd727072ca7de7eddecd8f846ef7719a7e2f35"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Accounts/Profile/EmailSecurityIntentAtomicityV3Test.php",
+      "new_path": "tests/Contexts/Accounts/Profile/Integration/EmailSecurityIntentAtomicityV3Test.php",
+      "source_blob": "61b6e081bd6906d2303236c1763e8f3cc1db1145",
+      "result_blob": "3fca2d1f3a0f74c09e61e0eb9f0616469f0f18c0"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Alliance/Recruitment/RecruitmentBulkAuthorityRevocationV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Recruitment/Integration/RecruitmentBulkAuthorityRevocationV3Test.php",
+      "source_blob": "2acaddf4a179a7a5e57a9346e1764d3051bdc38b",
+      "result_blob": "5e84baab439a29420dabe9a8c37f5d911a9e9f08"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Alliance/Recruitment/RecruitmentJoinedHandoffV3Test.php",
+      "new_path": "tests/Contexts/Alliance/Recruitment/Integration/RecruitmentJoinedHandoffV3Test.php",
+      "source_blob": "6946bfab1dba78daf11ebf547caa2cf6973bc9f5",
+      "result_blob": "17a333b47ff93579aadf25620189be24c345d756"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Intelligence/Observations/KingdomAllianceCanonicalIdentityIntegrationV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Observations/Integration/KingdomAllianceCanonicalIdentityIntegrationV3Test.php",
+      "source_blob": "88a209f3fc2926d4eeea0814d3cb99917b4d828c",
+      "result_blob": "1040d5836604856167532428b8483e5e5206ed53"
+    },
+    {
+      "old_path": "tests/Integration/Contexts/Operations/TerritoryPlanning/TerritoryEventRevisionIntegrationV3Test.php",
+      "new_path": "tests/Contexts/Operations/TerritoryPlanning/Integration/TerritoryEventRevisionIntegrationV3Test.php",
+      "source_blob": "894fd2d60dbb901d6899a26838ec2fe03320e94e",
+      "result_blob": "8db4ba48fed0454b570965e1ba901df405c83090"
+    },
+    {
+      "old_path": "tests/Integration/Shared/Infrastructure/InfrastructureBehaviorV3Test.php",
+      "new_path": "tests/Shared/Infrastructure/Integration/InfrastructureBehaviorV3Test.php",
+      "source_blob": "f3b028ce14dc8676f1679cfa2d6f7d9bd7429f84",
+      "result_blob": "821c851e4fe00563b0f7e9b64239a1b4bdf068fc"
+    },
+    {
+      "old_path": "tests/Integration/Shared/Testing/CacheNamespaceIsolationTest.php",
+      "new_path": "tests/Shared/Testing/Integration/CacheNamespaceIsolationTest.php",
+      "source_blob": "359a4105f3288405a53564e2cb37ab97390c8bc4",
+      "result_blob": "b33d52413f51e717964b2dd923bbf62ea9b35591"
+    },
+    {
+      "old_path": "tests/Integration/Shared/Testing/MigrationReferenceDataIsolationTest.php",
+      "new_path": "tests/Shared/Testing/Integration/MigrationReferenceDataIsolationTest.php",
+      "source_blob": "585e4169c6295159f594264b938e36a534a15f18",
+      "result_blob": "3663e6d68113fc7d17633d1f07bb32cbfbe22d7f"
+    },
+    {
+      "old_path": "tests/Unit/Contexts/GameWorld/KingdomTransfers/TransferCapacityProjectionV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Unit/TransferCapacityProjectionV3Test.php",
+      "source_blob": "f69a2a2b5e2e12bdbbafc60b9c155932cd5c67ff",
+      "result_blob": "27f9b1fe7379b20daef86fed4fe23fd99be73112"
+    },
+    {
+      "old_path": "tests/Unit/Contexts/GameWorld/KingdomTransfers/TransferEligibilityEvaluatorV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/KingdomTransfers/Unit/TransferEligibilityEvaluatorV3Test.php",
+      "source_blob": "c5fc88844f8166a320649f6ed2fb9d7b040f4c87",
+      "result_blob": "6fd1882abb5b863eed46a78ab557d2c760b17f57"
+    },
+    {
+      "old_path": "tests/Unit/Contexts/GameWorld/Players/PlayerAuthorityContextVersionV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Players/Unit/PlayerAuthorityContextVersionV3Test.php",
+      "source_blob": "105469e50e5d8036d9efea87e2561b21d3f2ebe0",
+      "result_blob": "c1ca7cab3b0f305e7d8c62d944dd18d17d84a05e"
+    },
+    {
+      "old_path": "tests/Unit/Contexts/GameWorld/Players/PlayerSwitchRouteResolverV3Test.php",
+      "new_path": "tests/Contexts/GameWorld/Players/Unit/PlayerSwitchRouteResolverV3Test.php",
+      "source_blob": "90c567421b25e0f0c3dcdda9166b546244977568",
+      "result_blob": "c7896c046204843aa3ceec4ed66c9072fc2fb71b"
+    },
+    {
+      "old_path": "tests/Unit/Contexts/Intelligence/Evidence/BearHuntBattleReportExtractorV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Unit/BearHuntBattleReportExtractorV3Test.php",
+      "source_blob": "43fcc3ff50dcd55b622ed1246e32f641df821e17",
+      "result_blob": "4cde3e3c7cc8fa86ca0ba94a500a89b46ff9c584"
+    },
+    {
+      "old_path": "tests/Unit/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceFixtureCorpusV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Unit/GovernorProgressionEvidenceFixtureCorpusV3Test.php",
+      "source_blob": "44f1f71917c4d10e2094bbaa36ff1979ee488990",
+      "result_blob": "a0a3fea8159c9df09baad63baf2fc5ee04a03c78"
+    },
+    {
+      "old_path": "tests/Unit/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceSchemasV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Unit/GovernorProgressionEvidenceSchemasV3Test.php",
+      "source_blob": "22e5ecf22797623e7775ff4902b3353762afbcd8",
+      "result_blob": "c0a3ba8e8b0ec9c283c3689b7b284e85e06d0f72"
+    },
+    {
+      "old_path": "tests/Unit/Contexts/Intelligence/Evidence/TerritorySpatialEvidenceSchemasV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Unit/TerritorySpatialEvidenceSchemasV3Test.php",
+      "source_blob": "077bce3a6e7d708f686addbc69694f6836ec3ace",
+      "result_blob": "bc0b4a6624fe1e9b8bc4c12b5dc3558616a332cd"
+    },
+    {
+      "old_path": "tests/Unit/Contexts/Intelligence/Evidence/TransferEvidenceFixtureCorpusV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Unit/TransferEvidenceFixtureCorpusV3Test.php",
+      "source_blob": "9785424256a49c04e0269b0779aefa97fad5670f",
+      "result_blob": "3add54b49d8ec6163117d32b9d75fdb11a126bf8"
+    },
+    {
+      "old_path": "tests/Unit/Contexts/Intelligence/Evidence/TransferEvidenceSchemasV3Test.php",
+      "new_path": "tests/Contexts/Intelligence/Evidence/Unit/TransferEvidenceSchemasV3Test.php",
+      "source_blob": "221dd20fac33059d1b6ee7c157306ea2bf26b9d9",
+      "result_blob": "d71e8d1b1f5195a55bea3461d4074903b1cae327"
+    },
+    {
+      "old_path": "tests/Unit/Contexts/Operations/Events/RecurrencePolicyBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Operations/Events/Unit/RecurrencePolicyBehaviorV3Test.php",
+      "source_blob": "8a629f12b4832946a9a7e2977d6cc3c7066eef40",
+      "result_blob": "f7ec3e924bb67234ccbc4641310c145284671b77"
+    },
+    {
+      "old_path": "tests/Unit/Contexts/Operations/KingPerks/KingPerkPolicyBehaviorV3Test.php",
+      "new_path": "tests/Contexts/Operations/KingPerks/Unit/KingPerkPolicyBehaviorV3Test.php",
+      "source_blob": "168a664cbe15543f0a8d48a373f41a3ce4abc883",
+      "result_blob": "9ead4d463f6f0111a2988d93cc337efd6c93356e"
+    },
+    {
+      "old_path": "tests/Unit/ReadModels/AllianceAssistant/AllianceAssistantEvidenceV3Test.php",
+      "new_path": "tests/ReadModels/AllianceAssistant/Unit/AllianceAssistantEvidenceV3Test.php",
+      "source_blob": "c0d534f4669906d4ae188b58671b16e7b44112bd",
+      "result_blob": "60366d714e74dca7096b4fe6892aec3e83c6e321"
+    },
+    {
+      "old_path": "tests/Unit/ReadModels/AllianceAssistant/AssistantQuestionInterpreterV3Test.php",
+      "new_path": "tests/ReadModels/AllianceAssistant/Unit/AssistantQuestionInterpreterV3Test.php",
+      "source_blob": "82991fa23a8ec2f100fc7cbb304fe395067d394e",
+      "result_blob": "aee5bb687d0ce53e8d98cfabeab998e2be4b3341"
+    },
+    {
+      "old_path": "tests/Unit/Shared/Infrastructure/ActionReceiptBehaviorV3Test.php",
+      "new_path": "tests/Shared/Infrastructure/Unit/ActionReceiptBehaviorV3Test.php",
+      "source_blob": "38bd706d3789c8f6977f33fd9707e053e5a01d93",
+      "result_blob": "4ef851a0c49aba6d6c90df2c049eb193d5c7033b"
+    },
+    {
+      "old_path": "tests/Unit/Shared/Infrastructure/Pagination/PageSliceTest.php",
+      "new_path": "tests/Shared/Infrastructure/Pagination/Unit/PageSliceTest.php",
+      "source_blob": "40202cfa27b5b7157cf6056edebe8df07130fb2a",
+      "result_blob": "9b2774d62e97c21d425f2f42e6aec196fd365ef7"
+    }
+  ]
+}

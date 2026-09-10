@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\System\Architecture;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
 
-final class BehaviorContractsV3Test extends TestCase
+final class ArchitectureV3Test extends TestCase
 {
-    public function test_v3_behavior_contract_gate(): void
+    public function test_v3_architecture_invariants(): void
     {
-        $process = new Process([PHP_BINARY, __DIR__.'/verify-behavior-contracts.php'], dirname(__DIR__, 2));
+        $process = new Process([PHP_BINARY, __DIR__.'/verify.php'], dirname(__DIR__, 3));
         $process->run();
 
         self::assertSame(0, $process->getExitCode(), $process->getErrorOutput().$process->getOutput());

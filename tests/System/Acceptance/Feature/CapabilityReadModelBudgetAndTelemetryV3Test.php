@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Acceptance;
+namespace Tests\System\Acceptance\Feature;
 
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;

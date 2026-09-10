@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\System\Architecture;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -15,7 +15,7 @@ final class ArchitectureEnforcementV3Test extends TestCase
     public function mutation_authority_pattern_does_not_exist(): void
     {
         $violations = [];
-        foreach ($this->phpFiles(dirname(__DIR__, 2).'/app') as $file) {
+        foreach ($this->phpFiles(dirname(__DIR__, 3).'/app') as $file) {
             $contents = file_get_contents($file);
             self::assertIsString($contents);
             if (preg_match('/\b[A-Za-z0-9_]*MutationAuthority\b/', $contents) === 1) {
@@ -28,7 +28,7 @@ final class ArchitectureEnforcementV3Test extends TestCase
     #[Test]
     public function context_models_do_not_declare_foreign_eloquent_relationships(): void
     {
-        $contextsRoot = dirname(__DIR__, 2).'/app/Contexts';
+        $contextsRoot = dirname(__DIR__, 3).'/app/Contexts';
         $violations = [];
         foreach (glob($contextsRoot.'/*', GLOB_ONLYDIR) ?: [] as $contextPath) {
             $context = basename($contextPath);
@@ -59,7 +59,7 @@ final class ArchitectureEnforcementV3Test extends TestCase
     #[Test]
     public function gameworld_player_does_not_reference_accounts_user_model(): void
     {
-        $file = dirname(__DIR__, 2).'/app/Contexts/GameWorld/Players/Models/Player.php';
+        $file = dirname(__DIR__, 3).'/app/Contexts/GameWorld/Players/Models/Player.php';
         $contents = file_get_contents($file);
         self::assertIsString($contents);
         self::assertStringNotContainsString('App\\Contexts\\Accounts\\Identity\\Models\\User', $contents);
@@ -69,7 +69,7 @@ final class ArchitectureEnforcementV3Test extends TestCase
     #[Test]
     public function read_models_are_strictly_read_only(): void
     {
-        $root = dirname(__DIR__, 2).'/app/ReadModels';
+        $root = dirname(__DIR__, 3).'/app/ReadModels';
         $violations = [];
         if (! is_dir($root)) {
             return;
@@ -95,7 +95,7 @@ final class ArchitectureEnforcementV3Test extends TestCase
     public function authorization_services_do_not_acquire_database_locks_or_transactions(): void
     {
         $violations = [];
-        foreach ($this->phpFiles(dirname(__DIR__, 2).'/app/Contexts') as $file) {
+        foreach ($this->phpFiles(dirname(__DIR__, 3).'/app/Contexts') as $file) {
             $normalized = str_replace('\\', '/', $file);
             if (! str_contains($normalized, '/Services/') || ! str_ends_with($normalized, 'Authorization.php')) {
                 continue;
@@ -113,7 +113,7 @@ final class ArchitectureEnforcementV3Test extends TestCase
     #[Test]
     public function write_actions_and_services_do_not_import_foreign_permission_vocabularies(): void
     {
-        $contextsRoot = dirname(__DIR__, 2).'/app/Contexts';
+        $contextsRoot = dirname(__DIR__, 3).'/app/Contexts';
         $violations = [];
         foreach (glob($contextsRoot.'/*', GLOB_ONLYDIR) ?: [] as $contextPath) {
             $context = basename($contextPath);
@@ -157,6 +157,6 @@ final class ArchitectureEnforcementV3Test extends TestCase
 
     private function relative(string $file): string
     {
-        return str_replace(dirname(__DIR__, 2).'/', '', str_replace('\\', '/', $file));
+        return str_replace(dirname(__DIR__, 3).'/', '', str_replace('\\', '/', $file));
     }
 }

@@ -75,7 +75,7 @@ Visible text should describe what a Kingshot Governor or Alliance officer is doi
 - Alliance Connections
 - Citadel
 
-Software architecture vocabulary is prohibited from ordinary player-facing copy. `tests/Frontend/verify-copy.php` enforces this rule.
+Software architecture vocabulary is prohibited from ordinary player-facing copy. `tests/System/Frontend/verify-copy.php` enforces this rule.
 
 ## Capability truth
 
@@ -123,9 +123,9 @@ New mutation forms must expose server validation beside the affected control, pr
 Dependency-free gates:
 
 ```bash
-php tests/Frontend/verify-architecture.php
-php tests/Frontend/verify-copy.php
-php tests/Frontend/verify-source.php
+php tests/System/Frontend/verify-architecture.php
+php tests/System/Frontend/verify-copy.php
+php tests/System/Frontend/verify-source.php
 ```
 
 With the declared Node/npm toolchain installed:

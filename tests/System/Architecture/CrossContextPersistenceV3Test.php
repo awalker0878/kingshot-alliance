@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture;
+namespace Tests\System\Architecture;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -14,7 +14,7 @@ final class CrossContextPersistenceV3Test extends TestCase
     #[Test]
     public function foreign_contexts_consume_platform_plan_and_settings_owner_contracts(): void
     {
-        $repository = dirname(__DIR__, 2);
+        $repository = dirname(__DIR__, 3);
         $violations = [];
         foreach (glob($repository.'/app/Contexts/*', GLOB_ONLYDIR) ?: [] as $contextPath) {
             if (basename($contextPath) === 'Platform') {
@@ -37,7 +37,7 @@ final class CrossContextPersistenceV3Test extends TestCase
     #[Test]
     public function business_contexts_do_not_import_foreign_context_models(): void
     {
-        $repository = dirname(__DIR__, 2);
+        $repository = dirname(__DIR__, 3);
         $contextsRoot = $repository.'/app/Contexts';
         $violations = [];
 
@@ -90,7 +90,7 @@ final class CrossContextPersistenceV3Test extends TestCase
     #[Test]
     public function context_models_do_not_declare_eloquent_relations_to_foreign_contexts(): void
     {
-        $repository = dirname(__DIR__, 2);
+        $repository = dirname(__DIR__, 3);
         $contextsRoot = $repository.'/app/Contexts';
         $violations = [];
 

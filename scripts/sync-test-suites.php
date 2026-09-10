@@ -15,8 +15,7 @@ try {
     if ($configuration === false) {
         throw new RuntimeException('Cannot read PHPUnit configuration.');
     }
-    // Transitional support is removed when the owner-first migration is complete.
-    $inventory = testLayoutInventory($root, allowLegacy: true);
+    $inventory = testLayoutInventory($root);
     $replacement = testLayoutSuiteXml($inventory);
     $updated = preg_replace_callback(
         '/^    <testsuites>.*?^    <\/testsuites>/ms',
