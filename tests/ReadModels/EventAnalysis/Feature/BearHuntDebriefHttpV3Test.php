@@ -6,6 +6,7 @@ namespace Tests\ReadModels\EventAnalysis\Feature;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
+use App\Contexts\GameWorld\Players\Http\Middleware\HandleInertiaRequests;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Actions\CreateEvent;
 use App\Contexts\Operations\Events\Enums\EventScope;
@@ -35,6 +36,7 @@ final class BearHuntDebriefHttpV3Test extends TestCase
         $response = $this->actingAs($user)
             ->withSession([$this->sessionKey() => $actor->playerId])
             ->withHeader('X-Inertia', 'true')
+            ->withHeader('X-Inertia-Version', app(HandleInertiaRequests::class)->version(request()) ?? '')
             ->get('/events/'.(string) $occurrence->id.'/debrief');
 
         $response
@@ -76,6 +78,7 @@ final class BearHuntDebriefHttpV3Test extends TestCase
 
         $this->actingAs($user)
             ->withHeader('X-Inertia', 'true')
+            ->withHeader('X-Inertia-Version', app(HandleInertiaRequests::class)->version(request()) ?? '')
             ->get('/events/'.(string) $occurrence->id.'/debrief')
             ->assertStatus(409);
     }
@@ -93,6 +96,7 @@ final class BearHuntDebriefHttpV3Test extends TestCase
         $this->actingAs($user)
             ->withSession([$this->sessionKey() => $actor->playerId])
             ->withHeader('X-Inertia', 'true')
+            ->withHeader('X-Inertia-Version', app(HandleInertiaRequests::class)->version(request()) ?? '')
             ->get('/events/'.(string) $occurrence->id.'/debrief')
             ->assertNotFound();
     }
@@ -114,6 +118,7 @@ final class BearHuntDebriefHttpV3Test extends TestCase
         $this->actingAs($outsiderUser)
             ->withSession([$this->sessionKey() => $outsider->playerId])
             ->withHeader('X-Inertia', 'true')
+            ->withHeader('X-Inertia-Version', app(HandleInertiaRequests::class)->version(request()) ?? '')
             ->get('/events/'.(string) $occurrence->id.'/debrief')
             ->assertForbidden();
     }

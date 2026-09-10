@@ -11,6 +11,7 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Queries\PlayerIdentityContextQuery;
 use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
+use App\Contexts\GameWorld\Players\Http\Middleware\HandleInertiaRequests;
 use App\Contexts\GameWorld\Players\Http\Middleware\RequireCurrentPlayerContextVersion;
 use App\Contexts\GameWorld\Players\Services\PlayerAuthorityContextVersion;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
@@ -52,6 +53,7 @@ final class AllianceRulesHttpBehaviorV3Test extends TestCase
         $this->actingAs($memberUser)
             ->withSession([(string) config('game_world.active_player_session_key') => $member->playerId])
             ->withHeader('X-Inertia', 'true')
+            ->withHeader('X-Inertia-Version', app(HandleInertiaRequests::class)->version(request()) ?? '')
             ->get('/alliance/rules')
             ->assertOk()
             ->assertJsonPath('component', 'Alliance/Rules/Index')
