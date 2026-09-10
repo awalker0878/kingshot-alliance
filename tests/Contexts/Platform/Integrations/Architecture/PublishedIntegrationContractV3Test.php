@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Architecture\Contexts\Platform\Integrations;
+namespace Tests\Contexts\Platform\Integrations\Architecture;
 
 use App\Contexts\Platform\Integrations\Contracts\WebhookEventCatalog;
 use PHPUnit\Framework\Attributes\Test;

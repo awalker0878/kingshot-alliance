@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Contexts\Platform\Integrations;
+namespace Tests\Contexts\Platform\Integrations\Feature;
 
 use App\Contexts\Platform\Integrations\Actions\CreateWebhookSubscription;
 use App\Contexts\Platform\Integrations\Actions\QueueWebhookDeliveries;

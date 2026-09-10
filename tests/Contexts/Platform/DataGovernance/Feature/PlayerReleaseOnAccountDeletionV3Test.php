@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Contexts\Platform\DataGovernance;
+namespace Tests\Contexts\Platform\DataGovernance\Feature;
 
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Models\PlayerIdentityHistory;

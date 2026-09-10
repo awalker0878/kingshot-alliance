@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Contexts\Platform\Administration;
+namespace Tests\Contexts\Platform\Administration\Feature;
 
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;

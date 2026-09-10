@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Integration\Concurrency\Contexts\Platform\AllianceAdministration;
+namespace Tests\Contexts\Platform\AllianceAdministration\Integration\Concurrency;
 
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;

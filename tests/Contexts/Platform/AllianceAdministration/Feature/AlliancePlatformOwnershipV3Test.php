@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Contexts\Platform\AllianceAdministration;
+namespace Tests\Contexts\Platform\AllianceAdministration\Feature;
 
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Alliance\Content\Policies\StorageCapacityPolicy;

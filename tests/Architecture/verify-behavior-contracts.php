@@ -34,8 +34,8 @@ $requiredBehaviorTests = [
     'tests/Contexts/Alliance/Membership/Feature/MemberCapacityPolicyBehaviorV3Test.php',
     'tests/Contexts/Operations/Events/Unit/RecurrencePolicyBehaviorV3Test.php',
     'tests/Contexts/Operations/KingPerks/Unit/KingPerkPolicyBehaviorV3Test.php',
-    'tests/Feature/Contexts/Platform/Administration/PlatformAdministrationBehaviorV3Test.php',
-    'tests/Feature/Contexts/Platform/Administration/PlatformAdministratorIsolationV3Test.php',
+    'tests/Contexts/Platform/Administration/Feature/PlatformAdministrationBehaviorV3Test.php',
+    'tests/Contexts/Platform/Administration/Feature/PlatformAdministratorIsolationV3Test.php',
     'tests/Integration/Shared/Infrastructure/InfrastructureBehaviorV3Test.php',
 ];
 foreach ($requiredBehaviorTests as $relative) {

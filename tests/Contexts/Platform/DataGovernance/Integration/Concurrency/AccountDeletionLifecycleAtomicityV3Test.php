@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Integration\Concurrency\Contexts\Platform\DataGovernance;
+namespace Tests\Contexts\Platform\DataGovernance\Integration\Concurrency;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Platform\DataGovernance\Actions\CancelAccountDeletion;
