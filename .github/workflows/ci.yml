@@ -76,6 +76,15 @@ jobs:
           coverage: none
           tools: composer:v2
 
+      # Keep the same four check:ci phases, once each and in the same order.
+      # Check source layout before dependency installation or database migration.
+      # The guard requires PHP/SimpleXML, not Composer packages or the application.
+      - name: Verify test layout and CI check sequence
+        shell: bash
+        run: |
+          php -r '$scripts = json_decode(file_get_contents("composer.json"), true, flags: JSON_THROW_ON_ERROR)["scripts"]; if ($scripts["check:ci"] !== ["@php scripts/verify-test-layout.php", "@lint:check", "@types:check", "@test:ci"]) { fwrite(STDERR, "Update the explicit CI phases to match check:ci.\n"); exit(1); }'
+          php scripts/verify-test-layout.php
+
       - name: Restore Composer package cache
         uses: ./.github/actions/composer-package-cache
 
@@ -100,14 +109,6 @@ jobs:
           done
           php artisan migrate:fresh --force
           php artisan migrate:status --no-interaction
-
-      # Keep the same four check:ci phases, once each and in the same order.
-      # Separate steps expose phase durations without another full-suite run.
-      - name: Verify test layout and CI check sequence
-        shell: bash
-        run: |
-          php -r '$scripts = json_decode(file_get_contents("composer.json"), true, flags: JSON_THROW_ON_ERROR)["scripts"]; if ($scripts["check:ci"] !== ["@php scripts/verify-test-layout.php", "@lint:check", "@types:check", "@test:ci"]) { fwrite(STDERR, "Update the explicit CI phases to match check:ci.\n"); exit(1); }'
-          php scripts/verify-test-layout.php
 
       - name: Check PHP formatting
         run: composer lint:check

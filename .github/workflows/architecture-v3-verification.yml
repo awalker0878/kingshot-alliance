@@ -40,6 +40,10 @@ jobs:
           coverage: none
           tools: composer:v2
 
+      # The source-only guard needs no installed packages or application startup.
+      - name: Verify test layout
+        run: php scripts/verify-test-layout.php
+
       - name: Restore Composer package cache
         uses: ./.github/actions/composer-package-cache
 
@@ -50,9 +54,6 @@ jobs:
 
       - name: Validate optimized PSR-4 autoload
         run: composer dump-autoload --optimize --strict-psr
-
-      - name: Verify test layout
-        run: php scripts/verify-test-layout.php
 
       - name: Architecture contracts
         run: composer test:architecture
