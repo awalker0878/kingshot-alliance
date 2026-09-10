@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\ReadModels\Progression\Feature;
 
 use App\Contexts\GameWorld\Progression\Queries\ProgressionDatasetQuery;
+use App\Contexts\GameWorld\Progression\ValueObjects\ProgressionDataset;
 use App\ReadModels\Progression\Queries\ProgressionPrerequisiteEvaluator;
 use Tests\TestCase;
 
@@ -16,14 +17,14 @@ final class ProgressionPrerequisiteEvaluatorV3Test extends TestCase
         $currentPin = ['datasetId' => $dataset->id, 'datasetChecksum' => $dataset->checksum];
         $oldPin = ['datasetId' => 'older-dataset', 'datasetChecksum' => str_repeat('a', 64)];
 
-        $result = $this->evaluate([
+        $result = $this->evaluate($dataset, [
             'state_id' => ['value' => 'level:2', ...$currentPin],
             'level' => ['value' => 2, ...$oldPin],
         ]);
         self::assertSame('dataset_mismatch', $result['status']);
         self::assertNull($result['observedLevel']);
 
-        $result = $this->evaluate([
+        $result = $this->evaluate($dataset, [
             'state_id' => ['value' => 'level:2', ...$oldPin],
             'level' => ['value' => 2, ...$currentPin],
         ]);
@@ -35,7 +36,7 @@ final class ProgressionPrerequisiteEvaluatorV3Test extends TestCase
     {
         $dataset = app(ProgressionDatasetQuery::class)->latest();
         foreach ([[], ['datasetId' => $dataset->id], ['datasetChecksum' => $dataset->checksum]] as $pin) {
-            self::assertSame('dataset_mismatch', $this->evaluate(['level' => ['value' => 2, ...$pin]])['status']);
+            self::assertSame('dataset_mismatch', $this->evaluate($dataset, ['level' => ['value' => 2, ...$pin]])['status']);
         }
     }
 
@@ -43,11 +44,11 @@ final class ProgressionPrerequisiteEvaluatorV3Test extends TestCase
     {
         $dataset = app(ProgressionDatasetQuery::class)->latest();
         $pin = ['datasetId' => $dataset->id, 'datasetChecksum' => $dataset->checksum];
-        self::assertSame('satisfied', $this->evaluate(['level' => ['value' => 3, ...$pin]])['status']);
-        self::assertSame('not_satisfied', $this->evaluate(['level' => ['value' => 1, ...$pin]])['status']);
-        self::assertSame('unknown_current_state', $this->evaluate([])['status']);
+        self::assertSame('satisfied', $this->evaluate($dataset, ['level' => ['value' => 3, ...$pin]])['status']);
+        self::assertSame('not_satisfied', $this->evaluate($dataset, ['level' => ['value' => 1, ...$pin]])['status']);
+        self::assertSame('unknown_current_state', $this->evaluate($dataset, [])['status']);
         foreach ([null, '', '2e3', 2.5, -1, true] as $value) {
-            self::assertSame('unknown_current_state', $this->evaluate(['level' => ['value' => $value, ...$pin]])['status']);
+            self::assertSame('unknown_current_state', $this->evaluate($dataset, ['level' => ['value' => $value, ...$pin]])['status']);
         }
     }
 
@@ -59,10 +60,10 @@ final class ProgressionPrerequisiteEvaluatorV3Test extends TestCase
         self::assertSame(['Unknown Subject Lv.2', 'Reach the next stage'], array_column($results, 'label'));
     }
 
-    private function evaluate(array $facts): array
+    private function evaluate(ProgressionDataset $dataset, array $facts): array
     {
         return app(ProgressionPrerequisiteEvaluator::class)->evaluate(
-            app(ProgressionDatasetQuery::class)->latest(),
+            $dataset,
             ['current' => ['buildings' => ['academy' => $facts]]],
             ['Academy Lv.2'],
         )[0];
