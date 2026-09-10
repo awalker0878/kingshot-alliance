@@ -8,7 +8,7 @@ use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Operations\Events\Models\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
-use Tests\Fixtures\EventCommandVisualFixture;
+use Tests\ReadModels\EventManagement\Fixtures\EventCommandVisualFixture;
 use Tests\TestCase;
 
 final class EventManagementPageV3Test extends TestCase

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Fixtures;
+namespace Tests\ReadModels\GiftCodes\Fixtures;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\GameWorld\GiftCodes\Actions\ReconcileGiftCodeStatus;

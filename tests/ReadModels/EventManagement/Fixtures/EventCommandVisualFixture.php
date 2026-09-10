@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Fixtures;
+namespace Tests\ReadModels\EventManagement\Fixtures;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Lifecycle\Actions\CreateAlliance;
@@ -29,6 +29,7 @@ use App\Contexts\Operations\Rosters\Enums\EventRosterType;
 use App\Contexts\Operations\Rosters\Models\EventRoster;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
 use Illuminate\Support\Facades\Hash;
+use Tests\System\Acceptance\Fixtures\CapabilityAcceptanceVisualFixture;
 
 final class EventCommandVisualFixture
 {

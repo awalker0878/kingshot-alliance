@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Fixtures;
+namespace Tests\Contexts\GameWorld\KingdomTransfers\Fixtures;
 
 use App\Contexts\GameWorld\KingdomTransfers\Actions\RecordTransferKingdomCapacity;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\RecordTransferKingdomCondition;
