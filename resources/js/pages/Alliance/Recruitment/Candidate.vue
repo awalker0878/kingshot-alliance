@@ -357,7 +357,7 @@ function humanize(value: string): string {
             </div>
             <div>
               <label class="text-xs font-semibold" for="candidate-stage-reason">{{
-                t('recruitment.reason')
+                t('recruitment.internalReason')
               }}</label>
               <textarea
                 id="candidate-stage-reason"
@@ -375,13 +375,13 @@ function humanize(value: string): string {
           <div class="ks-divider my-5" />
 
           <form class="space-y-3" @submit.prevent="assignReviewer">
-            <p id="reviewers-heading" class="ks-kicker">{{ t('recruitment.reviewers') }}</p>
+            <p id="reviewers-heading" class="ks-kicker">{{ t('recruitment.reviewersTags') }}</p>
             <RecruitmentOptionPicker
               id="reviewer-picker"
               :key="candidate.id + candidate.stage + 'members'"
               v-model="reviewerForm.player_id"
               :endpoint="selectionBaseUrl + '/members'"
-              :label="t('recruitment.selectReviewer')"
+              :label="t('recruitment.chooseReviewer')"
             />
             <AppButton
               class="w-full"
@@ -389,7 +389,7 @@ function humanize(value: string): string {
               type="submit"
               :disabled="reviewerForm.processing || !reviewerForm.player_id"
             >
-              {{ t('recruitment.assignReviewer') }}
+              {{ t('recruitment.assign') }}
             </AppButton>
             <div v-if="reviewersPage.items.length" class="flex flex-wrap gap-2">
               <span v-for="reviewer in reviewersPage.items" :key="reviewer.id" class="ks-chip">{{
@@ -415,20 +415,20 @@ function humanize(value: string): string {
           <template v-if="candidate.stage === 'accepted' && !candidate.membershipInvitationId">
             <div class="ks-divider my-5" />
             <form class="space-y-3" @submit.prevent="convertCandidate">
-              <p class="ks-kicker">{{ t('recruitment.convertCandidate') }}</p>
+              <p class="ks-kicker">{{ t('recruitment.createMembershipInvitation') }}</p>
               <RecruitmentOptionPicker
                 id="conversion-player-picker"
                 :key="candidate.id + candidate.stage + 'roster'"
                 v-model="conversionForm.player_id"
                 :endpoint="selectionBaseUrl + '/roster'"
-                :label="t('recruitment.selectPlayer')"
+                :label="t('recruitment.choosePlayer')"
               />
               <AppButton
                 class="w-full"
                 type="submit"
                 :disabled="conversionForm.processing || !conversionForm.player_id"
               >
-                {{ t('recruitment.convertCandidate') }}
+                {{ t('recruitment.createMembershipInvitation') }}
               </AppButton>
             </form>
           </template>
@@ -593,7 +593,7 @@ function humanize(value: string): string {
             <div>
               <p class="ks-kicker">{{ t('recruitment.answers') }}</p>
               <h2 id="answers-heading" class="ks-display mt-1 text-2xl font-semibold">
-                {{ t('recruitment.application') }}
+                {{ t('recruitment.answers') }}
               </h2>
             </div>
             <span class="ks-chip" data-active="true">{{ formatNumber(answers.length) }}</span>
@@ -617,9 +617,9 @@ function humanize(value: string): string {
 
         <div class="grid gap-5 xl:grid-cols-2">
           <section class="ks-surface p-5" aria-labelledby="notes-heading">
-            <p class="ks-kicker">{{ t('recruitment.notes') }}</p>
+            <p class="ks-kicker">{{ t('recruitment.privateNotes') }}</p>
             <h2 id="notes-heading" class="ks-display mt-1 text-xl font-semibold">
-              {{ t('recruitment.internalNotes') }}
+              {{ t('recruitment.newPrivateNote') }}
             </h2>
             <form class="mt-4 space-y-3" @submit.prevent="addNote">
               <textarea
@@ -666,9 +666,9 @@ function humanize(value: string): string {
           </section>
 
           <section class="ks-surface p-5" aria-labelledby="tags-heading">
-            <p class="ks-kicker">{{ t('recruitment.tags') }}</p>
+            <p class="ks-kicker">{{ t('recruitment.tag') }}</p>
             <h2 id="tags-heading" class="ks-display mt-1 text-xl font-semibold">
-              {{ t('recruitment.tags') }}
+              {{ t('recruitment.tag') }}
             </h2>
             <form class="mt-4 grid grid-cols-[1fr_auto] gap-2" @submit.prevent="addTag">
               <input v-model="tagForm.name" class="ks-input" maxlength="80" required />
@@ -681,7 +681,7 @@ function humanize(value: string): string {
                 tag.name
               }}</span>
             </div>
-            <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noTags') }}</div>
+            <div v-else class="ks-fantasy-empty mt-4">{{ t('common.none') }}</div>
             <CursorPagination
               :summary="
                 t('recruitment.historyItemsOnPage', {
@@ -718,7 +718,7 @@ function humanize(value: string): string {
               :key="candidate.id + candidate.stage + 'templates'"
               v-model="communicationForm.template_id"
               :endpoint="selectionBaseUrl + '/templates'"
-              :label="t('recruitment.selectTemplate')"
+              :label="t('recruitment.chooseTemplate')"
             />
             <AppButton
               type="submit"
