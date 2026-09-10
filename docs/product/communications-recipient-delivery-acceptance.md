@@ -8,7 +8,7 @@ Primary behavior evidence:
 
 - `tests/Contexts/Communications/Delivery/Feature/CommunicationsRecipientDeliveryAcceptanceV3Test.php`
 - `tests/Contexts/Communications/Delivery/Feature/NotificationDeliveryBehaviorV3Test.php`
-- `tests/Feature/Workflows/NotificationDelivery/NotificationQueueDeliveryV3Test.php`
+- `tests/Workflows/NotificationDelivery/Feature/NotificationQueueDeliveryV3Test.php`
 - source-specific V3 integration tests for Accounts, Alliance announcements, Gift Codes, Intelligence, King Perks, Events and Officer Briefs
 - Architecture V3 Verification and frontend quality/localization/accessibility checks
 

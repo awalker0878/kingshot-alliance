@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Integration\Concurrency\Workflows\AccountOnboarding;
+namespace Tests\Workflows\AccountOnboarding\Integration\Concurrency;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Lifecycle\Actions\TransitionAllianceLifecycle;

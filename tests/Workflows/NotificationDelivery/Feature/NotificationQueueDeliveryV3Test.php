@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Workflows\NotificationDelivery;
+namespace Tests\Workflows\NotificationDelivery\Feature;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Membership\Enums\AllianceRank;
