@@ -33,7 +33,7 @@ const fingerprints: Record<string, Record<Surface, string>> = {
 };
 
 async function login(page: Page): Promise<void> {
-  await page.goto('/login');
+  await visit(page, '/login');
   await page.locator('#email').fill('capability-acceptance-visual@example.test');
   await page.locator('#password').fill('password');
   await page.locator('button[type="submit"]').click();
@@ -54,39 +54,43 @@ async function login(page: Page): Promise<void> {
   }
 }
 
+async function visit(page: Page, path: string): Promise<void> {
+  const response = await page.goto(path);
+  expect(response?.status(), `Navigation to ${path} must succeed`).toBe(200);
+  await settle(page);
+}
+
+async function follow(page: Page, link: Locator): Promise<void> {
+  const href = await link.getAttribute('href');
+  if (!href) throw new Error('Acceptance navigation requires a link destination.');
+  await Promise.all([page.waitForURL(new URL(href, page.url()).toString()), link.click()]);
+  await settle(page);
+}
+
 async function settle(page: Page): Promise<void> {
   await page.waitForLoadState('networkidle');
   await page.evaluate(() => document.fonts.ready);
 }
 
 async function openEventManagement(page: Page): Promise<void> {
-  await page.goto('/events');
-  await settle(page);
-  await page.getByRole('link', { name: 'Capability Acceptance Bear Hunt' }).first().click();
-  await settle(page);
-  await page.getByRole('link', { name: 'Manage Event' }).click();
-  await settle(page);
+  await visit(page, '/events');
+  await follow(page, page.getByRole('link', { name: 'Capability Acceptance Bear Hunt' }).first());
+  await follow(page, page.getByRole('link', { name: 'Manage Event' }));
 }
 
 async function openMemberProfile(page: Page): Promise<void> {
-  await page.goto('/alliance/roster/intelligence');
-  await settle(page);
-  await page.getByRole('link', { name: 'Acceptance Marshal' }).first().click();
-  await settle(page);
+  await visit(page, '/alliance/roster/intelligence');
+  await follow(page, page.getByRole('link', { name: 'Acceptance Marshal' }).first());
 }
 
 async function openTransferCampaign(page: Page): Promise<void> {
-  await page.goto('/alliance/recruitment');
-  await settle(page);
-  await page.getByRole('link', { name: 'Acceptance Candidate' }).first().click();
-  await settle(page);
+  await visit(page, '/alliance/recruitment');
+  await follow(page, page.getByRole('link', { name: 'Acceptance Candidate' }).first());
 }
 
 async function openIntelligenceTimeline(page: Page): Promise<void> {
-  await page.goto('/alliance/kingdom-alliances');
-  await settle(page);
-  await page.getByRole('link', { name: 'Timeline Watch' }).first().click();
-  await settle(page);
+  await visit(page, '/alliance/kingdom-alliances');
+  await follow(page, page.getByRole('link', { name: 'Timeline Watch' }).first());
 }
 
 async function normalizeDynamicText(target: Locator): Promise<void> {
@@ -113,38 +117,50 @@ async function normalizeDynamicText(target: Locator): Promise<void> {
   });
 }
 
-async function fingerprint(target: Locator): Promise<string> {
+async function fingerprint(target: Locator, surface: Surface): Promise<string> {
+  await expect(target).toBeVisible();
+  await test.info().attach(`${surface}-rendered`, {
+    body: await target.screenshot({ animations: 'disabled', caret: 'hide' }),
+    contentType: 'image/png',
+  });
   await normalizeDynamicText(target);
-  const text = await target.innerText();
-  return createHash('sha256').update(text.replace(/\s+/g, ' ').trim()).digest('hex');
+  const text = (await target.innerText()).replace(/\s+/g, ' ').trim();
+  await test.info().attach(`${surface}-text`, { body: text, contentType: 'text/plain' });
+  return createHash('sha256').update(text).digest('hex');
 }
 
 async function captureSurface(page: Page, surface: Surface): Promise<string> {
   switch (surface) {
     case 'rallyBuilder':
       await openEventManagement(page);
-      return fingerprint(page.locator('main'));
+      return fingerprint(page.locator('main'), surface);
     case 'memberProfile':
       await openMemberProfile(page);
-      return fingerprint(page.locator('main'));
+      return fingerprint(page.locator('main'), surface);
     case 'transferCampaign':
       await openTransferCampaign(page);
-      return fingerprint(page.locator('main'));
+      return fingerprint(page.locator('main'), surface);
     case 'intelligenceTimeline':
       await openIntelligenceTimeline(page);
-      return fingerprint(page.locator('main'));
+      return fingerprint(page.locator('main'), surface);
     case 'allianceCommand':
-      await page.goto('/alliance/command');
-      await settle(page);
-      return fingerprint(page.locator('main'));
+      await visit(page, '/dashboard');
+      return fingerprint(
+        page.getByRole('region', { name: 'Officer overview', exact: true }),
+        surface,
+      );
     case 'officerBriefs':
-      await page.goto('/alliance/officer-briefs');
-      await settle(page);
-      return fingerprint(page.locator('main'));
+      await visit(page, '/dashboard');
+      return fingerprint(
+        page
+          .getByRole('region', { name: 'Officer overview', exact: true })
+          .locator(':scope > div')
+          .filter({ has: page.getByRole('heading', { name: 'Officer briefs', exact: true }) }),
+        surface,
+      );
     case 'assistant':
-      await page.goto('/assistant');
-      await settle(page);
-      return fingerprint(page.locator('main'));
+      await visit(page, '/assistant');
+      return fingerprint(page.locator('main'), surface);
   }
 }
 
@@ -158,7 +174,9 @@ const surfaces: Surface[] = [
   'assistant',
 ];
 
-test('capability acceptance surfaces remain visually and semantically stable', async ({ page }, testInfo) => {
+test('capability acceptance surfaces remain visually and semantically stable', async ({
+  page,
+}, testInfo) => {
   // This acceptance case intentionally traverses seven authenticated surfaces. The
   // default 30s Playwright budget is suitable for focused cases but made this
   // aggregate matrix flaky under CI load, so give only this test a realistic cap.
@@ -169,8 +187,10 @@ test('capability acceptance surfaces remain visually and semantically stable', a
   const viewport = testInfo.project.name;
   const actual = {} as Record<Surface, string>;
   for (const surface of surfaces) {
-    actual[surface] = await captureSurface(page, surface);
+    actual[surface] = await test.step(surface, () => captureSurface(page, surface));
   }
 
-  expect(actual, `Update capability matrix fingerprints for ${viewport}`).toEqual(fingerprints[viewport]);
+  expect(actual, `Update capability matrix fingerprints for ${viewport}`).toEqual(
+    fingerprints[viewport],
+  );
 });
