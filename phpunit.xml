@@ -6,6 +6,7 @@
          cacheDirectory=".phpunit.cache">
     <testsuites>
         <testsuite name="Unit">
+            <directory suffix="Test.php">tests/Contexts/GameWorld/KingdomMaps/Unit</directory>
             <directory suffix="Test.php">tests/Contexts/GameWorld/KingdomTransfers/Unit</directory>
             <directory suffix="Test.php">tests/Contexts/GameWorld/Players/Unit</directory>
             <directory suffix="Test.php">tests/Contexts/Intelligence/Evidence/Unit</directory>
