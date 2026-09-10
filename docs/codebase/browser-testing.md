@@ -1,30 +1,27 @@
-# Browser journeys by owner
+# Browser testing by owner
 
-Keep a journey with the owner of its rendered surface, not every dependency it exercises. This is a navigation structure inside the single recursive Playwright `testDir`, not additional overlapping suites. Cross-application journeys remain explicitly cross-cutting. See [test ownership](../../tests/README.md) and [Testing](testing.md).
+Browser specifications live with the owner of the rendered surface: `tests/Contexts/<Context>/<Capability>/Browser`, `tests/ReadModels/<Composition>/Browser`, `tests/Shared/ApplicationShell/Browser` or `tests/System/Acceptance/Browser`. This is one Playwright inventory, not overlapping projects or copied domain suites. See [Testing](testing.md) and [test navigation](../../tests/README.md).
 
-| Folder | Existing journeys |
-| --- | --- |
-| `Contexts/Alliance/Access` | Role creation, retained validation and scoped role choices. |
-| `Contexts/Alliance/Content` | Rules, notices, reactions and localization. |
-| `Contexts/GameWorld/KingdomTransfers` | Transfer planning, evidence, observation history and retry. |
-| `ReadModels/AllianceAssistant` | Cited answers, keyboard use and first-use localization. |
-| `ReadModels/EventAnalysis` | Bear Hunt debrief and localized readability. |
-| `ReadModels/EventManagement` | Event Command readiness and closeout. |
-| `ReadModels/GiftCodes` | Catalogue, multi-Governor handoff, session lifecycle and moderation. |
-| `ReadModels/Progression` | Factual library, Governor view and Goal Planner. |
-| `ReadModels/RecruitmentManagement` | Four complementary candidate, catalogue, input and history specs. |
-| `ReadModels/Roster` | Member history navigation and pagination. |
-| `ReadModels/ScreenshotIntake` | Evidence intake and review controls. |
-| `ReadModels/TerritoryPlanning` | Saved plans and observed-state reconciliation. |
-| `Shared` | Application shell, public entry surfaces and Governor activation. |
-| `Acceptance` | The cross-capability acceptance matrix. |
+The existing 17 specifications cover Alliance Access and Content, Kingdom Transfers, Alliance Assistant, Event Analysis, Event Management, Gift Codes, Progression, Recruitment Management, Roster, Screenshot Intake, Territory Planning, the application shell and cross-capability acceptance. The four Recruitment Management specifications remain complementary and grouped together.
 
-From the prepared repository root, use `npm run test:visual` for the full suite. For development only, `npm run test:visual -- tests/ReadModels/RecruitmentManagement/Browser` selects that rendered surface. Include its PHP context/read-model tests when behavior changes; a browser folder alone is not full application verification. Do not add `--pass-with-no-tests` to hide an empty or misspelled selection.
+## Commands and discovery
 
-## Snapshot and isolation rules
+Run from a prepared repository root:
 
-The existing template remains `{testDir}/__screenshots__/{testFilePath}/{projectName}/{arg}{ext}`. Moving `ApplicationShell.spec.ts` to `Shared/` therefore moves its existing desktop/mobile baseline tree to `__screenshots__/Shared/ApplicationShell.spec.ts/`. The complete 12-PNG tree is reused byte-for-byte. All 17 spec files retain the same Git blobs: test titles, assertions, manual image fingerprints, setup hooks and timeouts are unchanged. No image was regenerated.
+```sh
+# Full browser/visual regression
+npm run test:visual
 
-Keep screenshot files outside spec directories as configured. Do not change tolerance, retries, projects or worker count to compensate for organization changes. Relative source imports were absent in the moved specs; fixture commands still run from the repository working directory, and diagnostic output paths remain Playwright-managed.
+# One rendered surface during development
+npm run test:visual -- tests/ReadModels/RecruitmentManagement/Browser
+```
 
-File-based discovery IDs and execution order may change when a spec moves. Reconcile the full desktop/mobile title inventory and repeat isolation-sensitive journeys after the no-test hold is lifted. Source/hash parity is not Playwright discovery, order-independence proof or a passing visual run. Shared database fixtures and ports still require serial execution under the current configuration; these folders do not authorize parallelism.
+`playwright.config.ts` uses `testDir: './tests'` and `testMatch: '**/Browser/**/*.spec.ts'`. PHP tests, helper files and snapshots are not browser specs. Do not pass `--pass-with-no-tests` to conceal an empty or misspelled selection. A browser-only owner selection does not replace its PHP behavior or shared-dependency verification.
+
+## Snapshots and resources
+
+The snapshot template is `{testDir}/{testFileDir}/__screenshots__/{testFileName}/{projectName}/{arg}{ext}`. The twelve existing ApplicationShell PNGs therefore live at `tests/Shared/ApplicationShell/Browser/__screenshots__/ApplicationShell.spec.ts/{desktop,mobile}/`. They were moved using their original Git blobs, not regenerated. All 17 spec files are byte-for-byte unchanged by the owner-first migration.
+
+The desktop/mobile projects, assertions, setup hooks, timeout values, fingerprint checks, tolerances, retries and worker configuration are unchanged. Keep `workers: 1` and `fullyParallel: false`; owner folders do not isolate shared databases, ports or external identifiers automatically. Fixture commands still execute from the repository working directory.
+
+File-based IDs and execution order can change after relocation. Runner discovery, title reconciliation, snapshot resolution and order/isolation verification are still required once the explicit test hold is lifted. Source/hash preservation is not a passing Playwright result. Visually review intentional changes before updating snapshots; never weaken assertions, relax tolerances or blindly regenerate baselines for a green run.
