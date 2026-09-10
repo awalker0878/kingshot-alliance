@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Contexts\Communications\Delivery;
+namespace Tests\Contexts\Communications\Delivery\Feature;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Communications\Delivery\Actions\BulkUpdateNotificationInbox;

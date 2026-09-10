@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Contexts\Communications\Delivery;
+namespace Tests\Contexts\Communications\Delivery\Feature;
 
 use App\Contexts\Communications\Delivery\Actions\SetNotificationPreference;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;

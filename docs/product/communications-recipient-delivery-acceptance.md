@@ -6,8 +6,8 @@ Canonical product contract: [Communications — Recipient Delivery & Notificatio
 
 Primary behavior evidence:
 
-- `tests/Feature/Contexts/Communications/Delivery/CommunicationsRecipientDeliveryAcceptanceV3Test.php`
-- `tests/Feature/Contexts/Communications/Delivery/NotificationDeliveryBehaviorV3Test.php`
+- `tests/Contexts/Communications/Delivery/Feature/CommunicationsRecipientDeliveryAcceptanceV3Test.php`
+- `tests/Contexts/Communications/Delivery/Feature/NotificationDeliveryBehaviorV3Test.php`
 - `tests/Feature/Workflows/NotificationDelivery/NotificationQueueDeliveryV3Test.php`
 - source-specific V3 integration tests for Accounts, Alliance announcements, Gift Codes, Intelligence, King Perks, Events and Officer Briefs
 - Architecture V3 Verification and frontend quality/localization/accessibility checks
