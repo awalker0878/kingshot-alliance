@@ -13,14 +13,19 @@ use LogicException;
  */
 final class MigrationReferenceData
 {
-    /** @var list<string> Parent tables precede their foreign-key dependants. */
+    /**
+     * Tables populated by the migration chain, in foreign-key insertion order.
+     * Event metrics currently have no seeded rows: they remain ordinary mutable
+     * data, covered by truncation and the unclassified-populated-table guard.
+     *
+     * @var list<string>
+     */
     public const array TABLES = [
         'platform_plans',
         'platform_plan_entitlements',
         'event_types',
         'event_type_scopes',
         'event_type_workflow_dimensions',
-        'event_metric_definitions',
     ];
 
     /** @var array<string, array<string, list<array<string, mixed>>>> */

@@ -7,6 +7,7 @@ namespace Tests\Shared\Testing\Integration;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use LogicException;
 use Tests\Support\MigrationReferenceData;
 use Tests\Support\ScenarioFactory;
@@ -21,6 +22,7 @@ final class MigrationReferenceDataIsolationTest extends TestCase
         foreach (MigrationReferenceData::TABLES as $table) {
             self::assertGreaterThan(0, DB::table($table)->count(), $table);
         }
+        self::assertSame(0, DB::table('event_metric_definitions')->count());
         $factory = new ScenarioFactory;
         $owner = $factory->player($factory->account()->userId);
         $alliance = $factory->alliance($owner);
@@ -63,6 +65,38 @@ final class MigrationReferenceDataIsolationTest extends TestCase
             $id = DB::table('platform_plan_entitlements')->insertGetId($record);
             self::assertGreaterThan($seededMaximum, $id);
         }
+    }
+
+    public function test_unseeded_metric_fixtures_are_rejected_as_reference_data_and_removed_by_reset(): void
+    {
+        $expected = $this->referenceRows();
+        self::assertSame(0, DB::table('event_metric_definitions')->count());
+        $id = (string) Str::ulid();
+        DB::table('event_metric_definitions')->insert([
+            'id' => $id,
+            'event_type_scope_id' => DB::table('event_type_scopes')->value('id'),
+            'key' => 'test.reference-reset',
+            'subject' => 'player',
+            'label_key' => 'test.reference-reset',
+            'value_type' => 'integer',
+            'aggregation' => 'sum',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        self::assertTrue(DB::table('event_metric_definitions')->where('id', $id)->exists());
+
+        try {
+            MigrationReferenceData::captureFresh(DB::connection());
+            self::fail('Unseeded fixture rows must not become the migration baseline.');
+        } catch (LogicException $exception) {
+            self::assertStringContainsString('Unclassified migration reference table:', $exception->getMessage());
+            self::assertStringContainsString('event_metric_definitions', $exception->getMessage());
+        }
+
+        $this->resetCommittedDatabase();
+
+        self::assertSame($expected, $this->referenceRows());
+        self::assertSame(0, DB::table('event_metric_definitions')->count());
     }
 
     public function test_restoration_rejects_nonempty_tables_without_changing_rows_or_dispatcher(): void
