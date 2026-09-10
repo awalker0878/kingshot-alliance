@@ -55,7 +55,7 @@ If an owner fact is correct but Event Command classification is wrong, treat tha
 
 ## Query budget
 
-`tests/Feature/ReadModels/EventManagement/EventCommandQueryBudgetV3Test.php` protects the selected-occurrence composition from query-count growth as eligible Governor population increases. A regression should be resolved by adding/batching a bounded owner projection, not by caching/persisting derived Event Command truth.
+`tests/ReadModels/EventManagement/Feature/EventCommandQueryBudgetV3Test.php` protects the selected-occurrence composition from query-count growth as eligible Governor population increases. A regression should be resolved by adding/batching a bounded owner projection, not by caching/persisting derived Event Command truth.
 
 Owner summaries must avoid per-Governor, per-Evidence and per-delivery retrieval loops. Query payload row counts may naturally grow; query count must remain bounded.
 

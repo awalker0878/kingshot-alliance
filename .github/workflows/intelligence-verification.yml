@@ -16,9 +16,9 @@ on:
       - 'tests/Feature/Contexts/Intelligence/**'
       - 'tests/Integration/Contexts/Intelligence/**'
       - 'tests/Unit/Contexts/Intelligence/**'
-      - 'tests/Feature/ReadModels/EventAnalysis/**'
-      - 'tests/Feature/ReadModels/KingdomIntelligence/**'
-      - 'tests/Feature/ReadModels/IntelligenceSignals/**'
+      - 'tests/ReadModels/EventAnalysis/Feature/**'
+      - 'tests/ReadModels/KingdomIntelligence/Feature/**'
+      - 'tests/ReadModels/IntelligenceSignals/Feature/**'
       - '.github/workflows/intelligence-verification.yml'
   workflow_dispatch:
 
@@ -130,9 +130,9 @@ jobs:
             tests/Feature/Contexts/Intelligence \
             tests/Integration/Contexts/Intelligence \
             tests/Unit/Contexts/Intelligence \
-            tests/Feature/ReadModels/EventAnalysis \
-            tests/Feature/ReadModels/KingdomIntelligence \
-            tests/Feature/ReadModels/IntelligenceSignals \
+            tests/ReadModels/EventAnalysis/Feature \
+            tests/ReadModels/KingdomIntelligence/Feature \
+            tests/ReadModels/IntelligenceSignals/Feature \
             2>&1 | tee "${RUNNER_TEMP}/intelligence-v3-behavior.log"
           status=${PIPESTATUS[0]}
           set -e

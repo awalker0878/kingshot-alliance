@@ -86,7 +86,7 @@ No schema/model may persist:
 - Event Command blocker/warning counts;
 - copied owner completion state.
 
-`tests/Architecture/ReadModels/EventManagement/EventCommandBoundaryTest.php` guards the read-only boundary, dependency direction and prohibited derived persistence tokens.
+`tests/ReadModels/EventManagement/Architecture/EventCommandBoundaryTest.php` guards the read-only boundary, dependency direction and prohibited derived persistence tokens.
 
 ## Performance rule
 

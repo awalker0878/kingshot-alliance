@@ -14,7 +14,7 @@ The existing `Integration/Concurrency/Contexts` and `Integration/Concurrency/Wor
 
 | Test concern | Location |
 | --- | --- |
-| Read-model source/dependency/no-write boundaries | [Architecture/ReadModels](Architecture/ReadModels/README.md) |
+| Read-model source/dependency/no-write boundaries | [Architecture/ReadModels](ReadModels/README.md) |
 | Capability-owned architecture and container contracts | [Architecture/Contexts](Architecture/Contexts/README.md) |
 | Browser journeys, rendered surfaces and snapshot ownership | [Browser](../docs/codebase/browser-testing.md) |
 | Active Player shell, switching and stale-context UX | `Frontend/Contexts/GameWorld/Players` |

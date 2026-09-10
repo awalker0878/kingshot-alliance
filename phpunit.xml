@@ -6,16 +6,35 @@
          cacheDirectory=".phpunit.cache">
     <testsuites>
         <testsuite name="Unit">
+            <directory suffix="Test.php">tests/ReadModels/AllianceAssistant/Unit</directory>
             <directory suffix="Test.php">tests/Unit</directory>
         </testsuite>
         <testsuite name="Feature">
             <directory suffix="Test.php">tests/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/AllianceAssistant/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/AllianceDashboard/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/AllianceGovernance/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/BotCommands/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/CommandOverview/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/EventAnalysis/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/EventManagement/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/IntelligenceSignals/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/KingdomIntelligence/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/Progression/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/RecruitmentDiscovery/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/RecruitmentManagement/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/Roster/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/TerritoryPlanning/Feature</directory>
         </testsuite>
         <testsuite name="Integration">
             <directory suffix="Test.php">tests/Integration</directory>
         </testsuite>
         <testsuite name="Architecture">
             <directory suffix="Test.php">tests/Architecture</directory>
+            <directory suffix="Test.php">tests/ReadModels/AllianceAssistant/Architecture</directory>
+            <directory suffix="Test.php">tests/ReadModels/EventManagement/Architecture</directory>
+            <directory suffix="Test.php">tests/ReadModels/IntelligenceSignals/Architecture</directory>
+            <directory suffix="Test.php">tests/ReadModels/Progression/Architecture</directory>
         </testsuite>
         <testsuite name="Frontend">
             <directory suffix="Test.php">tests/Frontend</directory>
