@@ -73,7 +73,7 @@ vendor/bin/phpunit --fail-on-empty-test-suite \
 
 # Real Evidence registration contracts
 vendor/bin/phpunit --fail-on-empty-test-suite \
-  tests/Architecture/Contexts/Intelligence/Evidence/EvidenceReferenceBindingTest.php
+  tests/Contexts/Intelligence/Evidence/Architecture/EvidenceReferenceBindingTest.php
 
 # Full PHP regression: serial, existing local parallel, or fixed two-worker CI
 composer test

@@ -8,6 +8,7 @@
         <testsuite name="Unit">
             <directory suffix="Test.php">tests/Contexts/GameWorld/KingdomTransfers/Unit</directory>
             <directory suffix="Test.php">tests/Contexts/GameWorld/Players/Unit</directory>
+            <directory suffix="Test.php">tests/Contexts/Intelligence/Evidence/Unit</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/Events/Unit</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/KingPerks/Unit</directory>
             <directory suffix="Test.php">tests/ReadModels/AllianceAssistant/Unit</directory>
@@ -32,6 +33,10 @@
             <directory suffix="Test.php">tests/Contexts/GameWorld/Kingdoms/Feature</directory>
             <directory suffix="Test.php">tests/Contexts/GameWorld/Players/Feature</directory>
             <directory suffix="Test.php">tests/Contexts/GameWorld/Progression/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Intelligence/Contributions/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Intelligence/Evidence/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Intelligence/Observations/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Intelligence/Roster/Feature</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/BattlePlans/Feature</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/Events/Feature</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/Participation/Feature</directory>
@@ -68,6 +73,7 @@
             <directory suffix="Test.php">tests/Contexts/GameWorld/KingdomTransfers/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/GameWorld/Kingdoms/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/GameWorld/Players/Integration</directory>
+            <directory suffix="Test.php">tests/Contexts/Intelligence/Observations/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/TerritoryPlanning/Integration</directory>
             <directory suffix="Test.php">tests/Integration</directory>
         </testsuite>
@@ -76,6 +82,7 @@
             <directory suffix="Test.php">tests/Contexts/Alliance/Content/Architecture</directory>
             <directory suffix="Test.php">tests/Contexts/GameWorld/KingdomTransfers/Architecture</directory>
             <directory suffix="Test.php">tests/Contexts/GameWorld/Kingdoms/Architecture</directory>
+            <directory suffix="Test.php">tests/Contexts/Intelligence/Evidence/Architecture</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/Events/Architecture</directory>
             <directory suffix="Test.php">tests/ReadModels/AllianceAssistant/Architecture</directory>
             <directory suffix="Test.php">tests/ReadModels/EventManagement/Architecture</directory>

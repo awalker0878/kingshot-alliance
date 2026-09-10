@@ -12,10 +12,7 @@ on:
       - 'database/migrations/**event**'
       - 'routes/event-history.php'
       - 'routes/contributions.php'
-      - 'tests/Architecture/Contexts/Intelligence/**'
-      - 'tests/Feature/Contexts/Intelligence/**'
-      - 'tests/Integration/Contexts/Intelligence/**'
-      - 'tests/Unit/Contexts/Intelligence/**'
+      - 'tests/Contexts/Intelligence/**'
       - 'tests/ReadModels/EventAnalysis/Feature/**'
       - 'tests/ReadModels/KingdomIntelligence/Feature/**'
       - 'tests/ReadModels/IntelligenceSignals/Feature/**'
@@ -126,10 +123,7 @@ jobs:
           vendor/bin/phpunit --configuration phpunit.xml \
             --fail-on-empty-test-suite \
             --log-junit "${RUNNER_TEMP}/intelligence-v3-junit.xml" \
-            tests/Architecture/Contexts/Intelligence \
-            tests/Feature/Contexts/Intelligence \
-            tests/Integration/Contexts/Intelligence \
-            tests/Unit/Contexts/Intelligence \
+            tests/Contexts/Intelligence \
             tests/ReadModels/EventAnalysis/Feature \
             tests/ReadModels/KingdomIntelligence/Feature \
             tests/ReadModels/IntelligenceSignals/Feature \
