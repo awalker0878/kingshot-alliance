@@ -1,6 +1,6 @@
 # Testing
 
-Status: Owner-first layout implemented; runtime verification authorized and recorded on 2026-09-10.
+Status: Owner-first testing-system work is implemented and verified on 2026-09-10. All nine normal workflows passed at `e6f29ebbd40687c38a43554facb3ec9ef872ea8c`, using GitHub's test checkout `4485b87f0ab5aef0f93d2f70f8ae6b088697c22b`. Other work in PR #163 is incomplete; keep the PR draft and unmerged.
 
 Start with the owner, then execution type: `Contexts/<Context>/<Capability>/<Tier>`, `ReadModels/<Composition>/<Tier>`, `Workflows/<Workflow>/<Tier>` and `Shared/<Area>[/<Concern>]/<Tier>`. Repository-wide architecture lives in `System/Architecture`; cross-application acceptance lives in `System/Acceptance/{Feature,Browser}`. Create only the types an owner needs.
 
@@ -98,4 +98,4 @@ Main CI runs layout, formatting, static analysis and complete regression once ea
 
 The phpunit-results artifact preserves raw JUnit, ranked outcomes/timings, actual checkout revision and versions, process wall/CPU/memory and reporter diagnostics. Runner and writer failures remain visible. Missing results after attempted execution are failures, not empty success. Never subtract parallel aggregate case duration from wall time to estimate setup. Record cache conditions and repetitions, separating measurable setup phases.
 
-Only intentional, reviewed rendered changes justify fingerprint or snapshot updates. The [acceptance review](acceptance-baseline-review-2026-09-10.md) records all seven surfaces, stronger raw semantic checks and bounded normalization. Both viewports passed twice with retries disabled; all twelve PNG baselines remained unchanged. Final normal CI must cover the complete containing revision and is recorded in the PR checks/conversation. PR #163 remains draft and unmerged.
+Only intentional, reviewed rendered changes justify fingerprint or snapshot updates. The [acceptance review](acceptance-baseline-review-2026-09-10.md) records all seven surfaces, stronger raw semantic checks and bounded normalization. Both viewports passed twice with retries disabled; all twelve PNG baselines remained unchanged. The final normal Visual Regression run then passed all 62 cases, while normal CI passed 1,507 PHP cases with zero failures, errors or skips. Exact workflow IDs, the tested checkout, measurements and residual limits are in the [validation report](test-validation-2026-09-10.md). These results complete testing-system verification only, not the other unfinished work in PR #163; the PR remains draft and unmerged.
