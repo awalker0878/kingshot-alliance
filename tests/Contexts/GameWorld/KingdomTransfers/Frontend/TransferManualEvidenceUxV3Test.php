@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Contexts\GameWorld\KingdomTransfers\Frontend;
 
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
+use Tests\Support\RepositoryPath;
 
 final class TransferManualEvidenceUxV3Test extends TestCase
 {
@@ -14,7 +15,7 @@ final class TransferManualEvidenceUxV3Test extends TestCase
             'resources/js/pages/Kingdom/Transfer/Manage.vue',
             'resources/js/pages/Kingdom/Transfer/Readiness.vue',
         ] as $path) {
-            $source = file_get_contents(base_path($path));
+            $source = file_get_contents(RepositoryPath::fromRoot($path));
             self::assertIsString($source, $path);
 
             // Evidence remains a valid persisted/history source type, but these manual forms
@@ -44,7 +45,7 @@ final class TransferManualEvidenceUxV3Test extends TestCase
             'resources/js/pages/Kingdom/Transfer/Manage.vue',
             'resources/js/pages/Kingdom/Transfer/Readiness.vue',
         ] as $path) {
-            $source = file_get_contents(base_path($path));
+            $source = file_get_contents(RepositoryPath::fromRoot($path));
             self::assertIsString($source, $path);
             self::assertStringContainsString('validationErrors', $source, $path);
             self::assertStringContainsString('role="alert"', $source, $path);
