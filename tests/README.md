@@ -16,7 +16,7 @@ The existing `Integration/Concurrency/Contexts` and `Integration/Concurrency/Wor
 | --- | --- |
 | Read-model source/dependency/no-write boundaries | [Architecture/ReadModels](Architecture/ReadModels/README.md) |
 | Capability-owned architecture and container contracts | [Architecture/Contexts](Architecture/Contexts/README.md) |
-| Browser journeys, rendered surfaces and snapshot ownership | [Browser](Browser/README.md) |
+| Browser journeys, rendered surfaces and snapshot ownership | [Browser](../docs/codebase/browser-testing.md) |
 | Active Player shell, switching and stale-context UX | `Frontend/Contexts/GameWorld/Players` |
 | Alliance Content localization and reaction UX | `Frontend/Contexts/Alliance/Content` |
 | Transfer manual/evidence UX | `Frontend/Contexts/GameWorld/KingdomTransfers` |

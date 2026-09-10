@@ -10,7 +10,7 @@ The repository requires PHP 8.5. The inspected dependency artifact contains Lara
 
 The current continuation starts at `9df8a99a3e07b48e1abdddfbcf8711b911320e8b`. `deddea08` splits mixed pagination checks by resource requirements. `c721daa` separates Transfer source checks from guard behavior and consolidates both Evidence registration methods under the Evidence owner. Across three original PHP classes, all eight original test methods remain exactly once in five focused classes; helpers and assertions are preserved. Only the two extracted source methods substitute `RepositoryPath::fromRoot()` for `base_path()`. The plain PageSlice method and two source methods no longer require Laravel startup; no elapsed saving is claimed.
 
-`3524c496` groups all 17 browser specifications under their Context, ReadModel, Shared or Acceptance owner. It reuses every spec's original Git blob and the complete 12-PNG ApplicationShell baseline tree, moved to match the unchanged snapshot template. Browser titles, assertions, setup hooks, manual fingerprints and timeout values are unchanged. File-based IDs and execution order may change; runtime inventory and isolation reconciliation remain required. See [Browser navigation](../../tests/Browser/README.md).
+`3524c496` groups all 17 browser specifications under their Context, ReadModel, Shared or Acceptance owner. It reuses every spec's original Git blob and the complete 12-PNG ApplicationShell baseline tree, moved to match the unchanged snapshot template. Browser titles, assertions, setup hooks, manual fingerprints and timeout values are unchanged. File-based IDs and execution order may change; runtime inventory and isolation reconciliation remain required. See [Browser navigation](browser-testing.md).
 
 The source inventory accounts for **287 PHP test files**: 16 Unit, 189 Feature, 53 Integration, 26 Architecture and 3 Frontend. This is the prior 285-file inventory plus the two net class splits, not new scenarios or runtime discovery. No runner configuration, test-selection filter, production behavior, database reset implementation, retry count, coverage threshold or worker count changed in this continuation.
 
@@ -81,7 +81,7 @@ composer test:parallel
 composer test:ci
 
 # One browser surface for development only
-npm run test:visual -- tests/Browser/ReadModels/RecruitmentManagement
+npm run test:visual -- tests/ReadModels/RecruitmentManagement/Browser
 
 # Full browser/visual verification
 npm run test:visual

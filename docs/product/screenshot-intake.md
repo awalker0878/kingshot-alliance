@@ -12,8 +12,8 @@ The supported families are:
 
 The complete extension contracts are:
 
-- [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md);
-- [Screenshot Intake: Governor Progression](./screenshot-intake-governor-progression.md).
+- [Screenshot Intake: Transfer Evidence](screenshot-intake-transfer-evidence.md);
+- [Screenshot Intake: Governor Progression](screenshot-intake-governor-progression.md).
 
 Those extension documents are the implementation sources of truth for their schema-specific fields, normalization, confidence thresholds, fixture corpora, review rules, duplicate semantics, destination Actions, preview behavior and delivery ledgers.
 
@@ -107,7 +107,7 @@ The five explicit v1 classes are:
 - `transfer_target_kingdom_rules`;
 - `transfer_official_group`.
 
-Their complete independent contract lives in [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md). Required Transfer Passes remain observed facts, generic Transfer screenshots never prove `in_game_rules_verified=true`, official-group membership is schema-bound, and freshness/eligibility remain KingdomTransfers-owned.
+Their complete independent contract lives in [Screenshot Intake: Transfer Evidence](screenshot-intake-transfer-evidence.md). Required Transfer Passes remain observed facts, generic Transfer screenshots never prove `in_game_rules_verified=true`, official-group membership is schema-bound, and freshness/eligibility remain KingdomTransfers-owned.
 
 ### Governor Progression family
 
@@ -237,8 +237,8 @@ A family is `Complete` only when its behavior, authorization, persistence, UX, a
 | Family | Status | Source of truth |
 | --- | --- | --- |
 | Bear Hunt battle report | Complete | This document plus Operations/Results architecture/reference/runbooks |
-| Transfer Evidence | Complete | [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md) |
-| Governor Progression Evidence | Complete | [Screenshot Intake: Governor Progression](./screenshot-intake-governor-progression.md) |
+| Transfer Evidence | Complete | [Screenshot Intake: Transfer Evidence](screenshot-intake-transfer-evidence.md) |
+| Governor Progression Evidence | Complete | [Screenshot Intake: Governor Progression](screenshot-intake-governor-progression.md) |
 
 The umbrella Screenshot Intake capability is complete. A future family-level regression or failed required gate reopens the affected family and umbrella row.
 

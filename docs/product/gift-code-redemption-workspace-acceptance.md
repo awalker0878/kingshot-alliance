@@ -103,4 +103,4 @@ Candidate `610082b9cbf663e3eb6bd0c14dbe3cdba1d2b086` passed all workflows applic
 
 `King Perks Verification` is path-filtered to King Perks-owned files and did not trigger for this correction because no such path changed. King Perks remains unchanged from the previously verified `main` baseline.
 
-Primary Gift Code workspace acceptance coverage includes `GiftCodeWorkspaceV3Test`, `GiftCodeRedemptionWorkspaceV3Test`, `GiftCodeSessionAcceptanceV3Test`, `GiftCodeAllianceCoverageV3Test`, `GiftCodeSourceAdaptersV3Test`, `GiftCodeModerationHttpV3Test`, Platform Administration diagnostics behavior coverage, and `tests/Browser/ReadModels/GiftCodes/GiftCodes.spec.ts`.
+Primary Gift Code workspace acceptance coverage includes `GiftCodeWorkspaceV3Test`, `GiftCodeRedemptionWorkspaceV3Test`, `GiftCodeSessionAcceptanceV3Test`, `GiftCodeAllianceCoverageV3Test`, `GiftCodeSourceAdaptersV3Test`, `GiftCodeModerationHttpV3Test`, Platform Administration diagnostics behavior coverage, and `tests/ReadModels/GiftCodes/Browser/GiftCodes.spec.ts`.

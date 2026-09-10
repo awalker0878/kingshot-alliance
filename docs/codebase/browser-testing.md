@@ -1,6 +1,6 @@
 # Browser journeys by owner
 
-Keep a journey with the owner of its rendered surface, not every dependency it exercises. This is a navigation structure inside the single recursive Playwright `testDir`, not additional overlapping suites. Cross-application journeys remain explicitly cross-cutting. See [test ownership](../README.md) and [Testing](../../docs/codebase/testing.md).
+Keep a journey with the owner of its rendered surface, not every dependency it exercises. This is a navigation structure inside the single recursive Playwright `testDir`, not additional overlapping suites. Cross-application journeys remain explicitly cross-cutting. See [test ownership](../../tests/README.md) and [Testing](testing.md).
 
 | Folder | Existing journeys |
 | --- | --- |
@@ -19,7 +19,7 @@ Keep a journey with the owner of its rendered surface, not every dependency it e
 | `Shared` | Application shell, public entry surfaces and Governor activation. |
 | `Acceptance` | The cross-capability acceptance matrix. |
 
-From the prepared repository root, use `npm run test:visual` for the full suite. For development only, `npm run test:visual -- tests/Browser/ReadModels/RecruitmentManagement` selects that rendered surface. Include its PHP context/read-model tests when behavior changes; a browser folder alone is not full application verification. Do not add `--pass-with-no-tests` to hide an empty or misspelled selection.
+From the prepared repository root, use `npm run test:visual` for the full suite. For development only, `npm run test:visual -- tests/ReadModels/RecruitmentManagement/Browser` selects that rendered surface. Include its PHP context/read-model tests when behavior changes; a browser folder alone is not full application verification. Do not add `--pass-with-no-tests` to hide an empty or misspelled selection.
 
 ## Snapshot and isolation rules
 
