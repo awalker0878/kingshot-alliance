@@ -18,6 +18,12 @@ npm run test:visual -- tests/ReadModels/RecruitmentManagement/Browser
 
 `playwright.config.ts` uses `testDir: './tests'` and `testMatch: '**/Browser/**/*.spec.ts'`. PHP tests, helper files and snapshots are not browser specs. Do not pass `--pass-with-no-tests` to conceal an empty or misspelled selection. A browser-only owner selection does not replace its PHP behavior or shared-dependency verification.
 
+## Fixture seeding
+
+Visual seeders live in their rendered surface's `Fixtures` folder, beside rather than inside `Browser`. Cross-capability setup belongs in `System/Acceptance/Fixtures`. CI and any spec-level setup must call the current fully qualified fixture class; do not retain old namespace aliases or duplicate seeders. See [ADR-0043](../architecture/adr/0043-owner-first-tests-and-disjoint-execution-suites.md) for the ownership rule.
+
+The stranded-fixture follow-up updates the ten existing CI class references and the Alliance Content spec's fixture class reference without changing their order, parameters, fixture bodies, assertions or images. It also preserves Event Command's explicit call into the cross-capability acceptance fixture. These are namespace changes, not a new seeding strategy or proof of runtime isolation. Seeders and browser tests have not executed during the hold.
+
 ## Snapshots and resources
 
 The snapshot template is `{testDir}/{testFileDir}/__screenshots__/{testFileName}/{projectName}/{arg}{ext}`. The twelve existing ApplicationShell PNGs therefore live at `tests/Shared/ApplicationShell/Browser/__screenshots__/ApplicationShell.spec.ts/{desktop,mobile}/`. They were moved using their original Git blobs, not regenerated. All 17 spec files are byte-for-byte unchanged by the owner-first migration.

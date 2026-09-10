@@ -2,6 +2,8 @@
 
 Start with **what is being tested**, then choose its execution type. Commands and resource rules live in [Testing](../docs/codebase/testing.md); browser conventions live in [Browser testing](../docs/codebase/browser-testing.md).
 
+The structural rationale and shared-support exceptions are recorded in [ADR-0043](../docs/architecture/adr/0043-owner-first-tests-and-disjoint-execution-suites.md).
+
 ## Folder convention
 
 ```text
@@ -28,7 +30,7 @@ Unit uses pure PHPUnit without Laravel bootstrapping. Feature retains actual HTT
 
 Architecture uses pure PHPUnit for source/reflection but the real application for container, route or scheduler registration. Frontend contains PHP source contracts, not browser journeys. Browser specifications live inside each rendered surface's Browser folder; reviewed PNGs live beside that specification under `Browser/__screenshots__/<SpecName>/<Project>/`.
 
-Shared test-harness checks belong in `Shared/Testing/Integration`. General helpers remain in Support and data fixtures in Fixtures. A folder move must not make an isolated test inherit an expensive application base, or replace a meaningful integration boundary with a mock.
+Shared test-harness checks belong in `Shared/Testing/Integration`. Owner-specific helpers and data live in that owner's `Support` and `Fixtures` folders, outside execution-type directories. Visual seeders belong with their rendered surface. Root support is reserved for genuinely cross-owner infrastructure; see [shared support](Support/README.md). A folder move must not make an isolated test inherit an expensive application base, or replace a meaningful integration boundary with a mock.
 
 ## Naming and maintenance
 
