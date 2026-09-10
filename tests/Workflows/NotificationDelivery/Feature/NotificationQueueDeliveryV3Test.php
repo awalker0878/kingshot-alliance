@@ -28,7 +28,6 @@ use App\Workflows\NotificationDelivery\Services\OfficerBriefNotificationPublishe
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 use Tests\Support\ScenarioFactory;
 use Tests\TestCase;
@@ -273,19 +272,6 @@ final class NotificationQueueDeliveryV3Test extends TestCase
             ->where('attempt_count', 2)
             ->count());
         self::assertNull(NotificationEndpoint::query()->firstOrFail()->last_error);
-    }
-
-    public function test_queue_commands_and_scheduler_are_registered_with_bounded_cursors(): void
-    {
-        $commands = Artisan::all();
-        self::assertArrayHasKey('notifications:queue-officer-briefs', $commands);
-        self::assertArrayHasKey('notifications:queue-intelligence-changes', $commands);
-
-        $source = (string) file_get_contents(base_path('routes/console.php'));
-        self::assertStringContainsString('notifications:queue-officer-briefs --group=daily --limit=1000 --cycle', $source);
-        self::assertStringContainsString('notifications:queue-officer-briefs --group=event --limit=1000 --cycle', $source);
-        self::assertStringContainsString('notifications:queue-intelligence-changes --limit=1000 --cycle', $source);
-        self::assertStringContainsString('->everyFifteenMinutes()', $source);
     }
 
     private function tracking(string $allianceId, string $kingdomId): TrackedKingdomAlliance

@@ -104,6 +104,7 @@
             <directory suffix="Test.php">tests/ReadModels/Progression/Architecture</directory>
             <directory suffix="Test.php">tests/Shared/ApplicationShell/Architecture</directory>
             <directory suffix="Test.php">tests/System/Architecture</directory>
+            <directory suffix="Test.php">tests/Workflows/NotificationDelivery/Architecture</directory>
         </testsuite>
         <testsuite name="Frontend">
             <directory suffix="Test.php">tests/Contexts/Alliance/Content/Frontend</directory>
