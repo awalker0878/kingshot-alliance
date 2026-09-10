@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
+import { normalizeFixtureText } from '../Support/normalizeFixtureText';
 
 type Surface =
   | 'rallyBuilder'
@@ -93,38 +94,67 @@ async function openIntelligenceTimeline(page: Page): Promise<void> {
   await follow(page, page.getByRole('link', { name: 'Timeline Watch' }).first());
 }
 
-async function normalizeDynamicText(target: Locator): Promise<void> {
-  await target.evaluate((element) => {
-    for (const node of element.querySelectorAll('time, span, p, dd')) {
-      if (node.children.length > 0) continue;
-      const text = node.textContent ?? '';
-      const stableIdentifiers = text
-        .replace(
-          /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi,
-          'fixture-id',
-        )
-        .replace(/\b[0-9a-hjkmnp-tv-z]{26}\b/gi, 'fixture-id');
-      if (stableIdentifiers !== text) {
-        node.textContent = stableIdentifiers;
-      } else if (
-        /\b20\d{2}\b/.test(text) ||
-        /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/.test(text) ||
-        /\b(?:second|minute|hour|day|week|month|year)s? ago\b/i.test(text)
-      ) {
-        node.textContent = 'Fixture date';
-      }
-    }
-  });
-}
+const requiredFacts: Record<Surface, string[]> = {
+  rallyBuilder: ['Capability Acceptance Bear Hunt', '4 blockers', 'Participation', 'Rally'],
+  memberProfile: [
+    'Acceptance Marshal',
+    'Current',
+    '145,000,000',
+    '120,000,000',
+    '+25,000,000',
+    'TC3',
+    'TC2',
+  ],
+  transferCampaign: [
+    'Acceptance Candidate',
+    'screening',
+    'Linked to a Governor',
+    'Not assessed',
+    'No Transfer participant is recorded',
+    'Officer reason',
+    'New officer note',
+  ],
+  intelligenceTimeline: ['Timeline Watch', '125000000', '100000000', '54', '50', 'Scout history'],
+  allianceCommand: [
+    'Officer overview',
+    '4 factual items need attention',
+    '4 blockers',
+    '2 recent factual Intelligence changes',
+    'Governor observations are current',
+  ],
+  officerBriefs: [
+    'Daily Officer Brief',
+    'Upcoming Event Brief',
+    'Post-Event Closeout Brief',
+    '3 source facts',
+    '1 source facts',
+    '0 source facts',
+  ],
+  assistant: [
+    'Ask your Alliance',
+    'What needs officer attention?',
+    'Which Governor observations are stale or missing?',
+  ],
+};
 
 async function fingerprint(target: Locator, surface: Surface): Promise<string> {
   await expect(target).toBeVisible();
+  const raw = await target.innerText();
+  for (const fact of requiredFacts[surface]) {
+    expect(raw.toLowerCase(), `${surface} must retain ${fact}`).toContain(fact.toLowerCase());
+  }
+  expect(raw, `${surface} must not render unresolved localization keys`).not.toMatch(
+    /\b(?:recruitment|commandOverview|officerBriefs)\.[a-zA-Z]/i,
+  );
+  const { text, dateCount } = normalizeFixtureText(raw);
+  if (surface !== 'officerBriefs' && surface !== 'assistant') {
+    expect(dateCount, `${surface} must retain valid rendered fixture dates`).toBeGreaterThan(0);
+  }
   await test.info().attach(`${surface}-rendered`, {
     body: await target.screenshot({ animations: 'disabled', caret: 'hide' }),
     contentType: 'image/png',
   });
-  await normalizeDynamicText(target);
-  const text = (await target.innerText()).replace(/\s+/g, ' ').trim();
+  await test.info().attach(`${surface}-raw-text`, { body: raw, contentType: 'text/plain' });
   await test.info().attach(`${surface}-text`, { body: text, contentType: 'text/plain' });
   return createHash('sha256').update(text).digest('hex');
 }
