@@ -6,8 +6,7 @@
     "keywords": [
         "laravel",
         "kingshot",
-        "alliance",
-        "community"
+        "alliance"
     ],
     "license": "GPL-3.0-only",
     "require": {
@@ -70,28 +69,35 @@
             "phpstan analyse --memory-limit=1G"
         ],
         "test": [
-            "@php artisan config:clear --ansi",
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test --fail-on-empty-test-suite"
         ],
         "test:unit": [
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
             "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Unit"
         ],
         "test:architecture": [
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
             "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Architecture"
         ],
         "test:frontend-contracts": [
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
             "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Frontend"
         ],
         "test:fast": [
-            "@php artisan config:clear --ansi",
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php artisan config:clear --ansi @no_additional_args",
             "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Unit,Architecture,Frontend"
         ],
         "test:feature": [
-            "@php artisan config:clear --ansi",
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php artisan config:clear --ansi @no_additional_args",
             "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Feature"
         ],
         "test:integration": [
-            "@php artisan config:clear --ansi",
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php artisan config:clear --ansi @no_additional_args",
             "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Integration"
         ],
         "check": [
@@ -120,11 +126,13 @@
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
         ],
         "test:parallel": [
-            "@php artisan config:clear --ansi",
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test --parallel --fail-on-empty-test-suite"
         ],
         "test:ci": [
-            "@php artisan config:clear --ansi",
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php artisan config:clear --ansi @no_additional_args",
             "@php artisan test --parallel --processes=2 --fail-on-empty-test-suite --log-junit storage/logs/phpunit-junit.xml"
         ]
     },
