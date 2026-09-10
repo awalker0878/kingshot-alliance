@@ -25,7 +25,7 @@ if ($legacyFiles !== []) {
 }
 
 $requiredBehaviorTests = [
-    'tests/Feature/Contexts/Accounts/Registration/AccountRegistrationBehaviorV3Test.php',
+    'tests/Contexts/Accounts/Registration/Feature/AccountRegistrationBehaviorV3Test.php',
     'tests/Feature/Contexts/GameWorld/Players/PlayerIdentityBehaviorV3Test.php',
     'tests/Feature/Contexts/GameWorld/Players/PlayerContextSelectionBehaviorV3Test.php',
     'tests/Feature/Contexts/GameWorld/Governance/KingdomGovernanceBehaviorV3Test.php',

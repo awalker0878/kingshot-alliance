@@ -10,6 +10,12 @@
             <directory suffix="Test.php">tests/Unit</directory>
         </testsuite>
         <testsuite name="Feature">
+            <directory suffix="Test.php">tests/Contexts/Accounts/Authentication/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Accounts/Credentials/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Accounts/EmailVerification/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Accounts/MultiFactorAuthentication/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Accounts/Profile/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Accounts/Registration/Feature</directory>
             <directory suffix="Test.php">tests/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/AllianceAssistant/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/AllianceDashboard/Feature</directory>
@@ -27,6 +33,12 @@
             <directory suffix="Test.php">tests/ReadModels/TerritoryPlanning/Feature</directory>
         </testsuite>
         <testsuite name="Integration">
+            <directory suffix="Test.php">tests/Contexts/Accounts/Authentication/Integration</directory>
+            <directory suffix="Test.php">tests/Contexts/Accounts/Credentials/Integration</directory>
+            <directory suffix="Test.php">tests/Contexts/Accounts/EmailVerification/Integration</directory>
+            <directory suffix="Test.php">tests/Contexts/Accounts/Identity/Integration</directory>
+            <directory suffix="Test.php">tests/Contexts/Accounts/MultiFactorAuthentication/Integration</directory>
+            <directory suffix="Test.php">tests/Contexts/Accounts/Profile/Integration</directory>
             <directory suffix="Test.php">tests/Integration</directory>
         </testsuite>
         <testsuite name="Architecture">
