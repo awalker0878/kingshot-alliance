@@ -106,7 +106,7 @@ The official 75% rule applies to Alliance resource ownership. Governor-city cove
 
 Object rotation remains the validated integer set `0 | 90 | 180 | 270`; richer polygons/circles are not introduced until a released factual layer requires them.
 
-`PlacementValidator` is the authoritative server implementation. Browser geometry mirrors the same V2 behavior and is contract-tested against `tests/Fixtures/territory-geometry.json`. The parity contract covers map bounds, rectangular footprint/object collision, fixed-structure collision/exclusion, zone restrictions, object caps, Banner-HQ connectivity, Bear-radius planning warnings, territory connectivity, coverage and analysis calculations.
+`PlacementValidator` is the authoritative server implementation. Browser geometry mirrors the same V2 behavior and is contract-tested against `tests/Contexts/GameWorld/KingdomMaps/Fixtures/territory-geometry.json`. The parity contract covers map bounds, rectangular footprint/object collision, fixed-structure collision/exclusion, zone restrictions, object caps, Banner-HQ connectivity, Bear-radius planning warnings, territory connectivity, coverage and analysis calculations.
 
 ## Rule taxonomy
 

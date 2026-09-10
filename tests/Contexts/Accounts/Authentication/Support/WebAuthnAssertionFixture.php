@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Support;
+namespace Tests\Contexts\Accounts\Authentication\Support;
 
 use Laravel\Passkeys\Support\WebAuthn;
 use OpenSSLAsymmetricKey;

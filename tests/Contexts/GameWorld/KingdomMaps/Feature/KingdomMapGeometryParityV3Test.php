@@ -93,7 +93,7 @@ final class KingdomMapGeometryParityV3Test extends TestCase
      */
     private function fixture(): array
     {
-        $contents = file_get_contents(base_path('tests/Fixtures/territory-geometry.json'));
+        $contents = file_get_contents(base_path('tests/Contexts/GameWorld/KingdomMaps/Fixtures/territory-geometry.json'));
         if (! is_string($contents)) {
             throw new RuntimeException('Unable to read Territory geometry fixture.');
         }

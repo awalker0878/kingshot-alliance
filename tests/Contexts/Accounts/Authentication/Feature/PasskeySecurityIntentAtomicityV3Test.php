@@ -17,7 +17,7 @@ use Laravel\Passkeys\Actions\StorePasskey;
 use Laravel\Passkeys\Exceptions\InvalidPasskeyException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
-use Tests\Support\WebAuthnRegistrationFixture;
+use Tests\Contexts\Accounts\Authentication\Support\WebAuthnRegistrationFixture;
 use Tests\TestCase;
 
 final class PasskeySecurityIntentAtomicityV3Test extends TestCase

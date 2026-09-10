@@ -11,7 +11,7 @@ on:
       - 'resources/data/kingdom-maps/**'
       - 'resources/js/features/territory-planner/engine/**'
       - 'tests/Contexts/GameWorld/KingdomMaps/Feature/**'
-      - 'tests/Fixtures/territory-geometry.json'
+      - 'tests/Contexts/GameWorld/KingdomMaps/Fixtures/territory-geometry.json'
       - 'scripts/check-territory-geometry-parity.mjs'
       - '.github/workflows/kingdom-maps-assurance.yml'
   push:
@@ -22,7 +22,7 @@ on:
       - 'resources/data/kingdom-maps/**'
       - 'resources/js/features/territory-planner/engine/**'
       - 'tests/Contexts/GameWorld/KingdomMaps/Feature/**'
-      - 'tests/Fixtures/territory-geometry.json'
+      - 'tests/Contexts/GameWorld/KingdomMaps/Fixtures/territory-geometry.json'
       - 'scripts/check-territory-geometry-parity.mjs'
       - '.github/workflows/kingdom-maps-assurance.yml'
   workflow_dispatch:

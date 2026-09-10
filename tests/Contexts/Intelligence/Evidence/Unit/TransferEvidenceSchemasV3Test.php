@@ -331,7 +331,7 @@ final class TransferEvidenceSchemasV3Test extends TestCase
      */
     private function fixture(TransferEvidenceSchema $schema): array
     {
-        $path = dirname(__DIR__, 4).'/Fixtures/Evidence/Transfer/'.$schema->fixtureCorpus.'.json';
+        $path = dirname(__DIR__).'/Fixtures/Transfer/'.$schema->fixtureCorpus.'.json';
         self::assertFileExists($path, $schema->fixtureCorpus);
         $fixture = json_decode((string) file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
         self::assertIsArray($fixture);

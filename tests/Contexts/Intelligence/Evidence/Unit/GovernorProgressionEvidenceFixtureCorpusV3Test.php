@@ -92,7 +92,7 @@ final class GovernorProgressionEvidenceFixtureCorpusV3Test extends TestCase
      */
     private function fixture(string $fixtureCorpus, string $schemaVersion): array
     {
-        $path = dirname(__DIR__, 4).'/Fixtures/Evidence/GovernorProgression/'.$fixtureCorpus.'.json';
+        $path = dirname(__DIR__).'/Fixtures/GovernorProgression/'.$fixtureCorpus.'.json';
         self::assertFileExists($path);
         $fixture = json_decode((string) file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
         self::assertIsArray($fixture);

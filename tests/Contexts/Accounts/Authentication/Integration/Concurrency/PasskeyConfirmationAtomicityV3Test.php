@@ -21,7 +21,7 @@ use Laravel\Passkeys\Actions\VerifyPasskey;
 use Laravel\Passkeys\Exceptions\InvalidPasskeyException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
-use Tests\Support\WebAuthnAssertionFixture;
+use Tests\Contexts\Accounts\Authentication\Support\WebAuthnAssertionFixture;
 use Tests\TestCase;
 use Webauthn\PublicKeyCredentialRequestOptions;
 

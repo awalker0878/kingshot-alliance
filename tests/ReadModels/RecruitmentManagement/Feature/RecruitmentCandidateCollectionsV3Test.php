@@ -21,7 +21,7 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
-use Tests\Support\RecruitmentCollectionFactory;
+use Tests\ReadModels\RecruitmentManagement\Support\RecruitmentCollectionFactory;
 use Tests\Support\ScenarioFactory;
 use Tests\TestCase;
 

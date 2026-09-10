@@ -33,7 +33,7 @@ use Laravel\Passkeys\Actions\DeletePasskey;
 use Laravel\Passkeys\Actions\GenerateRegistrationOptions;
 use Laravel\Passkeys\Actions\StorePasskey;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Tests\Support\WebAuthnRegistrationFixture;
+use Tests\Contexts\Accounts\Authentication\Support\WebAuthnRegistrationFixture;
 use Tests\TestCase;
 
 final class FinalizedAccountMutationV3Test extends TestCase

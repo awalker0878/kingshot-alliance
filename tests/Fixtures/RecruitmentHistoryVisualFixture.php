@@ -12,7 +12,7 @@ use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Tests\Support\RecruitmentCollectionFactory;
+use Tests\ReadModels\RecruitmentManagement\Support\RecruitmentCollectionFactory;
 use Tests\Support\ScenarioFactory;
 
 final class RecruitmentHistoryVisualFixture

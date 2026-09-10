@@ -96,7 +96,7 @@ The screenshot remains privately authorized. Error/confidence semantics do not r
 
 ## Fixture contract
 
-Each schema maps to an executable corpus under `tests/Fixtures/Evidence/GovernorProgression`. Corpora cover canonical, alternate-resolution, safe-crop, numeric-grouping, low-confidence, adjacent-number negative, missing-field, unsupported-UI, wrong-class, visual-duplicate, semantic-equal and semantic-newer cases. A field not fixture-proven/allowlisted cannot enter reviewed destination meaning.
+Each schema maps to an executable corpus under `tests/Contexts/Intelligence/Evidence/Fixtures/GovernorProgression`. Corpora cover canonical, alternate-resolution, safe-crop, numeric-grouping, low-confidence, adjacent-number negative, missing-field, unsupported-UI, wrong-class, visual-duplicate, semantic-equal and semantic-newer cases. A field not fixture-proven/allowlisted cannot enter reviewed destination meaning.
 
 `StructuredGovernorProgressionPipelineV3Test` exercises real upload, independent classification, extraction, pinned normalization, review provenance and Roster commit/replay with only the external OCR result substituted. It also covers missing levels, wrong-class stops and foreign actor/scope rejection. Release verification is tracked under HARD-010 in the hardening delivery ledger.
 

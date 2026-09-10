@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Support;
+namespace Tests\ReadModels\RecruitmentManagement\Support;
 
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
