@@ -67,6 +67,31 @@ final class JUnitTimingReportTest extends TestCase
         self::assertSame([1, 1, 1], array_column($report['types'], 'cases'));
     }
 
+    public function test_grouped_results_retain_markers_without_allocating_suite_only_skips(): void
+    {
+        $report = JUnitTimingReport::parse('<testsuite tests="5" failures="1" errors="1" skipped="2"><testcase name="failed" file="tests/Contexts/A/B/Feature/ATest.php" time="3"><failure/></testcase><testcase name="errored" file="tests/Contexts/A/B/Feature/ATest.php" time="2"><error/></testcase><testcase name="skipped" file="tests/Shared/A/Unit/BTest.php"><skipped/></testcase><testcase name="ran" file="tests/Shared/A/Unit/BTest.php" time="1"/></testsuite>', ['Unit', 'Feature']);
+        foreach (['files', 'types'] as $group) {
+            self::assertSame([1, 0], array_column($report[$group], 'failures'));
+            self::assertSame([1, 0], array_column($report[$group], 'errors'));
+            self::assertSame([0, 1], array_column($report[$group], 'skipped'));
+            self::assertSame([0, 1], array_column($report[$group], 'untimed'));
+        }
+        self::assertSame(1, $report['suite_only_skips']);
+        self::assertSame([], $report['counter_mismatches']);
+        self::assertTrue($report['reconciled']);
+        self::assertSame(1, JUnitTimingReport::exitCode($report));
+        self::assertStringContainsString('Failure markers | Error markers | Skip markers', JUnitTimingReport::markdown($report));
+    }
+
+    public function test_a_declared_skip_counter_cannot_hide_observed_skips(): void
+    {
+        $report = JUnitTimingReport::parse('<testsuite tests="1" skipped="0"><testcase name="skipped"><skipped/></testcase></testsuite>');
+        self::assertTrue($report['reconciled']);
+        self::assertSame(['skipped'], $report['counter_mismatches']);
+        self::assertSame(2, JUnitTimingReport::exitCode($report));
+        self::assertStringContainsString('Declared counters below observed markers: **skipped**', JUnitTimingReport::markdown($report));
+    }
+
     #[DataProvider('invalidReports')]
     public function test_invalid_or_empty_reports_fail_instead_of_claiming_success(string $xml): void
     {

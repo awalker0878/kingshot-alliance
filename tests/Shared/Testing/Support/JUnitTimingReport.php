@@ -104,6 +104,12 @@ final class JUnitTimingReport
                 $declared[$key] += $number;
             }
         }
+        $counterMismatches = [];
+        foreach (['failures', 'errors', 'skipped'] as $key) {
+            if ($declared[$key] !== null && $declared[$key] < $counts[$key]) {
+                $counterMismatches[] = $key;
+            }
+        }
         // PHPUnit can report an entirely skipped class at suite level without case nodes.
         $suiteOnlySkips = max(0, ($declared['skipped'] ?? 0) - $counts['skipped']);
         $reconciled = $declared['tests'] === null ? null : $declared['tests'] === $counts['cases'] + $suiteOnlySkips;
@@ -112,7 +118,7 @@ final class JUnitTimingReport
             throw new RuntimeException('Aggregate testcase duration is not finite.');
         }
 
-        return ['counts' => $counts, 'declared' => $declared, 'suite_only_skips' => $suiteOnlySkips, 'reconciled' => $reconciled,
+        return ['counts' => $counts, 'declared' => $declared, 'counter_mismatches' => $counterMismatches, 'suite_only_skips' => $suiteOnlySkips, 'reconciled' => $reconciled,
             'seconds' => $seconds, 'cases' => $cases, 'files' => self::group($cases, 'file'), 'suites' => self::group($cases, 'suite'), 'types' => self::group($cases, 'type')];
     }
 
@@ -128,7 +134,7 @@ final class JUnitTimingReport
             }
         }
 
-        return 0;
+        return $report['counter_mismatches'] === [] ? 0 : 2;
     }
 
     /** @param array<string, mixed> $report */
@@ -143,17 +149,19 @@ final class JUnitTimingReport
             sprintf('Known aggregate case duration: **%.6f s**; missing case durations: **%d**. This is not wall-clock time.', $report['seconds'], $counts['untimed']),
             'Declared suite total: **'.($report['declared']['tests'] ?? 'not supplied').'**; suite-level skips without case identities: **'.$report['suite_only_skips'].'**.',
             'Declared failure/error/skip counters: **'.($report['declared']['failures'] ?? 'unknown').' / '.($report['declared']['errors'] ?? 'unknown').' / '.($report['declared']['skipped'] ?? 'unknown').'**.',
+            'Declared counters below observed markers: **'.($report['counter_mismatches'] === [] ? 'none' : implode(', ', $report['counter_mismatches'])).'**.',
             'Case-count reconciliation: **'.match ($report['reconciled']) {
                 true => 'matched', false => 'MISMATCH — incomplete or inconsistent report', null => 'unknown — total not supplied'
             }.'**.',
-            '', 'Only existing XML records are summarized. This does not establish full discovery, passing regression, setup cost or a speedup.', ''];
+            '', 'Only existing XML records are summarized. This does not establish full discovery, passing regression, setup cost or a speedup.',
+            'Grouped result markers describe case records only; suite-only skips are not assigned to files or execution types.', ''];
         foreach (['types' => 'Execution types (from file paths)', 'files' => 'Slowest files'] as $key => $title) {
             $lines[] = '### '.$title;
-            $lines[] = '| Name | Cases | Known aggregate seconds | Untimed |';
-            $lines[] = '| --- | ---: | ---: | ---: |';
+            $lines[] = '| Name | Cases | Known aggregate seconds | Untimed | Failure markers | Error markers | Skip markers |';
+            $lines[] = '| --- | ---: | ---: | ---: | ---: | ---: | ---: |';
             $rows = $key === 'types' ? $report[$key] : array_slice($report[$key], 0, $limit);
             foreach ($rows as $row) {
-                $lines[] = '| '.self::cell($row['name']).' | '.$row['cases'].' | '.sprintf('%.6f', $row['seconds']).' | '.$row['untimed'].' |';
+                $lines[] = '| '.self::cell($row['name']).' | '.$row['cases'].' | '.sprintf('%.6f', $row['seconds']).' | '.$row['untimed'].' | '.$row['failures'].' | '.$row['errors'].' | '.$row['skipped'].' |';
             }
             $lines[] = '';
         }
@@ -179,10 +187,13 @@ final class JUnitTimingReport
         $groups = [];
         foreach ($cases as $case) {
             $name = $case[$key];
-            $groups[$name] ??= ['name' => $name, 'cases' => 0, 'seconds' => 0.0, 'untimed' => 0];
+            $groups[$name] ??= ['name' => $name, 'cases' => 0, 'seconds' => 0.0, 'untimed' => 0, 'failures' => 0, 'errors' => 0, 'skipped' => 0];
             $groups[$name]['cases']++;
             $groups[$name]['seconds'] += $case['seconds'] ?? 0;
             $groups[$name]['untimed'] += (int) ($case['seconds'] === null);
+            foreach (['failures', 'errors', 'skipped'] as $result) {
+                $groups[$name][$result] += $case[$result];
+            }
         }
         $groups = array_values($groups);
         usort($groups, static fn (array $a, array $b): int => $b['seconds'] <=> $a['seconds'] ?: strcmp($a['name'], $b['name']));
