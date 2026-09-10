@@ -128,9 +128,14 @@ jobs:
             tests/ReadModels/KingdomIntelligence/Feature \
             tests/ReadModels/IntelligenceSignals/Feature \
             2>&1 | tee "${RUNNER_TEMP}/intelligence-v3-behavior.log"
-          status=${PIPESTATUS[0]}
+          # Capture both statuses before another command replaces PIPESTATUS.
+          statuses=("${PIPESTATUS[@]}")
           set -e
-          exit "$status"
+          if [ "${statuses[0]}" -ne 0 ]; then
+            exit "${statuses[0]}"
+          fi
+          # A passing runner must not hide a failed diagnostic write.
+          exit "${statuses[1]}"
 
       - name: Upload behavior-contract diagnostics
         if: always()

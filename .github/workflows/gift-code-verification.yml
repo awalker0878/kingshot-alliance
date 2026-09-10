@@ -89,5 +89,5 @@ jobs:
 
       - name: Gift Code V3 backend tests
         run: >-
-          vendor/bin/phpunit --configuration phpunit.xml
+          vendor/bin/phpunit --configuration phpunit.xml --fail-on-empty-test-suite
           tests/Contexts/GameWorld/GiftCodes/Feature

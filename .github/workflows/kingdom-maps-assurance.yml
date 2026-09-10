@@ -79,7 +79,7 @@ jobs:
         run: php artisan kingdom-maps:list
 
       - name: Run KingdomMaps PHP tests
-        run: php artisan test tests/Contexts/GameWorld/KingdomMaps/Feature
+        run: php artisan test --fail-on-empty-test-suite tests/Contexts/GameWorld/KingdomMaps/Feature
 
       - name: Configure Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
