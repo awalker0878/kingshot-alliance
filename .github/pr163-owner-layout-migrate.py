@@ -8,6 +8,7 @@ from pathlib import Path, PurePosixPath as P
 import posixpath
 import re
 import subprocess
+import tempfile
 import urllib.request
 
 TIERS = ['Unit', 'Feature', 'Integration', 'Architecture', 'Frontend']
@@ -151,7 +152,7 @@ def api_tree(base, elements):
     if repository!='awalker0878/kingshot-alliance':
         raise RuntimeError('Unexpected repository')
     request=urllib.request.Request('https://api.github.com/repos/'+repository+'/git/trees',
-       data=json.dumps({'base_tree':base,'tree':elements}).encode(),method='POST',
+       data=json.dumps({'base_tree':base,'tree':[e for e in elements if not e['path'].startswith('.github/workflows/')]}).encode(),method='POST',
        headers={'Authorization':'Bearer '+os.environ['OWNER_LAYOUT_TOKEN'],
                 'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
     with urllib.request.urlopen(request,timeout=90) as response:
@@ -270,12 +271,27 @@ def main():
                 except UnicodeDecodeError:element['sha']=blob(state[path])
             elements.append(element)
         (output/(str(len(receipt['stages'])+1)+'-tree.json')).write_text(json.dumps({'base_tree':base_tree,'tree':elements}))
+        workflow_entries=[{'path':p,'mode':modes[p],'type':'blob','content':state[p].decode()}
+                          for p in state if p.startswith('.github/workflows/') and state[p]!=original.get(p)]
         if args.publish_trees:
             actual_tree=api_tree(base_tree,elements)
-            if actual_tree!=expected_tree:
-                raise RuntimeError('Published tree differs from prepared index: '+stage)
-        base_tree=expected_tree
-        entry={'stage':stage,'tree_sha':expected_tree,'moved_files':len(step),'changed_files':len(changed),
+            # The Actions token cannot author workflow changes. Publish source
+            # trees only; the connector applies these reviewed workflow entries.
+            with tempfile.TemporaryDirectory() as temporary:
+                environment={**os.environ,'GIT_INDEX_FILE':str(Path(temporary)/'index')}
+                subprocess.run(['git','read-tree',expected_tree],env=environment,check=True)
+                for path,data in original.items():
+                    if path.startswith('.github/workflows/'):
+                        subprocess.run(['git','update-index','--cacheinfo',modes[path],blob(data),path],env=environment,check=True)
+                permitted_tree=subprocess.check_output(['git','write-tree'],env=environment,text=True).strip()
+            if actual_tree!=permitted_tree:
+                raise RuntimeError('Published source tree differs from prepared index: '+stage)
+            base_tree=actual_tree
+        else:
+            actual_tree=None
+            base_tree=expected_tree
+        entry={'stage':stage,'tree_sha':expected_tree,'published_source_tree':actual_tree,'workflow_entries':workflow_entries,
+               'moved_files':len(step),'changed_files':len(changed),
                'php_linted':len(linted),'php_source_files':287,'browser_specs':17,'snapshots':12,
                'source_transform_reconciled':True,'browser_blobs_unchanged':True}
         receipt['stages'].append(entry)
