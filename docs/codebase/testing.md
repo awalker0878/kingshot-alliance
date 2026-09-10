@@ -13,9 +13,9 @@ The physical layout is owner-first, but PHPUnit still exposes five disjoint exec
 | Unit | Isolated logic and inert contracts; pure PHPUnit without application startup | 16 |
 | Feature | Actual HTTP, authorization, validation, encryption, persistence and application interactions | 189 |
 | Integration | Committed-state, after-commit, independent connections and infrastructure | 53 |
-| Architecture | Ownership/source/reflection contracts plus real application registration where required | 26 |
+| Architecture | Ownership/source/reflection contracts plus real application registration where required | 27 |
 | Frontend | PHP-side frontend source contracts; not browser journeys | 3 |
-| **Total PHP** | **Each file assigned once** | **287** |
+| **Total PHP** | **Each file assigned once** | **288** |
 
 Browser is a separate Playwright runner containing 17 specifications, with 12 reviewed PNG baselines. Support, Fixtures and TestCase.php are not suites. Keep only execution folders an owner needs. Concurrency belongs in that owner's `Integration/Concurrency`; genuine migration-lifecycle contracts belong in `Integration/Schema`.
 
@@ -79,6 +79,32 @@ Truncation tests extend Tests\TestCase. The existing MigrationReferenceData help
 The earlier reference-data reset repair and its six authored regression cases remain runtime-unverified. Validate mixed reset-trait ordering, committed fixture removal, reference mutation recovery, identity handling and failure teardown before accepting it. This owner-first migration does not modify that implementation.
 
 PHP CI retains two workers; the local parallel command retains its existing default. Playwright retains one worker and non-parallel files. Do not increase concurrency or retries without checking database, cache, queue, session, temporary-file, storage, port, profile and global-state isolation. Directory changes can alter file-based IDs and order, so source equivalence is not order-independence proof.
+
+## Current cost-separation continuation
+
+Source parent: `fc3265d9404c696eca668b0117605b3df58ae958`. Code checkpoint: `7009517fcfb9a493da015d62bf1c7b2176c4cdac`. These changes apply [ADR-0043](../architecture/adr/0043-owner-first-tests-and-disjoint-execution-suites.md); they do not introduce another folder convention or change its accepted decision.
+
+| Commit | Owner-local improvement | Preservation boundary |
+| --- | --- | --- |
+| `92a47bf0` | `Contexts/GameWorld/KingdomTransfers/Frontend/TransferManualEvidenceUxV3Test.php` uses pure PHPUnit and RepositoryPath. | Both source methods, assertions, file traversal and class/path remain unchanged apart from the equivalent path helper. All three current Frontend classes now use the pure PHPUnit base. |
+| `02f5c915` | The Content lock-usage source method moves unchanged into `Contexts/Alliance/Content/Architecture/AllianceRulesLockBoundaryTest.php`. | The original `Feature/AllianceRulesOwnershipBoundaryV3Test.php` retains the real mutation, revision, audit and outbox rejection scenario and its database setup. The source method no longer initializes Laravel or database isolation. |
+| `7009517f` | `ReadModels/Progression/Feature/ProgressionPrerequisiteEvaluatorV3Test.php` passes each method's already-loaded readonly dataset to its helper. | The real release loader and application evaluator remain; no mock, static cache, cross-test fixture or production loader change is introduced. All pin, value and prerequisite assertions remain. |
+
+Static analysis of the prerequisite class's existing successful paths counts `latest()` traversals as 3 + 4 + 10 + 1 before, versus 1 + 1 + 1 + 1 after: **18 to 4**, removing 14 repeated fixture loads. Each traversal reads, validates and hashes the factual release files. These are source-derived operation counts, not profiler measurements, elapsed savings or an assertion that the tests pass. The tests still independently load the real release once per method. Dataset mutation, release integrity, availability and checksum/tamper tests keep their own reloads unchanged; never apply fixture reuse where detecting a changed source is the contract.
+
+The source inventory is now 288 PHP files, solely because one existing class was split. All eight affected original test methods remain exactly once. Inverse transformations reconstruct the two rewritten originals; reinserting the extracted Content method reconstructs its original Feature class. Remote blob hashes match the four prepared PHP files. Existing owner/type directories already cover the split, so PHPUnit configuration, filters and Composer commands are unchanged. All 17 browser specifications, 12 PNGs and test fixture data are byte-identical to this continuation's parent.
+
+Local source checks use PHP 8.5.10 and Pint 1.30.4: syntax and formatting of the four changed PHP files, `php scripts/sync-test-suites.php --check`, and `php scripts/verify-test-layout.php`. Installed dependency metadata from the recovered snapshot was inspected: Laravel 13.30.1, PHPUnit 12.5.33, ParaTest 7.20.0 and Playwright 1.62.1. No PHPUnit/Playwright invocation, provider evaluation, application bootstrap, fixture seeding, migration, profiling or CI dispatch was performed. These checks do not validate runner discovery, order independence or full behavior. No new timing result or performance budget is established.
+
+When execution is authorized, the direct scopes for this slice are:
+
+```sh
+vendor/bin/phpunit --fail-on-empty-test-suite tests/Contexts/GameWorld/KingdomTransfers/Frontend
+vendor/bin/phpunit --fail-on-empty-test-suite tests/Contexts/Alliance/Content
+vendor/bin/phpunit --fail-on-empty-test-suite tests/ReadModels/Progression/Feature/ProgressionPrerequisiteEvaluatorV3Test.php
+```
+
+Follow these with the affected owners' integration/dependency checks and required complete verification. The earlier committed-state reference-reset repair remains unverified and is the priority for measured mixed-order/full-suite validation. Further database-reset tuning, broader caches, changed-code selection and increased workers are not justified by the source-only results above. Shared TestCase/reset helpers, production code, dependencies, CI gates, worker counts, retries and coverage settings are unchanged by this continuation.
 
 ## Toolchain and source-only migration evidence
 
