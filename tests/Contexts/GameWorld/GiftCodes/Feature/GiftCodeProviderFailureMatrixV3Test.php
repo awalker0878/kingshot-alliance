@@ -10,14 +10,20 @@ use App\Contexts\GameWorld\GiftCodes\Adapters\RssAtomGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\StructuredHtmlGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Exceptions\GiftCodeSourceAcquisitionException;
 use App\Contexts\GameWorld\GiftCodes\Models\GiftCodeSourceRegistry;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 use UnexpectedValueException;
 
 final class GiftCodeProviderFailureMatrixV3Test extends TestCase
 {
-    use RefreshDatabase;
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // These adapters read unsaved source attributes and explicit HTTP fixtures.
+        // Keep real application wiring, but do not initialize unused database state.
+        Http::preventStrayRequests();
+    }
 
     public function test_common_http_provider_failures_have_stable_operational_codes(): void
     {
