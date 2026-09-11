@@ -3,6 +3,7 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, reactive, ref, watch } from 'vue';
 
 import TransferEvidencePanel from '@/components/transfers/TransferEvidencePanel.vue';
+import TransferWorkflowHistory from '@/components/transfers/TransferWorkflowHistory.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -61,22 +62,7 @@ type Observation = {
   observedAt: string;
   validUntil: string | null;
 };
-type Blocker = {
-  id: string;
-  state: 'active' | 'resolved';
-  summary: string;
-  details: string | null;
-  createdAt: string | null;
-  resolvedAt: string | null;
-  createdBy: { name: string } | null;
-  resolvedBy: { name: string } | null;
-};
-type History = {
-  from: Readiness | null;
-  to: Readiness;
-  changedAt: string;
-  actor: { name: string } | null;
-};
+type Blocker = { id: string; summary: string; state: 'active' | 'resolved' };
 type Capacity = {
   state: RequirementState;
   officialTotalCapacity: number | null;
@@ -153,8 +139,9 @@ type Participant = {
     requirements: Requirement[];
   } | null;
   observations: Observation[];
-  blockers: Blocker[];
-  readinessHistory: History[];
+  activeBlockerCount: number;
+  resolvedBlockerCount: number;
+  readinessTransitionCount: number;
 };
 type Plan = {
   id: string;
@@ -1185,39 +1172,23 @@ function saveInvitationAllocation(p: Participant): void {
                   {{ t('kingdomP7D.addBlocker') }}
                 </button>
               </form>
-              <ul class="mt-3 grid gap-2">
-                <li
-                  v-for="b in p.blockers"
-                  :key="b.id"
-                  class="rounded-lg border border-[var(--ks-border)] p-3 text-sm"
-                >
-                  <div class="flex justify-between gap-2">
-                    <strong>{{ b.summary }}</strong>
-                    <button
-                      v-if="b.state === 'active' && plan.mutable"
-                      class="text-[var(--ks-gold-bright)]"
-                      type="button"
-                      @click="resolveBlocker(p, b)"
-                    >
-                      {{ t('kingdomP7D.resolve') }}
-                    </button>
-                  </div>
-                  <p v-if="b.details" class="mt-1 text-[var(--ks-muted)]">{{ b.details }}</p>
-                </li>
-              </ul>
+              <TransferWorkflowHistory
+                :plan-id="plan.id"
+                :participant-id="p.id"
+                mode="blockers"
+                :active-count="p.activeBlockerCount"
+                :resolved-count="p.resolvedBlockerCount"
+                :mutable="plan.mutable"
+                @resolve="resolveBlocker(p, $event)"
+              />
             </fieldset>
           </div>
-          <details class="mt-4">
-            <summary class="cursor-pointer font-semibold">
-              {{ t('kingdomP7D.readinessHistory') }}
-            </summary>
-            <ul class="mt-2 text-sm text-[var(--ks-muted)]">
-              <li v-for="h in p.readinessHistory" :key="`${h.changedAt}-${h.to}`">
-                {{ readinessLabel(h.from ?? h.to) }} → {{ readinessLabel(h.to) }} ·
-                {{ timestamp(h.changedAt) }} · {{ h.actor?.name ?? t('kingdomP7D.unknownActor') }}
-              </li>
-            </ul>
-          </details>
+          <TransferWorkflowHistory
+            :plan-id="plan.id"
+            :participant-id="p.id"
+            mode="readiness"
+            :transition-count="p.readinessTransitionCount"
+          />
         </div>
       </article>
     </section>

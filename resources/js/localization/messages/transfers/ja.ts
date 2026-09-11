@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    workflowHistoryUnavailable: '移転手順の履歴を読み込めませんでした。',
+    workflowHistoryTotal: 'この履歴の記録数：{count}件。',
     observationHistoryUnavailable: '観測履歴を読み込めませんでした。',
     reloadHistory: '履歴を再読み込み',
     eyebrow: '王国移民',

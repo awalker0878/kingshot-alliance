@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    workflowHistoryUnavailable: 'ไม่สามารถโหลดประวัติกระบวนการย้ายได้',
+    workflowHistoryTotal: 'มี {count} รายการในประวัตินี้',
     observationHistoryUnavailable: 'ไม่สามารถโหลดประวัติการสังเกตได้',
     reloadHistory: 'โหลดประวัติใหม่',
     eyebrow: 'การย้ายอาณาจักร',

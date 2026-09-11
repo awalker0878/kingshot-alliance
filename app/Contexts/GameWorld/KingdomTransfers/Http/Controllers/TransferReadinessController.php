@@ -18,12 +18,10 @@ use App\Contexts\GameWorld\KingdomTransfers\Actions\ResolveTransferBlocker;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\TransitionTransferReadiness;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferReadinessState;
-use App\Contexts\GameWorld\KingdomTransfers\Models\TransferBlocker;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferGroup;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomConditionObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
-use App\Contexts\GameWorld\KingdomTransfers\Models\TransferReadinessTransition;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferEligibilityQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferObservationHistoryQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferParticipantQuery;
@@ -321,36 +319,9 @@ final class TransferReadinessController extends Controller
             'observations' => $observations
                 ->map(fn (TransferObservation $observation): array => $this->observation($observation))
                 ->all(),
-            'blockers' => $participant->blockers
-                ->sortByDesc(static fn (TransferBlocker $blocker): string => $blocker->created_at?->toIso8601String() ?? '')
-                ->values()
-                ->map(static fn (TransferBlocker $blocker): array => [
-                    'id' => (string) $blocker->id,
-                    'state' => $blocker->state->value,
-                    'summary' => $blocker->summary,
-                    'details' => $blocker->details,
-                    'createdAt' => $blocker->created_at?->toIso8601String(),
-                    'resolvedAt' => $blocker->resolved_at?->toIso8601String(),
-                    'createdBy' => $blocker->createdBy === null
-                        ? null
-                        : ['name' => $blocker->createdBy->current_name],
-                    'resolvedBy' => $blocker->resolvedBy === null
-                        ? null
-                        : ['name' => $blocker->resolvedBy->current_name],
-                ])
-                ->all(),
-            'readinessHistory' => $participant->readinessTransitions
-                ->sortByDesc(static fn (TransferReadinessTransition $transition): string => $transition->created_at->toIso8601String())
-                ->values()
-                ->map(static fn (TransferReadinessTransition $transition): array => [
-                    'from' => $transition->from_state?->value,
-                    'to' => $transition->to_state->value,
-                    'changedAt' => $transition->created_at->toIso8601String(),
-                    'actor' => $transition->actor === null
-                        ? null
-                        : ['name' => $transition->actor->current_name],
-                ])
-                ->all(),
+            'activeBlockerCount' => (int) $participant->getAttribute('active_blocker_count'),
+            'resolvedBlockerCount' => (int) $participant->getAttribute('resolved_blocker_count'),
+            'readinessTransitionCount' => (int) $participant->getAttribute('readiness_transition_count'),
         ];
     }
 

@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    workflowHistoryUnavailable: 'Riwayat alur transfer tidak dapat dimuat.',
+    workflowHistoryTotal: '{count} catatan dalam riwayat ini.',
     observationHistoryUnavailable: 'Riwayat pengamatan tidak dapat dimuat.',
     reloadHistory: 'Muat ulang riwayat',
     eyebrow: 'Transfer Kerajaan',

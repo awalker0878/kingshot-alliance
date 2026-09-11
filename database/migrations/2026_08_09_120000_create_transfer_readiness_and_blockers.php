@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -16,10 +15,6 @@ return new class extends Migration
             $table->index(['transfer_plan_id', 'readiness_state', 'withdrawn_at']);
         });
 
-        DB::table('transfer_participants')
-            ->whereNotNull('withdrawn_at')
-            ->update(['readiness_state' => 'withdrawn']);
-
         Schema::create('transfer_readiness_transitions', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->foreignUlid('alliance_id')->constrained('alliances')->cascadeOnDelete();
@@ -30,7 +25,7 @@ return new class extends Migration
             $table->foreignUlid('actor_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestampTz('created_at')->useCurrent();
 
-            $table->index(['transfer_participant_id', 'created_at']);
+            $table->index(['alliance_id', 'transfer_plan_id', 'transfer_participant_id', 'created_at', 'id'], 'transfer_readiness_history_page');
             $table->index(['alliance_id', 'transfer_plan_id', 'to_state']);
         });
 
@@ -45,9 +40,10 @@ return new class extends Migration
             $table->foreignUlid('created_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->foreignUlid('resolved_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestampTz('resolved_at')->nullable();
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent();
 
-            $table->index(['transfer_plan_id', 'transfer_participant_id', 'state']);
+            $table->index(['alliance_id', 'transfer_plan_id', 'transfer_participant_id', 'state', 'created_at', 'id'], 'transfer_blocker_history_page');
             $table->index(['alliance_id', 'transfer_plan_id', 'state']);
         });
     }

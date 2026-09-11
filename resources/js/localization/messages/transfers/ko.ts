@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    workflowHistoryUnavailable: '이전 절차 기록을 불러올 수 없습니다.',
+    workflowHistoryTotal: '이 기록의 항목 수: {count}개.',
     observationHistoryUnavailable: '관측 기록을 불러오지 못했습니다.',
     reloadHistory: '기록 새로고침',
     eyebrow: '왕국 이전',

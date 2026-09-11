@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 final class TransferParticipantQuery
@@ -41,7 +42,11 @@ final class TransferParticipantQuery
         if (! $includeWithdrawn) {
             $query->whereNull('withdrawn_at');
         } else {
-            $query->with(['blockers.createdBy:id,current_name', 'blockers.resolvedBy:id,current_name', 'readinessTransitions.actor:id,current_name', 'completion.completedBy:id,current_name']);
+            $query->with('completion.completedBy:id,current_name')->withCount([
+                'blockers as active_blocker_count' => static fn (Builder $rows) => $rows->where('alliance_id', $allianceId)->where('transfer_plan_id', $planId)->where('state', 'active'),
+                'blockers as resolved_blocker_count' => static fn (Builder $rows) => $rows->where('alliance_id', $allianceId)->where('transfer_plan_id', $planId)->where('state', 'resolved'),
+                'readinessTransitions as readiness_transition_count' => static fn (Builder $rows) => $rows->where('alliance_id', $allianceId)->where('transfer_plan_id', $planId),
+            ]);
         }
 
         return $query->orderByRaw("case direction when 'staying' then 0 when 'outgoing' then 1 else 2 end")->orderByRaw('case when withdrawn_at is null then 0 else 1 end')->orderBy('observed_name')->orderBy('id')->get();

@@ -143,6 +143,14 @@ Every external mutation is behind an owner Action. HTTP password confirmation is
 
 The concrete actor/Alliance/Plan/window/participant/target scope is re-resolved at mutation time. Foreign IDs must not become a cross-Alliance existence oracle.
 
+## Bounded workflow history
+
+Readiness responses contain complete SQL counts for active blockers, resolved blockers and readiness transitions, not embedded historical collections. `TransferWorkflowHistoryQuery` provides separate 25-record keyset pages. Every request rechecks current Transfer View authority and the concrete Alliance/Plan/participant before reading rows. History predicates include all three IDs even when a malformed row references a participant from another scope. Cursors are encrypted and bound to the concrete history and blocker state; a token is not authorization.
+
+Active and resolved blockers have independent navigation so newer resolved records cannot hide an older current blocker. Histories use `(created_at, id)` descending, with one bounded look-ahead row; continuation does not require the boundary row still to exist. Counts describe the current matching relation, not the size of the displayed page. New writes are visible after first-page refresh; pagination is not a cross-request snapshot transaction.
+
+The canonical fresh schema requires dated workflow records and indexes each scope/order predicate. No compatibility row limit, backfill or duplicate history representation is retained. Readiness transitions and blocker writes remain with their existing Actions; pagination does not evaluate or mutate game eligibility. The owner-local frontend loads a history only when opened, retains unrelated form drafts, rejects malformed responses, and discards superseded requests after scope/filter changes. The remaining full participant/workspace and dashboard expansion is tracked under HARD-095 rather than described as bounded by this history change alone.
+
 ## Read-model boundary
 
 Read models may compose `TransferSelfEligibilityQuery` or other typed KingdomTransfers projections after authorization. They may render requirement/outcome/next-action information but must not calculate substitute game rules or persist a second transfer truth store.

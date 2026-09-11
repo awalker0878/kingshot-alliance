@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    workflowHistoryUnavailable: 'Không thể tải lịch sử quy trình chuyển.',
+    workflowHistoryTotal: 'Có {count} bản ghi trong lịch sử này.',
     observationHistoryUnavailable: 'Không thể tải lịch sử quan sát.',
     reloadHistory: 'Tải lại lịch sử',
     eyebrow: 'Chuyển Vương quốc',

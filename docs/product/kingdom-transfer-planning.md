@@ -1,6 +1,6 @@
 # Kingdom Transfer Planning
 
-Status: Current — Complete 2026-09-07
+Status: Current implementation contract
 
 Owner: `GameWorld/KingdomTransfers`
 
@@ -17,6 +17,10 @@ The capability separates three kinds of truth:
 3. **Derived eligibility** — a recomputable assessment over current authoritative facts. It is never persisted as a boolean.
 
 Missing, stale, conflicting or non-authoritative information cannot silently become `eligible_now`.
+
+## Workflow history navigation
+
+Readiness keeps active and resolved manual blockers independently reachable, with complete totals and 25-record forward/first-page navigation. Readiness transitions have their own history. Opening or paging a history does not discard an unsaved readiness or blocker draft. Loading and retry states are explicit, and each request rechecks the current active Governor and Alliance scope. Historical navigation does not change eligibility, readiness or completed-transfer facts. The remaining workspace scalability work is tracked in the [hardening ledger](codebase-hardening-delivery-ledger.md); this contract is not a claim that the overall program is complete.
 
 ## Current authoritative rule boundary
 

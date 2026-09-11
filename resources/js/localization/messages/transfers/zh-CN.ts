@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    workflowHistoryUnavailable: '无法加载迁移流程历史记录。',
+    workflowHistoryTotal: '此历史记录共 {count} 条。',
     observationHistoryUnavailable: '无法加载观测历史。',
     reloadHistory: '重新加载历史',
     eyebrow: '王国转移',

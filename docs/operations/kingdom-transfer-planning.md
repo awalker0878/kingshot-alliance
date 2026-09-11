@@ -30,6 +30,12 @@ For an eligibility or capacity complaint, identify Alliance, Plan, Transfer Wind
 
 Readiness, planning allocations and Evidence provenance do not independently prove game eligibility.
 
+## Readiness history diagnostics
+
+Open the participant's manual-blocker history and select Active or Resolved; use its continuation to inspect older records. Readiness changes have a separate history and cursor. The visible total is a complete scoped SQL count, not the current page length. An old active blocker is not superseded by newer resolved rows. A failed or revoked history request shows an error and an explicit reload action, not an empty-success state. Refresh from the first page after scope or status changes; cursors do not represent a frozen historical snapshot.
+
+Do not repair a history by changing derived eligibility or deleting older records to make the page smaller. The canonical indexes bound row materialization and support continuation. Report the concrete Alliance, Plan, participant and history kind when diagnosing an unavailable page; do not log opaque cursor contents or private blocker details. The remaining unbounded participant/workspace queries stay in the hardening ledger until their separate remediation is verified.
+
 ## Current capacity diagnostics
 
 Always distinguish:

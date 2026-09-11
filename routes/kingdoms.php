@@ -10,6 +10,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferParticipant
 use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferPlanController;
 use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferPlanningController;
 use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferReadinessController;
+use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferWorkflowHistoryController;
 use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyContactController;
 use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyController;
 use App\Contexts\Intelligence\Evidence\Http\Controllers\TransferEvidenceController;
@@ -53,6 +54,8 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
     Route::get('/alliance/transfers/manage', [TransferPlanController::class, 'manage'])->name('alliance.transfers.manage');
     Route::get('/alliance/transfers/readiness', [TransferReadinessController::class, 'index'])->name('alliance.transfers.readiness');
     Route::get('/alliance/transfers/{plan}/participants/{participant}/observations', [TransferReadinessController::class, 'history'])->name('alliance.transfers.participants.observations.index');
+    Route::get('/alliance/transfers/{plan}/participants/{participant}/blockers', [TransferWorkflowHistoryController::class, 'blockers'])->name('alliance.transfers.participants.blockers.index');
+    Route::get('/alliance/transfers/{plan}/participants/{participant}/readiness-history', [TransferWorkflowHistoryController::class, 'transitions'])->name('alliance.transfers.participants.readiness-history');
     Route::get('/alliance/transfers/completion', [TransferCompletionController::class, 'index'])->name('alliance.transfers.completion');
     Route::get('/alliance/transfers/{plan}/participants/{participant}/evidence', [TransferEvidenceController::class, 'index'])->name('alliance.transfers.participants.evidence.index');
     Route::get('/alliance/transfers/{plan}/participants/{participant}/evidence/{evidence}/image', [TransferEvidenceController::class, 'image'])->name('alliance.transfers.participants.evidence.image');

@@ -25,11 +25,14 @@ KingdomTransfers owns accepted transfer facts, planning commitments and eligibil
 | `GET` | `/alliance/transfers/manage` | Window, official facts, capacity, cohorts and participant management. |
 | `GET` | `/alliance/transfers/readiness` | Server-authoritative eligibility plus independent Alliance readiness. |
 | `GET` | `/alliance/transfers/completion` | Final outcome workflow. |
+| `GET` | `/alliance/transfers/{plan}/participants/{participant}/observations` | Complete sourced observation history in 25-record pages. |
+| `GET` | `/alliance/transfers/{plan}/participants/{participant}/blockers?state=active` | Active or resolved (`state=resolved`) planning blockers, independently paged. |
+| `GET` | `/alliance/transfers/{plan}/participants/{participant}/readiness-history` | Complete readiness-transition history in 25-record pages. |
 | `GET` | `/alliance/transfers/{plan}/participants/{participant}/evidence` | Lazy participant Transfer Evidence summary/schema registry. |
 | `GET` | `/alliance/transfers/{plan}/participants/{participant}/evidence/{evidence}/image` | Authorized private image stream. |
 | `GET` | `/alliance/transfers/{plan}/participants/{participant}/evidence/reviews/{review}/preview` | Current-versus-reviewed evaluator preview. |
 
-The readiness response is bounded by relation type, not participant count. Evidence history is loaded lazily only when its participant panel opens.
+The readiness response exposes `activeBlockerCount`, `resolvedBlockerCount` and `readinessTransitionCount` as complete current counts rather than embedding child histories. Workflow history responses use `items`, `nextCursor`, `hasMore`, `pageSize` and `isFirstPage`; `cursor` is an opaque string, limited to 4,096 characters. It is bound to Alliance, Plan, participant, history kind and blocker state. Invalid or mismatched tokens fail validation; every page requires current authority. Evidence and workflow histories load only when their panel is opened. Full participant-set bounding remains tracked in HARD-095 and is not implied by the per-history page size.
 
 ## Official-fact writes
 

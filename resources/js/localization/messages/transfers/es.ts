@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    workflowHistoryUnavailable: 'No se pudo cargar el historial del proceso de transferencia.',
+    workflowHistoryTotal: '{count} registros en este historial.',
     observationHistoryUnavailable: 'No se pudo cargar el historial de observaciones.',
     reloadHistory: 'Recargar historial',
     eyebrow: 'Transferencia de reino',

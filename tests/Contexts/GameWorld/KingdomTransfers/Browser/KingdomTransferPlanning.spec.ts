@@ -54,6 +54,7 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
   await expect(frostCard.getByText('Needs verification', { exact: true }).first()).toBeVisible();
   await expect(northstarCard.getByText('Transfer Group 7', { exact: true })).toBeVisible();
   await expect(northstarCard).toContainText('K1524 Vanguard');
+  await northstarCard.getByTestId('transfer-blockers-history').locator('summary').click();
   await expect(
     northstarCard.getByText('Confirm alliance hand-off time', { exact: true }),
   ).toBeVisible();

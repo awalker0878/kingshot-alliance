@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    workflowHistoryUnavailable: 'Transfer workflow history could not be loaded.',
+    workflowHistoryTotal: '{count} records in this history.',
     observationHistoryUnavailable: 'Observation history could not be loaded.',
     reloadHistory: 'Reload history',
     eyebrow: 'Kingdom Transfer',
