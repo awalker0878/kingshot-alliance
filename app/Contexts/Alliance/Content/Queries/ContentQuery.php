@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Content\Queries;
 
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
+use App\Contexts\Alliance\Content\Enums\ContentType;
 use App\Contexts\Alliance\Content\Enums\ContentVisibility;
 use App\Contexts\Alliance\Content\Models\ContentItem;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,6 +13,12 @@ use Illuminate\Database\Eloquent\Collection;
 
 final class ContentQuery
 {
+    public function publishedAnnouncementExists(string $allianceId, string $contentItemId): bool
+    {
+        return $this->memberPublishedBase($allianceId)->whereKey($contentItemId)
+            ->where('type', ContentType::Announcement->value)->exists();
+    }
+
     /** @return Collection<int, ContentItem> */
     public function publicList(
         string $allianceId,

@@ -2,22 +2,22 @@
 
 ## Resume header
 
-- Program state: In progress; the testing-system scope is complete, not the repository-wide production audit.
-- Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49` (remote ref fetched unchanged on 2026-09-10 Toronto).
+- Program state: In progress; completed testing-system work is not repository-wide production acceptance.
+- Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49` (remote ref fetched unchanged for this continuation).
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `e194c6baf5b1166d6727266e965ae03debc9fe51` — coherent HARD-098 production/tests/ADR/ledger slice, preserving prior HARD-095/097 at `a8af2e6f83c6c951f25d1013d2e10e074ed79cf7`. This following documentation checkpoint records the immutable implementation and current HARD-101 reference repair.
-- Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163); keep draft and unmerged while other audit work remains.
-- Current item/state: HARD-098 / In progress with implemented claim/fencing/recovery regressions; containing local checks pass, normal milestone CI remains required. HARD-097 remains In progress pending that milestone; HARD-099/100 are Planned source-authorization and endpoint-generation gaps. HARD-095 retains its unfinished transfer consumers.
-- Most recently verified gates: all nine normal workflows passed for `e6f29ebbd40687c38a43554facb3ec9ef872ea8c`, actual checkout `4485b87f0ab5aef0f93d2f70f8ae6b088697c22b`: 1,507 PHP cases / 83,068 assertions, all 62 browser cases, full frontend, PHPStan/Pint, fresh durable PostgreSQL, image/staging/recovery and security checks. See [testing validation](../codebase/test-validation-2026-09-10.md). HARD-088 and HARD-096 are reconciled below from that containing evidence, not rerun as new implementation work.
-- Local current checks: PHP 8.5.10 / Laravel 13.30.1 / PHPUnit 12.5.33 / PostgreSQL 18.6, durability enabled, isolated port 55441. Unmodified Communications Feature baseline passes 15 tests / 171 assertions. Initial HARD-098 red suite reproduces ten failures in sixteen cases. The completed Communications, NotificationDelivery and repository Architecture scope passes 75 tests / 46,667 assertions in 137.872 seconds, including all 27 new race/recovery cases / 214 assertions. Full PHPStan over app/routes passes; Pint passes changed PHP. These are containing local gates, not a whole-application milestone.
-- Active files: Communications immediate/digest workers, shared owner readiness/endpoint-health services, owner-local Integration/Concurrency tests, explicit suite directory, ADR-0045 and relevant architecture/product/operations guidance. No concurrent Transfer production implementation was changed.
-- Remaining current work: Verify containing normal CI for HARD-098 and inventory/reproduce HARD-099 source eligibility before implementing its owner contract. Review HARD-100 in-flight credential-version diagnostics separately. HARD-095 and the full production audit remain open.
-- Known failures: The initial worker races and boundary/starvation failures now pass. No failure in the executed 75-case scope or full static analysis. Source-specific execution-time authorization and credential-version health attribution remain unresolved findings, not claimed fixed by attempt fencing.
-- Blockers: direct local Git network access is unavailable; the exact tracked source was recovered and hash-verified through the connector. Local PHP 8.5 and durable PostgreSQL are available. Temporary source/reviewed-preparation tooling must be removed before normal milestone CI. No current implementation is only in an untracked compatibility copy.
-- Exact next action: Reproduce HARD-099 using current source publishers, revoked membership/Governor ownership and account-scoped destinations; inventory every notification type and its authoritative source before selecting the delivery eligibility contract. Do not merge or redo completed testing-system work.
-- Remaining repository-wide gates: final full PHP/architecture/capability/frontend, production image/staging/recovery, security/dependency/visual checks and the remaining production audit on one final containing candidate. The previous green testing milestone does not close this program.
+- Latest pushed durable checkpoint: `95292c9ef6a4154b042c6fff5dac6f0b153c5948`, containing HARD-098 at `e194c6baf5b1166d6727266e965ae03debc9fe51`. This coherent HARD-099 implementation/test/ADR/ledger slice follows that checkpoint; the following checkpoint records its immutable SHA. No concurrent Transfer changes were overwritten.
+- Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163); keep draft and unmerged while any audit item or required containing gate remains open.
+- Current item/state: HARD-099 / In progress. Original source identity and owner-specific dispatch authorization are implemented for all thirteen current production types. Local source-specific/worker checks pass; containing normal milestone remains required. HARD-098 and HARD-097 also await that milestone. HARD-100 and newly traced HARD-102–104 remain open; HARD-095 retains unfinished transfer consumers.
+- Most recently verified full milestone: all nine workflows at `e6f29ebbd40687c38a43554facb3ec9ef872ea8c`, actual checkout `4485b87f0ab5aef0f93d2f70f8ae6b088697c22b`: 1,507 PHP cases / 83,068 assertions, all 62 browser cases, full frontend, PHPStan/Pint, fresh durable PostgreSQL, image/staging/recovery and security gates. See [testing validation](../codebase/test-validation-2026-09-10.md). Do not relabel that run as verification of current production changes.
+- Local current checks: PHP 8.5.10 / Laravel 13.30.1 / PHPUnit 12.5.33 / PostgreSQL 18.6, durability on, isolated port 55442. The unchanged Communications Feature baseline passes 15 tests / 171 assertions. Initial HARD-099 regressions reproduce nine failures in thirteen cases; current source/worker/registration scope passes 50 tests / 135 assertions. The prior containing run passes 88 tests / 46,970 assertions with all attempt-fencing scenarios retained. Full app/routes PHPStan passes; syntax/Pint pass 22 changed PHP files. The final expanded containing run passes 124 tests / 47,058 assertions in 35.618 seconds with no failures, errors or skips. No browser/frontend behavior or production schema changed.
+- Active files: source descriptor/port, Workflow provider/composition, Accounts/Alliance/GameWorld/Operations owner eligibility queries, Communications workers/message projection, real source fixtures and owner-local regressions, ADR-0046 and canonical guides.
+- Remaining current work: Publish this locally verified coherent HARD-099 slice, then reproduce/repair HARD-102 digest recipient/destination membership binding and HARD-100 endpoint credential-generation attribution. Complete remaining source fan-out and Transfer/read-model audits; normal full milestone is required before closing current implementation items.
+- Known failures: Reproduced source revocation/account-destination sends are fixed in the executed scopes. New tests also required published Event state and rejected closed/expired/foreign polls. Transport fixtures lacking originating records were replaced with real owner-created Event/King Perk sources, not permissive authorization mocks. Digest member-to-dispatch recipient binding, credential-generation health and source fan-out budgets remain known separate findings.
+- Blockers: Local GitHub DNS is unavailable; the existing read-only connector workflow exported all 2,964 tracked blobs at the exact current base and their hashes reconcile. Local PHP 8.5 and PostgreSQL are available. Temporary source/reviewed-preparation tooling must be removed before the normal containing milestone. No merge authorization exists for this unfinished program.
+- Exact next action: Continue HARD-102/HARD-100 from their concrete findings after this HARD-099 slice is durable; do not redo completed testing work or accept generic source-less transport fixtures as publication authority.
+- Remaining repository-wide gates: final PHP/architecture/capability/frontend, fresh schema, image/staging/recovery, security/dependency/browser gates and a repeated complete production audit on one final candidate. A green subset does not close the program.
 
-Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
+Checkpoint SHAs are recorded by the following documentation checkpoint; confirm the recorded implementation is an ancestor of branch HEAD. Git history plus this ledger, not conversation memory, is the continuation state.
 
 ## Work queue
 
@@ -1420,17 +1420,17 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 
 ### HARD-099 — External delivery does not reauthorize queued source authority
 
-- Area: Communications/Delivery claims and NotificationDelivery source publishers.
-- Finding: Queue-time Officer Brief and Intelligence publishers verify source authority, but immediate/digest claims recheck only destination routing and optional routing-Player ownership. Account-scoped destinations can bypass original message-Player ownership, and source membership or rank can be revoked before publication.
-- Current owner: Queue-time source authorization in owner/workflow publishers; destination authorization in Communications workers.
-- Intended authoritative owner: Current source-specific eligibility remains with each authoritative capability, consumed through an explicit delivery-boundary contract before provider work; destination policy remains Communications-owned.
-- Rationale: A stored notification payload or recipient endpoint must not become a durable grant of source data access. Public/account-security messages have distinct rules; a blanket Alliance rule would be incorrect.
-- Remediation: Inventory every concrete notification type, reproduce source revocation and Governor transfer through account-scoped destinations, then implement current owner authorization for immediate and digest publication without cross-context model reach-through or network calls in database transactions.
-- State: Planned.
-- Verification required: Queue/execute authority transitions, demotion and membership revocation, account/Governor transfer, mixed eligible/ineligible digests, public/account-security behavior, cross-tenant isolation and no unauthorized provider call.
-- Verification result: Officer/Intelligence queue guards and both worker claim paths traced. Production type inventory and red behavioral tests remain required before choosing the policy contract.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Area: Communications/Delivery claims and every current notification source owner.
+- Finding: Queue-time Officer Brief and Intelligence publishers verify source authority, but immediate/digest claims previously checked only destination routing and optional routing-Player ownership. Account-scoped destinations bypassed original message-Player ownership, and membership/rank could be revoked before send or retry.
+- Current owner: Queue-time source authorization in source capabilities and Workflows; destination authorization in Communications.
+- Intended authoritative owner: Source-specific current eligibility stays in its capability; an explicit delivery-side port is composed by the existing NotificationDelivery Workflow. Communications retains routing, claim, retry and outcome ownership.
+- Rationale: A stored body or endpoint is not a durable source-data grant. Public/account-security types require different rules from Alliance messages. The dependency-inversion port avoids source-model reach-through and a circular source-to-delivery implementation dependency.
+- Remediation: Add the original immutable source descriptor, bind the port to owner queries, and check it before every immediate/digest claim and retry. Cancel/detach each denied digest member before payload construction; preserve eligible members. Unknown types or missing/revoked sources fail closed; infrastructure failures propagate/roll back. Keep network work outside transactions, no compatibility fallback, and no new source authority/cache. See ADR-0046 for all thirteen type contracts and provider-handoff limitations.
+- State: In progress.
+- Verification required: Current account/Governor ownership, membership/rank revocation, retry-time checks, mixed digests, all thirteen type contracts, public/account-security controls, operational grants, source/poll lifecycle, infrastructure failure and existing claim/transport/architecture/static behavior; full containing milestone.
+- Verification result: Initial real-publisher regressions fail nine of thirteen cases. The expanded 50-case scope passes 135 assertions, including all source types, account destinations, retry revocation, mixed member/officer digest, original account/Governor transfer, account security without a Governor, public catalogue scope, platform grant revocation, draft preview, Event and poll cancellation/expiry and real container binding. Full app/routes PHPStan passes. Existing transport/attempt tests retain their assertions and now use real owner-created Event/King Perk sources instead of synthetic subject-less payloads. Source/layout guards assign 297 PHP files once. The expanded containing Communications/Workflow/System Architecture scope passes 124 tests / 47,058 assertions in 35.618 seconds, no failures/errors/skips. No whole-application claim yet.
+- Completion evidence: `QueuedNotificationSourceAuthorizationTest`, `NotificationSourceEligibilityTest`, real provider-binding test, owner-local source fixtures and ADR-0046; local source-authorization-complete.xml and containing-final.xml. Do not mark Complete before containing normal milestone gates pass.
+- Commit SHA: this coherent HARD-099 slice following `95292c9ef6a4154b042c6fff5dac6f0b153c5948`; following checkpoint records exact source SHA.
 
 ### HARD-100 — Endpoint health can certify a replacement credential using an older request
 
@@ -1459,6 +1459,48 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Verification result: Reference rewritten against current Save/Update/SetState/QueueTest endpoint actions, channel enum, route resolver and inbox query. The current 75-case containing Communications/Workflow/Architecture run includes all existing recipient behavior; documentation links pass. No code, endpoint behavior or channel selection changed by this documentation-only item.
 - Completion evidence: docs/reference/notifications.md now documents all five channels, additive named destinations, explicit update/pause/resume/test/delete, inheritance and bounded retry/recovery with current canonical links.
 - Commit SHA: this documentation checkpoint following `e194c6baf5b1166d6727266e965ae03debc9fe51`; Git history identifies the exact reference/ledger update together.
+
+### HARD-102 — Digest membership does not structurally bind recipient and destination
+
+- Area: Communications/Delivery digest claim, completion and exhaustion.
+- Finding: Member IDs are read from the join table, then routes/messages are loaded by ID. The worker does not constrain each route's account recipient, channel and concrete endpoint to the locked dispatch. A malformed/stale membership can therefore assemble an otherwise authorized source under a different recipient/destination or reconcile another route's state.
+- Current owner: Communications digest grouping and worker membership reads.
+- Intended authoritative owner: Communications owns one scoped member-to-dispatch query; source authorization remains the separate HARD-099 owner boundary.
+- Rationale: A member's own source permission is not permission to send it to a different dispatch recipient. Tenant/destination binding should be part of the locked query, not assumed from the builder's earlier grouping.
+- Remediation: Reproduce foreign-recipient/destination joins, constrain every mutation/read of members to current dispatch scope and membership, detach invalid joins without mutating foreign routes, and keep the twenty-member bound and attempt fences.
+- State: Planned.
+- Verification required: Actual foreign recipient/destination/channel membership fixtures, empty/mixed digests, no unauthorized provider IO, foreign route preservation, existing retry/fencing/exhaustion regression and containing gates.
+- Verification result: Current claim/exhaustion ID-only member queries and completion's membership-only predicate traced; red runtime reproduction and implementation are next.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-103 — King Perk source sweeps materialize complete manager audiences
+
+- Area: Operations/KingPerks reminder queueing and GameWorld governance projections.
+- Finding: QueueDueKingPerkReminders limits appointments/skills and queued sends, but managers() first materializes all permission-bearing Player IDs through KingdomAuthorityFactsQuery::playerIdsWithPermission and all corresponding Player rows. The requested send limit does not bound that intermediate audience, and it is repeated for each source.
+- Current owner: Operations source sweep plus GameWorld governance authority query.
+- Intended authoritative owner: GameWorld owns bounded authority-recipient projection; Operations owns resumable source/recipient orchestration and idempotent notification intent.
+- Rationale: A bounded outer source count is not bounded memory/work when each source eagerly loads a Kingdom-wide audience. Authorization must remain current rather than become a cached roster grant.
+- Remediation: Verify existing operational semantics and add deterministic bounded recipient traversal with safe continuation/idempotency; preserve source timing and current authority. Do not introduce a second role authority or remove notification scenarios for speed.
+- State: Planned.
+- Verification required: Large manager audience beyond one page, multiple sources, revoked grants between pages, resumability, replay, memory/query bounds and current expected reminder output.
+- Verification result: Production managers() call and the unbounded pluck/byIds path traced; no performance or completion claim.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-104 — Announcement run limits do not bound recipient materialization
+
+- Area: Alliance/Content broadcast runs.
+- Finding: QueueAnnouncementBroadcastRun materializes the complete active membership ID list and corresponding Player references before queueing every recipient. Limiting the number of runs does not bound per-run audience work; the same path serves published and recurring announcements.
+- Current owner: Alliance/Content broadcast materialization.
+- Intended authoritative owner: Alliance owns bounded resumable member/source eligibility and run progress; Communications remains the sole logical delivery/idempotency owner.
+- Rationale: Tenant audience growth must not force one synchronous collection or a long fan-out transaction. Current entitlement limits must be considered but are not a substitute for explicit processing bounds.
+- Remediation: Inspect current capacity/run semantics, introduce deterministic bounded recipient pages with durable progress if required, preserve exact logical idempotency and recurring intent ownership, and retain current source authorization.
+- State: Planned.
+- Verification required: Multiple audience pages, recipient revocation/deletion, retry/replay, run recovery, same-source rescheduling and bounded queries/transaction scope.
+- Verification result: All-member pluck/byIds and the caller's run-only bound traced; exact remediation and runtime reproduction remain pending.
+- Completion evidence: pending.
+- Commit SHA: pending.
 
 ## Repository audit coverage
 

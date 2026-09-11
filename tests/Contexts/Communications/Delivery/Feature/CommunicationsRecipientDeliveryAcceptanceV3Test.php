@@ -36,6 +36,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 use OpenSSLAsymmetricKey;
 use RuntimeException;
+use Tests\Contexts\Operations\Participation\Support\EventReminderSourceFixture;
 use Tests\Support\ScenarioFactory;
 use Tests\TestCase;
 
@@ -630,6 +631,8 @@ final class CommunicationsRecipientDeliveryAcceptanceV3Test extends TestCase
         ?Carbon $availableAt = null,
         ?string $body = 'Acceptance delivery body.',
     ): NotificationIntent {
+        $source = (new EventReminderSourceFixture)->forPlayer($playerId);
+
         return NotificationIntent::fromScalars(
             notificationType: 'event.reminder',
             recipientUserId: $userId,
@@ -640,6 +643,9 @@ final class CommunicationsRecipientDeliveryAcceptanceV3Test extends TestCase
             body: $body,
             actionUrl: '/events',
             urgency: $urgency,
+            subjectType: 'event_occurrence',
+            subjectId: $source['occurrence'],
+            metadata: ['event_id' => $source['event'], 'rule_id' => $source['rule']],
         );
     }
 

@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
+use Tests\Contexts\Operations\Participation\Support\EventReminderSourceFixture;
 use Tests\Support\ScenarioFactory;
 use Tests\TestCase;
 
@@ -384,12 +385,14 @@ final class NotificationAttemptFencingTest extends TestCase
                 allowUrgentDuringQuietHours: false, mutedUntil: null, digestCadence: DigestCadence::Hourly,
             );
         }
+        $source = (new EventReminderSourceFixture)->forPlayer($player->playerId);
         $routes = [];
         for ($index = 0; $index < ($digest ? 2 : 1); $index++) {
             $receipt = app(NotificationDeliveryService::class)->queue(NotificationIntent::fromScalars(
                 notificationType: 'event.reminder', recipientUserId: $account->userId, playerId: $player->playerId,
                 availableAt: now(), idempotencyKey: 'fence:'.$endpoint.':'.$index, title: 'Claim fixture',
-                metadata: ['alliance_id' => $alliance->allianceId, 'broadcast_run_id' => 'run-fence', 'content_item_id' => 'content-fence'],
+                subjectType: 'event_occurrence', subjectId: $source['occurrence'],
+                metadata: ['alliance_id' => $alliance->allianceId, 'broadcast_run_id' => 'run-fence', 'content_item_id' => 'content-fence', 'event_id' => $source['event'], 'rule_id' => $source['rule']],
             ));
             $routes[] = (string) NotificationDelivery::query()->where('notification_message_id', $receipt->messageId)
                 ->where('channel', 'discord')->firstOrFail()->id;

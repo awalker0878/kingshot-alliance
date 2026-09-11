@@ -60,3 +60,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0044: One composition of current transfer eligibility](0044-canonical-self-transfer-eligibility.md)
 
 - [ADR-0045: Fence notification results to the current delivery attempt](0045-fenced-notification-attempts.md)
+
+- [ADR-0046: Current notification source authorization](0046-current-notification-source-authorization.md)

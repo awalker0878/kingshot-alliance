@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Communications\Delivery\Actions;
 
 use App\Contexts\Accounts\Identity\Queries\VerifiedNotificationEmailQuery;
+use App\Contexts\Communications\Delivery\Contracts\NotificationSourceAuthorization;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Enums\DigestCadence;
@@ -34,6 +35,7 @@ final readonly class ProcessNotificationDeliveries
         private OutboxRecorder $outbox,
         private NotificationAttemptEligibility $eligibility,
         private NotificationEndpointHealth $health,
+        private NotificationSourceAuthorization $sourceAuthorization,
     ) {}
 
     public function handle(int $limit = 100): int
@@ -88,6 +90,12 @@ final readonly class ProcessNotificationDeliveries
                 ->first();
             if (! $message instanceof NotificationMessage) {
                 $this->cancel($delivery, 'Notification message no longer exists.');
+
+                return null;
+            }
+
+            if (! $this->sourceAuthorization->allows($message->source())) {
+                $this->cancel($delivery, 'Notification source no longer authorizes this recipient.');
 
                 return null;
             }

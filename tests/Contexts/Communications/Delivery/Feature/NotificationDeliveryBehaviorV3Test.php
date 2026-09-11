@@ -17,12 +17,15 @@ use App\Contexts\Communications\Delivery\Models\NotificationEndpoint;
 use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
 use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
+use App\Contexts\Operations\KingPerks\Enums\KingPerkReminderKind;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
+use Tests\Contexts\Operations\KingPerks\Support\KingPerkReminderSourceFixture;
+use Tests\Contexts\Operations\Participation\Support\EventReminderSourceFixture;
 use Tests\Support\ScenarioFactory;
 use Tests\TestCase;
 
@@ -77,6 +80,7 @@ final class NotificationDeliveryBehaviorV3Test extends TestCase
             ['webhook_url' => 'https://discord.com/api/webhooks/123456789/secret-token_value'],
         );
 
+        $source = (new EventReminderSourceFixture)->forPlayer($player->playerId);
         $receipt = app(NotificationDeliveryService::class)->queue(NotificationIntent::fromScalars(
             notificationType: 'event.reminder',
             recipientUserId: $account->userId,
@@ -86,7 +90,11 @@ final class NotificationDeliveryBehaviorV3Test extends TestCase
             title: 'Bear Hunt',
             body: 'Starts in ten minutes.',
             actionUrl: '/events/01ARZ3NDEKTSV4RRFFQ69G5FAV',
+            subjectType: 'event_occurrence',
+            subjectId: $source['occurrence'],
             metadata: [
+                'event_id' => $source['event'],
+                'rule_id' => $source['rule'],
                 'alliance_id' => $alliance->allianceId,
                 'broadcast_run_id' => '01ARZ3NDEKTSV4RRFFQ69G5FAW',
                 'content_item_id' => '01ARZ3NDEKTSV4RRFFQ69G5FAX',
@@ -130,6 +138,7 @@ final class NotificationDeliveryBehaviorV3Test extends TestCase
                 'chat_id' => '-1001234567890',
             ],
         );
+        $source = (new KingPerkReminderSourceFixture)->forPlayer($player);
         $receipt = app(NotificationDeliveryService::class)->queue(NotificationIntent::fromScalars(
             notificationType: 'king_perks.reminder',
             recipientUserId: $account->userId,
@@ -137,6 +146,9 @@ final class NotificationDeliveryBehaviorV3Test extends TestCase
             availableAt: now()->subMinute(),
             idempotencyKey: 'telegram-rate-limit',
             title: 'King appointment',
+            subjectType: 'king_perk_appointment',
+            subjectId: $source['appointment'],
+            metadata: ['plan_id' => $source['plan'], 'kind' => KingPerkReminderKind::Appointment1Hour->value],
             maxAttempts: 2,
         ));
 

@@ -46,7 +46,8 @@ For account-scoped notification intents that carry eligible Governor IDs, extern
 
 Before every provider attempt it reacquires and rechecks:
 
-- the logical message;
+- the logical message and its original account/Governor source identity;
+- current source-owner eligibility through the Workflow-bound `NotificationSourceAuthorization` port;
 - concrete endpoint existence and enabled state where applicable;
 - current Governor ownership when a route is Governor-scoped;
 - the current recipient preference/routing policy;
@@ -61,7 +62,7 @@ Provider acknowledgement marks only Communications delivery state. Failure may s
 
 `BuildNotificationDigestDispatches` groups due non-immediate external routes by recipient, Governor scope, channel, concrete endpoint and digest window. Each dispatch is bounded to 20 member routes and has a stable group/window identity, so builder replay is idempotent.
 
-`ProcessNotificationDigests` rechecks every member against the current endpoint, Governor ownership and recipient policy before delivery. Reauthorization uses the logical message's original `available_at` so a due hourly/daily digest is evaluated against its existing window rather than being perpetually advanced to the next window. A policy change to immediate delivery releases the member back to the immediate worker; a future defer removes it from the current dispatch. Retryable provider failure leaves member routes recoverable; a successful current-attempt digest marks only its still-attached Queued routes sent while the individual logical messages remain in the inbox. An obsolete completion cannot finalize newer members or receipts. Exhausted dispatch/member reconciliation is bounded and atomic.
+`ProcessNotificationDigests` rechecks every member against its original source account/Governor and current owner authorization, separately from the endpoint and recipient routing policy. Denied members are cancelled and detached before constructing a provider payload; a mixed digest retains only eligible members, and an empty digest does not send. Each retry repeats those checks. [ADR-0046](../../adr/0046-current-notification-source-authorization.md) defines source-specific rules, including account-security and public-catalogue exceptions to Alliance membership. Reauthorization uses the logical message's original `available_at` so a due hourly/daily digest is evaluated against its existing window rather than being perpetually advanced to the next window. A policy change to immediate delivery releases the member back to the immediate worker; a future defer removes it from the current dispatch. Retryable provider failure leaves member routes recoverable; a successful current-attempt digest marks only its still-attached Queued routes sent while the individual logical messages remain in the inbox. An obsolete completion cannot finalize newer members or receipts. Exhausted dispatch/member reconciliation is bounded and atomic.
 
 The scheduler runs all three Communications delivery commands every minute with `onOneServer` and overlap protection:
 
@@ -123,4 +124,4 @@ Source contexts never inspect Communications persistence models. They submit `No
 
 Communications does not decide what an Alliance announcement, Event, King Perk, Gift Code, Intelligence signal, Officer Brief or account-security event means or when it becomes semantically due. Those rules remain with the owning source capability.
 
-Communications does not import source-domain persistence models to inspect originating aggregates. Provider delivery state is operational evidence only; it is never authoritative evidence that the recipient completed a source-domain action.
+Communications does not import source-domain persistence models to inspect originating aggregates. It supplies the original `NotificationSource` descriptor to a delivery-side port; `Workflows/NotificationDelivery` coordinates current owner queries without persisting another grant or fact. A missing/unknown source is denied, not handled by a compatibility fallback. Source-query infrastructure failures roll back and propagate; they are not converted into successful sends. These current reads precede provider handoff, but cannot recall IO already in flight after a later revocation. Already-delivered inbox snapshots retain their existing recipient-owned history contract. Provider delivery state is operational evidence only; it is never authoritative evidence that the recipient completed a source-domain action.

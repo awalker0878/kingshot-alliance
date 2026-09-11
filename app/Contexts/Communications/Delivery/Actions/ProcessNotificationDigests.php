@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Communications\Delivery\Actions;
 
 use App\Contexts\Accounts\Identity\Queries\VerifiedNotificationEmailQuery;
+use App\Contexts\Communications\Delivery\Contracts\NotificationSourceAuthorization;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Enums\DigestCadence;
@@ -36,6 +37,7 @@ final readonly class ProcessNotificationDigests
         private OutboxRecorder $outbox,
         private NotificationAttemptEligibility $eligibility,
         private NotificationEndpointHealth $health,
+        private NotificationSourceAuthorization $sourceAuthorization,
     ) {}
 
     public function handle(int $limit = 100): int
@@ -105,6 +107,13 @@ final readonly class ProcessNotificationDigests
                 $message = NotificationMessage::query()->whereKey($delivery->notification_message_id)->first();
                 if (! $message instanceof NotificationMessage) {
                     $this->cancelDelivery($delivery, 'Notification message no longer exists.');
+                    DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+
+                    continue;
+                }
+
+                if (! $this->sourceAuthorization->allows($message->source())) {
+                    $this->cancelDelivery($delivery, 'Notification source no longer authorizes this recipient.');
                     DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
 
                     continue;
