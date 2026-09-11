@@ -1,10 +1,10 @@
-import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { captureReadiness } from '../Support/captureReadiness';
 
 const transferVisualFingerprints: Record<string, string> = {
-  desktop: 'aaf55590a0019815680596f02a1c00a382ac19f9265e69ca9beeb604d65e9b71',
-  mobile: 'a8121ae901d149acfa90dedf594c979d2903755c3fc5312871ddbfc56970dc81',
+  desktop: 'REVIEW_REQUIRED_DESKTOP',
+  mobile: 'REVIEW_REQUIRED_MOBILE',
 };
 
 async function openTransferPlanning(page: Page): Promise<void> {
@@ -138,6 +138,11 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
   );
   expect(overflow).toBeFalsy();
 
+  await testInfo.attach('readiness-raw-text', {
+    body: await page.locator('main').innerText(),
+    contentType: 'text/plain',
+  });
+
   await page
     .locator('p')
     .filter({ hasText: /^Evaluated/ })
@@ -152,14 +157,7 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
       ),
     );
 
-  const screenshot = await page.screenshot({
-    animations: 'disabled',
-    caret: 'hide',
-    fullPage: true,
-    path: testInfo.outputPath('kingdom-transfer-planning.png'),
-    scale: 'css',
-  });
-  const actualFingerprint = createHash('sha256').update(screenshot).digest('hex');
+  const actualFingerprint = await captureReadiness(page);
   const expectedFingerprint = transferVisualFingerprints[testInfo.project.name];
 
   expect(
