@@ -4,9 +4,6 @@ on:
     types: [submitted]
 permissions:
   contents: read
-concurrency:
-  group: content-workspace-review-${{ github.ref }}
-  cancel-in-progress: true
 jobs:
   visual:
     if: >-
@@ -18,6 +15,9 @@ jobs:
       github.event.review.state == 'commented' &&
       github.event.review.body == 'Verify current HARD-106 browser contracts without retries.' &&
       github.event.review.commit_id == github.event.pull_request.head.sha
+    concurrency:
+      group: content-workspace-review-${{ github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     services:
