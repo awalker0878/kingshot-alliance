@@ -8,8 +8,8 @@ namespace App\Contexts\Communications\Delivery\ValueObjects;
 final readonly class AnnouncementDeliverySummary
 {
     /**
-     * @param array<string, int> $deliveryCounts
-     * @param list<string> $failedDeliveryIds
+     * @param  array<string, int>  $deliveryCounts
+     * @param  list<string>  $failedDeliveryIds
      */
     public function __construct(
         public int $readCount,

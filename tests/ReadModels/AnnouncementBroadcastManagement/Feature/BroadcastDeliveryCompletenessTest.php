@@ -257,11 +257,11 @@ final class BroadcastDeliveryCompletenessTest extends TestCase
     }
 
     /**
-     * @param array{alliance:string,content:string,run:string} $scope
-     * @param list<string> $statuses
-     * @param array<string,mixed> $metadata
-     * @param array<string,mixed> $messageOverrides
-     * @param array<string,mixed> $routeOverrides
+     * @param  array{alliance:string,content:string,run:string}  $scope
+     * @param  list<string>  $statuses
+     * @param  array<string,mixed>  $metadata
+     * @param  array<string,mixed>  $messageOverrides
+     * @param  array<string,mixed>  $routeOverrides
      * @return list<string>
      */
     private function messages(array $scope, int $count, array $statuses, array $metadata = [], array $messageOverrides = [], array $routeOverrides = []): array
