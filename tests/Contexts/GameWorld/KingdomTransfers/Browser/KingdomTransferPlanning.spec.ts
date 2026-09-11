@@ -4,8 +4,8 @@ import { captureReadiness } from '../Support/captureReadiness';
 import { normalizeReadinessReceipt } from '../Support/normalizeReadinessReceipt';
 
 const transferVisualFingerprints: Record<string, string> = {
-  desktop: 'REVIEW_REQUIRED_DESKTOP',
-  mobile: 'REVIEW_REQUIRED_MOBILE',
+  desktop: 'b1de7819934ebc8ffe4d90943f5960196d6ef60273ccf68074b6346d8fb23c35',
+  mobile: '06d19d1ce2cab4094a7002bde3012e381e0b3e751b1f5155c21d4e3684d68d38',
 };
 
 async function openTransferPlanning(page: Page): Promise<void> {

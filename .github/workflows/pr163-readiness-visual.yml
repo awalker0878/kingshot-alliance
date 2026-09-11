@@ -96,8 +96,8 @@ jobs:
           done
           cat "$RUNNER_TEMP/readiness-server.log"
           exit 1
-      - name: Verify both original readiness projects without retries
-        run: npm run test:visual -- tests/Contexts/GameWorld/KingdomTransfers/Browser/KingdomTransferPlanning.spec.ts --grep "Kingdom Transfer Planning keeps" --retries=0
+      - name: Repeat both original readiness projects without retries
+        run: npm run test:visual -- tests/Contexts/GameWorld/KingdomTransfers/Browser/KingdomTransferPlanning.spec.ts --grep "Kingdom Transfer Planning keeps" --repeat-each=2 --retries=0
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
