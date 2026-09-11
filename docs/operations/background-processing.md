@@ -14,6 +14,12 @@ Officer Brief and Intelligence change queue sweeps are owned by `Workflows/Notif
 
 `content:queue-announcement-broadcasts` handles both one-off and recurring intent. It creates at most the requested number of runs per invocation, uses row locks plus deterministic run keys, and advances recurring rules in the same transaction as materialization. `notifications:deliver` independently reports external outcomes; operators must not infer provider success from a queued run.
 
+## Delivery lease recovery
+
+Immediate and digest provider workers share a 300-second Pending lease and recheck current due/status/retry eligibility under the row lock. Attempt numbers are monotonic; only the current Pending attempt can commit a result, its member routes, endpoint health and outbox receipts. Do not reset attempt counts manually or interpret a stale completion as permission to rewrite current state. Endpoint locks precede dispatch/delivery locks; transport calls take place after the claim commits, not inside a database transaction.
+
+An exhausted actionable generation is marked Failed with no next attempt and a safe acknowledgement-unknown diagnostic. Its digest members and relevant terminal receipts are reconciled without another provider call. This removes it from later bounded candidate sweeps; no live endpoint failure is invented. Investigate the provider before any separately authorized recovery: acknowledgement loss means the external side effect may already have occurred. Scheduler locks and fencing cannot promise exactly-once network effects. See [ADR-0045](../architecture/adr/0045-fenced-notification-attempts.md).
+
 ## Rules
 
 - queue work only after the owning transaction commits, or persist outbox intent in that transaction;

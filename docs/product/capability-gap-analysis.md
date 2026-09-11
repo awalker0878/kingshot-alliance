@@ -44,13 +44,13 @@ Google attachment is explicit, recent-authenticated and keyed by stable provider
 
 Account merging, email-based identity consolidation, official Kingshot game authentication and game credentials remain unsupported.
 
-### Communications recipient delivery — current complete
+### Communications recipient delivery — delivered capability, hardening in progress
 
 The Communications capability uses one logical `NotificationMessage` plus zero or more concrete `NotificationDelivery` routes. Recipient policy resolves account defaults and Governor overrides across In App, Discord, Telegram, Web Push and Accounts-owned verified email, with quiet hours, recipient-controlled urgent bypass, temporary mute and immediate/hourly/daily digest timing.
 
 Multiple named stored endpoints are independently testable, pausable and health-tracked. Provider workers recheck current endpoint state, preferences, Governor ownership and verified email before send; immediate and digest processing are both bounded, idempotent and scheduled every minute with overlap protection. Web Push destination/key/VAPID handling, email transport readiness, safe relative action URLs, cursor inbox reads, message-owned read/archive state, bounded bulk operations and privacy-safe platform diagnostics are covered by the Communications acceptance suite.
 
-Immutable implementation candidate `f880cb40014b2ef5236facaf65ac2b68f90fd5ae` passed CI, Architecture V3 Verification, Intelligence Verification, King Perks Verification, Visual Regression, CodeQL and Dependency Review. The [Communications delivery ledger](communications-recipient-delivery-ledger.md) is closed and the capability is current complete.
+Immutable implementation candidate `f880cb40014b2ef5236facaf65ac2b68f90fd5ae` passed CI, Architecture V3 Verification, Intelligence Verification, King Perks Verification, Visual Regression, CodeQL and Dependency Review. The original [Communications delivery ledger](communications-recipient-delivery-ledger.md) records that delivered baseline. The current repository-wide audit has reopened concrete delivery risks as HARD-098 (claim/result fencing), HARD-099 (source execution-time authorization) and HARD-100 (credential-generation diagnostics) in the [hardening ledger](codebase-hardening-delivery-ledger.md). The baseline milestone does not certify those later findings.
 
 ### Alliance Capability Expansion — current complete
 

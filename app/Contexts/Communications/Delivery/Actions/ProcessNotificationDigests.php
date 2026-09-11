@@ -8,12 +8,13 @@ use App\Contexts\Accounts\Identity\Queries\VerifiedNotificationEmailQuery;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
 use App\Contexts\Communications\Delivery\Enums\DigestCadence;
-use App\Contexts\Communications\Delivery\Enums\EndpointHealthStatus;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\Contexts\Communications\Delivery\Models\NotificationDigestDispatch;
 use App\Contexts\Communications\Delivery\Models\NotificationEndpoint;
 use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\Contexts\Communications\Delivery\Services\ExternalDeliveryChannelRegistry;
+use App\Contexts\Communications\Delivery\Services\NotificationAttemptEligibility;
+use App\Contexts\Communications\Delivery\Services\NotificationEndpointHealth;
 use App\Contexts\Communications\Delivery\Services\NotificationRouteResolver;
 use App\Contexts\Communications\Delivery\ValueObjects\DeliveryAttempt;
 use App\Contexts\Communications\Delivery\ValueObjects\DeliveryOutcome;
@@ -33,25 +34,17 @@ final readonly class ProcessNotificationDigests
         private VerifiedNotificationEmailQuery $email,
         private PlayerReferenceQuery $players,
         private OutboxRecorder $outbox,
+        private NotificationAttemptEligibility $eligibility,
+        private NotificationEndpointHealth $health,
     ) {}
 
     public function handle(int $limit = 100): int
     {
         $now = CarbonImmutable::now('UTC');
         $ids = NotificationDigestDispatch::query()
-            ->where('due_at', '<=', $now)
-            ->where(static function ($query) use ($now): void {
-                $query->where('status', DeliveryStatus::Queued->value)
-                    ->orWhere(static function ($retry) use ($now): void {
-                        $retry->where('status', DeliveryStatus::Failed->value)
-                            ->whereNotNull('next_attempt_at')
-                            ->where('next_attempt_at', '<=', $now);
-                    })->orWhere(static function ($stale) use ($now): void {
-                        $stale->where('status', DeliveryStatus::Pending->value)
-                            ->where('updated_at', '<=', $now->subMinutes(5));
-                    });
-            })
+            ->tap(fn ($query) => $this->eligibility->constrain($query, $now))
             ->orderBy('due_at')
+            ->orderBy('id')
             ->limit(max(1, min(500, $limit)))
             ->pluck('id')
             ->map(static fn (mixed $id): string => (string) $id)
@@ -59,7 +52,7 @@ final readonly class ProcessNotificationDigests
 
         $processed = 0;
         foreach ($ids as $id) {
-            $attempt = $this->claim($id, $now);
+            $attempt = $this->claim($id);
             if (! $attempt instanceof DeliveryAttempt) {
                 continue;
             }
@@ -71,14 +64,19 @@ final readonly class ProcessNotificationDigests
         return $processed;
     }
 
-    private function claim(string $dispatchId, CarbonImmutable $now): ?DeliveryAttempt
+    private function claim(string $dispatchId): ?DeliveryAttempt
     {
-        return DB::transaction(function () use ($dispatchId, $now): ?DeliveryAttempt {
-            $dispatch = NotificationDigestDispatch::query()->whereKey($dispatchId)->lockForUpdate()->first();
-            if (! $dispatch instanceof NotificationDigestDispatch
-                || in_array($dispatch->status, [DeliveryStatus::Sent, DeliveryStatus::Cancelled], true)
-                || $dispatch->attempt_count >= $dispatch->max_attempts
-                || $dispatch->due_at->isAfter($now)) {
+        return DB::transaction(function () use ($dispatchId): ?DeliveryAttempt {
+            $now = CarbonImmutable::now('UTC');
+            $dispatch = NotificationDigestDispatch::query()->whereKey($dispatchId)
+                ->tap(fn ($query) => $this->eligibility->constrain($query, $now))
+                ->lockForUpdate()->first();
+            if (! $dispatch instanceof NotificationDigestDispatch) {
+                return null;
+            }
+            if ($dispatch->attempt_count >= $dispatch->max_attempts) {
+                $this->exhausted($dispatch);
+
                 return null;
             }
 
@@ -258,31 +256,18 @@ final readonly class ProcessNotificationDigests
         if ($provider === null) {
             return DeliveryOutcome::failed('No provider is registered for this channel.', false);
         }
-        $outcome = $provider->deliver($attempt, $configuration);
-        if ($endpoint instanceof NotificationEndpoint) {
-            $endpoint->forceFill($outcome->delivered ? [
-                'health_status' => EndpointHealthStatus::Healthy,
-                'last_verified_at' => now(),
-                'last_successful_delivery_at' => now(),
-                'consecutive_failures' => 0,
-                'last_error' => null,
-            ] : [
-                'health_status' => EndpointHealthStatus::Degraded,
-                'last_failed_delivery_at' => now(),
-                'consecutive_failures' => min(1000000, (int) $endpoint->consecutive_failures + 1),
-                'last_error' => mb_substr((string) $outcome->error, 0, 2000),
-            ])->save();
-        }
 
-        return $outcome;
+        return $provider->deliver($attempt, $configuration);
     }
 
     private function complete(DeliveryAttempt $attempt, DeliveryOutcome $outcome): void
     {
         DB::transaction(function () use ($attempt, $outcome): void {
+            $endpoint = $this->health->lockForAttempt($attempt);
             $dispatch = NotificationDigestDispatch::query()
                 ->whereKey($attempt->deliveryId)
                 ->where('status', DeliveryStatus::Pending->value)
+                ->where('attempt_count', $attempt->attemptCount)
                 ->lockForUpdate()
                 ->first();
             if (! $dispatch instanceof NotificationDigestDispatch) {
@@ -313,7 +298,12 @@ final readonly class ProcessNotificationDigests
 
             if ($outcome->delivered || ! $retryable) {
                 foreach ($deliveryIds as $deliveryId) {
-                    $delivery = NotificationDelivery::query()->whereKey($deliveryId)->lockForUpdate()->first();
+                    $delivery = NotificationDelivery::query()->whereKey($deliveryId)
+                        ->whereExists(static function ($members) use ($attempt): void {
+                            $members->selectRaw('1')->from('notification_digest_members')
+                                ->whereColumn('notification_delivery_id', 'notification_deliveries.id')
+                                ->where('notification_digest_dispatch_id', $attempt->deliveryId);
+                        })->lockForUpdate()->first();
                     if (! $delivery instanceof NotificationDelivery || $delivery->status !== DeliveryStatus::Queued) {
                         continue;
                     }
@@ -334,7 +324,38 @@ final readonly class ProcessNotificationDigests
                     $this->recordBroadcastOutcome($delivery, $outcome, false, $attempt->attemptCount);
                 }
             }
+            $this->health->record($endpoint, $outcome);
         });
+    }
+
+    /** Expired attempts without remaining budget are reconciled once, never resent. */
+    private function exhausted(NotificationDigestDispatch $dispatch): void
+    {
+        $outcome = DeliveryOutcome::failed(NotificationAttemptEligibility::EXHAUSTED_REASON, false);
+        $dispatch->forceFill([
+            'status' => DeliveryStatus::Failed,
+            'failed_at' => now(),
+            'next_attempt_at' => null,
+            'last_error' => $outcome->error,
+        ])->save();
+        $ids = DB::table('notification_digest_members')
+            ->where('notification_digest_dispatch_id', $dispatch->id)
+            ->orderBy('notification_delivery_id')->limit(self::MAX_MEMBERS)
+            ->pluck('notification_delivery_id');
+        foreach ($ids as $id) {
+            $delivery = NotificationDelivery::query()->whereKey($id)->lockForUpdate()->first();
+            if (! $delivery instanceof NotificationDelivery || $delivery->status !== DeliveryStatus::Queued) {
+                continue;
+            }
+            $delivery->forceFill([
+                'status' => DeliveryStatus::Failed,
+                'failed_at' => now(),
+                'next_attempt_at' => null,
+                'attempt_count' => max((int) $delivery->attempt_count, (int) $dispatch->attempt_count),
+                'last_error' => $outcome->error,
+            ])->save();
+            $this->recordBroadcastOutcome($delivery, $outcome, false, (int) $dispatch->attempt_count, exhausted: true);
+        }
     }
 
     private function recordBroadcastOutcome(
@@ -342,6 +363,7 @@ final readonly class ProcessNotificationDigests
         DeliveryOutcome $outcome,
         bool $retryable,
         int $attemptCount,
+        bool $exhausted = false,
     ): void {
         $message = NotificationMessage::query()->whereKey($delivery->notification_message_id)->first();
         $metadata = $message instanceof NotificationMessage && is_array($message->metadata) ? $message->metadata : [];
@@ -366,7 +388,7 @@ final readonly class ProcessNotificationDigests
                 'attempt_count' => $attemptCount,
                 'retryable' => $retryable,
             ],
-            'broadcast-delivery:'.$delivery->id.':digest-attempt:'.$attemptCount,
+            'broadcast-delivery:'.$delivery->id.':digest-attempt:'.$attemptCount.($exhausted ? ':exhausted' : ''),
             'alliance:'.$allianceId,
         );
     }

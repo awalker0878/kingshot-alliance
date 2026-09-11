@@ -53,15 +53,15 @@ Before every provider attempt it reacquires and rechecks:
 - current verified Accounts-owned email for email delivery;
 - due time and attempt budget.
 
-A route that is no longer authorized is cancelled rather than sent. A route whose current policy now requires digest/defer is moved back to the corresponding current schedule. Claiming is row-locked, stale pending work is recoverable, and provider attempts are bounded.
+A route that is no longer authorized is cancelled rather than sent. A route whose current policy now requires digest/defer is moved back to the corresponding current schedule. Claiming is row-locked and repeats the same due/status/retry/300-second lease predicate used for candidate selection. The current attempt budget is checked under that lock. Every claim increments a monotonic attempt number; only its matching Pending generation may accept a completion. Stale results cannot change delivery, outbox or endpoint-health state. See [ADR-0045](../../adr/0045-fenced-notification-attempts.md).
 
-Provider acknowledgement marks only Communications delivery state. Failure may set a bounded retry time, including provider `Retry-After`, until the attempt budget is exhausted. Provider success or failure never changes source-domain truth.
+Provider acknowledgement marks only Communications delivery state. Failure may set a bounded retry time, including provider `Retry-After`, until the attempt budget is exhausted. Provider success or failure never changes source-domain truth. A due exhausted generation is terminalized without a new send, with explicit unknown-acknowledgement diagnostics and no invented endpoint-health result. This prevents repeated selection of an exhausted row from starving later work; it does not guarantee exactly-once external delivery.
 
 ## Digest processing
 
 `BuildNotificationDigestDispatches` groups due non-immediate external routes by recipient, Governor scope, channel, concrete endpoint and digest window. Each dispatch is bounded to 20 member routes and has a stable group/window identity, so builder replay is idempotent.
 
-`ProcessNotificationDigests` rechecks every member against the current endpoint, Governor ownership and recipient policy before delivery. Reauthorization uses the logical message's original `available_at` so a due hourly/daily digest is evaluated against its existing window rather than being perpetually advanced to the next window. A policy change to immediate delivery releases the member back to the immediate worker; a future defer removes it from the current dispatch. Retryable provider failure leaves member routes recoverable; a successful digest marks the included routes sent while the individual logical messages remain in the inbox.
+`ProcessNotificationDigests` rechecks every member against the current endpoint, Governor ownership and recipient policy before delivery. Reauthorization uses the logical message's original `available_at` so a due hourly/daily digest is evaluated against its existing window rather than being perpetually advanced to the next window. A policy change to immediate delivery releases the member back to the immediate worker; a future defer removes it from the current dispatch. Retryable provider failure leaves member routes recoverable; a successful current-attempt digest marks only its still-attached Queued routes sent while the individual logical messages remain in the inbox. An obsolete completion cannot finalize newer members or receipts. Exhausted dispatch/member reconciliation is bounded and atomic.
 
 The scheduler runs all three Communications delivery commands every minute with `onOneServer` and overlap protection:
 
@@ -82,7 +82,7 @@ Endpoint lifecycle supports save, test, pause, resume, reverify and delete. Endp
 - `degraded`
 - `paused`
 
-Successful test/provider delivery records healthy verification/success state. Provider failure records degraded/failure state and a bounded sanitized error, but transient rate limiting does not silently disable the endpoint. Pausing is an explicit recipient action and prevents delivery/test attempts until resumed.
+An accepted, fenced test/provider completion records healthy verification/success state in the same transaction as its delivery and outbox changes. Endpoint locking precedes dispatch/delivery locks, and a paused endpoint is not revived by an in-flight response. Provider failure records degraded/failure state and a bounded sanitized error, but transient rate limiting does not silently disable the endpoint. Pausing is an explicit recipient action and prevents delivery/test attempts until resumed.
 
 Endpoint changes and test queueing produce audit evidence without exposing credentials.
 

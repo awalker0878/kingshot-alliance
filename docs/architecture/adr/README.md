@@ -58,3 +58,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0043: Owner-first tests with disjoint execution suites](0043-owner-first-tests-and-disjoint-execution-suites.md)
 
 - [ADR-0044: One composition of current transfer eligibility](0044-canonical-self-transfer-eligibility.md)
+
+- [ADR-0045: Fence notification results to the current delivery attempt](0045-fenced-notification-attempts.md)
