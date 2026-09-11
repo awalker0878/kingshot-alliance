@@ -86,19 +86,6 @@ final class ContentQuery
             ->get();
     }
 
-    /** @return Collection<int, ContentItem> */
-    public function managerList(string $allianceId): Collection
-    {
-        return ContentItem::query()
-            ->where('alliance_id', $allianceId)
-            ->where('slug', '!=', ContentItem::ALLIANCE_RULES_SLUG)
-            ->with('category:id,alliance_id,name,slug')
-            ->orderByRaw("CASE status WHEN 'draft' THEN 0 WHEN 'scheduled' THEN 1 WHEN 'published' THEN 2 ELSE 3 END")
-            ->orderBy('sort_order')
-            ->orderByDesc('updated_at')
-            ->get();
-    }
-
     /** @return Builder<ContentItem> */
     private function publishedBase(string $allianceId): Builder
     {

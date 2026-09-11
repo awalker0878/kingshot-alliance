@@ -29,6 +29,7 @@ return new class extends Migration
             $table->unique(['id', 'alliance_id']);
             $table->unique(['disk', 'path']);
             $table->index(['alliance_id', 'lifecycle_status', 'created_at']);
+            $table->index(['alliance_id', 'id'], 'content_media_keyset');
         });
 
         Schema::create('alliance_profiles', function (Blueprint $table): void {
@@ -66,6 +67,7 @@ return new class extends Migration
             $table->unique(['id', 'alliance_id']);
             $table->unique(['alliance_id', 'slug']);
             $table->index(['alliance_id', 'sort_order', 'name']);
+            $table->index(['alliance_id', 'id'], 'content_categories_keyset');
         });
 
         Schema::create('content_items', function (Blueprint $table): void {
@@ -105,6 +107,7 @@ return new class extends Migration
             $table->unique(['alliance_id', 'slug']);
             $table->index(['alliance_id', 'status', 'visibility', 'published_at']);
             $table->index(['alliance_id', 'type', 'sort_order']);
+            $table->index(['alliance_id', 'id'], 'content_catalogue_keyset');
             $table->index(
                 ['type', 'status', 'notify_members', 'broadcasted_at', 'published_at', 'id'],
                 'content_broadcast_queue_index',
@@ -144,6 +147,7 @@ return new class extends Migration
                 ->restrictOnDelete();
             $table->unique(['content_item_id', 'revision_number']);
             $table->index(['alliance_id', 'content_item_id', 'revision_number']);
+            $table->index(['alliance_id', 'content_item_id', 'id'], 'content_revision_keyset');
         });
 
         Schema::create('announcement_broadcast_schedules', function (Blueprint $table): void {
@@ -202,6 +206,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->index(['alliance_id', 'scheduled_for']);
             $table->index(['content_item_id', 'scheduled_for']);
+            $table->index(['alliance_id', 'content_item_id', 'id'], 'content_broadcast_history_keyset');
         });
     }
 

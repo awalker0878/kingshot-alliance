@@ -214,12 +214,15 @@ final class BroadcastDeliveryCompletenessTest extends TestCase
             ->withHeader('X-Inertia-Version', app(HandleInertiaRequests::class)->version(request()) ?? '');
         $response = $request->get('/alliance/content/manage')->assertOk();
         self::assertSame([$own['content']], array_column($response->json('props.content'), 'id'));
-        self::assertSame(1, $response->json('props.content.0.broadcastRuns.0.readCount'));
-        self::assertSame(0, $response->json('props.content.0.broadcastRuns.0.deliveryCounts.failed'));
+        $history = $request->getJson('/alliance/content/manage/'.$own['content'].'/runs')->assertOk();
+        self::assertSame(1, $history->json('page.items.0.readCount'));
+        self::assertSame(0, $history->json('page.items.0.deliveryCounts.failed'));
+        $request->getJson('/alliance/content/manage/'.$foreign['content'].'/runs')->assertNotFound();
 
         AllianceMembership::query()->where('alliance_id', $alliance->allianceId)
             ->where('player_id', $player->playerId)->update(['rank' => 'r1']);
         $request->get('/alliance/content/manage')->assertForbidden();
+        $request->getJson('/alliance/content/manage/'.$own['content'].'/runs')->assertForbidden();
 
         AllianceMembership::query()->where('alliance_id', $alliance->allianceId)
             ->where('player_id', $player->playerId)->update(['status' => MembershipStatus::Suspended->value]);
@@ -306,6 +309,8 @@ final class BroadcastDeliveryCompletenessTest extends TestCase
     /** @param array{alliance:string,content:string,run:string} $scope */
     private function management(array $scope): array
     {
-        return app(AnnouncementBroadcastManagementQuery::class)->forAlliance($scope['alliance'])['runs'][$scope['content']][0];
+        $playerId = (string) ContentItem::query()->whereKey($scope['content'])->value('created_by_player_id');
+
+        return app(AnnouncementBroadcastManagementQuery::class)->history($scope['alliance'], $playerId, $scope['content'])['page']['items'][0];
     }
 }

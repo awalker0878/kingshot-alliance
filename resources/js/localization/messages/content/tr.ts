@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    pageRecords: 'Bu sayfada {count} kayıt · toplam {total}',
+    collectionFailed: 'Liste yüklenemedi. İlk sayfadan yeniden deneyin.',
+    selectedUnavailable: 'Seçili öğe kullanılamıyor',
+    reviewOnThisPage: 'Bu inceleme listesi geçerli katalog sayfasını kapsar.',
+    allStatuses: 'Tüm durumlar',
     retryCandidateSummary:
       'Deneme sınırının altındaki {total} başarısızlıktan {selected} tanesi yeniden denemek için gösteriliyor.',
     eyebrow: 'İttifak içeriği',

@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    pageRecords: '{count} éléments sur cette page · {total} au total',
+    collectionFailed: 'Impossible de charger cette liste. Réessayez depuis la première page.',
+    selectedUnavailable: 'Élément sélectionné indisponible',
+    reviewOnThisPage: 'Cette liste de révision concerne la page actuelle du catalogue.',
+    allStatuses: 'Tous les statuts',
     retryCandidateSummary:
       '{selected} affichés pour une nouvelle tentative sur {total} échecs sous la limite de tentatives.',
     eyebrow: 'Contenu de l’alliance',

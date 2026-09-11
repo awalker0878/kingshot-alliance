@@ -385,8 +385,8 @@ final class AnnouncementBroadcastTraversalTest extends TestCase
         self::assertSame(0, Artisan::call('content:queue-announcement-broadcasts', ['--limit' => 1, '--recipients' => 1]));
         self::assertStringContainsString('Completed queueing 0', Artisan::output());
         self::assertSame(1, NotificationMessage::query()->count());
-        $projection = app(AnnouncementBroadcastManagementQuery::class)->forAlliance($item->alliance_id);
-        $run = $projection['runs'][(string) $item->id][0];
+        $projection = app(AnnouncementBroadcastManagementQuery::class)->history($item->alliance_id, $item->created_by_player_id, (string) $item->id);
+        $run = $projection['page']['items'][0];
         self::assertSame('pending', $run['status']);
         self::assertSame(1, $run['recipientCount']);
         self::assertSame(0, $run['suppressedCount']);

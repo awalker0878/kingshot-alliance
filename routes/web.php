@@ -338,6 +338,12 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
                 ->name('alliance.content.index');
             Route::get('/alliance/content/manage', AnnouncementBroadcastManagementController::class)
                 ->name('alliance.content.manage');
+            Route::get('/alliance/content/manage/options/{kind}', [AnnouncementBroadcastManagementController::class, 'options'])
+                ->whereIn('kind', ['categories', 'media'])->name('alliance.content.manage.options');
+            Route::get('/alliance/content/manage/{contentId}/runs', [AnnouncementBroadcastManagementController::class, 'runs'])
+                ->whereUlid('contentId')->name('alliance.content.manage.runs');
+            Route::get('/alliance/content/manage/{contentId}/revisions', [AnnouncementBroadcastManagementController::class, 'revisions'])
+                ->whereUlid('contentId')->name('alliance.content.manage.revisions');
             Route::get('/alliance/content/{contentSlug}', [MemberContentController::class, 'show'])
                 ->where('contentSlug', '[a-z0-9]+(?:-[a-z0-9]+)*')
                 ->name('alliance.content.show');

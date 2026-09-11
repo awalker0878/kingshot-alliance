@@ -14,7 +14,7 @@ use App\Contexts\Alliance\Content\Enums\ContentType;
 use App\Contexts\Alliance\Content\Enums\ContentVisibility;
 use App\Contexts\Alliance\Content\Models\ContentItem;
 use App\Contexts\Alliance\Content\Models\ContentRevision;
-use App\Contexts\Alliance\Content\Queries\ContentQuery;
+use App\Contexts\Alliance\Content\Queries\ContentManagementQuery;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -94,7 +94,7 @@ final class AllianceRulesOwnershipBoundaryV3Test extends TestCase
         self::assertSame('Join Bear Hunt rallies on time.', $item->body);
         self::assertSame(1, (int) $item->current_revision_number);
         self::assertSame(1, ContentRevision::query()->where('content_item_id', $contentId)->count());
-        self::assertFalse(app(ContentQuery::class)->managerList($alliance)->contains('id', $contentId));
+        self::assertFalse(collect(app(ContentManagementQuery::class)->catalogue($alliance, $owner)['page']->items)->contains('id', $contentId));
 
         self::assertSame(0, AuditEvent::query()->whereIn('event', [
             'content.updated',

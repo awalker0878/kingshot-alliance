@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    pageRecords: '{count} سجلًا في هذه الصفحة · الإجمالي {total}',
+    collectionFailed: 'تعذر تحميل القائمة. أعد المحاولة من الصفحة الأولى.',
+    selectedUnavailable: 'العنصر المحدد غير متاح',
+    reviewOnThisPage: 'تغطي قائمة المراجعة هذه صفحة الفهرس الحالية.',
+    allStatuses: 'كل الحالات',
     retryCandidateSummary:
       'يُعرض {selected} لإعادة المحاولة من أصل {total} حالات فشل دون حد المحاولات.',
     eyebrow: 'محتوى التحالف',

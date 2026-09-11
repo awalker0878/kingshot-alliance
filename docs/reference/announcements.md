@@ -15,6 +15,12 @@ Alliance announcements use the existing Content capability as their source of tr
 
 Saving an existing item creates a new draft revision and deactivates any active recurring rule. Archiving also deactivates recurrence. Publishing the new revision creates a new one-off broadcast when member notification is enabled; recurrence must be deliberately saved again.
 
+## Managing a larger Noticeboard
+
+The manager catalogue shows twenty newest-created records per page and supports literal title search and a status filter. Categories and media have independent twenty-five-record pages. Overall Content/published/scheduled/awaiting-occurrence totals cover the current Alliance, not only the visible page. The knowledge-review list explicitly describes its current catalogue-page scope.
+
+Continue with Next page; return to First page to include newly created records. Counts are current when read and may change between requests. Category/media pickers can search beyond the first page while retaining the currently selected value. Same-Alliance navigation retains unsaved editor and recurrence changes; changing the Alliance clears that state. A failed history request is shown explicitly and can be restarted rather than being mistaken for no history.
+
 ## Member reactions
 
 Published Alliance Notices (`Announcement` Content) expose lightweight **Like** and **Dislike** controls to active Alliance members. One Governor may hold at most one reaction on a Notice and can switch or remove it. Repeating the same desired state is a no-op.
@@ -35,13 +41,13 @@ Reaction mutations do not enqueue Communications notifications or broadcast deli
 
 ## Delivery history and recovery
 
-The management page distinguishes a recorded occurrence from Pending preparation and completed recipient processing, with eligible, skipped, suppressed and replayed counters. Recurrence configuration remains separate. Queued preparation is not provider success. Larger-history projection limits remain an explicit HARD-106 finding; authoritative preparation counters are not reconstructed from sampled deliveries.
+The management page distinguishes a recorded occurrence from Pending preparation and completed recipient processing, with eligible, skipped, suppressed and replayed counters. Recurrence configuration remains separate. Queued preparation is not provider success. Open an item’s delivery history to page through all retained runs, five at a time. Revision history has independent ten-record pages; neither list is limited to the latest hundred Alliance runs. Authoritative preparation counters are not reconstructed from delivery samples.
 
 Displayed read and channel-status totals include all retained matching messages/routes for the selected broadcast run, not the first 1,000 messages or 5,000 deliveries. A logical read is counted once even when it has multiple routes. These are retained-record outcomes, not an immutable all-time audience total or proof of human completion.
 
 When more than 50 failures are below their attempt limit, the manager identifies how many are selected and the complete candidate count. Remaining candidates are not omitted from the total. Counts and candidate state can change while another worker runs; the retry Action remains authoritative.
 
-Retry is selective and bounded to 50 concrete failed delivery IDs. Content reauthorizes the manager and run scope; Communications then revalidates notification type, content subject, run metadata, failed state and remaining attempt budget under lock. Sent, unrelated and exhausted deliveries are not reset.
+Retry is selective and bounded to 50 concrete failed delivery IDs. Content reauthorizes the manager and run scope; Communications then revalidates notification type, actual content subject, matching Alliance/Content/run metadata, failed state and remaining attempt budget under lock. Sent, unrelated and exhausted deliveries are not reset.
 
 Cancelling a recurring rule requires the shared accessible confirmation dialog. Existing run and delivery evidence remains available after cancellation. Unfinished recipients stop and obsolete queued external messages fail current source authorization; already-handed-off provider effects cannot be recalled.
 

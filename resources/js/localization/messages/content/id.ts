@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    pageRecords: '{count} catatan di halaman ini · total {total}',
+    collectionFailed: 'Daftar tidak dapat dimuat. Coba lagi dari halaman pertama.',
+    selectedUnavailable: 'Item terpilih tidak tersedia',
+    reviewOnThisPage: 'Daftar tinjauan ini mencakup halaman katalog saat ini.',
+    allStatuses: 'Semua status',
     retryCandidateSummary:
       '{selected} dari {total} kegagalan di bawah batas percobaan ditampilkan untuk dicoba ulang.',
     eyebrow: 'Konten aliansi',

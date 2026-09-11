@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
+import CursorPagination from '@/components/ui/CursorPagination.vue';
+import ContentChoicePicker from '@/components/content/ContentChoicePicker.vue';
+import AnnouncementRunHistory from '@/components/content/AnnouncementRunHistory.vue';
+import ContentRevisionHistory from '@/components/content/ContentRevisionHistory.vue';
+import {
+  acceptContentDraft,
+  reconcileContentDrafts,
+} from '@/features/alliance-content/reconcileDrafts';
+import type { BroadcastRun, ContentPageInfo } from '@/features/alliance-content/types';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
@@ -24,7 +33,6 @@ type Freshness = {
 type ContextLink = { type: 'event_type'; key: string };
 type EventTypeOption = { slug: string; nameKey: string };
 type Category = { id: string; name: string; slug: string; sortOrder: number };
-type Revision = { id: string; revisionNumber: number; title: string; createdAt: string | null };
 type BroadcastSchedule = {
   id: string;
   status: string;
@@ -35,22 +43,6 @@ type BroadcastSchedule = {
   lastRunAt: string | null;
   endsAt: string | null;
   cancelledAt: string | null;
-};
-type BroadcastRun = {
-  id: string;
-  scheduleId: string | null;
-  scheduledFor: string;
-  status: 'pending' | 'queued' | 'empty' | 'cancelled';
-  recipientCount: number;
-  skippedCount: number;
-  suppressedCount: number;
-  replayedCount: number;
-  deliveryCount: number;
-  deliveryCounts: Record<string, number>;
-  readCount: number;
-  retryCandidateCount: number;
-  failedDeliveryIds: string[];
-  queuedAt: string | null;
 };
 type ContentRow = {
   id: string;
@@ -75,9 +67,9 @@ type ContentRow = {
   archivedAt: string | null;
   updatedAt: string | null;
   category: { id: string; name: string; slug: string } | null;
-  revisions: Revision[];
+  revisionCount: number;
   broadcastSchedule: BroadcastSchedule | null;
-  broadcastRuns: BroadcastRun[];
+  broadcastRunCount: number;
 };
 type Media = {
   id: string;
@@ -133,6 +125,11 @@ const props = defineProps<{
   eventTypes: EventTypeOption[];
   content: ContentRow[];
   media: Media[];
+  catalogue: ContentPageInfo;
+  categoryPage: ContentPageInfo;
+  mediaPage: ContentPageInfo;
+  totals: { content: number; published: number; scheduled: number; pendingBroadcasts: number };
+  filters: { q: string; status: string };
 }>();
 
 const { t, formatDate } = useLocale();
@@ -142,21 +139,71 @@ const recurrenceBusyId = ref<string | null>(null);
 const testBusyId = ref<string | null>(null);
 const retryBusyId = ref<string | null>(null);
 const cancellingSchedule = ref<BroadcastSchedule | null>(null);
-const recurrenceForms = reactive<Record<string, RecurrenceDraft>>(
-  Object.fromEntries(
-    props.content
+function recurrenceValues(items: ContentRow[]): Record<string, RecurrenceDraft> {
+  return Object.fromEntries(
+    items
       .filter((item) => item.type === 'announcement')
       .map((item) => [
         item.id,
         {
-          weekdays: item.broadcastSchedule?.weekdays ?? [1, 2, 3, 4, 5],
+          weekdays: [...(item.broadcastSchedule?.weekdays ?? [1, 2, 3, 4, 5])],
           local_time: item.broadcastSchedule?.localTime ?? '18:00',
           timezone: item.broadcastSchedule?.timezone ?? props.alliance.timezone,
           ends_at: localDateTimeInput(item.broadcastSchedule?.endsAt ?? null),
         },
       ]),
-  ),
+  );
+}
+const recurrenceBaseline = ref(recurrenceValues(props.content));
+const recurrenceForms = reactive<Record<string, RecurrenceDraft>>(
+  structuredClone(recurrenceValues(props.content)),
 );
+const historyRefresh = ref(0);
+const unsubscribe = router.on('success', () => {
+  historyRefresh.value++;
+});
+onBeforeUnmount(unsubscribe);
+const contentSearch = ref(props.filters.q);
+const contentStatus = ref(props.filters.status);
+const paging = ref(false);
+function collectionHref(kind: 'content' | 'category' | 'media', cursor: string | null): string {
+  const url = new URL(window.location.href);
+  url.searchParams.delete(kind + '_cursor');
+  if (cursor) url.searchParams.set(kind + '_cursor', cursor);
+  return url.pathname + url.search;
+}
+function nextCollection(kind: 'content' | 'category' | 'media', cursor: string | null): void {
+  paging.value = true;
+  router.get(
+    collectionHref(kind, cursor),
+    {},
+    {
+      preserveState: true,
+      preserveScroll: true,
+      onFinish: () => {
+        paging.value = false;
+      },
+    },
+  );
+}
+function searchContent(): void {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('content_cursor');
+  url.searchParams.set('q', contentSearch.value.trim());
+  url.searchParams.set('status', contentStatus.value);
+  paging.value = true;
+  router.get(
+    url.pathname + url.search,
+    {},
+    {
+      preserveState: true,
+      preserveScroll: true,
+      onFinish: () => {
+        paging.value = false;
+      },
+    },
+  );
+}
 const weekdayOptions = Array.from({ length: 7 }, (_, index) => {
   const day = index + 1;
   return {
@@ -170,41 +217,44 @@ const weekdayOptions = Array.from({ length: 7 }, (_, index) => {
 watch(
   () => props.content,
   (items) => {
-    for (const item of items) {
-      if (item.type !== 'announcement' || recurrenceForms[item.id]) continue;
-      recurrenceForms[item.id] = {
-        weekdays: item.broadcastSchedule?.weekdays ?? [1, 2, 3, 4, 5],
-        local_time: item.broadcastSchedule?.localTime ?? '18:00',
-        timezone: item.broadcastSchedule?.timezone ?? props.alliance.timezone,
-        ends_at: localDateTimeInput(item.broadcastSchedule?.endsAt ?? null),
-      };
-    }
+    const next = reconcileContentDrafts(
+      recurrenceForms,
+      recurrenceBaseline.value,
+      recurrenceValues(items),
+    );
+    for (const key of Object.keys(recurrenceForms)) delete recurrenceForms[key];
+    Object.assign(recurrenceForms, next.drafts);
+    recurrenceBaseline.value = next.baseline;
   },
 );
-const categoryEdits = reactive<Record<string, { name: string; slug: string; sort_order: number }>>(
-  Object.fromEntries(
-    props.categories.map((category) => [
+function categoryValues(
+  items: Category[],
+): Record<string, { name: string; slug: string; sort_order: number }> {
+  return Object.fromEntries(
+    items.map((category) => [
       category.id,
       { name: category.name, slug: category.slug, sort_order: category.sortOrder },
     ]),
-  ),
+  );
+}
+const categoryBaseline = ref(categoryValues(props.categories));
+const categoryEdits = reactive(categoryValues(props.categories));
+watch(
+  () => props.categories,
+  (items) => {
+    const next = reconcileContentDrafts(
+      categoryEdits,
+      categoryBaseline.value,
+      categoryValues(items),
+    );
+    for (const key of Object.keys(categoryEdits)) delete categoryEdits[key];
+    Object.assign(categoryEdits, next.drafts);
+    categoryBaseline.value = next.baseline;
+  },
 );
-const publishedCount = computed(
-  () => props.content.filter((item) => item.status === 'published').length,
-);
-const scheduledCount = computed(
-  () => props.content.filter((item) => item.status === 'scheduled').length,
-);
-const pendingBroadcastCount = computed(
-  () =>
-    props.content.filter(
-      (item) =>
-        item.type === 'announcement' &&
-        item.notifyMembers &&
-        item.status === 'published' &&
-        item.broadcastedAt === null,
-    ).length,
-);
+const publishedCount = computed(() => props.totals.published);
+const scheduledCount = computed(() => props.totals.scheduled);
+const pendingBroadcastCount = computed(() => props.totals.pendingBroadcasts);
 const knowledgeReviewQueue = computed(() =>
   props.content.filter(
     (item) => item.freshness.status === 'stale' || item.freshness.status === 'due_soon',
@@ -245,6 +295,41 @@ const contentForm = useForm<ContentDraft>({
   reviewed_at: '',
   event_type_slugs: [],
 });
+
+watch(
+  () => props.alliance.id,
+  () => {
+    editingId.value = null;
+    contentForm.defaults({ locale: props.alliance.language || 'en' });
+    contentForm.reset();
+    contentForm.clearErrors();
+    profileForm.defaults({
+      name: props.alliance.name,
+      language: props.alliance.language,
+      timezone: props.alliance.timezone,
+      description: props.alliance.description ?? '',
+      primary_color: props.alliance.primaryColor ?? '',
+      logo_media_id: props.alliance.logoMediaId ?? '',
+      banner_media_id: props.alliance.bannerMediaId ?? '',
+    });
+    profileForm.reset();
+    profileForm.clearErrors();
+    categoryForm.reset();
+    categoryForm.clearErrors();
+    mediaForm.reset();
+    mediaForm.clearErrors();
+    for (const key of Object.keys(categoryEdits)) delete categoryEdits[key];
+    Object.assign(categoryEdits, categoryValues(props.categories));
+    categoryBaseline.value = categoryValues(props.categories);
+    for (const key of Object.keys(recurrenceForms)) delete recurrenceForms[key];
+    Object.assign(recurrenceForms, recurrenceValues(props.content));
+    recurrenceBaseline.value = recurrenceValues(props.content);
+    for (const key of Object.keys(scheduleInputs)) delete scheduleInputs[key];
+    cancellingSchedule.value = null;
+    contentSearch.value = props.filters.q;
+    contentStatus.value = props.filters.status;
+  },
+);
 
 function slugify(value: string): string {
   return value
@@ -319,6 +404,7 @@ function saveRecurrence(item: ContentRow): void {
   const form = recurrenceForms[item.id];
   if (!form || !form.weekdays.length) return;
   recurrenceBusyId.value = item.id;
+  const submitted = { ...form, weekdays: [...form.weekdays] };
   router.put(
     '/alliance/content/' + item.id + '/broadcast-schedule',
     {
@@ -327,6 +413,14 @@ function saveRecurrence(item: ContentRow): void {
     },
     {
       preserveScroll: true,
+      onSuccess: () =>
+        acceptContentDraft(
+          recurrenceForms,
+          recurrenceBaseline.value,
+          item.id,
+          submitted,
+          recurrenceValues(props.content)[item.id],
+        ),
       onFinish: () => (recurrenceBusyId.value = null),
     },
   );
@@ -381,8 +475,19 @@ function createCategory(): void {
   });
 }
 function updateCategory(id: string): void {
-  router.patch('/alliance/content/categories/' + id, categoryEdits[id], {
+  const draft = categoryEdits[id];
+  if (!draft) return;
+  const submitted = { ...draft };
+  router.patch('/alliance/content/categories/' + id, submitted, {
     preserveScroll: true,
+    onSuccess: () =>
+      acceptContentDraft(
+        categoryEdits,
+        categoryBaseline.value,
+        id,
+        submitted,
+        categoryValues(props.categories)[id],
+      ),
   });
 }
 function deleteCategory(id: string): void {
@@ -461,7 +566,7 @@ function bytes(value: number): string {
     <section class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <StatSeal
         :label="t('contentExperience.contentItems')"
-        :value="props.content.length"
+        :value="props.totals.content"
         icon="▤"
       />
       <StatSeal
@@ -523,28 +628,22 @@ function bytes(value: number): string {
               />
             </label>
             <div class="grid gap-3 sm:grid-cols-2 2xl:grid-cols-1">
-              <label class="block text-sm">
-                <span>{{ t('contentExperience.logoImage') }}</span>
-                <select v-model="profileForm.logo_media_id" class="ks-input mt-1.5">
-                  <option value="">{{ t('contentExperience.noLogo') }}</option>
-                  <option v-for="asset in props.media" :key="'logo-' + asset.id" :value="asset.id">
-                    {{ asset.name }}
-                  </option>
-                </select>
-              </label>
-              <label class="block text-sm">
-                <span>{{ t('contentExperience.bannerImage') }}</span>
-                <select v-model="profileForm.banner_media_id" class="ks-input mt-1.5">
-                  <option value="">{{ t('contentExperience.noBanner') }}</option>
-                  <option
-                    v-for="asset in props.media"
-                    :key="'banner-' + asset.id"
-                    :value="asset.id"
-                  >
-                    {{ asset.name }}
-                  </option>
-                </select>
-              </label>
+              <ContentChoicePicker
+                id="profile-logo"
+                :key="alliance.id + 'profile-logo'"
+                v-model="profileForm.logo_media_id"
+                kind="media"
+                :label="t('contentExperience.logoImage')"
+                :empty-label="t('contentExperience.noLogo')"
+              />
+              <ContentChoicePicker
+                id="profile-banner"
+                :key="alliance.id + 'profile-banner'"
+                v-model="profileForm.banner_media_id"
+                kind="media"
+                :label="t('contentExperience.bannerImage')"
+                :empty-label="t('contentExperience.noBanner')"
+              />
             </div>
             <AppButton
               class="w-full"
@@ -595,6 +694,7 @@ function bytes(value: number): string {
             <form
               v-for="category in props.categories"
               :key="category.id"
+              :data-category-id="category.id"
               class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] p-3"
               @submit.prevent="updateCategory(category.id)"
             >
@@ -609,6 +709,23 @@ function bytes(value: number): string {
                 </button>
               </div>
             </form>
+          </div>
+          <div data-collection="category">
+            <CursorPagination
+              :summary="
+                t('contentExperience.pageRecords', {
+                  count: props.categories.length,
+                  total: props.categoryPage.total,
+                })
+              "
+              :is-first-page="props.categoryPage.isFirstPage"
+              :has-more="props.categoryPage.hasMore"
+              :first-page-href="collectionHref('category', null)"
+              :busy="paging"
+              preserve-state
+              preserve-scroll
+              @next="nextCollection('category', props.categoryPage.nextCursor)"
+            />
           </div>
         </section>
 
@@ -655,6 +772,23 @@ function bytes(value: number): string {
             </div>
           </div>
           <div v-else class="ks-fantasy-empty mt-4">{{ t('contentExperience.noMedia') }}</div>
+          <div data-collection="media">
+            <CursorPagination
+              :summary="
+                t('contentExperience.pageRecords', {
+                  count: props.media.length,
+                  total: props.mediaPage.total,
+                })
+              "
+              :is-first-page="props.mediaPage.isFirstPage"
+              :has-more="props.mediaPage.hasMore"
+              :first-page-href="collectionHref('media', null)"
+              :busy="paging"
+              preserve-state
+              preserve-scroll
+              @next="nextCollection('media', props.mediaPage.nextCursor)"
+            />
+          </div>
         </section>
       </aside>
 
@@ -679,6 +813,7 @@ function bytes(value: number): string {
           </div>
           <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
             {{ t('contentExperience.knowledgeReviewHelp') }}
+            {{ t('contentExperience.reviewOnThisPage') }}
           </p>
           <ul class="mt-4 grid gap-3 lg:grid-cols-2">
             <li
@@ -741,19 +876,14 @@ function bytes(value: number): string {
                 </option>
               </select>
             </label>
-            <label class="block text-sm">
-              <span>{{ t('contentExperience.category') }}</span>
-              <select v-model="contentForm.category_id" class="ks-input mt-1.5">
-                <option value="">{{ t('contentExperience.noCategory') }}</option>
-                <option
-                  v-for="category in props.categories"
-                  :key="category.id"
-                  :value="category.id"
-                >
-                  {{ category.name }}
-                </option>
-              </select>
-            </label>
+            <ContentChoicePicker
+              id="content-category"
+              :key="alliance.id + 'content-category'"
+              v-model="contentForm.category_id"
+              kind="categories"
+              :label="t('contentExperience.category')"
+              :empty-label="t('contentExperience.noCategory')"
+            />
             <label class="block text-sm md:col-span-2">
               <span>{{ t('contentExperience.title') }}</span>
               <input
@@ -928,10 +1058,48 @@ function bytes(value: number): string {
             </div>
           </div>
 
+          <form
+            class="mt-4 flex flex-wrap gap-2"
+            data-testid="content-catalogue-filter"
+            @submit.prevent="searchContent"
+          >
+            <label class="min-w-0 flex-1"
+              ><span class="sr-only">{{ t('contentExperience.search') }}</span
+              ><input
+                v-model="contentSearch"
+                type="search"
+                maxlength="160"
+                class="ks-input w-full"
+                :placeholder="t('contentExperience.search')"
+            /></label>
+            <label
+              ><span class="sr-only">{{ t('contentExperience.status') }}</span
+              ><select v-model="contentStatus" class="ks-input">
+                <option value="">{{ t('contentExperience.allStatuses') }}</option>
+                <option
+                  v-for="status in ['draft', 'scheduled', 'published', 'archived']"
+                  :key="status"
+                  :value="status"
+                >
+                  {{
+                    t(
+                      status === 'published'
+                        ? 'contentExperience.publishedItems'
+                        : `contentExperience.${status}`,
+                    )
+                  }}
+                </option>
+              </select></label
+            >
+            <AppButton type="submit" :disabled="paging">{{
+              t('contentExperience.search')
+            }}</AppButton>
+          </form>
           <div v-if="props.content.length" class="mt-4 space-y-4">
             <article
               v-for="item in props.content"
               :key="item.id"
+              data-testid="content-catalogue-row"
               class="ks-surface overflow-hidden"
             >
               <div class="border-b border-[var(--ks-border)] p-4 sm:p-5">
@@ -1137,111 +1305,43 @@ function bytes(value: number): string {
                     {{ t('contentExperience.publishBeforeRecurrence') }}
                   </p>
 
-                  <details v-if="item.broadcastRuns.length" class="mt-4">
-                    <summary class="cursor-pointer text-sm font-semibold">
-                      {{ t('contentExperience.deliveryHistory') }} · {{ item.broadcastRuns.length }}
-                    </summary>
-                    <div class="mt-3 space-y-2">
-                      <article
-                        v-for="run in item.broadcastRuns"
-                        :key="run.id"
-                        class="rounded border border-[var(--ks-border)] bg-black/10 p-3"
-                      >
-                        <div class="flex flex-wrap items-start justify-between gap-3">
-                          <div>
-                            <strong class="text-sm">{{ timestamp(run.scheduledFor) }}</strong>
-                            <p class="mt-1 text-xs" :data-broadcast-status="run.status">
-                              {{ t(`contentExperience.broadcastState.${run.status}`) }}
-                            </p>
-                            <p class="mt-1 text-xs text-[var(--ks-muted)]">
-                              {{
-                                t('contentExperience.broadcastProgress', {
-                                  examined: run.recipientCount + run.skippedCount,
-                                  skipped: run.skippedCount,
-                                  suppressed: run.suppressedCount,
-                                  replayed: run.replayedCount,
-                                })
-                              }}
-                            </p>
-                            <p class="mt-1 text-xs text-[var(--ks-muted)]">
-                              {{
-                                t('contentExperience.deliveryRunSummary', {
-                                  recipients: run.recipientCount,
-                                  sent: run.deliveryCounts.sent ?? 0,
-                                  queued:
-                                    (run.deliveryCounts.queued ?? 0) +
-                                    (run.deliveryCounts.pending ?? 0),
-                                  failed: run.deliveryCounts.failed ?? 0,
-                                  read: run.readCount,
-                                })
-                              }}
-                            </p>
-                          </div>
-                          <p
-                            v-if="run.retryCandidateCount > run.failedDeliveryIds.length"
-                            class="text-xs text-[var(--ks-muted)]"
-                            role="status"
-                          >
-                            {{
-                              t('contentExperience.retryCandidateSummary', {
-                                selected: run.failedDeliveryIds.length,
-                                total: run.retryCandidateCount,
-                              })
-                            }}
-                          </p>
-                          <AppButton
-                            v-if="run.failedDeliveryIds.length"
-                            type="button"
-                            variant="ghost"
-                            :busy="retryBusyId === run.id"
-                            :busy-label="t('contentExperience.retryingFailures')"
-                            @click="retryBroadcastFailures(run)"
-                          >
-                            {{
-                              t('contentExperience.retryFailed', {
-                                count: run.failedDeliveryIds.length,
-                              })
-                            }}
-                          </AppButton>
-                        </div>
-                      </article>
-                    </div>
-                  </details>
-                  <p v-else class="mt-4 text-xs text-[var(--ks-muted)]">
-                    {{ t('contentExperience.noDeliveryHistory') }}
-                  </p>
+                  <AnnouncementRunHistory
+                    :content-id="item.id"
+                    :count="item.broadcastRunCount"
+                    :refresh="historyRefresh"
+                    :retry-busy-id="retryBusyId"
+                    @retry="retryBroadcastFailures"
+                  />
                 </section>
               </div>
 
-              <details v-if="item.revisions.length" class="p-4 sm:p-5">
-                <summary class="cursor-pointer text-sm font-semibold">
-                  {{ t('contentExperience.revisions') }} · {{ item.revisions.length }}
-                </summary>
-                <div class="mt-3 space-y-2">
-                  <div
-                    v-for="revision in item.revisions"
-                    :key="revision.id"
-                    class="flex flex-wrap items-center justify-between gap-3 rounded border border-[var(--ks-border)] p-3"
-                  >
-                    <span class="text-sm">
-                      #{{ revision.revisionNumber }} · {{ revision.title }} ·
-                      {{ timestamp(revision.createdAt) }}
-                    </span>
-                    <button
-                      type="button"
-                      class="ks-chip"
-                      @click="restoreRevision(item.id, revision.id)"
-                    >
-                      {{
-                        t('contentExperience.restoreRevision', { number: revision.revisionNumber })
-                      }}
-                    </button>
-                  </div>
-                </div>
-              </details>
+              <ContentRevisionHistory
+                v-if="item.revisionCount"
+                :content-id="item.id"
+                :count="item.revisionCount"
+                :refresh="historyRefresh"
+                @restore="restoreRevision(item.id, $event)"
+              />
             </article>
           </div>
           <div v-else class="ks-fantasy-empty mt-4">{{ t('contentExperience.noContent') }}</div>
+          <div data-collection="content">
+            <CursorPagination
+              :summary="
+                t('contentExperience.pageRecords', {
+                  count: props.content.length,
+                  total: props.catalogue.total,
+                })
+              "
+              :is-first-page="props.catalogue.isFirstPage"
+              :has-more="props.catalogue.hasMore"
+              :first-page-href="collectionHref('content', null)"
+              :busy="paging"
+              preserve-state
+              preserve-scroll
+              @next="nextCollection('content', props.catalogue.nextCursor)"
+            />
+          </div>
         </section>
       </div>
     </div>

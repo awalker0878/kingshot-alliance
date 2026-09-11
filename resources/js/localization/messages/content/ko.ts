@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    pageRecords: '이 페이지의 기록 {count}개 · 총 {total}개',
+    collectionFailed: '목록을 불러올 수 없습니다. 첫 페이지에서 다시 시도하세요.',
+    selectedUnavailable: '선택한 항목을 사용할 수 없습니다',
+    reviewOnThisPage: '이 검토 목록은 현재 카탈로그 페이지에 해당합니다.',
+    allStatuses: '모든 상태',
     retryCandidateSummary: '시도 한도 미만인 실패 {total}건 중 재시도할 {selected}건을 표시합니다.',
     eyebrow: '연맹 콘텐츠',
     hubTitle: '콘텐츠 허브',

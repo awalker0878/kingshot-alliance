@@ -6,76 +6,44 @@ namespace App\ReadModels\AnnouncementBroadcastManagement\Queries;
 
 use App\Contexts\Alliance\Content\Models\AnnouncementBroadcastRun;
 use App\Contexts\Alliance\Content\Models\AnnouncementBroadcastSchedule;
+use App\Contexts\Alliance\Content\Queries\ContentManagementQuery;
 use App\Contexts\Communications\Delivery\Queries\AnnouncementDeliverySummaryQuery;
 
+/** Composes only the Content history page authorized for the current manager. */
 final readonly class AnnouncementBroadcastManagementQuery
 {
-    public function __construct(private AnnouncementDeliverySummaryQuery $deliverySummaries) {}
+    public function __construct(private ContentManagementQuery $content, private AnnouncementDeliverySummaryQuery $deliverySummaries) {}
 
-    /**
-     * @return array{
-     *   schedules: array<string, array<string, mixed>>,
-     *   runs: array<string, list<array<string, mixed>>>
-     * }
-     */
-    public function forAlliance(string $allianceId): array
+    /** @return array<string,mixed> */
+    public function history(string $allianceId, string $playerId, string $contentId, ?string $cursor = null): array
     {
-        $schedules = [];
-        foreach (AnnouncementBroadcastSchedule::query()
-            ->where('alliance_id', $allianceId)
-            ->orderByDesc('updated_at')
-            ->get() as $schedule) {
-            $schedules[(string) $schedule->content_item_id] = [
-                'id' => (string) $schedule->id,
-                'status' => $schedule->status->value,
-                'weekdays' => array_values(array_map('intval', $schedule->weekdays)),
-                'localTime' => (string) $schedule->local_time,
-                'timezone' => (string) $schedule->timezone,
-                'nextRunAt' => $schedule->next_run_at?->toIso8601String(),
-                'lastRunAt' => $schedule->last_run_at?->toIso8601String(),
-                'endsAt' => $schedule->ends_at?->toIso8601String(),
-                'cancelledAt' => $schedule->cancelled_at?->toIso8601String(),
-            ];
-        }
-
-        $runs = AnnouncementBroadcastRun::query()
-            ->where('alliance_id', $allianceId)
-            ->orderByDesc('scheduled_for')
-            ->limit(100)
-            ->get();
+        $result = $this->content->runs($allianceId, $playerId, $contentId, $cursor);
+        $page = $result['page']->toArray();
         $contentByRun = [];
-        foreach ($runs as $run) {
-            $contentByRun[(string) $run->id] = (string) $run->content_item_id;
+        foreach ($result['page']->items as $run) {
+            $contentByRun[$run->id] = $run->content_item_id;
         }
         $summaries = $this->deliverySummaries->forRuns($allianceId, $contentByRun);
+        $page['items'] = array_map(static function (AnnouncementBroadcastRun $run) use ($summaries): array {
+            $summary = $summaries[$run->id];
 
-        $runsByContent = [];
-        foreach ($runs as $run) {
-            $contentId = (string) $run->content_item_id;
-            if (count($runsByContent[$contentId] ?? []) >= 5) {
-                continue;
-            }
+            return ['id' => $run->id, 'scheduleId' => $run->schedule_id, 'scheduledFor' => $run->scheduled_for->toIso8601String(),
+                'status' => $run->status->value, 'recipientCount' => $run->recipient_count,
+                'skippedCount' => $run->skipped_count, 'suppressedCount' => $run->suppressed_count, 'replayedCount' => $run->replayed_count,
+                'deliveryCount' => $run->delivery_count, 'deliveryCounts' => $summary->deliveryCounts,
+                'readCount' => $summary->readCount, 'retryCandidateCount' => $summary->retryCandidateCount,
+                'failedDeliveryIds' => $summary->failedDeliveryIds, 'queuedAt' => $run->queued_at?->toIso8601String()];
+        }, $result['page']->items);
 
-            $summary = $summaries[(string) $run->id];
+        return ['page' => $page, 'total' => $result['total']];
+    }
 
-            $runsByContent[$contentId][] = [
-                'id' => (string) $run->id,
-                'scheduleId' => $run->schedule_id,
-                'scheduledFor' => $run->scheduled_for->toIso8601String(),
-                'status' => $run->status->value,
-                'recipientCount' => (int) $run->recipient_count,
-                'deliveryCount' => (int) $run->delivery_count,
-                'skippedCount' => $run->skipped_count,
-                'suppressedCount' => $run->suppressed_count,
-                'replayedCount' => $run->replayed_count,
-                'deliveryCounts' => $summary->deliveryCounts,
-                'readCount' => $summary->readCount,
-                'retryCandidateCount' => $summary->retryCandidateCount,
-                'failedDeliveryIds' => $summary->failedDeliveryIds,
-                'queuedAt' => $run->queued_at?->toIso8601String(),
-            ];
-        }
-
-        return ['schedules' => $schedules, 'runs' => $runsByContent];
+    /** @return array<string,mixed>|null */
+    public function schedule(?AnnouncementBroadcastSchedule $schedule): ?array
+    {
+        return $schedule === null ? null : ['id' => (string) $schedule->id, 'status' => $schedule->status->value,
+            'timezone' => $schedule->timezone, 'weekdays' => array_values(array_map('intval', $schedule->weekdays ?? [])), 'localTime' => $schedule->local_time,
+            'nextRunAt' => $schedule->next_run_at?->toIso8601String(), 'lastRunAt' => $schedule->last_run_at?->toIso8601String(),
+            'endsAt' => $schedule->ends_at?->toIso8601String(), 'cancelledAt' => $schedule->cancelled_at?->toIso8601String()];
     }
 }

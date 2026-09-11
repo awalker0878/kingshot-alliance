@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    pageRecords: '{count} records on this page · {total} total',
+    collectionFailed: 'Could not load this collection. Retry from the first page.',
+    selectedUnavailable: 'Selected item unavailable',
+    reviewOnThisPage: 'This review list covers the current catalogue page.',
+    allStatuses: 'All statuses',
     eyebrow: 'Alliance content',
     hubTitle: 'Noticeboard',
     hubSubtitle: 'Published public and member-only information for {alliance}.',
