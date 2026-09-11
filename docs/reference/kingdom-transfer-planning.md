@@ -101,7 +101,7 @@ Supported observation kinds:
 - `resource_protection_verified`;
 - `in_game_rules_verified`.
 
-Numeric/text/boolean storage is chosen by the enum contract. Target-specific observations must match the participant's current target. Mutable current-use facts require an explicit `valid_until` boundary.
+Numeric/text/boolean storage is chosen by the enum contract. Boolean observations and reviewed-evidence values use the shared localized Yes/No labels. Missing, unknown and unverified values remain distinct states; presentation does not infer a boolean from missing data. Target-specific observations must match the participant's current target. Mutable current-use facts require an explicit `valid_until` boundary.
 
 Manual forms do not expose `source_type=evidence`; reviewed Evidence commits own that provenance path.
 

@@ -5,6 +5,8 @@ const messages = {
     'recruitment-onboarding-item-updated': 'Đã cập nhật mục hướng dẫn tân binh.',
   },
   common: {
+    yes: 'Có',
+    no: 'Không',
     historyItemsOnPage: '{count} bản ghi trên trang này (tối đa {pageSize}).',
     all: 'Tất cả',
     language: 'Ngôn ngữ',

@@ -5,6 +5,8 @@ const messages = {
     'recruitment-onboarding-item-updated': 'Пункт адаптации новобранцев обновлён.',
   },
   common: {
+    yes: 'Да',
+    no: 'Нет',
     historyItemsOnPage: 'На этой странице {count} записей (не более {pageSize}).',
     all: 'Все',
     language: 'Язык',

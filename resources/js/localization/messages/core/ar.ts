@@ -5,6 +5,8 @@ const messages = {
     'recruitment-onboarding-item-updated': 'تم تحديث عنصر تهيئة المجندين.',
   },
   common: {
+    yes: 'نعم',
+    no: 'لا',
     historyItemsOnPage: '{count} سجلات في هذه الصفحة (حتى {pageSize}).',
     all: 'الكل',
     language: 'اللغة',

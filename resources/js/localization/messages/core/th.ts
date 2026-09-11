@@ -5,6 +5,8 @@ const messages = {
     'recruitment-onboarding-item-updated': 'อัปเดตรายการปฐมนิเทศผู้สมัครแล้ว',
   },
   common: {
+    yes: 'ใช่',
+    no: 'ไม่ใช่',
     historyItemsOnPage: '{count} รายการในหน้านี้ (สูงสุด {pageSize} รายการ)',
     all: 'ทั้งหมด',
     language: 'ภาษา',

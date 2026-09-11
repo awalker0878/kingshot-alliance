@@ -5,6 +5,8 @@ const messages = {
     'recruitment-onboarding-item-updated': 'İşe alım uyum öğesi güncellendi.',
   },
   common: {
+    yes: 'Evet',
+    no: 'Hayır',
     historyItemsOnPage: 'Bu sayfada {count} kayıt (en fazla {pageSize}).',
     all: 'Tümü',
     language: 'Dil',

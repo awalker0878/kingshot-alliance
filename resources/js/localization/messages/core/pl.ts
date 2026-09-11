@@ -5,6 +5,8 @@ const messages = {
     'recruitment-onboarding-item-updated': 'Zaktualizowano element wdrożenia rekrutów.',
   },
   common: {
+    yes: 'Tak',
+    no: 'Nie',
     historyItemsOnPage: '{count} rekordów na tej stronie (maksymalnie {pageSize}).',
     all: 'Wszystkie',
     language: 'Język',

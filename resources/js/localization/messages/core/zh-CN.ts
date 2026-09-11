@@ -5,6 +5,8 @@ const messages = {
     'recruitment-onboarding-item-updated': '已更新招募入盟引导项目。',
   },
   common: {
+    yes: '是',
+    no: '否',
     historyItemsOnPage: '此页有 {count} 条记录（最多 {pageSize} 条）。',
     all: '全部',
     language: '语言',

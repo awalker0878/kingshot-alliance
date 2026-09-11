@@ -5,6 +5,8 @@ const messages = {
     'recruitment-onboarding-item-updated': '募集の受け入れ項目を更新しました。',
   },
   common: {
+    yes: 'はい',
+    no: 'いいえ',
     historyItemsOnPage: 'このページに{count}件（最大{pageSize}件）。',
     all: 'すべて',
     language: '言語',

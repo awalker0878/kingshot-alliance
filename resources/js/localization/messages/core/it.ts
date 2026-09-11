@@ -5,6 +5,8 @@ const messages = {
     'recruitment-onboarding-item-updated': 'Elemento di inserimento reclute aggiornato.',
   },
   common: {
+    yes: 'Sì',
+    no: 'No',
     historyItemsOnPage: '{count} record in questa pagina (fino a {pageSize}).',
     all: 'Tutti',
     language: 'Lingua',

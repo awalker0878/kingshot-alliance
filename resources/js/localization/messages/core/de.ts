@@ -5,6 +5,8 @@ const messages = {
     'recruitment-onboarding-item-updated': 'Rekrutierungs-Onboarding-Eintrag aktualisiert.',
   },
   common: {
+    yes: 'Ja',
+    no: 'Nein',
     historyItemsOnPage: '{count} Einträge auf dieser Seite (bis zu {pageSize}).',
     all: 'Alle',
     language: 'Sprache',

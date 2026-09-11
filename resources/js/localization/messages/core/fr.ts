@@ -5,6 +5,8 @@ const messages = {
     'recruitment-onboarding-item-updated': 'Élément d’intégration des recrues mis à jour.',
   },
   common: {
+    yes: 'Oui',
+    no: 'Non',
     historyItemsOnPage: '{count} éléments sur cette page (jusqu’à {pageSize}).',
     all: 'Tous',
     language: 'Langue',

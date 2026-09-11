@@ -5,6 +5,8 @@ const messages = {
     'recruitment-onboarding-item-updated': 'Item orientasi rekrutmen diperbarui.',
   },
   common: {
+    yes: 'Ya',
+    no: 'Tidak',
     historyItemsOnPage: '{count} catatan di halaman ini (maksimal {pageSize}).',
     all: 'Semua',
     language: 'Bahasa',
