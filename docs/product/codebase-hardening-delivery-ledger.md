@@ -5,16 +5,16 @@
 - Program state: In progress; the testing-system scope is complete, not the repository-wide production audit.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49` (remote ref fetched unchanged on 2026-09-10 Toronto).
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `b2c382c2596f638b90461c025e19d8d9dc6636ba` (source recovery), preserving prior HARD-095/097 work at `a8af2e6f83c6c951f25d1013d2e10e074ed79cf7`. The following documentation checkpoint records the coherent HARD-098 implementation SHA without a circular self-reference.
+- Latest pushed durable checkpoint: `e194c6baf5b1166d6727266e965ae03debc9fe51` — coherent HARD-098 production/tests/ADR/ledger slice, preserving prior HARD-095/097 at `a8af2e6f83c6c951f25d1013d2e10e074ed79cf7`. This following documentation checkpoint records the immutable implementation and current HARD-101 reference repair.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163); keep draft and unmerged while other audit work remains.
 - Current item/state: HARD-098 / In progress with implemented claim/fencing/recovery regressions; containing local checks pass, normal milestone CI remains required. HARD-097 remains In progress pending that milestone; HARD-099/100 are Planned source-authorization and endpoint-generation gaps. HARD-095 retains its unfinished transfer consumers.
 - Most recently verified gates: all nine normal workflows passed for `e6f29ebbd40687c38a43554facb3ec9ef872ea8c`, actual checkout `4485b87f0ab5aef0f93d2f70f8ae6b088697c22b`: 1,507 PHP cases / 83,068 assertions, all 62 browser cases, full frontend, PHPStan/Pint, fresh durable PostgreSQL, image/staging/recovery and security checks. See [testing validation](../codebase/test-validation-2026-09-10.md). HARD-088 and HARD-096 are reconciled below from that containing evidence, not rerun as new implementation work.
 - Local current checks: PHP 8.5.10 / Laravel 13.30.1 / PHPUnit 12.5.33 / PostgreSQL 18.6, durability enabled, isolated port 55441. Unmodified Communications Feature baseline passes 15 tests / 171 assertions. Initial HARD-098 red suite reproduces ten failures in sixteen cases. The completed Communications, NotificationDelivery and repository Architecture scope passes 75 tests / 46,667 assertions in 137.872 seconds, including all 27 new race/recovery cases / 214 assertions. Full PHPStan over app/routes passes; Pint passes changed PHP. These are containing local gates, not a whole-application milestone.
 - Active files: Communications immediate/digest workers, shared owner readiness/endpoint-health services, owner-local Integration/Concurrency tests, explicit suite directory, ADR-0045 and relevant architecture/product/operations guidance. No concurrent Transfer production implementation was changed.
-- Remaining current work: Publish the coherent HARD-098 slice, record its immutable checkpoint, verify containing normal CI at a milestone, and inventory/reproduce HARD-099 source eligibility before implementing its owner contract. Review HARD-100 in-flight credential-version diagnostics separately. HARD-095 and the full production audit remain open.
+- Remaining current work: Verify containing normal CI for HARD-098 and inventory/reproduce HARD-099 source eligibility before implementing its owner contract. Review HARD-100 in-flight credential-version diagnostics separately. HARD-095 and the full production audit remain open.
 - Known failures: The initial worker races and boundary/starvation failures now pass. No failure in the executed 75-case scope or full static analysis. Source-specific execution-time authorization and credential-version health attribution remain unresolved findings, not claimed fixed by attempt fencing.
 - Blockers: direct local Git network access is unavailable; the exact tracked source was recovered and hash-verified through the connector. Local PHP 8.5 and durable PostgreSQL are available. Temporary source/reviewed-preparation tooling must be removed before normal milestone CI. No current implementation is only in an untracked compatibility copy.
-- Exact next action: Commit/push the verified HARD-098 implementation, tests and current documentation together, record the durable SHA, then reproduce HARD-099 using current source publishers, revoked membership/Governor ownership and account-scoped destinations. Do not merge or redo completed testing-system work.
+- Exact next action: Reproduce HARD-099 using current source publishers, revoked membership/Governor ownership and account-scoped destinations; inventory every notification type and its authoritative source before selecting the delivery eligibility contract. Do not merge or redo completed testing-system work.
 - Remaining repository-wide gates: final full PHP/architecture/capability/frontend, production image/staging/recovery, security/dependency/visual checks and the remaining production audit on one final containing candidate. The previous green testing milestone does not close this program.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -1416,7 +1416,7 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Verification required: Current lease and retry exclusion, stale claim recovery, old completion rejection, member/outbox preservation, max-attempt behavior, due-time boundaries, PostgreSQL concurrency, containing Communications behavior and architecture/static gates.
 - Verification result: One due/status/retry/300-second lease predicate now constrains selection and the locked read; current budgets are enforced, attempt numbers fence completion, and endpoint health commits only with an accepted result. Exhausted generations terminalize without more sends; receipt suffixes distinguish terminal reconciliation from a prior retryable failure. Digest completion mutates only still-attached Queued members. Initial real-PostgreSQL regressions failed ten of sixteen cases; final 27 cases / 214 assertions pass, including two connections/Fiber-paused transports, actual lock contention, stale success/failure, exact boundaries, rollback, endpoint pause, detachment and exhaustion starvation. The 75-case Communications/Workflow/Architecture scope and full PHPStan pass. Milestone full verification remains required.
 - Completion evidence: NotificationAttemptFencingTest, ADR-0045, local hard098-milestone-local.xml (75 tests / 46,667 assertions, no failures/errors/skips), full PHPStan and scoped Pint. Do not mark Complete until containing normal milestone gates are recorded.
-- Commit SHA: coherent implementation in this checkpoint; exact pushed SHA is recorded by the following ledger checkpoint.
+- Commit SHA: `e194c6baf5b1166d6727266e965ae03debc9fe51`.
 
 ### HARD-099 — External delivery does not reauthorize queued source authority
 
@@ -1454,11 +1454,11 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: One current user-facing reference linked to the actual recipient delivery contract.
 - Rationale: Operators and users must not mistake adding another destination for updating or replacing one, or rely on incomplete channel/health/retry guidance.
 - Remediation: Rewrite the reference for current channels and endpoint lifecycle, bounded current-attempt retry semantics and the separation between source facts and provider status; remove obsolete instructions instead of keeping a compatibility appendix.
-- State: Planned.
+- State: Complete.
 - Verification required: Trace actual actions and current UI/channel catalogue, documentation links and existing recipient behavior evidence.
-- Verification result: Contradiction confirmed against Save/UpdateNotificationEndpoint, current architecture and passing recipient tests. Reference rewrite follows the coherent worker fix.
-- Completion evidence: pending.
-- Commit SHA: pending.
+- Verification result: Reference rewritten against current Save/Update/SetState/QueueTest endpoint actions, channel enum, route resolver and inbox query. The current 75-case containing Communications/Workflow/Architecture run includes all existing recipient behavior; documentation links pass. No code, endpoint behavior or channel selection changed by this documentation-only item.
+- Completion evidence: docs/reference/notifications.md now documents all five channels, additive named destinations, explicit update/pause/resume/test/delete, inheritance and bounded retry/recovery with current canonical links.
+- Commit SHA: this documentation checkpoint following `e194c6baf5b1166d6727266e965ae03debc9fe51`; Git history identifies the exact reference/ledger update together.
 
 ## Repository audit coverage
 
