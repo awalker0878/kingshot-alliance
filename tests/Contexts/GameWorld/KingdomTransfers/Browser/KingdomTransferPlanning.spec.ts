@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { captureReadiness } from '../Support/captureReadiness';
+import { normalizeReadinessReceipt } from '../Support/normalizeReadinessReceipt';
 
 const transferVisualFingerprints: Record<string, string> = {
   desktop: 'REVIEW_REQUIRED_DESKTOP',
@@ -155,13 +156,10 @@ test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and 
     .evaluateAll((elements) =>
       elements.forEach((element) => (element.textContent = 'Evaluated at fixture time')),
     );
-  await page
-    .getByText(/Destination receipt/)
-    .evaluateAll((elements) =>
-      elements.forEach(
-        (element) => (element.textContent = 'Succeeded · Destination receipt fixture'),
-      ),
-    );
+  for (const receipt of await page.getByText(/Destination receipt/).all()) {
+    const normalized = normalizeReadinessReceipt((await receipt.textContent()) ?? '');
+    await receipt.evaluate((element, text) => (element.textContent = text), normalized);
+  }
 
   const actualFingerprint = await captureReadiness(page);
   const expectedFingerprint = transferVisualFingerprints[testInfo.project.name];
