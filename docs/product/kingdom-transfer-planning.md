@@ -302,3 +302,5 @@ The capability is complete only when the final implementation candidate is green
 No compatibility shims, legacy aliases or dual-read/write paths are part of this fresh deployment.
 
 The member capability profile evaluates only that Governor's active participant in the current authorized Alliance Plan. Missing or withdrawn participation remains unavailable as an assessment rather than selecting another Governor. A large plan does not enlarge the participant records or relationship graph read for that single profile.
+
+A Governor’s self-transfer answer uses the same current eligibility assessment as management, including conflicting evidence, unknown facts, group/condition provenance and current capacity. Requests cannot select another Governor’s assessment or a different destination. Complete observation counts remain accurate even when evaluation needs only bounded factual witnesses; historical records for a previous destination do not influence the current destination.

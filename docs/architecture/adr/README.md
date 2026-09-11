@@ -56,3 +56,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0042: Complete bounded Recruitment configuration](0042-complete-bounded-recruitment-configuration.md)
 
 - [ADR-0043: Owner-first tests with disjoint execution suites](0043-owner-first-tests-and-disjoint-execution-suites.md)
+
+- [ADR-0044: One composition of current transfer eligibility](0044-canonical-self-transfer-eligibility.md)
