@@ -107,7 +107,19 @@ final class KingPerkReminderTraversalTest extends TestCase
         self::assertSame(25, $first->recipientsExamined);
         self::assertSame(25, $first->queued);
         self::assertNotNull(KingPerkReminderCursor::query()->firstOrFail()->after_player_id);
+        $connection = DB::getDefaultConnection();
+        $workerConfiguration = config('database.connections.'.$connection);
+        $workerDatabase = DB::connection()->getDatabaseName();
+        $previousApplication = $this->app;
         $this->refreshApplication();
+        // Laravel switches to the parallel database in its test-case setup callback,
+        // not when an application is rebooted in the middle of a test. Preserve the
+        // real worker target while replacing every application service instance.
+        config()->set('database.default', $connection);
+        config()->set('database.connections.'.$connection, $workerConfiguration);
+        DB::purge($connection);
+        self::assertNotSame($previousApplication, $this->app);
+        self::assertSame($workerDatabase, DB::connection()->getDatabaseName());
         $second = app(QueueDueKingPerkReminders::class)->handle(1000);
         self::assertSame(25, $second->queued);
         $third = app(QueueDueKingPerkReminders::class)->handle(1000);
