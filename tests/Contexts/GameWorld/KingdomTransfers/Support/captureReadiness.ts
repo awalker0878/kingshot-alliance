@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { stableViewportRaster } from './stableViewportRaster';
 import { assertViewportRaster, viewportCapturePlan } from './viewportRaster';
 
 /** Capture every main-content pixel through actual painted viewports, never an oversized full-page texture. */
@@ -14,12 +15,14 @@ export async function captureReadiness(page: Page): Promise<string> {
         requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
       ),
   );
-  const shellImage = await page.screenshot({
-    animations: 'disabled',
-    caret: 'hide',
-    scale: 'css',
-    fullPage: false,
-  });
+  const shellImage = await stableViewportRaster(() =>
+    page.screenshot({
+      animations: 'disabled',
+      caret: 'hide',
+      scale: 'css',
+      fullPage: false,
+    }),
+  );
   assertViewportRaster(shellImage, viewport.width, viewport.height);
   await test
     .info()
@@ -67,13 +70,15 @@ export async function captureReadiness(page: Page): Promise<string> {
     expect(y + tile.height, 'Every tile must fit the actual viewport').toBeLessThanOrEqual(
       viewport.height,
     );
-    const screenshot = await page.screenshot({
-      animations: 'disabled',
-      caret: 'hide',
-      scale: 'css',
-      fullPage: false,
-      clip: { x: rect.x, y, width: rect.width, height: tile.height },
-    });
+    const screenshot = await stableViewportRaster(() =>
+      page.screenshot({
+        animations: 'disabled',
+        caret: 'hide',
+        scale: 'css',
+        fullPage: false,
+        clip: { x: rect.x, y, width: rect.width, height: tile.height },
+      }),
+    );
     assertViewportRaster(screenshot, rect.width, tile.height);
     await test.info().attach(`readiness-tile-${String(index + 1).padStart(2, '0')}`, {
       body: screenshot,
