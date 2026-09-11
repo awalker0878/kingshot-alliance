@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    retryCandidateSummary:
+      'يُعرض {selected} لإعادة المحاولة من أصل {total} حالات فشل دون حد المحاولات.',
     eyebrow: 'محتوى التحالف',
     hubTitle: 'مركز المحتوى',
     manageContent: 'إدارة المحتوى',

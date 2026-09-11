@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    retryCandidateSummary:
+      'Mostrati {selected} di {total} errori sotto il limite di tentativi per riprovare.',
     eyebrow: 'Contenuti alleanza',
     hubTitle: 'Hub contenuti',
     manageContent: 'Gestisci contenuti',

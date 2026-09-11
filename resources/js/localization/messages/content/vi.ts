@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    retryCandidateSummary:
+      'Hiển thị {selected} trong số {total} lần thất bại chưa đạt giới hạn để thử lại.',
     eyebrow: 'Nội dung liên minh',
     hubTitle: 'Trung tâm nội dung',
     manageContent: 'Quản lý nội dung',

@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    retryCandidateSummary: '시도 한도 미만인 실패 {total}건 중 재시도할 {selected}건을 표시합니다.',
     eyebrow: '연맹 콘텐츠',
     hubTitle: '콘텐츠 허브',
     manageContent: '콘텐츠 관리',

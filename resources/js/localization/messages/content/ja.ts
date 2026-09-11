@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    retryCandidateSummary:
+      '試行回数の上限未満の失敗 {total} 件のうち、再試行用に {selected} 件を表示しています。',
     eyebrow: '同盟コンテンツ',
     hubTitle: 'コンテンツハブ',
     manageContent: 'コンテンツ管理',

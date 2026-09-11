@@ -68,3 +68,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0048: Bounded, resumable King Perk reminder traversal](0048-bounded-king-perk-reminder-traversal.md)
 
 - [ADR-0049: Bounded announcement occurrences and recipient progress](0049-bounded-announcement-occurrences.md)
+
+- [ADR-0050: Complete scoped announcement outcome projections](0050-scoped-announcement-outcome-projections.md)

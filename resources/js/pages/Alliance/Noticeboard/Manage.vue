@@ -48,6 +48,7 @@ type BroadcastRun = {
   deliveryCount: number;
   deliveryCounts: Record<string, number>;
   readCount: number;
+  retryCandidateCount: number;
   failedDeliveryIds: string[];
   queuedAt: string | null;
 };
@@ -1176,6 +1177,18 @@ function bytes(value: number): string {
                               }}
                             </p>
                           </div>
+                          <p
+                            v-if="run.retryCandidateCount > run.failedDeliveryIds.length"
+                            class="text-xs text-[var(--ks-muted)]"
+                            role="status"
+                          >
+                            {{
+                              t('contentExperience.retryCandidateSummary', {
+                                selected: run.failedDeliveryIds.length,
+                                total: run.retryCandidateCount,
+                              })
+                            }}
+                          </p>
                           <AppButton
                             v-if="run.failedDeliveryIds.length"
                             type="button"

@@ -239,3 +239,8 @@ Communications receives GiftCode-owned logical notification intent and retains e
 
 Canonical contract: [Gift Code Redemption Workspace & Personalization](gift-code-redemption-workspace.md), [acceptance matrix](gift-code-redemption-workspace-acceptance.md), and [delivery ledger](gift-code-redemption-workspace-delivery-ledger.md).
 
+## Announcement management completeness — HARD-106
+
+Per-run read and delivery-status totals now come from Communications-owned exact aggregates instead of sampled message/route rows. The retry control distinguishes the bounded selected IDs from the complete candidate count. [ADR-0050](../architecture/adr/0050-scoped-announcement-outcome-projections.md) defines the owner contract.
+
+Catalogue, schedules, media/revision loading and older-run continuation remain unfinished. This outcome slice does not certify a fully bounded management workspace. The [hardening ledger](codebase-hardening-delivery-ledger.md) owns the current verification state and remaining work. The underlying bounded announcement preparation from HARD-104 has passed its complete normal milestone; later HARD-106 changes require their own containing verification.

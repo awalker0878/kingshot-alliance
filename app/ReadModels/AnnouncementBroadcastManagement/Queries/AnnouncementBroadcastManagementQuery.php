@@ -6,12 +6,12 @@ namespace App\ReadModels\AnnouncementBroadcastManagement\Queries;
 
 use App\Contexts\Alliance\Content\Models\AnnouncementBroadcastRun;
 use App\Contexts\Alliance\Content\Models\AnnouncementBroadcastSchedule;
-use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
-use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
-use App\Contexts\Communications\Delivery\Models\NotificationMessage;
+use App\Contexts\Communications\Delivery\Queries\AnnouncementDeliverySummaryQuery;
 
-final class AnnouncementBroadcastManagementQuery
+final readonly class AnnouncementBroadcastManagementQuery
 {
+    public function __construct(private AnnouncementDeliverySummaryQuery $deliverySummaries) {}
+
     /**
      * @return array{
      *   schedules: array<string, array<string, mixed>>,
@@ -43,58 +43,11 @@ final class AnnouncementBroadcastManagementQuery
             ->orderByDesc('scheduled_for')
             ->limit(100)
             ->get();
-        $runIds = array_values($runs
-            ->map(static fn (AnnouncementBroadcastRun $run): string => (string) $run->id)
-            ->values()
-            ->all());
-        $contentIds = array_values($runs
-            ->map(static fn (AnnouncementBroadcastRun $run): string => (string) $run->content_item_id)
-            ->unique()
-            ->values()
-            ->all());
-        /** @var array<string,list<NotificationDelivery>> $deliveriesByRun */
-        $deliveriesByRun = [];
-        /** @var array<string,int> $readByRun */
-        $readByRun = [];
-
-        if ($runIds !== [] && $contentIds !== []) {
-            $messages = NotificationMessage::query()
-                ->where('notification_type', 'alliance.announcement')
-                ->where('subject_type', 'content_item')
-                ->whereIn('subject_id', $contentIds)
-                ->orderByDesc('created_at')
-                ->limit(1000)
-                ->get();
-            /** @var array<string,string> $runByMessage */
-            $runByMessage = [];
-
-            foreach ($messages as $message) {
-                $metadata = is_array($message->metadata) ? $message->metadata : [];
-                $runId = isset($metadata['broadcast_run_id']) ? (string) $metadata['broadcast_run_id'] : '';
-                if ($runId === '' || ! in_array($runId, $runIds, true)) {
-                    continue;
-                }
-
-                $runByMessage[(string) $message->id] = $runId;
-                if ($message->read_at !== null) {
-                    $readByRun[$runId] = ($readByRun[$runId] ?? 0) + 1;
-                }
-            }
-
-            if ($runByMessage !== []) {
-                $deliveries = NotificationDelivery::query()
-                    ->whereIn('notification_message_id', array_keys($runByMessage))
-                    ->orderByDesc('created_at')
-                    ->limit(5000)
-                    ->get();
-                foreach ($deliveries as $delivery) {
-                    $runId = $runByMessage[(string) $delivery->notification_message_id] ?? null;
-                    if ($runId !== null) {
-                        $deliveriesByRun[$runId][] = $delivery;
-                    }
-                }
-            }
+        $contentByRun = [];
+        foreach ($runs as $run) {
+            $contentByRun[(string) $run->id] = (string) $run->content_item_id;
         }
+        $summaries = $this->deliverySummaries->forRuns($allianceId, $contentByRun);
 
         $runsByContent = [];
         foreach ($runs as $run) {
@@ -103,19 +56,7 @@ final class AnnouncementBroadcastManagementQuery
                 continue;
             }
 
-            $deliveryCounts = array_fill_keys(array_map(
-                static fn (DeliveryStatus $status): string => $status->value,
-                DeliveryStatus::cases(),
-            ), 0);
-            $failedDeliveryIds = [];
-            foreach ($deliveriesByRun[(string) $run->id] ?? [] as $delivery) {
-                $deliveryCounts[$delivery->status->value]++;
-                if ($delivery->status === DeliveryStatus::Failed
-                    && $delivery->attempt_count < $delivery->max_attempts
-                    && count($failedDeliveryIds) < 50) {
-                    $failedDeliveryIds[] = (string) $delivery->id;
-                }
-            }
+            $summary = $summaries[(string) $run->id];
 
             $runsByContent[$contentId][] = [
                 'id' => (string) $run->id,
@@ -127,9 +68,10 @@ final class AnnouncementBroadcastManagementQuery
                 'skippedCount' => $run->skipped_count,
                 'suppressedCount' => $run->suppressed_count,
                 'replayedCount' => $run->replayed_count,
-                'deliveryCounts' => $deliveryCounts,
-                'readCount' => $readByRun[(string) $run->id] ?? 0,
-                'failedDeliveryIds' => $failedDeliveryIds,
+                'deliveryCounts' => $summary->deliveryCounts,
+                'readCount' => $summary->readCount,
+                'retryCandidateCount' => $summary->retryCandidateCount,
+                'failedDeliveryIds' => $summary->failedDeliveryIds,
                 'queuedAt' => $run->queued_at?->toIso8601String(),
             ];
         }

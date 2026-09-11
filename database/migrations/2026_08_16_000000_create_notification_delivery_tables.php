@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -34,6 +35,8 @@ return new class extends Migration
             );
             $table->index(['subject_type', 'subject_id']);
         });
+
+        DB::statement("CREATE INDEX notification_message_broadcast_scope ON notification_messages (notification_type, subject_type, (metadata->>'alliance_id'), (metadata->>'broadcast_run_id'), subject_id)");
 
         Schema::create('notification_preferences', function (Blueprint $table): void {
             $table->ulid('id')->primary();

@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    retryCandidateSummary:
+      '{selected} dari {total} kegagalan di bawah batas percobaan ditampilkan untuk dicoba ulang.',
     eyebrow: 'Konten aliansi',
     hubTitle: 'Pusat konten',
     manageContent: 'Kelola konten',

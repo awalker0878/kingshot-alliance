@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    retryCandidateSummary:
+      'Deneme sınırının altındaki {total} başarısızlıktan {selected} tanesi yeniden denemek için gösteriliyor.',
     eyebrow: 'İttifak içeriği',
     hubTitle: 'İçerik merkezi',
     manageContent: 'İçeriği yönet',

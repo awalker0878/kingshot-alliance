@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    retryCandidateSummary:
+      'Wyświetlono {selected} z {total} błędów poniżej limitu prób do ponowienia.',
     eyebrow: 'Treści sojuszu',
     hubTitle: 'Centrum treści',
     manageContent: 'Zarządzaj treścią',

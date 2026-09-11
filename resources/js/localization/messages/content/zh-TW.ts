@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    retryCandidateSummary: '共 {total} 次失敗尚未達到嘗試上限，顯示其中 {selected} 次供重試。',
     eyebrow: '聯盟內容',
     hubTitle: '內容中心',
     manageContent: '管理內容',

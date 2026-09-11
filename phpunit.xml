@@ -54,6 +54,7 @@
             <directory suffix="Test.php">tests/ReadModels/AllianceAssistant/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/AllianceDashboard/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/AllianceGovernance/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/AnnouncementBroadcastManagement/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/BotCommands/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/CommandOverview/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/EventAnalysis/Feature</directory>
@@ -104,6 +105,7 @@
             <directory suffix="Test.php">tests/Contexts/Operations/Events/Architecture</directory>
             <directory suffix="Test.php">tests/Contexts/Platform/Integrations/Architecture</directory>
             <directory suffix="Test.php">tests/ReadModels/AllianceAssistant/Architecture</directory>
+            <directory suffix="Test.php">tests/ReadModels/AnnouncementBroadcastManagement/Architecture</directory>
             <directory suffix="Test.php">tests/ReadModels/EventManagement/Architecture</directory>
             <directory suffix="Test.php">tests/ReadModels/IntelligenceSignals/Architecture</directory>
             <directory suffix="Test.php">tests/ReadModels/Progression/Architecture</directory>

@@ -96,6 +96,8 @@ const messages = {
     deliveryHistory: 'Delivery history',
     deliveryRunSummary:
       '{recipients} recipients · {sent} sent · {queued} queued · {failed} failed · {read} read',
+    retryCandidateSummary:
+      '{selected} shown for retry out of {total} failures below the attempt limit.',
     retryFailed: 'Retry {count} failed',
     retryingFailures: 'Queuing retries…',
     noDeliveryHistory: 'No Alliance Notice deliveries have been created yet.',

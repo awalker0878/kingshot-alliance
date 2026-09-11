@@ -37,6 +37,10 @@ Reaction mutations do not enqueue Communications notifications or broadcast deli
 
 The management page distinguishes a recorded occurrence from Pending preparation and completed recipient processing, with eligible, skipped, suppressed and replayed counters. Recurrence configuration remains separate. Queued preparation is not provider success. Larger-history projection limits remain an explicit HARD-106 finding; authoritative preparation counters are not reconstructed from sampled deliveries.
 
+Displayed read and channel-status totals include all retained matching messages/routes for the selected broadcast run, not the first 1,000 messages or 5,000 deliveries. A logical read is counted once even when it has multiple routes. These are retained-record outcomes, not an immutable all-time audience total or proof of human completion.
+
+When more than 50 failures are below their attempt limit, the manager identifies how many are selected and the complete candidate count. Remaining candidates are not omitted from the total. Counts and candidate state can change while another worker runs; the retry Action remains authoritative.
+
 Retry is selective and bounded to 50 concrete failed delivery IDs. Content reauthorizes the manager and run scope; Communications then revalidates notification type, content subject, run metadata, failed state and remaining attempt budget under lock. Sent, unrelated and exhausted deliveries are not reset.
 
 Cancelling a recurring rule requires the shared accessible confirmation dialog. Existing run and delivery evidence remains available after cancellation. Unfinished recipients stop and obsolete queued external messages fail current source authorization; already-handed-off provider effects cannot be recalled.

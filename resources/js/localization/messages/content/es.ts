@@ -2,6 +2,8 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    retryCandidateSummary:
+      'Se muestran {selected} de {total} fallos por debajo del límite de intentos para reintentar.',
     eyebrow: 'Contenido de la alianza',
     hubTitle: 'Centro de contenido',
     manageContent: 'Gestionar contenido',
