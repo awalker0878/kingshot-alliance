@@ -40,6 +40,7 @@ Examples of V3 cross-context composition include:
 - `ReadModels/ContributionHistory` for contribution-history presentation over Intelligence-owned contribution facts;
 - `ReadModels/AnnouncementBroadcastManagement` for current-manager catalogue presentation, independent category/media and per-item revision/run pages, and exact retained outcomes composed from Communications; [ADR-0052](../architecture/adr/0052-bounded-current-manager-content-workspaces.md) defines the owner boundary and cursor semantics;
 - `ReadModels/RecruitmentManagement` for the filterable, cursor-paginated recruitment pipeline, authorized candidate-detail composition with independent bounded history pages, and authorized Transfer Campaign workspace over Recruitment, Membership, Transfer, Evidence and Communications facts;
+- `ReadModels/TransferManagement` for authorized Transfer overview and management composition over Alliance, Player and GameWorld owners; the context HTTP controller remains a thin adapter for plan mutations.
 - `ReadModels/Roster` for roster/history/intelligence presentation and the factual Member Capability Profile over Alliance, GameWorld, Operations and Intelligence facts;
 - `ReadModels/KingdomIntelligence` and `ReadModels/SharedKingdomIntelligence` for composed intelligence screens, including the bounded owner-linked Kingdom Intelligence Timeline;
 - `ReadModels/AllianceAssistant` for closed, source-backed questions over exact authorized owner projections and navigation-only write handoffs;

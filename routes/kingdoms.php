@@ -29,6 +29,7 @@ use App\ReadModels\Roster\Http\Controllers\RosterImportReadController;
 use App\ReadModels\Roster\Http\Controllers\RosterIntelligenceController;
 use App\ReadModels\Roster\Http\Controllers\RosterReadController;
 use App\ReadModels\SharedKingdomIntelligence\Http\Controllers\KingdomIntelligenceSharingReadController;
+use App\ReadModels\TransferManagement\Http\Controllers\TransferManagementPageController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->group(function (): void {
@@ -50,8 +51,8 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
     Route::get('/alliance/kingdom-ingestion/manage', [KingdomIngestionController::class, 'manage'])->name('alliance.kingdom-ingestion.manage');
     Route::get('/alliance/kingdom-sharing', [KingdomIntelligenceSharingReadController::class, 'index'])->name('alliance.kingdom-sharing.index');
     Route::get('/alliance/kingdom-sharing/manage', [KingdomIntelligenceSharingReadController::class, 'manage'])->name('alliance.kingdom-sharing.manage');
-    Route::get('/alliance/transfers', [TransferPlanController::class, 'index'])->name('alliance.transfers.index');
-    Route::get('/alliance/transfers/manage', [TransferPlanController::class, 'manage'])->name('alliance.transfers.manage');
+    Route::get('/alliance/transfers', [TransferManagementPageController::class, 'index'])->name('alliance.transfers.index');
+    Route::get('/alliance/transfers/manage', [TransferManagementPageController::class, 'manage'])->name('alliance.transfers.manage');
     Route::get('/alliance/transfers/readiness', [TransferReadinessController::class, 'index'])->name('alliance.transfers.readiness');
     Route::get('/alliance/transfers/{plan}/participants/{participant}/observations', [TransferReadinessController::class, 'history'])->name('alliance.transfers.participants.observations.index');
     Route::get('/alliance/transfers/{plan}/participants/{participant}/blockers', [TransferWorkflowHistoryController::class, 'blockers'])->name('alliance.transfers.participants.blockers.index');

@@ -66,6 +66,7 @@
             <directory suffix="Test.php">tests/ReadModels/RecruitmentManagement/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/Roster/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/TerritoryPlanning/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/TransferManagement/Feature</directory>
             <directory suffix="Test.php">tests/Shared/Infrastructure/Pagination/Feature</directory>
             <directory suffix="Test.php">tests/Shared/Infrastructure/Security/Feature</directory>
             <directory suffix="Test.php">tests/System/Acceptance/Feature</directory>

@@ -180,3 +180,7 @@ Self-transfer assessment, including Assistant answers, delegates current persist
 ## Bounded verification overview
 
 The dashboard, Assistant and Officer Brief consume the owner-local `TransferVerificationPreviewQuery`, not the eager participant collection. It evaluates at most 25 active participants with the canonical eligibility query, retains complete SQL totals/manual blockers, and makes unassessed coverage explicit. An incomplete preview is never verified. Full current per-participant checks remain reachable through readiness pages; no derived status becomes a write authority. [ADR-0051](../../adr/0051-bounded-transfer-verification-overviews.md) defines counts, coverage, dependency direction and operational limits.
+
+## Management read ownership
+
+The overview and management GET adapters and transport projection live in `ReadModels/TransferManagement`, following [ADR-0001](../../adr/0001-composed-management-reads-and-scoped-cursors.md). Every projection rechecks the current Transfer View or Manage authority before loading plan data. The overview no longer loads a complete unused cohort catalogue; it projects only cohorts belonging to the bounded visible participant page. The existing current/mutable-plan queries remain the authoritative selection rules. Plan writes stay with the context Actions and thin TransferPlanController; no Context imports this ReadModel and no compatibility controller aliases remain. Remaining management catalogue/selector bounds are tracked by HARD-095 rather than described as complete.

@@ -50,7 +50,6 @@ const props = defineProps<{
   alliance: { id: string; name: string; kingdom: string };
   canManage: boolean;
   plan: Plan | null;
-  cohorts: Cohort[];
   participants: ParticipantPage<Participant>;
   participantSummary: ParticipantSummary | null;
 }>();
