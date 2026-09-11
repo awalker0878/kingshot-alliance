@@ -98,23 +98,23 @@ final readonly class ProcessNotificationDigests
             $active = [];
             $latestDue = $now;
             foreach ($memberIds as $deliveryId) {
-                $delivery = NotificationDelivery::query()->whereKey($deliveryId)->lockForUpdate()->first();
+                $delivery = $this->memberForUpdate($dispatch, $deliveryId);
                 if (! $delivery instanceof NotificationDelivery || $delivery->status !== DeliveryStatus::Queued) {
-                    DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+                    $this->detachMember($dispatch, $deliveryId);
 
                     continue;
                 }
                 $message = NotificationMessage::query()->whereKey($delivery->notification_message_id)->first();
                 if (! $message instanceof NotificationMessage) {
                     $this->cancelDelivery($delivery, 'Notification message no longer exists.');
-                    DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+                    $this->detachMember($dispatch, $deliveryId);
 
                     continue;
                 }
 
                 if (! $this->sourceAuthorization->allows($message->source())) {
                     $this->cancelDelivery($delivery, 'Notification source no longer authorizes this recipient.');
-                    DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+                    $this->detachMember($dispatch, $deliveryId);
 
                     continue;
                 }
@@ -127,7 +127,7 @@ final readonly class ProcessNotificationDigests
                         ->first();
                     if (! $endpoint instanceof NotificationEndpoint || ! $endpoint->enabled) {
                         $this->cancelDelivery($delivery, 'The selected notification destination is no longer enabled.');
-                        DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+                        $this->detachMember($dispatch, $deliveryId);
 
                         continue;
                     }
@@ -139,7 +139,7 @@ final readonly class ProcessNotificationDigests
                 if ($routingPlayerId !== null
                     && $this->players->findOwnedByUser((int) $message->recipient_user_id, $routingPlayerId) === null) {
                     $this->cancelDelivery($delivery, 'The notification Governor is no longer owned by this account.');
-                    DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+                    $this->detachMember($dispatch, $deliveryId);
 
                     continue;
                 }
@@ -169,7 +169,7 @@ final readonly class ProcessNotificationDigests
                 }
                 if ($resolved === null) {
                     $this->cancelDelivery($delivery, 'Recipient routing policy no longer permits this destination.');
-                    DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+                    $this->detachMember($dispatch, $deliveryId);
 
                     continue;
                 }
@@ -179,7 +179,7 @@ final readonly class ProcessNotificationDigests
                         'due_at' => $resolved->dueAt,
                         'routing_reason' => $resolved->reason,
                     ])->save();
-                    DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+                    $this->detachMember($dispatch, $deliveryId);
 
                     continue;
                 }
@@ -189,7 +189,7 @@ final readonly class ProcessNotificationDigests
                         'due_at' => $resolved->dueAt,
                         'routing_reason' => $resolved->reason,
                     ])->save();
-                    DB::table('notification_digest_members')->where('notification_delivery_id', $deliveryId)->delete();
+                    $this->detachMember($dispatch, $deliveryId);
                     if ($resolved->dueAt->greaterThan($latestDue)) {
                         $latestDue = $resolved->dueAt;
                     }
@@ -307,13 +307,13 @@ final readonly class ProcessNotificationDigests
 
             if ($outcome->delivered || ! $retryable) {
                 foreach ($deliveryIds as $deliveryId) {
-                    $delivery = NotificationDelivery::query()->whereKey($deliveryId)
-                        ->whereExists(static function ($members) use ($attempt): void {
-                            $members->selectRaw('1')->from('notification_digest_members')
-                                ->whereColumn('notification_delivery_id', 'notification_deliveries.id')
-                                ->where('notification_digest_dispatch_id', $attempt->deliveryId);
-                        })->lockForUpdate()->first();
-                    if (! $delivery instanceof NotificationDelivery || $delivery->status !== DeliveryStatus::Queued) {
+                    $delivery = $this->memberForUpdate($dispatch, $deliveryId);
+                    if (! $delivery instanceof NotificationDelivery) {
+                        $this->detachMember($dispatch, $deliveryId);
+
+                        continue;
+                    }
+                    if ($delivery->status !== DeliveryStatus::Queued) {
                         continue;
                     }
                     $delivery->forceFill($outcome->delivered ? [
@@ -352,8 +352,13 @@ final readonly class ProcessNotificationDigests
             ->orderBy('notification_delivery_id')->limit(self::MAX_MEMBERS)
             ->pluck('notification_delivery_id');
         foreach ($ids as $id) {
-            $delivery = NotificationDelivery::query()->whereKey($id)->lockForUpdate()->first();
-            if (! $delivery instanceof NotificationDelivery || $delivery->status !== DeliveryStatus::Queued) {
+            $delivery = $this->memberForUpdate($dispatch, (string) $id);
+            if (! $delivery instanceof NotificationDelivery) {
+                $this->detachMember($dispatch, (string) $id);
+
+                continue;
+            }
+            if ($delivery->status !== DeliveryStatus::Queued) {
                 continue;
             }
             $delivery->forceFill([
@@ -365,6 +370,27 @@ final readonly class ProcessNotificationDigests
             ])->save();
             $this->recordBroadcastOutcome($delivery, $outcome, false, (int) $dispatch->attempt_count, exhausted: true);
         }
+    }
+
+    /** A join ID is not authority over another recipient's route or destination. */
+    private function memberForUpdate(NotificationDigestDispatch $dispatch, string $deliveryId): ?NotificationDelivery
+    {
+        return NotificationDelivery::query()->whereKey($deliveryId)
+            ->where('channel', $dispatch->channel->value)
+            ->where('notification_endpoint_id', $dispatch->notification_endpoint_id)
+            ->whereIn('notification_message_id', NotificationMessage::query()->select('id')
+                ->where('recipient_user_id', $dispatch->recipient_user_id))
+            ->whereExists(static function ($members) use ($dispatch): void {
+                $members->selectRaw('1')->from('notification_digest_members')
+                    ->whereColumn('notification_delivery_id', 'notification_deliveries.id')
+                    ->where('notification_digest_dispatch_id', $dispatch->id);
+            })->lockForUpdate()->first();
+    }
+
+    private function detachMember(NotificationDigestDispatch $dispatch, string $deliveryId): void
+    {
+        DB::table('notification_digest_members')->where('notification_digest_dispatch_id', $dispatch->id)
+            ->where('notification_delivery_id', $deliveryId)->delete();
     }
 
     private function recordBroadcastOutcome(
