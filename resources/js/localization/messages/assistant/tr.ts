@@ -40,6 +40,9 @@ const messages = {
       observation: 'Rakibimiz hakkında ne gözlemledik?',
     },
     answers: {
+      transferVerificationIncomplete:
+        'Bu özet, {total} transfer katılımcısının {assessed} tanesini değerlendirdi. En az {count} kişi dikkat gerektiriyor; {unassessed} kişi burada değerlendirilmedi. Güncel kontroller için transfer hazırlığını açın.',
+
       help: 'Etkinlikler, rosterın, İttifak rehberleri ve yetkili gözlemler üzerinden yanıt verebilirim. Kaynaksız KingShot bilgisi kullanmam.',
       unsupported:
         'Yalnızca yetkili Etkinlikler, rosterın, İttifak rehberleri ve gözlemler üzerinden yanıt verebilirim. Buradan değişiklik yapamam.',

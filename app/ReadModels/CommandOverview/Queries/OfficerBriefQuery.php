@@ -98,9 +98,18 @@ final readonly class OfficerBriefQuery
                 'count' => (int) ($item['count'] ?? 0),
                 'actionable' => ($item['actionable'] ?? false) === true,
                 'handoff' => is_array($item['handoff'] ?? null) ? $item['handoff'] : null,
+                'coverage' => is_array($item['metadata']['coverage'] ?? null) ? $item['metadata']['coverage'] : null,
             ],
             $command['items'],
         );
+
+        $transferCoverage = null;
+        foreach ($facts as $fact) {
+            if ($fact['code'] === 'transfer_verification') {
+                $transferCoverage = $fact['coverage'];
+                break;
+            }
+        }
 
         return $this->brief(
             group: 'daily_officer',
@@ -109,7 +118,7 @@ final readonly class OfficerBriefQuery
             owner: 'read_models.alliance_command',
             canonicalUrl: '/',
             facts: $facts,
-        );
+        ) + ['assessmentCoverage' => $transferCoverage];
     }
 
     /**

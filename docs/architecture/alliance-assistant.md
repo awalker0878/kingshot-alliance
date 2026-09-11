@@ -161,3 +161,7 @@ Tests must enforce:
 - recognized write handoffs perform zero domain mutation;
 - all nine bounded default prompts remain discoverable;
 - extension locale maps remain complete/typed and Assistant-only localization remains dynamically loaded.
+
+## Transfer overview coverage
+
+Operational Transfer questions consume the same owner-authorized bounded overview as the dashboard. Answers and evidence distinguish known affected participants from unassessed participants; an incomplete projection does not certify clearance. The current self-Transfer question still evaluates its precise subject with canonical eligibility. See [ADR-0051](adr/0051-bounded-transfer-verification-overviews.md); no Assistant-specific eligibility rule or persisted assessment is introduced.

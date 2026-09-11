@@ -43,6 +43,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: 'ต้องประเมินเพิ่มเติม' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          'ผู้เข้าร่วมการย้ายอย่างน้อย {count} คนต้องได้รับการตรวจสอบ และอีก {unassessed} คนยังไม่ได้รับการประเมินในภาพรวมนี้',
+      },
+
       title: 'หน้าหลัก',
       eyebrow: 'ภาพรวมผู้ว่าการ',
       welcome: 'ยินดีต้อนรับ ผู้ว่าการ {name}',

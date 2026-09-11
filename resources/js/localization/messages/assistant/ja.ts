@@ -40,6 +40,9 @@ const messages = {
       observation: '相手について何を観察していますか？',
     },
     answers: {
+      transferVerificationIncomplete:
+        'この概要では移転参加者 {total} 人のうち {assessed} 人を評価しました。少なくとも {count} 人に確認が必要で、{unassessed} 人はここでは未評価です。最新の確認には移転準備を開いてください。',
+
       help: 'イベント、自分のロスター、同盟ガイド、権限のある観察情報から回答できます。出典のない KingShot の知識は使用しません。',
       unsupported:
         '権限のあるイベント、自分のロスター、同盟ガイド、観察情報からのみ回答できます。ここから変更を行うことはできません。',

@@ -40,6 +40,9 @@ const messages = {
       observation: 'Chúng ta đã quan sát gì về đối thủ?',
     },
     answers: {
+      transferVerificationIncomplete:
+        'Tổng quan này đã đánh giá {assessed} trong số {total} người tham gia chuyển. Ít nhất {count} người cần được chú ý; {unassessed} người chưa được đánh giá ở đây. Mở mục sẵn sàng chuyển để kiểm tra thông tin hiện tại.',
+
       help: 'Tôi có thể trả lời từ Sự kiện, roster của bạn, hướng dẫn Liên minh và các quan sát được cấp quyền. Tôi không dùng kiến thức KingShot không có nguồn.',
       unsupported:
         'Tôi chỉ có thể trả lời từ Sự kiện được cấp quyền, roster của bạn, hướng dẫn Liên minh và quan sát. Tôi không thể thực hiện thay đổi từ đây.',

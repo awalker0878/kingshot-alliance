@@ -43,6 +43,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: '需要进一步评估' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          '至少有 {count} 名迁移参与者需要关注；此概览尚未评估 {unassessed} 名参与者',
+      },
+
       title: '首页',
       eyebrow: '总督概览',
       welcome: '欢迎，总督 {name}',

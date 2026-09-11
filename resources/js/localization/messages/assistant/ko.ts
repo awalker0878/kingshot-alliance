@@ -40,6 +40,9 @@ const messages = {
       observation: '상대에 대해 무엇을 관찰했나요?',
     },
     answers: {
+      transferVerificationIncomplete:
+        '이 개요는 이전 참가자 {total}명 중 {assessed}명을 평가했습니다. 최소 {count}명에게 확인이 필요하며 {unassessed}명은 여기서 평가되지 않았습니다. 현재 상태를 확인하려면 이전 준비를 여세요.',
+
       help: '이벤트, 내 로스터, 동맹 가이드와 권한이 있는 관찰 정보로 답할 수 있습니다. 출처 없는 KingShot 지식은 사용하지 않습니다.',
       unsupported:
         '권한이 있는 이벤트, 내 로스터, 동맹 가이드와 관찰 정보로만 답할 수 있습니다. 여기서 변경 작업은 할 수 없습니다.',

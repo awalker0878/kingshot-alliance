@@ -243,3 +243,7 @@ Capability-specific product/reference pages may strengthen these obligations but
 ## Announcement hardening boundary
 
 [ADR-0049](../architecture/adr/0049-bounded-announcement-occurrences.md) defines revision/generation-bound occurrences, finite membership pages and atomic recipient progress. Pending preparation differs from delivery success; suppression is not replay. HARD-104 awaits its containing milestone, while HARD-106 separately tracks large-history projection and catalogue bounds in the [hardening ledger](codebase-hardening-delivery-ledger.md). These findings do not revoke the delivered game-parity features or certify the entire Content audit.
+
+## Transfer overview completeness
+
+The officer overview shows known Transfer attention findings and explicitly reports participants not assessed in that overview. It does not claim large plans are verified because a bounded preview is clear. The Assistant and delivered Officer Brief preserve the same qualification. Current per-participant checks remain available through paginated readiness. [ADR-0051](../architecture/adr/0051-bounded-transfer-verification-overviews.md) is authoritative for this coverage contract; management catalogue completion remains tracked under HARD-095.

@@ -70,3 +70,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0049: Bounded announcement occurrences and recipient progress](0049-bounded-announcement-occurrences.md)
 
 - [ADR-0050: Complete scoped announcement outcome projections](0050-scoped-announcement-outcome-projections.md)
+
+- [ADR-0051: Bounded Transfer verification overviews with explicit coverage](0051-bounded-transfer-verification-overviews.md)

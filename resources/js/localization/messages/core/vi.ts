@@ -48,6 +48,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: 'Cần đánh giá thêm' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          'Ít nhất {count} người tham gia chuyển cần được chú ý; {unassessed} người chưa được đánh giá trong tổng quan này',
+      },
+
       title: 'Trang chủ',
       eyebrow: 'Tổng quan Thống đốc',
       welcome: 'Chào mừng, Thống đốc {name}',

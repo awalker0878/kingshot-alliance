@@ -12,7 +12,6 @@ use App\Shared\Infrastructure\Pagination\PageSlice;
 use App\Shared\Infrastructure\Pagination\ScopedCursorCodec;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 
 final class TransferParticipantQuery
@@ -84,13 +83,6 @@ final class TransferParticipantQuery
             throw new AuthorizationException;
         }
         TransferPlan::query()->where('alliance_id', $allianceId)->whereKey($planId)->firstOrFail();
-    }
-
-    /** @return Collection<int,TransferParticipant> */
-    public function forPlan(string $allianceId, string $planId, bool $includeWithdrawn = false): Collection
-    {
-        return $this->participantRows($allianceId, $planId, $includeWithdrawn)
-            ->orderByRaw("case direction when 'staying' then 0 when 'outgoing' then 1 else 2 end")->orderByRaw('case when withdrawn_at is null then 0 else 1 end')->orderBy('observed_name')->orderBy('id')->get();
     }
 
     /** @return Builder<TransferParticipant> */

@@ -48,6 +48,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: 'يلزم تقييم إضافي' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          'يحتاج {count} من المشاركين في النقل على الأقل إلى الانتباه؛ ولم يُقيّم {unassessed} منهم في هذه النظرة العامة',
+      },
+
       title: 'الرئيسية',
       eyebrow: 'نظرة عامة على الحاكم',
       welcome: 'مرحباً أيها الحاكم {name}',

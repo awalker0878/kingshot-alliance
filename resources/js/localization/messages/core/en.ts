@@ -459,6 +459,9 @@ const messages = {
         post_event_closeout: 'Post-Event Closeout Brief',
       },
       commandReasons: {
+        transferAssessmentIncomplete:
+          'At least {count} Transfer participants need attention; {unassessed} remain unassessed in this overview',
+
         eventBlockers: '{count} blockers remain for the next verified Event',
         nextEvent: 'The next verified Event has no blocking readiness gaps',
         rosterStaleOrMissing: '{count} Governor observations are stale or missing',
@@ -492,6 +495,8 @@ const messages = {
         },
       },
       commandStates: {
+        assessment_incomplete: 'Further assessment needed',
+
         planning: 'Planning',
         ready: 'Ready',
         active: 'Active',

@@ -10,6 +10,12 @@ test('participant pages retain complete totals, independent drafts and retryable
   await page.locator('#password').fill('password');
   await page.locator('button[type="submit"]').click();
   await page.waitForURL('**/dashboard');
+  const overview = page.getByRole('region', { name: 'Officer overview', exact: true });
+  await expect(overview).toContainText('36 remain unassessed in this overview');
+  await expect(overview).toContainText('Further assessment needed');
+  await expect(overview).not.toContainText(
+    'Current Transfer participants have no verification blockers',
+  );
   await page.goto('/alliance/transfers/readiness');
   const pager = page.getByTestId('transfer-participant-pagination');
   const cards = page.locator('[data-transfer-participant]');

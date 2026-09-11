@@ -48,6 +48,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: '추가 평가 필요' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          '이전 참가자 중 최소 {count}명에게 확인이 필요하며, 이 개요에서 {unassessed}명은 아직 평가되지 않았습니다',
+      },
+
       title: '홈',
       eyebrow: '총독 개요',
       welcome: '환영합니다, 총독 {name}',

@@ -178,3 +178,7 @@ No phase is promoted based on intent or a green subset. The exact immutable cand
 ## Continuous reconciliation rule
 
 If implementation discovers a missing owner boundary, authorization rule, identity ambiguity, provenance requirement, stale/conflict state, query risk, unsupported-mechanic risk, UX/accessibility issue or release requirement, update this contract and its ledger before implementing the correction. Uncertainty is resolved by an explicit state or closed evidence gate, never by inventing Kingshot facts.
+
+## Current Transfer overview assessment boundary
+
+Transfer attention summaries have explicit bounded coverage rather than a whole-plan synchronous assessment. Known findings and unassessed counts remain distinct in the dashboard, Assistant and Officer Brief. No unassessed record is certified or silently treated as complete; the paginated readiness workspace retains current canonical checks. [ADR-0051](../architecture/adr/0051-bounded-transfer-verification-overviews.md) supersedes any implication that an overview always evaluates the complete plan.

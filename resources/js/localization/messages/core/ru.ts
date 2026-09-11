@@ -48,6 +48,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: 'Требуется дальнейшая оценка' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          'Как минимум {count} участников переноса требуют внимания; {unassessed} ещё не оценены в этом обзоре',
+      },
+
       title: 'Главная',
       eyebrow: 'Обзор Губернатора',
       welcome: 'Добро пожаловать, Губернатор {name}',

@@ -39,6 +39,9 @@ const messages = {
       observation: '我们对对手观察到了什么？',
     },
     answers: {
+      transferVerificationIncomplete:
+        '此概览已评估 {total} 名迁移参与者中的 {assessed} 名。至少有 {count} 名需要关注；另有 {unassessed} 名尚未在此评估。请打开迁移准备页面查看当前检查。',
+
       help: '我可以根据活动、你的名单、联盟指南和你有权查看的观察信息回答。我不会使用没有来源的 KingShot 知识。',
       unsupported:
         '我只能根据你有权查看的活动、你的名单、联盟指南和观察信息回答。我不能在这里进行修改。',

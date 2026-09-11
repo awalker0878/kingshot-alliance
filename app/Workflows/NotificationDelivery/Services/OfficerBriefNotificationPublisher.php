@@ -58,6 +58,17 @@ final readonly class OfficerBriefNotificationPublisher
             'post_event_closeout' => 'Post-Event Closeout Brief',
         };
         $body = sprintf('%d factual owner item(s); state: %s; owner: %s.', $count, str_replace('_', ' ', $state), $owner);
+        $coverage = null;
+        if ($group === 'daily_officer' && is_array($brief['assessmentCoverage'] ?? null)) {
+            $source = $brief['assessmentCoverage'];
+            $coverage = ['total' => max(0, (int) ($source['total'] ?? 0)),
+                'assessed' => max(0, (int) ($source['assessed'] ?? 0)),
+                'unassessed' => max(0, (int) ($source['unassessed'] ?? 0)),
+                'complete' => ($source['complete'] ?? false) === true];
+            if ($coverage['unassessed'] > 0) {
+                $body .= sprintf(' Transfer overview is incomplete: %d participants are not assessed; open readiness for current checks.', $coverage['unassessed']);
+            }
+        }
         $isDailyPolicy = $group === 'daily_officer'
             && preg_match('/^daily:\\d{4}-\\d{2}-\\d{2}$/D', $policyKey) === 1;
         $meaningKey = $isDailyPolicy ? $policyKey : $fingerprint;
@@ -85,6 +96,7 @@ final readonly class OfficerBriefNotificationPublisher
                 'canonicalUrl' => $canonicalUrl,
                 'briefFingerprint' => $fingerprint,
                 'policyKey' => $policyKey,
+                'assessmentCoverage' => $coverage,
             ],
         ));
     }

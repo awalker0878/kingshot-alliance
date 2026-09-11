@@ -48,6 +48,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: 'È necessaria un’ulteriore valutazione' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          'Almeno {count} partecipanti al trasferimento richiedono attenzione; {unassessed} non sono ancora valutati in questa panoramica',
+      },
+
       title: 'Home',
       eyebrow: 'Panoramica del Governatore',
       welcome: 'Benvenuto, Governatore {name}',

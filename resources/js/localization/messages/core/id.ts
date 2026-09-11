@@ -48,6 +48,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: 'Perlu penilaian lebih lanjut' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          'Setidaknya {count} peserta transfer perlu diperhatikan; {unassessed} belum dinilai dalam ringkasan ini',
+      },
+
       title: 'Beranda',
       eyebrow: 'Ringkasan Gubernur',
       welcome: 'Selamat datang, Gubernur {name}',

@@ -48,6 +48,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: 'Ek değerlendirme gerekli' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          'En az {count} transfer katılımcısı dikkat gerektiriyor; bu özette {unassessed} kişi henüz değerlendirilmedi',
+      },
+
       title: 'Ana sayfa',
       eyebrow: 'Vali özeti',
       welcome: 'Hoş geldin, Vali {name}',
