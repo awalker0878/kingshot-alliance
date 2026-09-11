@@ -16,6 +16,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferEligibilityOutcome;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferObservationKind;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferSourceType;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferGroup;
+use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomCapacityObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomConditionObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
@@ -233,6 +234,46 @@ final class TransferSelfEligibilityQueryV3Test extends TestCase
         self::assertNull($query->forPlayer($f['actor']->playerId, $f['alliance']->allianceId));
     }
 
+    public function test_self_uses_the_same_official_group_and_observed_and_projected_capacity(): void
+    {
+        $f = $this->outgoingScenario(64851, 64852);
+        $group = TransferGroup::query()->create([
+            'alliance_id' => $f['alliance']->allianceId, 'transfer_window_id' => $f['plan']->transfer_window_id,
+            'official_label' => 'Current official group', 'revision' => 1,
+            'source_type' => 'official_publication', 'source_reference' => 'Current publication', 'observed_at' => $this->now,
+        ]);
+        $group->kingdoms()->attach([$f['participant']->source_kingdom_id, $f['participant']->destination_kingdom_id]);
+        TransferKingdomConditionObservation::query()->create([
+            'alliance_id' => $f['alliance']->allianceId, 'transfer_window_id' => $f['plan']->transfer_window_id,
+            'kingdom_id' => $f['participant']->destination_kingdom_id, 'classification' => 'ordinary',
+            'source_type' => 'in_game', 'source_reference' => 'Current condition', 'observed_at' => $this->now,
+            'fingerprint' => hash('sha256', 'condition fixture'),
+        ]);
+        TransferKingdomCapacityObservation::query()->create([
+            'alliance_id' => $f['alliance']->allianceId, 'transfer_window_id' => $f['plan']->transfer_window_id,
+            'kingdom_id' => $f['participant']->destination_kingdom_id, 'ordinary_invites_used' => 5,
+            'transfer_opens_used' => 2, 'special_invites_available' => 3,
+            'source_type' => 'in_game', 'source_reference' => 'Current capacity', 'observed_at' => $this->now,
+            'fingerprint' => hash('sha256', 'capacity fixture'),
+        ]);
+        DB::table('transfer_capacity_reservations')->insert([
+            'id' => (string) Str::ulid(), 'alliance_id' => $f['alliance']->allianceId,
+            'transfer_window_id' => $f['plan']->transfer_window_id, 'transfer_plan_id' => $f['plan']->id,
+            'transfer_participant_id' => $f['participant']->id, 'target_kingdom_id' => $f['participant']->destination_kingdom_id,
+            'bucket' => 'ordinary_invite', 'state' => 'reserved', 'created_by_player_id' => $f['actor']->playerId,
+            'created_at' => $this->now, 'updated_at' => $this->now,
+        ]);
+        $expected = $this->canonical($f);
+
+        $actual = app(TransferSelfEligibilityQuery::class)->forPlayer($f['actor']->playerId, $f['alliance']->allianceId);
+
+        self::assertNotNull($actual);
+        self::assertSame('Current official group', $actual['targetGroupLabel']);
+        self::assertSame(30, $actual['capacity']['observedOrdinaryInviteRemaining']);
+        self::assertSame(29, $actual['capacity']['projectedOrdinaryInviteRemaining']);
+        self::assertSame($expected, array_intersect_key($actual, $expected));
+    }
+
     /** @param array{actor:PlayerReference,alliance:AllianceReference,plan:TransferPlan,participant:TransferParticipant} $f
      * @return array<string,mixed>
      */
@@ -247,9 +288,21 @@ final class TransferSelfEligibilityQueryV3Test extends TestCase
             'observedAt' => $r->observedAt?->toIso8601String(), 'validUntil' => $r->validUntil?->toIso8601String(),
         ], $assessment->requirements);
 
+        $capacity = $row['capacityProjection'];
+
         return ['outcome' => $assessment->outcome->value, 'requirements' => $requirements, 'primaryAction' => $assessment->primaryAction,
             'evaluatedAt' => $assessment->evaluatedAt->toIso8601String(), 'targetGroupLabel' => $row['officialGroup']?->official_label,
             'targetConditionId' => $row['targetCondition']?->id,
+            'capacity' => $capacity === null ? null : [
+                'observedTotalRemaining' => $capacity->totalRemaining()->value,
+                'projectedTotalRemaining' => $capacity->totalRemaining(true)->value,
+                'observedOrdinaryInviteRemaining' => $capacity->ordinaryInviteRemaining()->value,
+                'projectedOrdinaryInviteRemaining' => $capacity->ordinaryInviteRemaining(true)->value,
+                'observedTransferOpenRemaining' => $capacity->transferOpenRemaining()->value,
+                'projectedTransferOpenRemaining' => $capacity->transferOpenRemaining(true)->value,
+                'observedSpecialInvitesAvailable' => $capacity->specialInviteRemaining()->value,
+                'projectedSpecialInvitesAvailable' => $capacity->specialInviteRemaining(true)->value,
+            ],
         ];
     }
 

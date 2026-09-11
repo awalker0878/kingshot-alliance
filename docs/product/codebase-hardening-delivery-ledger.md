@@ -5,16 +5,16 @@
 - Program state: In progress; the testing-system scope is complete, not the repository-wide production audit.
 - Exact main baseline: `7e780521295e868005ecfee5bd38b33e8215ec49` (remote ref fetched unchanged on 2026-09-10 Toronto).
 - Working branch: `astra/codebase-hardening`.
-- Latest pushed durable checkpoint: `a5cadcec93d9db046c96baf14caeccbbf11b98ca` (HARD-095 member profile slice). The following HARD-097 implementation commit contains the canonical self-query changes described here.
+- Latest pushed durable checkpoint: `bdc8be0794730f90e1bc2fcb457c554789ee7396`; contains HARD-095 at `a5cadcec93d9db046c96baf14caeccbbf11b98ca` and HARD-097 at `3cf898c713775f4c7df65c9ca47149f886fead1e`. This checkpoint adds capacity-parity coverage and resumes Communications auditing without replacing concurrent production work.
 - Draft PR: [#163](https://github.com/awalker0878/kingshot-alliance/pull/163); keep draft and unmerged while other audit work remains.
-- Current item/state: HARD-097 / In progress; duplicate self-eligibility composition is removed and its narrow containing checks pass. HARD-095 remains In progress for dashboard/workspace and blocker/readiness-history bounds.
+- Current item/state: HARD-097 / In progress pending complete milestone verification; targeted containing checks pass. HARD-098 and HARD-099 / Planned record newly traced delivery-worker correctness and authorization gaps. HARD-095 remains In progress for other transfer consumers.
 - Most recently verified gates: all nine normal workflows passed for `e6f29ebbd40687c38a43554facb3ec9ef872ea8c`, actual checkout `4485b87f0ab5aef0f93d2f70f8ae6b088697c22b`: 1,507 PHP cases / 83,068 assertions, all 62 browser cases, full frontend, PHPStan/Pint, fresh durable PostgreSQL, image/staging/recovery and security checks. See [testing validation](../codebase/test-validation-2026-09-10.md). HARD-088 and HARD-096 are reconciled below from that containing evidence, not rerun as new implementation work.
-- Local current checks: PHP 8.5.10, Laravel 13.30.1, PHPUnit 12.5.33 and durable PostgreSQL 18.6. HARD-097 red regressions hydrated 183 observation records and 80 irrelevant previous-target records. Canonical delegation passes all 11 self cases / 49 assertions. Containing Transfer Feature/Architecture, Assistant Feature and Roster Feature pass 95 cases / 714 assertions in 16.499 seconds. Changed production PHPStan and Pint pass. These results are not a new complete application run.
-- Active files: TransferSelfEligibilityQuery, its owner-local behavior and composition tests, ADR-0044, current Transfer ownership/product documentation and test inventory.
-- Remaining current work: complete milestone verification for HARD-097, then finish HARD-095 dashboard aggregates, participant workspaces and complete paginated workflow history. Continue the repository audit afterward.
-- Known failures: none in the executed HARD-097/domain scope after remediation. Remaining unbounded dashboard/workspace/history reads are still material open findings; no complete-program acceptance is claimed.
+- Local current checks: On the reconciled branch, Transfer Feature/Architecture, Assistant, Roster and read-model budget checks pass 144 tests / 4,092 assertions in 16.348 seconds. The additional case verifies identical observed versus reserved capacity and full canonical capacity serialization; original parity cases now compare capacity too. PHP 8.5.10, PostgreSQL 18.6 with durability enabled; Pint passes the changed test. These are targeted checks, not a new complete application run.
+- Active files: Additional TransferSelfEligibilityQueryV3Test capacity coverage, this ledger and test inventory; Communications Delivery worker claims/completion and current recipient/source authorization are being traced next.
+- Remaining current work: Complete containing milestone verification for HARD-097; repair HARD-098 claim eligibility and stale completion fencing, then HARD-099 execution-time source authority. Coordinate other HARD-095 dashboard/workspace/history changes without duplicate implementations or complete-suite launches.
+- Known failures: No failure in the executed 144-case containing scope. Source review confirms digest claim accepts an already active Pending dispatch and both worker completions lack attempt-generation checks; delivery claims also check destination routing ownership but not the queued source authority. These new findings require red regressions and fixes. Remaining unbounded transfer reads remain open.
 - Blockers: local Git network access is unavailable. The full source/history recovery and exact connector publication preserve unrelated work. Local PostgreSQL is available at loopback port 55439 with durability on. Temporary reviewed-preparation tooling must be removed before milestone CI.
-- Exact next action: publish this coherent HARD-097 source/tests/ADR/ledger slice, then resume HARD-095 at AllianceCommandQuery's full-plan participant aggregation. Preserve complete totals and canonical outcomes rather than clipping a page and labelling its size a total. Confirm the latest branch head first.
+- Exact next action: Publish the additional capacity regression and issue records, then reproduce HARD-098 with actual PostgreSQL claims/completions and implement one owner-local claim eligibility rule plus monotonic attempt fencing. Do not overwrite concurrent transfer work or merge the PR.
 - Remaining repository-wide gates: final full PHP/architecture/capability/frontend, production image/staging/recovery, security/dependency/visual checks and the remaining production audit on one final containing candidate. The previous green testing milestone does not close this program.
 
 Checkpoint SHAs are recorded by the following documentation commit; verify that the recorded checkpoint is an ancestor of current branch HEAD. No audit area is complete solely because its paths have been inventoried.
@@ -1401,8 +1401,36 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - State: In progress.
 - Verification required: Canonical/self parity for current conflicts, unknown/untrusted facts, staying/missing targets, correct complete observation counts, current revocation, cross-Alliance/self isolation, bounded hydration and Assistant behavior.
 - Verification result: The self query now delegates current facts to the canonical bounded eligibility query and selects its exact actor participant through the authorized owner query. All duplicate input/assessment/selector/group/condition composition is removed; complete observationCount is a scoped SQL aggregate. Eight additional behavior cases preserve canonical outcome, all requirement/provenance fields, complete counts, target semantics, revocation and bounded hydration. Before remediation two regression cases hydrated 183 and 80 unnecessary observations. All 11 self cases / 49 assertions pass; containing Transfer/Assistant/Roster plus owner architecture passes 95 / 714, with changed PHPStan/Pint clean. The pure composition guard is included. Full milestone gates remain required.
-- Completion evidence: ADR-0044 and TransferSelfEligibilityQueryV3Test / TransferSelfEligibilityCompositionTest; local containing JUnit self-domain.xml records 95 passing cases. Not Complete until containing milestone verification is recorded.
-- Commit SHA: the HARD-097 implementation commit containing this entry, following `a5cadcec93d9db046c96baf14caeccbbf11b98ca`; exact pushed checkpoint recorded by the next update.
+- Completion evidence: ADR-0044 and TransferSelfEligibilityQueryV3Test / TransferSelfEligibilityCompositionTest. Reconciled containing local JUnit hard097-containing.xml records 144 tests / 4,092 assertions; one additional real capacity/reservation parity case protects observed versus projected values. No existing test was removed. Not Complete until containing milestone verification is recorded.
+- Commit SHA: `3cf898c713775f4c7df65c9ca47149f886fead1e`; containing local verification and additional capacity coverage recorded by this checkpoint.
+
+### HARD-098 — Delivery claims and completion are not consistently fenced
+
+- Area: Communications/Delivery immediate and digest workers.
+- Finding: Digest claim locks its dispatch but does not recheck queued/failed-retry/stale-pending eligibility, so two preselected workers can both claim one active dispatch. Both worker completion paths accept any Pending row without matching the immutable attempt count, allowing a stale response to overwrite a newer attempt and its member/outbox state.
+- Current owner: Independent claim predicates in ProcessNotificationDeliveries and ProcessNotificationDigests.
+- Intended authoritative owner: Communications/Delivery owns a shared current claim-eligibility contract and monotonic attempt fencing; adapters own transport only.
+- Rationale: A row lock alone does not preserve eligibility after waiting, and a Pending flag alone does not identify the worker authorized to finalize a result. Lost network acknowledgements must remain explicit at-least-once delivery limitations, not invented exactly-once guarantees.
+- Remediation: Recheck the complete due/status/retry/lease/budget predicate under the row lock, fence completion by attempt count, preserve atomic delivery/digest/member/outbox transitions and add actual stale-selection/worker regressions. Review exhausted lease handling without queue starvation or silently losing ambiguous outcomes.
+- State: Planned.
+- Verification required: Current lease and retry exclusion, stale claim recovery, old completion rejection, member/outbox preservation, max-attempt behavior, due-time boundaries, PostgreSQL concurrency, containing Communications behavior and architecture/static gates.
+- Verification result: Both concrete worker sources and all attempt_count mutation/retry paths inspected. Manual retry does not reset attempt counts. Red regressions and implementation are next.
+- Completion evidence: pending.
+- Commit SHA: pending.
+
+### HARD-099 — External delivery does not reauthorize queued source authority
+
+- Area: Communications/Delivery claims and NotificationDelivery source publishers.
+- Finding: Queue-time Officer Brief and Intelligence publishers verify source authority, but immediate/digest claims recheck only destination routing and optional routing-Player ownership. Account-scoped destinations can bypass original message-Player ownership, and source membership or rank can be revoked before publication.
+- Current owner: Queue-time source authorization in owner/workflow publishers; destination authorization in Communications workers.
+- Intended authoritative owner: Current source-specific eligibility remains with each authoritative capability, consumed through an explicit delivery-boundary contract before provider work; destination policy remains Communications-owned.
+- Rationale: A stored notification payload or recipient endpoint must not become a durable grant of source data access. Public/account-security messages have distinct rules; a blanket Alliance rule would be incorrect.
+- Remediation: Inventory every concrete notification type, reproduce source revocation and Governor transfer through account-scoped destinations, then implement current owner authorization for immediate and digest publication without cross-context model reach-through or network calls in database transactions.
+- State: Planned.
+- Verification required: Queue/execute authority transitions, demotion and membership revocation, account/Governor transfer, mixed eligible/ineligible digests, public/account-security behavior, cross-tenant isolation and no unauthorized provider call.
+- Verification result: Officer/Intelligence queue guards and both worker claim paths traced. Production type inventory and red behavioral tests remain required before choosing the policy contract.
+- Completion evidence: pending.
+- Commit SHA: pending.
 
 ## Repository audit coverage
 
@@ -1415,7 +1443,7 @@ All rows below remain Planned until actual production paths have been traced. Th
 | Alliance | Access authority/write-state, role lifecycle, direct/bulk role adapters, rank delegation and system-role consumers traced; defects HARD-045/046/047. Remaining lifecycle, membership/recruitment/content and consumer projections still require audit | In progress |
 | Operations | Events, participation, rallies, King Perks, results/Bear Hunt and reminders | Planned |
 | Intelligence | Evidence/Roster structured pipeline and all-family GameEvidence retention/redaction/summary queries verified under HARD-008/010/013–017; observations, other evidence families, ingestion, contributions and projections/signals remain | In progress |
-| Communications | Preferences/recipients, inbox, delivery channels, digests, retry/idempotency and revocation | Planned |
+| Communications | Immediate/digest claim, completion, routing and producer authority traced; HARD-098/099 record lease/fencing and source-reauthorization findings. Preferences, inbox, remaining transports and retention still require audit | In progress |
 | Platform | DataGovernance account request/cancel/process traced with HARD-026–028 findings; administration, integrations/API credentials, webhooks, other retention and operational controls remain | In progress |
 | Workflows/ReadModels | NotificationDelivery authority/mutations verified under HARD-005; progression prerequisite provenance under HARD-012; other orchestration, dashboards and Assistant/API projections remain | In progress |
 | Infrastructure/entry points | Scheduler registration/commands verified by HARD-003; route authorization, shared mechanisms, queues/listeners/outbox and middleware audit remain | In progress |
