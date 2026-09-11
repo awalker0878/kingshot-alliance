@@ -22,6 +22,28 @@ export function viewportTiles(
   return result;
 }
 
+/** The initial shell covers a fractional top-edge prefix rounded beneath a sticky bar. */
+export function viewportCapturePlan(
+  top: number,
+  height: number,
+  viewportHeight: number,
+  inset: number,
+): {
+  shellPrefix: { top: number; height: number } | null;
+  tiles: { top: number; height: number }[];
+} {
+  if (!Number.isSafeInteger(inset) || inset < 0 || inset >= viewportHeight)
+    throw new Error('A readiness overlay must leave a visible capture region.');
+  const start = Math.max(top, inset);
+  const prefixHeight = start - top;
+  if (prefixHeight >= height)
+    throw new Error('The initial overlay covers the entire readiness region.');
+  return {
+    shellPrefix: prefixHeight === 0 ? null : { top, height: prefixHeight },
+    tiles: viewportTiles(start, height - prefixHeight, viewportHeight - inset),
+  };
+}
+
 /** Fail if Chromium returns a clipped or single-background raster for populated content. */
 export function assertViewportRaster(png: Buffer, width: number, height: number): void {
   if (

@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 import test from 'node:test';
-import { assertViewportRaster, viewportTiles } from '../Support/viewportRaster.ts';
+import {
+  assertViewportRaster,
+  viewportCapturePlan,
+  viewportTiles,
+} from '../Support/viewportRaster.ts';
 
 const fixtures: { format: string; filter: number; base64: string }[] = JSON.parse(
   readFileSync(new URL('../Fixtures/viewport-raster.json', import.meta.url), 'utf8'),
@@ -51,4 +55,20 @@ test('a solid-color raster is not accepted as populated readiness content', () =
   compressed.copy(idat, 8);
   const png = Buffer.concat([original.subarray(0, 33), idat, original.subarray(-12)]);
   assert.throws(() => assertViewportRaster(png, 3, 2), /single background color/);
+});
+
+test('rounded initial edges remain covered by the shell and all later pixels by clear viewport tiles', () => {
+  const plan = viewportCapturePlan(103, 28587, 844, 104);
+  assert.deepEqual(plan.shellPrefix, { top: 103, height: 1 });
+  let next = 104;
+  for (const tile of plan.tiles) {
+    assert.equal(tile.top, next);
+    assert.ok(tile.height <= 740);
+    next += tile.height;
+  }
+  assert.equal(next, 103 + 28587);
+  assert.equal(viewportCapturePlan(87, 17989, 1000, 87).shellPrefix, null);
+  assert.equal(viewportCapturePlan(87, 17989, 1000, 87).tiles[0].height, 913);
+  assert.throws(() => viewportCapturePlan(0, 10, 844, 844), /overlay/);
+  assert.throws(() => viewportCapturePlan(0, 10, 844, 20), /overlay/);
 });

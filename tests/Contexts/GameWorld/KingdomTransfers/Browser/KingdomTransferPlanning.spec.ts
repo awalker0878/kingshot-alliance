@@ -35,6 +35,10 @@ async function openTransferPlanning(page: Page): Promise<void> {
 test('Kingdom Transfer Planning keeps eligibility, verification, readiness, and reviewed evidence distinct', async ({
   page,
 }, testInfo) => {
+  // Capturing every painted viewport is more work than the old incomplete full-page
+  // texture. The first 19-tile desktop trial needed 31.3s; mobile needs 39 tiles.
+  // Bound only this complete-raster case, without changing retries or other tests.
+  test.setTimeout(90_000);
   await openTransferPlanning(page);
   await page.evaluate(() => document.fonts.ready);
 

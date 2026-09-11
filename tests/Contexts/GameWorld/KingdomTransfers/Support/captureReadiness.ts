@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { assertViewportRaster, viewportTiles } from './viewportRaster';
+import { assertViewportRaster, viewportCapturePlan } from './viewportRaster';
 
 /** Capture every main-content pixel through actual painted viewports, never an oversized full-page texture. */
 export async function captureReadiness(page: Page): Promise<string> {
@@ -35,32 +35,33 @@ export async function captureReadiness(page: Page): Promise<string> {
       height: Math.ceil(r.bottom + window.scrollY) - Math.floor(r.y + window.scrollY),
     };
   });
-  const inset = await page.locator('header').evaluateAll((headers) =>
-    Math.ceil(
-      Math.max(
-        0,
-        ...headers.map((header) => {
-          const r = header.getBoundingClientRect();
-          return ['sticky', 'fixed'].includes(getComputedStyle(header).position) &&
-            r.top <= 0 &&
-            r.bottom > 0
-            ? r.bottom
-            : 0;
-        }),
-      ),
-    ),
-  );
-  const tiles = viewportTiles(rect.top, rect.height, viewport.height - inset - 1);
+  // The desktop bar is a div, not a header. Inspect actual positioned overlays
+  // intersecting main; the fixed sidebar does not intersect its horizontal span.
+  const inset = await main.evaluate((element) => {
+    const main = element.getBoundingClientRect();
+    let bottom = 0;
+    for (const overlay of document.querySelectorAll('body *')) {
+      const style = getComputedStyle(overlay);
+      if (!['sticky', 'fixed'].includes(style.position)) continue;
+      const rect = overlay.getBoundingClientRect();
+      if (rect.top <= 0 && rect.bottom > 0 && rect.right > main.left && rect.left < main.right)
+        bottom = Math.max(bottom, rect.bottom);
+    }
+    return Math.ceil(bottom);
+  });
+  const { shellPrefix, tiles } = viewportCapturePlan(rect.top, rect.height, viewport.height, inset);
   const captures: { top: number; height: number; sha256: string }[] = [];
   for (const [index, tile] of tiles.entries()) {
-    await page.evaluate((y) => window.scrollTo(0, y), tile.top - inset);
-    await page.evaluate(
-      () =>
-        new Promise<void>((resolve) =>
+    const y = await page.evaluate(
+      async ({ top, inset }) => {
+        window.scrollTo(0, top - inset);
+        await new Promise<void>((resolve) =>
           requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-        ),
+        );
+        return top - window.scrollY;
+      },
+      { top: tile.top, inset },
     );
-    const y = tile.top - (await page.evaluate(() => window.scrollY));
     expect(y, 'Tile must not be covered by a sticky header').toBeGreaterThanOrEqual(inset);
     expect(y + tile.height, 'Every tile must fit the actual viewport').toBeLessThanOrEqual(
       viewport.height,
@@ -73,12 +74,10 @@ export async function captureReadiness(page: Page): Promise<string> {
       clip: { x: rect.x, y, width: rect.width, height: tile.height },
     });
     assertViewportRaster(screenshot, rect.width, tile.height);
-    await test
-      .info()
-      .attach(`readiness-tile-${String(index + 1).padStart(2, '0')}`, {
-        body: screenshot,
-        contentType: 'image/png',
-      });
+    await test.info().attach(`readiness-tile-${String(index + 1).padStart(2, '0')}`, {
+      body: screenshot,
+      contentType: 'image/png',
+    });
     captures.push({ ...tile, sha256: createHash('sha256').update(screenshot).digest('hex') });
   }
   const end = await main.evaluate((element) => {
@@ -92,12 +91,10 @@ export async function captureReadiness(page: Page): Promise<string> {
   });
   expect(end, 'Layout must stay fixed while all pixels are captured').toEqual(rect);
   expect(page.viewportSize(), 'Do not resize or scale the tested viewport').toEqual(viewport);
-  const manifest = { viewport, shell, rect, tiles: captures };
-  await test
-    .info()
-    .attach('readiness-capture-coverage', {
-      body: JSON.stringify(manifest, null, 2),
-      contentType: 'application/json',
-    });
+  const manifest = { viewport, shell, rect, inset, shellPrefix, tiles: captures };
+  await test.info().attach('readiness-capture-coverage', {
+    body: JSON.stringify(manifest, null, 2),
+    contentType: 'application/json',
+  });
   return createHash('sha256').update(JSON.stringify(manifest)).digest('hex');
 }
