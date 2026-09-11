@@ -208,3 +208,11 @@ Before release/merge readiness:
 No compatibility shim, legacy alias, dual read/write or migration-backfill path is required for this fresh deployment.
 
 Eligibility and screenshot preview load only bounded factual witnesses for the requested participants and source/target Kingdoms, preserving current conflicts and authoritative provenance. Capacity planning counts consuming commitments in SQL against the latest authoritative capacity observation. The Readiness page separately loads complete observation history in current-authorized 25-record pages, with scoped continuation and retry. Recruitment campaign evidence and active-blocker totals are SQL counts over all matching records.
+
+## Participant paging diagnostics
+
+A failed participant-page load keeps the current display and unsaved drafts with an explicit retry control. Invalid/cross-scope cursors are validation failures, not permission grants; current membership, rank and active Kingdom authority are rechecked. Refresh the first page after the selected plan changes. Do not replay a token from another actor or force a fallback into an unauthorized view.
+
+The fresh schema includes `transfer_participant_page_idx` and the partial `transfer_participant_active_page_idx`, both scoped by Alliance/Plan then stable ID. Requests use keyset continuation, not offsets or a complete in-memory participant list. Summary counts execute in SQL across the view and are intentionally distinct from displayed row count. Investigate the database plan and current tenant volume before treating count-query work as a renderer issue; do not substitute a clipped page total.
+
+Game eligibility and child history remain separate bounded projections per displayed participant. This does not by itself resolve the independently tracked dashboard aggregate or management-catalogue work in HARD-095. Complete verification must include those consumers, real authorization and browser continuation before program closure. See the [hardening ledger](../product/codebase-hardening-delivery-ledger.md).

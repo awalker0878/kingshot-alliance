@@ -2,6 +2,12 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    participantPagination: '參與者分頁',
+    participantPageSummary: '本頁 {count} 人；此檢視共 {total} 人。',
+    participantPageOrder: '依固定註冊 ID 排序。統計涵蓋整個檢視。',
+    participantPageUnavailable: '無法載入參與者頁面。目前顯示的頁面未變更。',
+    retryParticipantPage: '重試頁面',
+    participantFilterPageOnly: '此資格篩選僅適用於目前頁面。請繼續翻頁查看所有參與者。',
     workflowHistoryUnavailable: '無法載入遷移流程歷史紀錄。',
     workflowHistoryTotal: '此歷史紀錄共 {count} 筆。',
     observationHistoryUnavailable: '無法載入觀測歷史。',

@@ -308,3 +308,11 @@ No compatibility shims, legacy aliases or dual-read/write paths are part of this
 The member capability profile evaluates only that Governor's active participant in the current authorized Alliance Plan. Missing or withdrawn participation remains unavailable as an assessment rather than selecting another Governor. A large plan does not enlarge the participant records or relationship graph read for that single profile.
 
 A Governor’s self-transfer answer uses the same current eligibility assessment as management, including conflicting evidence, unknown facts, group/condition provenance and current capacity. Requests cannot select another Governor’s assessment or a different destination. Complete observation counts remain accurate even when evaluation needs only bounded factual witnesses; historical records for a previous destination do not influence the current destination.
+
+## Participant navigation and totals
+
+Overview, management, readiness and outcomes display 25 participants at a time, in stable registration-ID order. The page summary gives the number currently displayed and the complete total for that view. Direction and outcome totals remain complete even when the corresponding participants appear on another page. Use Next page to continue and First page to refresh from the beginning; deleting or renaming a participant does not invalidate the continuation boundary.
+
+Readiness's eligibility filter applies to the currently displayed page, as labelled beside the filter. An empty filtered page is not a statement that no participant in the plan matches; continue paging to review the rest. Game eligibility still comes from the canonical server evaluator, independently of Alliance readiness.
+
+Participant/cohort edits are retained during page navigation and failed loads. The displayed page does not silently become empty on failure: a retry control appears. Switching Alliance or Plan discards old-scope drafts. Loading further pages is not a write and does not change readiness, evidence or completion. History navigation remains separate for each visible participant. See the [authoritative query boundary](../architecture/contexts/game-world/kingdom-transfers.md) for current authorization and cursor rules.

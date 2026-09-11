@@ -2,6 +2,14 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    participantPagination: 'Katılımcı sayfaları',
+    participantPageSummary: 'Bu sayfada {count}, bu görünümde toplam {total} katılımcı var.',
+    participantPageOrder:
+      'Sabit kayıt kimliğine göre sıralanır. Toplamlar görünümün tamamını kapsar.',
+    participantPageUnavailable: 'Katılımcı sayfası yüklenemedi. Görüntülenen sayfa değişmedi.',
+    retryParticipantPage: 'Sayfayı yeniden dene',
+    participantFilterPageOnly:
+      'Bu uygunluk filtresi mevcut sayfaya uygulanır. Tüm katılımcıları incelemek için sayfalarda ilerleyin.',
     workflowHistoryUnavailable: 'Transfer süreci geçmişi yüklenemedi.',
     workflowHistoryTotal: 'Bu geçmişte {count} kayıt var.',
     observationHistoryUnavailable: 'Gözlem geçmişi yüklenemedi.',

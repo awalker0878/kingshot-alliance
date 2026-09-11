@@ -31,6 +31,7 @@ use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferKingdomCapacity
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferObservedValue;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferRequirement;
 use App\Shared\Infrastructure\Http\Controller;
+use App\Shared\Infrastructure\Pagination\PageSlice;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -71,10 +72,12 @@ final class TransferReadinessController extends Controller
             $scope->allianceId,
             TransferPermission::Manage,
         );
+        /** @var array{participant_cursor?:string|null} $input */
+        $input = $request->validate(['participant_cursor' => ['nullable', 'string', 'max:4096']]);
         $plan = $plans->currentForAlliance($scope->allianceId);
-        $rows = $plan === null
-            ? collect()
-            : $participants->forPlan($scope->allianceId, (string) $plan->id, true);
+        $participantPage = $plan === null ? new PageSlice([], null, TransferParticipantQuery::PAGE_SIZE)
+            : $participants->page($scope->playerId, $scope->allianceId, (string) $plan->id, true, $input['participant_cursor'] ?? null);
+        $rows = collect($participantPage->items);
         $planning = $plan === null
             ? []
             : $eligibility->forPlan($scope->allianceId, $plan, $rows);
@@ -108,12 +111,13 @@ final class TransferReadinessController extends Controller
                     'observedAt' => $plan->window->observed_at->toIso8601String(),
                 ],
             ],
-            'participants' => $rows
-                ->map(fn (TransferParticipant $participant): array => $this->participant(
-                    $participant,
-                    $planning[(string) $participant->id] ?? null,
-                ))
-                ->all(),
+            'participantSummary' => $plan === null ? null : $participants->summary($scope->playerId, $scope->allianceId, (string) $plan->id, true),
+            'participants' => [
+                ...$participantPage->toArray(),
+                'items' => $rows->map(fn (TransferParticipant $participant): array => $this->participant(
+                    $participant, $planning[(string) $participant->id] ?? null,
+                ))->all(),
+            ],
         ]);
     }
 

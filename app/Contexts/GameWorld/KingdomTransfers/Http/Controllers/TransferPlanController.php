@@ -34,6 +34,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferPlanQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferWindowQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\Http\Controller;
+use App\Shared\Infrastructure\Pagination\PageSlice;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -60,7 +61,10 @@ final class TransferPlanController extends Controller
         if (! $transferAuthorization->allows($s->playerId, $s->allianceId, TransferPermission::View)) {
             throw new AuthorizationException;
         }
+        /** @var array{participant_cursor?:string|null} $input */
+        $input = $request->validate(['participant_cursor' => ['nullable', 'string', 'max:4096']]);
         $current = $plans->currentForAlliance($s->allianceId);
+        $participantPage = $current === null ? new PageSlice([], null, TransferParticipantQuery::PAGE_SIZE) : $participants->page($s->playerId, $s->allianceId, (string) $current->id, false, $input['participant_cursor'] ?? null);
 
         return Inertia::render('Kingdom/Transfer/Index', [
             'user' => ['name' => $account->name, 'email' => $account->email],
@@ -68,7 +72,8 @@ final class TransferPlanController extends Controller
             'canManage' => $transferAuthorization->allows($s->playerId, $s->allianceId, TransferPermission::Manage),
             'plan' => $current === null ? null : $this->plan($current),
             'cohorts' => $current === null ? [] : $cohorts->forPlan($s->allianceId, (string) $current->id)->map(fn (TransferCohort $c): array => $this->cohort($c, false))->all(),
-            'participants' => $current === null ? [] : $participants->forPlan($s->allianceId, (string) $current->id)->map(fn (TransferParticipant $p): array => $this->participant($p, false))->all(),
+            'participantSummary' => $current === null ? null : $participants->summary($s->playerId, $s->allianceId, (string) $current->id),
+            'participants' => [...$participantPage->toArray(), 'items' => array_map(fn (TransferParticipant $p): array => $this->participant($p, false), $participantPage->items)],
         ]);
     }
 
@@ -96,8 +101,10 @@ final class TransferPlanController extends Controller
         if (! $authorization->allows($s->playerId, $s->allianceId, TransferPermission::Manage)) {
             throw new AuthorizationException;
         }
+        /** @var array{participant_cursor?:string|null} $input */
+        $input = $request->validate(['participant_cursor' => ['nullable', 'string', 'max:4096']]);
         $mutable = $plans->mutableForAlliance($s->allianceId);
-        $participantRows = $mutable === null ? collect() : $participants->forPlan($s->allianceId, (string) $mutable->id, true);
+        $participantPage = $mutable === null ? new PageSlice([], null, TransferParticipantQuery::PAGE_SIZE) : $participants->page($s->playerId, $s->allianceId, (string) $mutable->id, true, $input['participant_cursor'] ?? null, TransferPermission::Manage);
         $rosterOptions = $roster->activeOrTracked($s->allianceId);
         $memberIds = $memberships->activePlayerIds($s->allianceId);
         $refs = $players->byIds(array_values(array_unique(array_merge(
@@ -126,7 +133,8 @@ final class TransferPlanController extends Controller
             'conditions' => $selectedWindow === null ? [] : $conditions->forWindow($s->allianceId, (string) $selectedWindow->id)->map(fn (TransferKingdomConditionObservation $c): array => $this->condition($c))->all(),
             'capacities' => $capacityRows->map(fn (TransferKingdomCapacityObservation $c): array => $this->capacity($c))->all(),
             'cohorts' => $mutable === null ? [] : $cohorts->forPlan($s->allianceId, (string) $mutable->id, true)->map(fn (TransferCohort $c): array => $this->cohort($c, true))->all(),
-            'participants' => $participantRows->map(fn (TransferParticipant $p): array => $this->participant($p, true))->all(),
+            'participantSummary' => $mutable === null ? null : $participants->summary($s->playerId, $s->allianceId, (string) $mutable->id, true, TransferPermission::Manage),
+            'participants' => [...$participantPage->toArray(), 'items' => array_map(fn (TransferParticipant $p): array => $this->participant($p, true), $participantPage->items)],
             'rosterOptions' => array_values(array_map(fn (RosterEntryReference $e): array => [
                 'id' => $e->rosterEntryId,
                 'name' => $e->observedName,

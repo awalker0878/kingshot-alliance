@@ -2,6 +2,15 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    participantPagination: 'Страницы участников',
+    participantPageSummary: '{count} участников на этой странице; {total} в этом представлении.',
+    participantPageOrder:
+      'Порядок по неизменяемому ID регистрации. Итоги охватывают всё представление.',
+    participantPageUnavailable:
+      'Не удалось загрузить страницу участников. Отображаемая страница не изменилась.',
+    retryParticipantPage: 'Повторить загрузку',
+    participantFilterPageOnly:
+      'Этот фильтр допуска действует на текущую страницу. Просмотрите остальные страницы, чтобы проверить всех участников.',
     workflowHistoryUnavailable: 'Не удалось загрузить историю процесса переноса.',
     workflowHistoryTotal: 'Записей в этой истории: {count}.',
     observationHistoryUnavailable: 'Не удалось загрузить историю наблюдений.',

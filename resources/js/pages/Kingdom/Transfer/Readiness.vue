@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
 
 import TransferEvidencePanel from '@/components/transfers/TransferEvidencePanel.vue';
 import TransferWorkflowHistory from '@/components/transfers/TransferWorkflowHistory.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
+import TransferParticipantPager from '@/components/transfers/TransferParticipantPager.vue';
+import type { ParticipantPage, ParticipantSummary } from '@/components/transfers/participantPages';
+import { useTransferDrafts } from '@/components/transfers/useTransferDrafts';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
+import type { SharedPlayerContext } from '@/types/player-context';
 
 type Readiness = 'not_started' | 'preparing' | 'ready' | 'blocked' | 'confirmed' | 'withdrawn';
 type Outcome =
@@ -167,10 +171,16 @@ const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string; kingdom: string };
   plan: Plan | null;
-  participants: Participant[];
+  participants: ParticipantPage<Participant>;
+  participantSummary: ParticipantSummary | null;
 }>();
+const participants = computed(() => props.participants.items);
 const { t, formatDate, formatNumber } = useLocale();
 const page = usePage();
+const transferScope = computed(
+  () =>
+    `${(page.props.playerContext as SharedPlayerContext).activePlayerId ?? ''}|${props.alliance.id}|${props.plan?.id ?? ''}`,
+);
 const validationErrors = computed(() =>
   Object.values(
     ((page.props as Record<string, unknown>).errors as Record<string, string> | undefined) ?? {},
@@ -178,68 +188,47 @@ const validationErrors = computed(() =>
 );
 const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const filter = ref('all');
-const readinessDrafts = reactive(
-  Object.fromEntries(props.participants.map((p) => [p.id, p.readiness])) as Record<
-    string,
-    Readiness
-  >,
+const participantScope = () => transferScope.value;
+const readinessDrafts = useTransferDrafts(
+  () => props.participants.items,
+  participantScope,
+  (p) => p.readiness,
 );
-const blockerDrafts = reactive(
-  Object.fromEntries(props.participants.map((p) => [p.id, { summary: '', details: '' }])) as Record<
-    string,
-    { summary: string; details: string }
-  >,
+const blockerDrafts = useTransferDrafts(
+  () => props.participants.items,
+  participantScope,
+  () => ({ summary: '', details: '' }),
 );
-const observationDrafts = reactive(
-  Object.fromEntries(
-    props.participants.map((p) => [
-      p.id,
-      {
-        kind: 'governor_power' as ObservationKind,
-        value: '',
-        source_type: 'in_game' as SourceType,
-        source_reference: 'KingShot in-game transfer screen',
-        observed_at: localInputNow(),
-        valid_until: localInputLater(),
-        details: '',
-      },
-    ]),
-  ) as Record<
-    string,
-    {
-      kind: ObservationKind;
-      value: string;
-      source_type: SourceType;
-      source_reference: string;
-      observed_at: string;
-      valid_until: string;
-      details: string;
-    }
-  >,
+const observationDrafts = useTransferDrafts(
+  () => props.participants.items,
+  participantScope,
+  () => ({
+    kind: 'governor_power' as ObservationKind,
+    value: '',
+    source_type: 'in_game' as SourceType,
+    source_reference: 'KingShot in-game transfer screen',
+    observed_at: localInputNow(),
+    valid_until: localInputLater(),
+    details: '',
+  }),
 );
-const capacityDrafts = reactive(
-  Object.fromEntries(
-    props.participants.map((p) => [
-      p.id,
-      {
-        bucket: p.capacityReservation?.bucket ?? ('transfer_open' as CapacityBucket),
-        state: p.capacityReservation?.state ?? ('planned' as CapacityReservationState),
-        notes: p.capacityReservation?.notes ?? '',
-      },
-    ]),
-  ) as Record<string, { bucket: CapacityBucket; state: CapacityReservationState; notes: string }>,
+const capacityDrafts = useTransferDrafts(
+  () => props.participants.items,
+  participantScope,
+  (p) => ({
+    bucket: p.capacityReservation?.bucket ?? ('transfer_open' as CapacityBucket),
+    state: p.capacityReservation?.state ?? ('planned' as CapacityReservationState),
+    notes: p.capacityReservation?.notes ?? '',
+  }),
 );
-const invitationDrafts = reactive(
-  Object.fromEntries(
-    props.participants.map((p) => [
-      p.id,
-      {
-        kind: p.invitationAllocation?.kind ?? ('ordinary' as InvitationKind),
-        state: p.invitationAllocation?.state ?? ('requested' as InvitationAllocationState),
-        notes: p.invitationAllocation?.notes ?? '',
-      },
-    ]),
-  ) as Record<string, { kind: InvitationKind; state: InvitationAllocationState; notes: string }>,
+const invitationDrafts = useTransferDrafts(
+  () => props.participants.items,
+  participantScope,
+  (p) => ({
+    kind: p.invitationAllocation?.kind ?? ('ordinary' as InvitationKind),
+    state: p.invitationAllocation?.state ?? ('requested' as InvitationAllocationState),
+    notes: p.invitationAllocation?.notes ?? '',
+  }),
 );
 
 const observationKinds: ObservationKind[] = [
@@ -286,7 +275,7 @@ const invitationStates: InvitationAllocationState[] = [
 ];
 
 const filtered = computed(() =>
-  props.participants.filter((p) => {
+  participants.value.filter((p) => {
     if (filter.value === 'all') return true;
     if (filter.value === 'missing_target')
       return p.direction === 'outgoing' && p.destinationKingdom === null;
@@ -329,6 +318,7 @@ type ObservationHistoryState = {
   error: boolean;
   open: boolean;
   cursor: string | null;
+  request: AbortController | null;
 };
 const observationHistories = reactive<Record<string, ObservationHistoryState>>({});
 function observationHistory(id: string): ObservationHistoryState {
@@ -338,6 +328,7 @@ function observationHistory(id: string): ObservationHistoryState {
     error: false,
     open: false,
     cursor: null,
+    request: null,
   });
 }
 async function loadObservationHistory(id: string, cursor: string | null = null): Promise<void> {
@@ -347,6 +338,8 @@ async function loadObservationHistory(id: string, cursor: string | null = null):
   state.loading = true;
   state.error = false;
   state.cursor = cursor;
+  const request = new AbortController();
+  state.request = request;
   try {
     const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
     const response = await fetch(
@@ -354,15 +347,31 @@ async function loadObservationHistory(id: string, cursor: string | null = null):
       {
         headers: { Accept: 'application/json' },
         credentials: 'same-origin',
+        signal: request.signal,
       },
     );
     if (!response.ok) throw new Error('Observation history unavailable');
-    state.page = (await response.json()) as ObservationPage;
+    const result = (await response.json()) as ObservationPage;
+    if (
+      !Array.isArray(result.items) ||
+      result.items.length > 25 ||
+      result.pageSize !== 25 ||
+      typeof result.isFirstPage !== 'boolean' ||
+      !(result.nextCursor === null || typeof result.nextCursor === 'string') ||
+      result.hasMore !== (result.nextCursor !== null)
+    )
+      throw new Error('Invalid observation page');
+    if (observationHistories[id] === state && !request.signal.aborted) state.page = result;
   } catch {
-    state.page = null;
-    state.error = true;
+    if (observationHistories[id] === state && !request.signal.aborted) {
+      state.page = null;
+      state.error = true;
+    }
   } finally {
-    state.loading = false;
+    if (state.request === request) {
+      state.loading = false;
+      state.request = null;
+    }
   }
 }
 function toggleObservationHistory(id: string, event: Event): void {
@@ -371,17 +380,21 @@ function toggleObservationHistory(id: string, event: Event): void {
   if (state.open && !state.page) void loadObservationHistory(id);
 }
 watch(
-  () => props.participants,
+  () => props.participants.items,
   () => {
     for (const [id, previous] of Object.entries(observationHistories)) {
+      previous.request?.abort();
       delete observationHistories[id];
-      if (previous.open) {
+      if (previous.open && props.participants.items.some((p) => p.id === id)) {
         observationHistory(id).open = true;
         void loadObservationHistory(id);
       }
     }
   },
 );
+onBeforeUnmount(() => {
+  for (const state of Object.values(observationHistories)) state.request?.abort();
+});
 function timestamp(v: string | null): string {
   return v
     ? formatDate(v, { dateStyle: 'medium', timeStyle: 'short' })
@@ -564,10 +577,20 @@ function saveInvitationAllocation(p: Participant): void {
       </div>
     </section>
 
+    <TransferParticipantPager
+      v-if="plan"
+      :page="props.participants"
+      :total="participantSummary?.total ?? 0"
+      href="/alliance/transfers/readiness"
+      :scope="transferScope"
+    />
     <section v-if="plan" class="ks-surface mt-4 p-4">
       <label class="ks-kicker" for="eligibility-filter">{{
         t('kingdomP7D.eligibilityFilter')
       }}</label>
+      <p class="mt-2 text-xs text-[var(--ks-muted)]">
+        {{ t('kingdomP7D.participantFilterPageOnly') }}
+      </p>
       <select
         id="eligibility-filter"
         v-model="filter"
@@ -592,7 +615,12 @@ function saveInvitationAllocation(p: Participant): void {
     </section>
 
     <section v-if="plan && filtered.length" class="mt-5 grid gap-5">
-      <article v-for="p in filtered" :key="p.id" class="ks-surface overflow-hidden">
+      <article
+        v-for="p in filtered"
+        :key="p.id"
+        :data-transfer-participant="p.id"
+        class="ks-surface overflow-hidden"
+      >
         <div class="p-5 sm:p-6">
           <div class="flex flex-wrap items-start justify-between gap-4">
             <div>

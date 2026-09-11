@@ -2,6 +2,14 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    participantPagination: '参加者のページ',
+    participantPageSummary: 'このページは {count} 人、この表示全体は {total} 人です。',
+    participantPageOrder: '固定の登録 ID 順です。合計は表示全体を対象とします。',
+    participantPageUnavailable:
+      '参加者のページを読み込めませんでした。表示中のページは変更されていません。',
+    retryParticipantPage: 'ページを再読み込み',
+    participantFilterPageOnly:
+      'この参加条件フィルターは現在のページに適用されます。全参加者を確認するには、各ページを順に表示してください。',
     workflowHistoryUnavailable: '移転手順の履歴を読み込めませんでした。',
     workflowHistoryTotal: 'この履歴の記録数：{count}件。',
     observationHistoryUnavailable: '観測履歴を読み込めませんでした。',

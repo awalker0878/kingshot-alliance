@@ -2,6 +2,15 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    participantPagination: 'Teilnehmerseiten',
+    participantPageSummary: '{count} Teilnehmer auf dieser Seite; {total} in dieser Ansicht.',
+    participantPageOrder:
+      'Nach stabiler Registrierungs-ID sortiert. Summen gelten für die gesamte Ansicht.',
+    participantPageUnavailable:
+      'Die Teilnehmerseite konnte nicht geladen werden. Die angezeigte Seite bleibt unverändert.',
+    retryParticipantPage: 'Seite erneut laden',
+    participantFilterPageOnly:
+      'Dieser Eignungsfilter gilt für die aktuelle Seite. Blättere weiter, um alle Teilnehmer zu prüfen.',
     workflowHistoryUnavailable: 'Der Verlauf des Transferablaufs konnte nicht geladen werden.',
     workflowHistoryTotal: '{count} Einträge in diesem Verlauf.',
     observationHistoryUnavailable: 'Der Beobachtungsverlauf konnte nicht geladen werden.',

@@ -2,6 +2,14 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    participantPagination: 'Trang người tham gia',
+    participantPageSummary: '{count} người tham gia trên trang này; {total} trong chế độ xem này.',
+    participantPageOrder: 'Sắp xếp theo mã đăng ký cố định. Tổng số bao gồm toàn bộ chế độ xem.',
+    participantPageUnavailable:
+      'Không thể tải trang người tham gia. Trang đang hiển thị không thay đổi.',
+    retryParticipantPage: 'Thử tải lại',
+    participantFilterPageOnly:
+      'Bộ lọc điều kiện này áp dụng cho trang hiện tại. Chuyển qua các trang để xem tất cả người tham gia.',
     workflowHistoryUnavailable: 'Không thể tải lịch sử quy trình chuyển.',
     workflowHistoryTotal: 'Có {count} bản ghi trong lịch sử này.',
     observationHistoryUnavailable: 'Không thể tải lịch sử quan sát.',

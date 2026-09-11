@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    participantPagination: 'صفحات المشاركين',
+    participantPageSummary: '{count} مشاركين في هذه الصفحة؛ {total} في هذا العرض.',
+    participantPageOrder: 'مرتّب حسب معرّف تسجيل ثابت. تشمل الإجماليات العرض كاملاً.',
+    participantPageUnavailable: 'تعذّر تحميل صفحة المشاركين. لم تتغير الصفحة المعروضة.',
+    retryParticipantPage: 'إعادة محاولة الصفحة',
+    participantFilterPageOnly:
+      'ينطبق مرشّح الأهلية هذا على الصفحة الحالية. انتقل بين الصفحات لمراجعة جميع المشاركين.',
     workflowHistoryUnavailable: 'تعذر تحميل سجل سير عمل النقل.',
     workflowHistoryTotal: 'عدد السجلات في هذا السجل: {count}.',
     observationHistoryUnavailable: 'تعذر تحميل سجل الملاحظات.',

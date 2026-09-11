@@ -2,6 +2,15 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    participantPagination: 'Páginas de participantes',
+    participantPageSummary: '{count} participantes nesta página; {total} nesta visualização.',
+    participantPageOrder:
+      'Ordenados pelo ID estável de cadastro. Os totais abrangem toda a visualização.',
+    participantPageUnavailable:
+      'Não foi possível carregar a página de participantes. A página exibida não mudou.',
+    retryParticipantPage: 'Tentar novamente',
+    participantFilterPageOnly:
+      'Este filtro de elegibilidade se aplica à página atual. Avance pelas páginas para revisar todos os participantes.',
     workflowHistoryUnavailable:
       'Não foi possível carregar o histórico do processo de transferência.',
     workflowHistoryTotal: '{count} registros neste histórico.',

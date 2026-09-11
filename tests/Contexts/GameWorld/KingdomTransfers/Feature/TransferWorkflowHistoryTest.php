@@ -52,11 +52,11 @@ final class TransferWorkflowHistoryTest extends TestCase
             ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => app(HandleInertiaRequests::class)->version(request()) ?? ''])
             ->get('/alliance/transfers/readiness')->assertOk();
         self::assertSame(0, $hydrated, 'The workspace must not hydrate the full blocker/transition history.');
-        $response->assertJsonPath('props.participants.0.activeBlockerCount', 31)
-            ->assertJsonPath('props.participants.0.resolvedBlockerCount', 53)
-            ->assertJsonPath('props.participants.0.readinessTransitionCount', 61)
-            ->assertJsonMissingPath('props.participants.0.blockers')
-            ->assertJsonMissingPath('props.participants.0.readinessHistory');
+        $response->assertJsonPath('props.participants.items.0.activeBlockerCount', 31)
+            ->assertJsonPath('props.participants.items.0.resolvedBlockerCount', 53)
+            ->assertJsonPath('props.participants.items.0.readinessTransitionCount', 61)
+            ->assertJsonMissingPath('props.participants.items.0.blockers')
+            ->assertJsonMissingPath('props.participants.items.0.readinessHistory');
     }
 
     /** @return iterable<string,array{string,string,string|null,int}> */
@@ -175,8 +175,8 @@ final class TransferWorkflowHistoryTest extends TestCase
         $this->getJson($url.'/blockers?state=resolved')->assertOk()->assertJsonCount(1, 'items');
         $this->getJson($url.'/readiness-history')->assertOk()->assertJsonCount(1, 'items');
         $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => app(HandleInertiaRequests::class)->version(request()) ?? ''])
-            ->get('/alliance/transfers/readiness')->assertOk()->assertJsonPath('props.participants.0.activeBlockerCount', 1)
-            ->assertJsonPath('props.participants.0.resolvedBlockerCount', 1)->assertJsonPath('props.participants.0.readinessTransitionCount', 1);
+            ->get('/alliance/transfers/readiness')->assertOk()->assertJsonPath('props.participants.items.0.activeBlockerCount', 1)
+            ->assertJsonPath('props.participants.items.0.resolvedBlockerCount', 1)->assertJsonPath('props.participants.items.0.readinessTransitionCount', 1);
     }
 
     public function test_history_uses_the_exact_scope_indexes_and_a_bounded_probe(): void

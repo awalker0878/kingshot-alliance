@@ -27,9 +27,16 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['alliance_id', 'transfer_plan_id', 'direction', 'withdrawn_at']);
+            $table->index(['alliance_id', 'transfer_plan_id', 'id'], 'transfer_participant_page_idx');
             $table->index(['transfer_plan_id', 'destination_kingdom_id']);
             $table->index(['transfer_plan_id', 'source_kingdom_id']);
         });
+
+        DB::statement(
+            'CREATE INDEX transfer_participant_active_page_idx '.
+            'ON transfer_participants (alliance_id, transfer_plan_id, id) '.
+            'WHERE withdrawn_at IS NULL'
+        );
 
         DB::statement(
             'CREATE UNIQUE INDEX transfer_participants_one_active_player '.

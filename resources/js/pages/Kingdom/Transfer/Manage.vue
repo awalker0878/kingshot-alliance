@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
-import { computed, reactive } from 'vue';
+import { computed } from 'vue';
 
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
+import TransferParticipantPager from '@/components/transfers/TransferParticipantPager.vue';
+import type { ParticipantPage, ParticipantSummary } from '@/components/transfers/participantPages';
+import { useTransferDrafts } from '@/components/transfers/useTransferDrafts';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
+import type { SharedPlayerContext } from '@/types/player-context';
 
 type SourceType = 'official_publication' | 'in_game' | 'evidence' | 'manager_note' | 'community';
 type WindowRow = {
@@ -104,12 +108,18 @@ const props = defineProps<{
   conditions: Condition[];
   capacities: Capacity[];
   cohorts: Cohort[];
-  participants: Participant[];
+  participants: ParticipantPage<Participant>;
+  participantSummary: ParticipantSummary | null;
   rosterOptions: Roster[];
   players: PlayerOption[];
 }>();
+const participants = computed(() => props.participants.items);
 const { t, formatDate, formatNumber } = useLocale();
 const page = usePage();
+const transferScope = computed(
+  () =>
+    `${(page.props.playerContext as SharedPlayerContext).activePlayerId ?? ''}|${props.alliance.id}|${props.mutablePlan?.id ?? ''}`,
+);
 const validationErrors = computed(() =>
   Object.values(
     ((page.props as Record<string, unknown>).errors as Record<string, string> | undefined) ?? {},
@@ -183,61 +193,35 @@ const participantForm = useForm({
   destination_kingdom: '',
   manager_notes: '',
 });
-const cohortDrafts = reactive(
-  Object.fromEntries(
-    props.cohorts.map((c) => [
-      c.id,
-      {
-        name: c.name,
-        direction: c.direction,
-        destination_kingdom: c.destinationKingdom ?? '',
-        coordinator_player_id: c.coordinatorPlayerId ?? '',
-        manager_notes: c.managerNotes ?? '',
-      },
-    ]),
-  ) as Record<
-    string,
-    {
-      name: string;
-      direction: 'incoming' | 'outgoing';
-      destination_kingdom: string;
-      coordinator_player_id: string;
-      manager_notes: string;
-    }
-  >,
+const cohortDrafts = useTransferDrafts(
+  () => props.cohorts,
+  () => transferScope.value,
+  (c) => ({
+    name: c.name,
+    direction: c.direction,
+    destination_kingdom: c.destinationKingdom ?? '',
+    coordinator_player_id: c.coordinatorPlayerId ?? '',
+    manager_notes: c.managerNotes ?? '',
+  }),
 );
-const assignments = reactive(
-  Object.fromEntries(props.participants.map((p) => [p.id, p.transferCohortId ?? ''])) as Record<
-    string,
-    string
-  >,
+const participantScope = () => transferScope.value;
+const assignments = useTransferDrafts(
+  () => props.participants.items,
+  participantScope,
+  (p) => p.transferCohortId ?? '',
 );
-const participantDrafts = reactive(
-  Object.fromEntries(
-    props.participants.map((p) => [
-      p.id,
-      {
-        direction: p.direction,
-        roster_entry_id: p.rosterEntryId ?? '',
-        name: p.name,
-        game_player_id: p.gamePlayerId ?? '',
-        source_kingdom: p.sourceKingdom ?? '',
-        destination_kingdom: p.destinationKingdom ?? '',
-        manager_notes: p.managerNotes ?? '',
-      },
-    ]),
-  ) as Record<
-    string,
-    {
-      direction: 'staying' | 'outgoing' | 'incoming';
-      roster_entry_id: string;
-      name: string;
-      game_player_id: string;
-      source_kingdom: string;
-      destination_kingdom: string;
-      manager_notes: string;
-    }
-  >,
+const participantDrafts = useTransferDrafts(
+  () => props.participants.items,
+  participantScope,
+  (p) => ({
+    direction: p.direction,
+    roster_entry_id: p.rosterEntryId ?? '',
+    name: p.name,
+    game_player_id: p.gamePlayerId ?? '',
+    source_kingdom: p.sourceKingdom ?? '',
+    destination_kingdom: p.destinationKingdom ?? '',
+    manager_notes: p.managerNotes ?? '',
+  }),
 );
 const activeCohorts = computed(() => props.cohorts.filter((c) => c.state === 'active'));
 function sourceLabel(v: SourceType): string {
@@ -528,6 +512,7 @@ function compatibleCohorts(p: Participant): Cohort[] {
         <article
           v-for="p in plans"
           :key="p.id"
+          :data-transfer-participant="p.id"
           class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--ks-border)] p-3"
         >
           <div>
@@ -889,6 +874,14 @@ function compatibleCohorts(p: Participant): Cohort[] {
       </section>
       <section class="ks-surface mt-5 p-5">
         <h2 class="text-xl font-semibold">{{ t('kingdomP7D.participants') }}</h2>
+        <TransferParticipantPager
+          v-if="mutablePlan"
+          :page="props.participants"
+          :total="participantSummary?.total ?? 0"
+          href="/alliance/transfers/manage"
+          :scope="transferScope"
+        />
+
         <form
           class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
           @submit.prevent="createParticipant"

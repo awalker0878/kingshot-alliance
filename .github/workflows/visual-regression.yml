@@ -96,6 +96,7 @@ jobs:
           php artisan tinker --execute='\Tests\Contexts\GameWorld\KingdomTransfers\Fixtures\KingdomTransferVisualFixture::seed();'
           php artisan tinker --execute='\Tests\Contexts\GameWorld\KingdomTransfers\Fixtures\KingdomTransferCurrentRulesVisualFixture::augment();'
           php artisan tinker --execute='\Tests\Contexts\GameWorld\KingdomTransfers\Fixtures\TransferWorkflowHistoryVisualFixture::seed();'
+          php artisan tinker --execute='\Tests\Contexts\GameWorld\KingdomTransfers\Fixtures\TransferParticipantPageVisualFixture::seed();'
           php artisan tinker --execute='\Tests\ReadModels\EventManagement\Fixtures\EventCommandVisualFixture::seed();'
           php artisan tinker --execute='\Tests\Contexts\Alliance\Access\Fixtures\AllianceRoleVisualFixture::seed();'
           php artisan tinker --execute='\Tests\ReadModels\RecruitmentManagement\Fixtures\RecruitmentHistoryVisualFixture::seed();'

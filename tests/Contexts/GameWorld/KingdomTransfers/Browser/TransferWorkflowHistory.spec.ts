@@ -27,7 +27,9 @@ test('workflow histories page independently, retain drafts and expose retryable 
     }),
   });
   await expect(card).toBeVisible();
-  const draft = card.getByPlaceholder('Blocker summary');
+  const draft = card
+    .getByRole('group', { name: 'Manual planning blockers', exact: true })
+    .getByRole('textbox', { name: 'Summary', exact: true });
   await draft.fill('Keep this unsaved draft');
   const blockers = card.getByTestId('transfer-blockers-history');
   await blockers.locator('summary').click();
