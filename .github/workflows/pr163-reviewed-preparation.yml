@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          import base64,hashlib,json,os,pathlib,subprocess,urllib.request,zlib
+          import hashlib,json,os,pathlib,subprocess,urllib.request
           payload=json.loads(pathlib.Path('.github/pr163-reviewed-slice.json').read_text())
           changes=payload['changes']
           assert 0 < len(changes) <= 30
@@ -39,35 +39,33 @@ jobs:
           assert len(paths)==len(set(paths))
           def blob(data):
               return hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+          prepared=[]
           for c in changes:
               p=pathlib.Path(c['path'])
               assert not p.is_absolute() and '..' not in p.parts
               assert p.parts[0] in ['app','tests','docs','routes','resources','database','config','bootstrap']
-              assert not p.is_symlink()
-              assert (blob(p.read_bytes()) if p.exists() else None)==c['before'],c['path']
-          compressed=base64.b64decode(payload['patch'],validate=True)
-          assert len(compressed)<500000
-          decoder=zlib.decompressobj()
-          patch=decoder.decompress(compressed,2000000)
-          assert decoder.eof and not decoder.unconsumed_tail
-          subprocess.run(['git','apply','--check','--whitespace=error'],input=patch,check=True)
-          subprocess.run(['git','apply','--index','--whitespace=error'],input=patch,check=True)
-          actual=subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines()
-          assert sorted(actual)==sorted(paths)
-          results=[]
-          for c in changes:
-              p=pathlib.Path(c['path'])
-              assert not p.is_symlink()
-              data=p.read_bytes()
+              assert not any(q.is_symlink() for q in [p,*p.parents])
+              data=p.read_bytes() if p.exists() else b''
+              assert (blob(data) if p.exists() else None)==c['before'],c['path']
+              lines=data.decode('utf-8').splitlines(keepends=True)
+              prior=0
+              for start,end,text in c['hunks']:
+                  assert isinstance(start,int) and isinstance(end,int) and isinstance(text,str)
+                  assert prior <= start <= end <= len(lines)
+                  prior=end
+              for start,end,text in reversed(c['hunks']):
+                  lines[start:end]=text.splitlines(keepends=True)
+              data=''.join(lines).encode('utf-8')
               assert blob(data)==c['after'],c['path']
-              mode=subprocess.check_output(['git','ls-files','--stage','--',str(p)],text=True).split()[0]
-              assert mode=='100644'
+              prepared.append((str(p),data,c['after']))
+          results=[]
+          for path,data,expected in prepared:
               request=urllib.request.Request('https://api.github.com/repos/awalker0878/kingshot-alliance/git/blobs',data=json.dumps({'content':data.decode('utf-8'),'encoding':'utf-8'}).encode(),method='POST',headers={'Authorization':'Bearer '+os.environ['SOURCE_TOKEN'],'Accept':'application/vnd.github+json'})
               with urllib.request.urlopen(request,timeout=30) as response:
                   remote=json.load(response)
-              assert remote['sha']==c['after']
-              results.append({'path':str(p),'sha':remote['sha']})
-          receipt={'slice':payload['id'],'review_revision':os.environ['GITHUB_SHA'],'objects':results,'commits_or_refs_changed':False}
+              assert remote['sha']==expected
+              results.append({'path':path,'sha':remote['sha']})
+          receipt={'slice':payload['id'],'review_revision':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'objects':results,'commits_or_refs_changed':False}
           pathlib.Path('hardening-preparation-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
           print(json.dumps(receipt))
           PY
