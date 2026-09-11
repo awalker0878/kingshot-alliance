@@ -86,6 +86,7 @@
             <directory suffix="Test.php">tests/Contexts/GameWorld/Kingdoms/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/GameWorld/Players/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/Intelligence/Observations/Integration</directory>
+            <directory suffix="Test.php">tests/Contexts/Operations/KingPerks/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/TerritoryPlanning/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/Platform/AllianceAdministration/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/Platform/DataGovernance/Integration</directory>

@@ -43,3 +43,7 @@ Initial bootstrap, normal handoff and break-glass recovery are separate processe
 `ReadModels/KingdomGovernance` composes effective-authority visibility, "who has this authority?", governance audit history and health/drift projections. These are read projections and do not own Governance persistence.
 
 `Workflows/KingdomGovernance` coordinates processes spanning Governance plus another owner, such as Operations permission policy provisioning or Platform-authorized administrator recovery. Governance remains owner of Kingdom governance state.
+
+## Bounded audience discovery
+
+`KingdomAuthorityFactsQuery::playerIdsWithPermissionAfter` projects distinct effective permission holders within one concrete Kingdom, using a Player-ID keyset and a database limit before hydration. Unclaimed, noncanonical, moved, revoked, not-yet-effective, expired and archived-role candidates are excluded. Duplicate effective role grants do not consume multiple page entries. The boundary need not still have an assignment. Returned IDs are candidates, not an authorization grant; cross-context consumers must use current locked owner facts at the mutation boundary. There is no alternate unbounded audience method. Operations owns reminder continuation, not Governance: see [ADR-0048](../../adr/0048-bounded-king-perk-reminder-traversal.md).

@@ -31,15 +31,8 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          import base64,gzip,io,hashlib,json,os,pathlib,subprocess,urllib.request
-          envelope=json.loads(pathlib.Path('.github/pr163-reviewed-slice.json').read_text())
-          assert envelope['chunks']==7
-          encoded=''.join(pathlib.Path(f'.github/pr163-reviewed-part-{i}.b64').read_text() for i in range(7))
-          assert len(encoded)<65536
-          with gzip.GzipFile(fileobj=io.BytesIO(base64.b64decode(encoded,validate=True))) as stream:
-              raw=stream.read(1000001)
-          assert len(raw)<=1000000 and hashlib.sha256(raw).hexdigest()==envelope['decoded_sha256']
-          payload=json.loads(raw)
+          import hashlib,json,os,pathlib,subprocess,urllib.request
+          payload=json.loads(pathlib.Path('.github/pr163-reviewed-slice.json').read_text())
           changes=payload['changes']
           assert 0 < len(changes) <= 30
           paths=[c['path'] for c in changes]

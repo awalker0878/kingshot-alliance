@@ -55,20 +55,34 @@ final class KingdomAuthorityFactsQuery
             ->exists();
     }
 
-    /** @return list<string> */
-    public function playerIdsWithPermission(string $kingdomId, string $permissionKey): array
-    {
+    /**
+     * Current audience candidates only. Callers must reacquire authority before writing.
+     * DISTINCT precedes LIMIT so multiple effective roles cannot consume a page.
+     *
+     * @return list<string>
+     */
+    public function playerIdsWithPermissionAfter(
+        string $kingdomId,
+        string $permissionKey,
+        ?string $afterPlayerId,
+        int $limit,
+    ): array {
         return array_values(KingdomRoleAssignment::query()
             ->effective()
             ->where('kingdom_id', $kingdomId)
+            ->whereHas('player', static function ($query) use ($kingdomId): void {
+                $query->where('current_kingdom_id', $kingdomId)
+                    ->whereNotNull('user_id')->whereNull('canonical_player_id');
+            })
             ->whereHas('role.permissions', static function ($query) use ($permissionKey): void {
                 $query->where('permissions.key', $permissionKey);
             })
+            ->when($afterPlayerId !== null, static fn ($query) => $query->where('player_id', '>', $afterPlayerId))
+            ->distinct()
             ->orderBy('player_id')
+            ->limit(max(1, min(1000, $limit)))
             ->pluck('player_id')
             ->map(static fn ($id): string => (string) $id)
-            ->unique()
-            ->values()
             ->all());
     }
 

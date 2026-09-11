@@ -64,3 +64,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0046: Current notification source authorization](0046-current-notification-source-authorization.md)
 
 - [ADR-0047: Endpoint verification generations](0047-endpoint-verification-generations.md)
+
+- [ADR-0048: Bounded, resumable King Perk reminder traversal](0048-bounded-king-perk-reminder-traversal.md)

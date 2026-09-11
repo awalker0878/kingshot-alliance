@@ -4,12 +4,13 @@ on:
   pull_request:
     paths:
       - 'app/Contexts/Operations/KingPerks/**'
+      - 'app/Contexts/GameWorld/Governance/Queries/KingdomAuthorityFactsQuery.php'
       - 'bootstrap/app.php'
       - 'config/operations.php'
       - 'database/migrations/*king_perk*'
       - 'resources/js/pages/Kingdom/PositionPerks/**'
       - 'routes/king-perks.php'
-      - 'tests/Contexts/Operations/KingPerks/Unit/**'
+      - 'tests/Contexts/Operations/KingPerks/**'
       - 'tsconfig.king-perks.json'
       - 'vite.king-perks.config.ts'
       - '.github/workflows/king-perks-verification.yml'
@@ -27,9 +28,29 @@ jobs:
     name: King Perks backend contracts
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
       APP_ENV: testing
       APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
       CACHE_STORE: array
       SESSION_DRIVER: array
       QUEUE_CONNECTION: sync
@@ -44,7 +65,7 @@ jobs:
           set -euo pipefail
           test ! -d app/Domain/KingPerks
           test ! -d tests/Feature/KingPerks
-          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\KingPerks\\' app routes bootstrap config database tests/Contexts/Operations/KingPerks/Unit 2>/dev/null || true)
+          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\KingPerks\\' app routes bootstrap config database tests/Contexts/Operations/KingPerks 2>/dev/null || true)
           if [ -n "$matches" ]; then
             echo "$matches"
             exit 1
@@ -72,7 +93,7 @@ jobs:
           config/operations.php
           database/migrations/2026_08_15_083000_create_king_perk_tables.php
           routes/king-perks.php
-          tests/Contexts/Operations/KingPerks/Unit
+          tests/Contexts/Operations/KingPerks
 
       - name: Larastan King Perks V3
         run: >-
@@ -85,7 +106,7 @@ jobs:
       - name: King Perks V3 backend tests
         run: >-
           vendor/bin/phpunit --configuration phpunit.xml --fail-on-empty-test-suite
-          tests/Contexts/Operations/KingPerks/Unit
+          tests/Contexts/Operations/KingPerks
 
   frontend:
     name: Position Perks frontend contracts
