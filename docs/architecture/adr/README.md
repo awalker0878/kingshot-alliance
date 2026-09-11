@@ -62,3 +62,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0045: Fence notification results to the current delivery attempt](0045-fenced-notification-attempts.md)
 
 - [ADR-0046: Current notification source authorization](0046-current-notification-source-authorization.md)
+
+- [ADR-0047: Endpoint verification generations](0047-endpoint-verification-generations.md)

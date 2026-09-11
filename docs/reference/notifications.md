@@ -35,3 +35,7 @@ Current-attempt fencing prevents a delayed worker from overwriting a newer resul
 Destinations show `never_tested`, `healthy`, `degraded` or `paused` health. Health describes observed transport state, not source-domain truth, future availability or a guarantee of recipient access. A current accepted outcome updates health atomically with its delivery result; pausing is not undone by a delayed acknowledgement. Transient failures do not silently disable a destination. Configuration changes require their own current verification; known in-flight credential-generation and source-authorization hardening gaps remain tracked in the [delivery ledger](../product/codebase-hardening-delivery-ledger.md).
 
 The [delivery architecture](../architecture/contexts/communications/delivery.md) is authoritative for routing, transport boundaries and immediate/digest processing. This reference describes the current multi-endpoint model, not a legacy replacement-channel interface.
+
+### Health after a settings change
+
+Saving destination settings or pausing/resuming a destination resets verification. A response to an already-running request can still appear in delivery history, but it cannot mark the replacement settings healthy or degraded. Test the current settings to establish their health. The [endpoint generation contract](../architecture/adr/0047-endpoint-verification-generations.md) does not promise to recall provider requests already in flight.

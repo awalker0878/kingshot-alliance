@@ -81,6 +81,7 @@ return new class extends Migration
             $table->string('label', 100);
             $table->text('configuration');
             $table->boolean('enabled')->default(true)->index();
+            $table->unsignedBigInteger('verification_generation')->default(1);
             $table->string('health_status', 24)->default('never_tested')->index();
             $table->timestampTz('last_verified_at')->nullable();
             $table->timestampTz('last_successful_delivery_at')->nullable();

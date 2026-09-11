@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Communications\Delivery\Actions;
 
-use App\Contexts\Accounts\Identity\Queries\VerifiedNotificationEmailQuery;
 use App\Contexts\Communications\Delivery\Contracts\NotificationSourceAuthorization;
 use App\Contexts\Communications\Delivery\Enums\DeliveryChannel;
 use App\Contexts\Communications\Delivery\Enums\DeliveryStatus;
@@ -12,10 +11,11 @@ use App\Contexts\Communications\Delivery\Enums\DigestCadence;
 use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\Contexts\Communications\Delivery\Models\NotificationEndpoint;
 use App\Contexts\Communications\Delivery\Models\NotificationMessage;
-use App\Contexts\Communications\Delivery\Services\ExternalDeliveryChannelRegistry;
 use App\Contexts\Communications\Delivery\Services\NotificationAttemptEligibility;
+use App\Contexts\Communications\Delivery\Services\NotificationAttemptTransport;
 use App\Contexts\Communications\Delivery\Services\NotificationEndpointHealth;
 use App\Contexts\Communications\Delivery\Services\NotificationRouteResolver;
+use App\Contexts\Communications\Delivery\ValueObjects\AttemptTransportResult;
 use App\Contexts\Communications\Delivery\ValueObjects\DeliveryAttempt;
 use App\Contexts\Communications\Delivery\ValueObjects\DeliveryOutcome;
 use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
@@ -28,9 +28,8 @@ use Illuminate\Support\Facades\DB;
 final readonly class ProcessNotificationDeliveries
 {
     public function __construct(
-        private ExternalDeliveryChannelRegistry $channels,
+        private NotificationAttemptTransport $transport,
         private NotificationRouteResolver $routes,
-        private VerifiedNotificationEmailQuery $email,
         private PlayerReferenceQuery $players,
         private OutboxRecorder $outbox,
         private NotificationAttemptEligibility $eligibility,
@@ -59,7 +58,7 @@ final readonly class ProcessNotificationDeliveries
                 continue;
             }
 
-            $outcome = $this->deliver($attempt);
+            $outcome = $this->transport->deliver($attempt);
             $this->complete($attempt, $outcome);
             $processed++;
         }
@@ -233,36 +232,11 @@ final readonly class ProcessNotificationDeliveries
         return null;
     }
 
-    private function deliver(DeliveryAttempt $attempt): DeliveryOutcome
+    private function complete(DeliveryAttempt $attempt, AttemptTransportResult $result): void
     {
-        $configuration = [];
-        $endpoint = null;
-        if ($attempt->channel->usesStoredEndpoint()) {
-            $endpoint = NotificationEndpoint::query()->whereKey($attempt->endpointId)->first();
-            if (! $endpoint instanceof NotificationEndpoint || ! $endpoint->enabled) {
-                return DeliveryOutcome::failed('The selected destination is no longer enabled.', false);
-            }
-            $configuration = $endpoint->configuration;
-        } elseif ($attempt->channel === DeliveryChannel::Email) {
-            $email = $this->email->forUser($attempt->recipientUserId);
-            if ($email === null) {
-                return DeliveryOutcome::failed('A verified notification email is no longer available.', false);
-            }
-            $configuration = ['email' => $email];
-        }
-
-        $provider = $this->channels->for($attempt->channel);
-        if ($provider === null) {
-            return DeliveryOutcome::failed('No provider is registered for this channel.', false);
-        }
-
-        return $provider->deliver($attempt, $configuration);
-    }
-
-    private function complete(DeliveryAttempt $attempt, DeliveryOutcome $outcome): void
-    {
-        DB::transaction(function () use ($attempt, $outcome): void {
-            $endpoint = $this->health->lockForAttempt($attempt);
+        DB::transaction(function () use ($attempt, $result): void {
+            $outcome = $result->outcome;
+            $endpoint = $this->health->lockForAttempt($attempt, $result->endpointVerificationGeneration);
             $delivery = NotificationDelivery::query()
                 ->whereKey($attempt->deliveryId)
                 ->where('status', DeliveryStatus::Pending->value)

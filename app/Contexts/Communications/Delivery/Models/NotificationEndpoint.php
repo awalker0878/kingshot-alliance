@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $label
  * @property array<string, string> $configuration
  * @property bool $enabled
+ * @property int $verification_generation
  * @property EndpointHealthStatus $health_status
  * @property CarbonImmutable|null $last_verified_at
  * @property CarbonImmutable|null $last_successful_delivery_at
@@ -61,6 +62,7 @@ final class NotificationEndpoint extends Model
             'channel' => DeliveryChannel::class,
             'configuration' => 'encrypted:array',
             'enabled' => 'boolean',
+            'verification_generation' => 'integer',
             'health_status' => EndpointHealthStatus::class,
             'last_verified_at' => 'immutable_datetime',
             'last_successful_delivery_at' => 'immutable_datetime',

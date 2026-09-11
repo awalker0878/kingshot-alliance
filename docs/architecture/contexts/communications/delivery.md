@@ -74,6 +74,14 @@ The scheduler runs all three Communications delivery commands every minute with 
 
 Source schedulers materialize only source-owned notification intent; Communications owns provider retry and recipient delivery timing.
 
+## Endpoint verification generations
+
+`NotificationEndpoint.verification_generation` starts at one in the canonical fresh schema. Existing owner-locked settings updates and pause/resume actions advance it atomically with their verification reset and audit. Label-only saves remain verification-resetting operations; returning credentials to a prior value does not restore an earlier generation. The generation is internal owner-managed state, not an accepted client field.
+
+Both workers use one `NotificationAttemptTransport`. It selects configuration and generation from the same current recipient/channel-bound enabled endpoint and calls the existing adapter outside the claim transaction. `AttemptTransportResult` carries the actual outcome and observed generation without credentials. Completion still fences the delivery/dispatch attempt; it mutates endpoint health only when the observed generation remains current. A result from older settings cannot certify, degrade or overwrite replacement settings. Email retains the Accounts-owned verified-address path without a stored endpoint generation. See [ADR-0047](../../adr/0047-endpoint-verification-generations.md).
+
+A later settings change cannot recall IO already handed to a provider. The original delivery records its truthful outcome; the generation fence governs local health attribution, not distributed exactly-once delivery. Source access and digest member scope remain independent authorization requirements.
+
 ## Endpoint lifecycle and health
 
 Recipients may configure multiple named Discord, Telegram and Web Push endpoints. Every external stored-endpoint route records the concrete endpoint selected at queue time; provider processing does not substitute an arbitrary endpoint later.
@@ -85,7 +93,7 @@ Endpoint lifecycle supports save, test, pause, resume, reverify and delete. Endp
 - `degraded`
 - `paused`
 
-An accepted, fenced test/provider completion records healthy verification/success state in the same transaction as its delivery and outbox changes. Endpoint locking precedes dispatch/delivery locks, and a paused endpoint is not revived by an in-flight response. Provider failure records degraded/failure state and a bounded sanitized error, but transient rate limiting does not silently disable the endpoint. Pausing is an explicit recipient action and prevents delivery/test attempts until resumed.
+An accepted, fenced test/provider completion for the endpoint generation actually sent records healthy verification/success state in the same transaction as its delivery and outbox changes. Endpoint locking precedes dispatch/delivery locks, and a paused endpoint is not revived by an in-flight response. Provider failure records degraded/failure state and a bounded sanitized error, but transient rate limiting does not silently disable the endpoint. Pausing is an explicit recipient action and prevents delivery/test attempts until resumed.
 
 Endpoint changes and test queueing produce audit evidence without exposing credentials.
 

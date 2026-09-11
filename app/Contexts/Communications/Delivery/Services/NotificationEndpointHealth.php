@@ -9,19 +9,20 @@ use App\Contexts\Communications\Delivery\Models\NotificationEndpoint;
 use App\Contexts\Communications\Delivery\ValueObjects\DeliveryAttempt;
 use App\Contexts\Communications\Delivery\ValueObjects\DeliveryOutcome;
 
-/** Endpoint observations are committed only with the current, fenced attempt result. */
+/** Observations require both the current attempt and the settings generation used for IO. */
 final class NotificationEndpointHealth
 {
     /** Lock before dispatch/delivery rows, matching endpoint deletion's FK lock order. */
-    public function lockForAttempt(DeliveryAttempt $attempt): ?NotificationEndpoint
+    public function lockForAttempt(DeliveryAttempt $attempt, ?int $verificationGeneration): ?NotificationEndpoint
     {
-        if (! $attempt->channel->usesStoredEndpoint() || $attempt->endpointId === null) {
+        if (! $attempt->channel->usesStoredEndpoint() || $attempt->endpointId === null || $verificationGeneration === null) {
             return null;
         }
 
         return NotificationEndpoint::query()->whereKey($attempt->endpointId)
             ->where('recipient_user_id', $attempt->recipientUserId)
             ->where('channel', $attempt->channel->value)
+            ->where('verification_generation', $verificationGeneration)
             ->lockForUpdate()->first();
     }
 

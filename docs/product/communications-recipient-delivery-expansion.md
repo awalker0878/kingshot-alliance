@@ -112,3 +112,7 @@ Recipients can see safe routing and delivery state for their messages. Platform 
 11. Source integration normalization, security hardening, full acceptance evidence and documentation reconciliation.
 
 Completion evidence is recorded in `communications-recipient-delivery-acceptance.md` and `communications-recipient-delivery-ledger.md`.
+
+## Current endpoint verification boundary
+
+Endpoint edits and pause/resume reset verification and advance an internal generation. Provider outcomes may update current health only for the generation actually used for the request. A result for older credentials remains truthful delivery history but cannot verify or degrade replacement settings. This does not recall an external request already sent. [Communications delivery architecture](../architecture/contexts/communications/delivery.md) and [ADR-0047](../architecture/adr/0047-endpoint-verification-generations.md) own the implementation and concurrency contract.

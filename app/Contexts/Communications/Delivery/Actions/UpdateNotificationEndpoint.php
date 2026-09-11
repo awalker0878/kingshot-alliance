@@ -56,6 +56,7 @@ final readonly class UpdateNotificationEndpoint
             /** @var array<string,string> $existing */
             $validated = $this->validator->validate($endpoint->channel, $existing);
             $endpoint->forceFill([
+                'verification_generation' => $endpoint->verification_generation + 1,
                 'label' => $label,
                 'configuration' => $validated,
                 'enabled' => true,
