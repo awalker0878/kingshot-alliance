@@ -51,3 +51,7 @@ Signing-secret rotation takes effect immediately, displays the replacement once,
 King Perks planning uses transition concepts including plan creation/publication, appointment assignment/reassignment/confirmation/completion/no-show and skill planning/scheduling/activation. The owning persisted state remains Operations; messages represent transitions and do not become a second state store.
 
 When adding an externally supported webhook event, update the code catalogue, API/integration documentation, security/retry expectations and this reference together.
+
+## Announcement preparation receipt
+
+`broadcast.run.queued` records completed recipient preparation for an immutable occurrence. It is not a receipt of provider success; pending work has no completion event, and provider outcomes remain Communications-owned. See [ADR-0049](../architecture/adr/0049-bounded-announcement-occurrences.md).

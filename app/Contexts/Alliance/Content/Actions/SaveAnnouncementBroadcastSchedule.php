@@ -78,19 +78,22 @@ final readonly class SaveAnnouncementBroadcastSchedule
                 throw ValidationException::withMessages(['ends_at' => 'The recurrence must include a future delivery.']);
             }
 
-            $schedule = AnnouncementBroadcastSchedule::query()->updateOrCreate(
-                ['alliance_id' => $allianceId, 'content_item_id' => $contentItemId],
-                [
-                    'created_by_player_id' => $context->actor->playerId,
-                    'timezone' => $timezone,
-                    'weekdays' => $weekdays,
-                    'local_time' => $localTime,
-                    'status' => BroadcastScheduleStatus::Active,
-                    'next_run_at' => $next,
-                    'ends_at' => $end,
-                    'cancelled_at' => null,
-                ],
-            );
+            $schedule = AnnouncementBroadcastSchedule::query()
+                ->where('alliance_id', $allianceId)->where('content_item_id', $contentItemId)
+                ->lockForUpdate()->first() ?? new AnnouncementBroadcastSchedule([
+                    'alliance_id' => $allianceId, 'content_item_id' => $contentItemId,
+                ]);
+            $schedule->forceFill([
+                'generation' => $schedule->exists ? $schedule->generation + 1 : 1,
+                'created_by_player_id' => $context->actor->playerId,
+                'timezone' => $timezone,
+                'weekdays' => $weekdays,
+                'local_time' => $localTime,
+                'status' => BroadcastScheduleStatus::Active,
+                'next_run_at' => $next,
+                'ends_at' => $end,
+                'cancelled_at' => null,
+            ])->save();
             $metadata = [
                 'content_item_id' => $contentItemId,
                 'schedule_id' => (string) $schedule->id,

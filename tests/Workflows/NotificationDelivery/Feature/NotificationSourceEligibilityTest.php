@@ -7,7 +7,7 @@ namespace Tests\Workflows\NotificationDelivery\Feature;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Contexts\Alliance\Content\Actions\PublishContentItem;
-use App\Contexts\Alliance\Content\Actions\QueueAnnouncementBroadcastRun;
+use App\Contexts\Alliance\Content\Actions\QueuePublishedAnnouncementBroadcasts;
 use App\Contexts\Alliance\Content\Actions\SaveContentItem;
 use App\Contexts\Alliance\Content\Actions\TestAnnouncementBroadcast;
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
@@ -160,9 +160,9 @@ final class NotificationSourceEligibilityTest extends TestCase
         $recipient = $factory->player($factory->account()->userId, 786001);
         AllianceMembership::query()->create(['alliance_id' => $alliance->allianceId, 'player_id' => $recipient->playerId,
             'rank' => AllianceRank::R1, 'status' => MembershipStatus::Active, 'joined_at' => now()]);
-        $contentId = $this->announcement($alliance->allianceId, $owner->playerId);
+        $contentId = $this->announcement($alliance->allianceId, $owner->playerId, true);
         app(PublishContentItem::class)->handle($alliance->allianceId, $owner->playerId, $contentId);
-        app(QueueAnnouncementBroadcastRun::class)->handle($alliance->allianceId, $contentId, CarbonImmutable::now(), 'announcement-source-fixture');
+        app(QueuePublishedAnnouncementBroadcasts::class)->handle();
         $message = NotificationMessage::query()->where('recipient_user_id', $recipient->userId)->sole();
         self::assertTrue($this->allows($message->source()));
         match ($change) {
@@ -385,12 +385,12 @@ final class NotificationSourceEligibilityTest extends TestCase
         return GiftCode::query()->create(['code' => 'SOURCE26', 'normalized_code' => 'SOURCE26', 'status' => GiftCodeStatus::Valid, 'discovered_at' => now(), 'expires_at' => now()->addDay()]);
     }
 
-    private function announcement(string $allianceId, string $playerId): string
+    private function announcement(string $allianceId, string $playerId, bool $notify = false): string
     {
         return app(SaveContentItem::class)->handle($allianceId, $playerId, [
             'type' => ContentType::Announcement, 'visibility' => ContentVisibility::Members,
             'title' => 'Private member announcement', 'slug' => 'source-authorization',
-            'body' => 'Members only fixture.', 'locale' => 'en',
+            'body' => 'Members only fixture.', 'locale' => 'en', 'notify_members' => $notify,
         ]);
     }
 }

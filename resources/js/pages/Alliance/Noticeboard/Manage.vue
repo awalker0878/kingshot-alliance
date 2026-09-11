@@ -40,8 +40,11 @@ type BroadcastRun = {
   id: string;
   scheduleId: string | null;
   scheduledFor: string;
-  status: string;
+  status: 'pending' | 'queued' | 'empty' | 'cancelled';
   recipientCount: number;
+  skippedCount: number;
+  suppressedCount: number;
+  replayedCount: number;
   deliveryCount: number;
   deliveryCounts: Record<string, number>;
   readCount: number;
@@ -941,7 +944,7 @@ function bytes(value: number): string {
                       <span v-if="item.notifyMembers" class="ks-status" data-tone="info">
                         {{
                           item.broadcastedAt
-                            ? t('contentExperience.broadcastComplete')
+                            ? t('contentExperience.broadcastRecorded')
                             : t('contentExperience.notifyMembers')
                         }}
                       </span>
@@ -1146,6 +1149,19 @@ function bytes(value: number): string {
                         <div class="flex flex-wrap items-start justify-between gap-3">
                           <div>
                             <strong class="text-sm">{{ timestamp(run.scheduledFor) }}</strong>
+                            <p class="mt-1 text-xs" :data-broadcast-status="run.status">
+                              {{ t(`contentExperience.broadcastState.${run.status}`) }}
+                            </p>
+                            <p class="mt-1 text-xs text-[var(--ks-muted)]">
+                              {{
+                                t('contentExperience.broadcastProgress', {
+                                  examined: run.recipientCount + run.skippedCount,
+                                  skipped: run.skippedCount,
+                                  suppressed: run.suppressedCount,
+                                  replayed: run.replayedCount,
+                                })
+                              }}
+                            </p>
                             <p class="mt-1 text-xs text-[var(--ks-muted)]">
                               {{
                                 t('contentExperience.deliveryRunSummary', {

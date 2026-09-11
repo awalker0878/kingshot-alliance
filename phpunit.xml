@@ -78,6 +78,7 @@
             <directory suffix="Test.php">tests/Contexts/Accounts/MultiFactorAuthentication/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/Accounts/Profile/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/Alliance/Access/Integration</directory>
+            <directory suffix="Test.php">tests/Contexts/Alliance/Content/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/Alliance/Lifecycle/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/Alliance/Membership/Integration</directory>
             <directory suffix="Test.php">tests/Contexts/Alliance/Recruitment/Integration</directory>

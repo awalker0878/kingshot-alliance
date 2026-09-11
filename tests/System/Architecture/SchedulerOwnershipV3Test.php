@@ -48,6 +48,7 @@ final class SchedulerOwnershipV3Test extends TestCase
         }
 
         foreach ([
+            'content:queue-announcement-broadcasts' => ['* * * * *', '--limit=25 --recipients=100'],
             'events:queue-reminders' => ['* * * * *', '--limit=100'],
             'notifications:deliver' => ['* * * * *', '--limit=100'],
             'gift-codes:reconcile-sources' => ['*/15 * * * *', '--limit=25'],

@@ -2,7 +2,7 @@
 
 Status: Current
 
-Alliance announcements use the existing Content capability as their source of truth and the Communications Delivery capability for fanout. This avoids a second announcement store and keeps delivery retries outside Alliance-owned content state.
+Alliance announcements use the existing Content capability as their source of truth and the Communications Delivery capability for concrete delivery. Bounded recipient preparation remains Content-owned. This avoids a second announcement store and keeps delivery retries outside Alliance-owned content state.
 
 ## Author flow
 
@@ -28,23 +28,23 @@ Reaction mutations do not enqueue Communications notifications or broadcast deli
 ## Recipient behavior
 
 - Only claimed Governors with an active Alliance membership are recipients.
-- Each recipient gets an in-app notification immediately.
+- Each visited eligible recipient receives an in-app notification when enabled. Bounded preparation can continue across scheduler invocations.
 - Discord and Telegram are added only when that Governor configured and enabled the channel.
 - `alliance.announcement` preferences can disable any channel for the active Governor.
 - Fanout is idempotent per broadcast run, Governor and channel.
 
 ## Delivery history and recovery
 
-The management page keeps recent run history separate from the recurring rule. Each run shows its scheduled time, recipient total and current queued, sent, failed and read counts. This distinction prevents a successfully materialized schedule from being reported as externally delivered.
+The management page distinguishes a recorded occurrence from Pending preparation and completed recipient processing, with eligible, skipped, suppressed and replayed counters. Recurrence configuration remains separate. Queued preparation is not provider success. Larger-history projection limits remain an explicit HARD-106 finding; authoritative preparation counters are not reconstructed from sampled deliveries.
 
 Retry is selective and bounded to 50 concrete failed delivery IDs. Content reauthorizes the manager and run scope; Communications then revalidates notification type, content subject, run metadata, failed state and remaining attempt budget under lock. Sent, unrelated and exhausted deliveries are not reset.
 
-Cancelling a recurring rule requires the shared accessible confirmation dialog. Existing run and delivery evidence remains available after cancellation.
+Cancelling a recurring rule requires the shared accessible confirmation dialog. Existing run and delivery evidence remains available after cancellation. Unfinished recipients stop and obsolete queued external messages fail current source authorization; already-handed-off provider effects cannot be recalled.
 
 Matching webhook subscribers receive schedule updates/cancellations, queued-run summaries and privacy-safe external delivery outcomes. Outcome payloads include channel, status, attempt count and retryability, but never recipient identifiers, provider credentials or raw provider errors.
 
 ## Scheduling and operations
 
-`content:publish-scheduled` publishes due content. `content:queue-announcement-broadcasts` then materializes due announcement deliveries. Both commands run every minute with overlap protection; external delivery continues through `notifications:deliver`.
+`content:publish-scheduled` publishes due content. `content:queue-announcement-broadcasts --limit=25 --recipients=100` then records occurrences and resumes bounded recipient pages. Both commands run every minute with overlap protection; external delivery continues through `notifications:deliver`.
 
-One-off content keeps its completed-fanout marker. Recurring rules calculate the next occurrence from the rule's local wall-clock time and IANA time zone, materialize a durable run, and advance atomically. Re-running the worker cannot duplicate a run or delivery because both layers use deterministic idempotency keys.
+One-off content keeps an occurrence-created marker; only the run's queued timestamp means preparation completed. Identity includes publication revision. Recurring rules retain local wall-clock/DST semantics and advance atomically with occurrence creation. Settings saves/cancellation advance a generation, so A-to-B-to-A cannot revive old work. Each recipient commits with its cursor and existing Communications idempotency. [ADR-0049](../architecture/adr/0049-bounded-announcement-occurrences.md) defines finite traversal, current authorization and fairness.

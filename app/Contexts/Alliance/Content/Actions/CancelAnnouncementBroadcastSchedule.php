@@ -37,6 +37,7 @@ final readonly class CancelAnnouncementBroadcastSchedule
             }
 
             $schedule->forceFill([
+                'generation' => $schedule->generation + 1,
                 'status' => BroadcastScheduleStatus::Cancelled,
                 'next_run_at' => null,
                 'cancelled_at' => now(),
@@ -52,7 +53,7 @@ final readonly class CancelAnnouncementBroadcastSchedule
                 $allianceId,
                 $schedule,
                 $metadata,
-                'broadcast-schedule:'.$schedule->id.':cancelled',
+                'broadcast-schedule:'.$schedule->id.':'.$schedule->generation.':cancelled',
                 'alliance:'.$allianceId,
             );
         });

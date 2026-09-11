@@ -41,7 +41,7 @@ Artisan::command('app:launch-check {--json}', function (ProductionLaunchReadines
 })->purpose('Validate repository-controlled production launch prerequisites and operational health');
 
 Schedule::command('content:publish-scheduled --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
-Schedule::command('content:queue-announcement-broadcasts --limit=25')->everyMinute()->onOneServer()->withoutOverlapping(10);
+Schedule::command('content:queue-announcement-broadcasts --limit=25 --recipients=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('events:queue-reminders --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:queue-officer-briefs --group=daily --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:queue-officer-briefs --group=event --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);

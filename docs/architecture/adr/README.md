@@ -66,3 +66,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0047: Endpoint verification generations](0047-endpoint-verification-generations.md)
 
 - [ADR-0048: Bounded, resumable King Perk reminder traversal](0048-bounded-king-perk-reminder-traversal.md)
+
+- [ADR-0049: Bounded announcement occurrences and recipient progress](0049-bounded-announcement-occurrences.md)

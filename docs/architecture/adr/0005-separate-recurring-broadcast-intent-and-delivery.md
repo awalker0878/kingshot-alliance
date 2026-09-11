@@ -1,6 +1,6 @@
 # ADR-0005: Separate recurring broadcast intent and delivery
 
-Status: Accepted
+Status: Superseded by [ADR-0049](0049-bounded-announcement-occurrences.md).
 
 Date: 2026-08-20
 

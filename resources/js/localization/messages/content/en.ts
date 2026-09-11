@@ -64,8 +64,16 @@ const messages = {
     notifyMembers: 'Notify active members when published',
     notifyMembersHelp:
       'Each claimed active Governor receives one in-app notification plus any enabled external channels.',
-    broadcastComplete: 'Alliance Notice queued',
-    queuedBroadcasts: 'Awaiting delivery',
+    broadcastRecorded: 'Broadcast occurrence recorded',
+    broadcastState: {
+      pending: 'Preparing recipients — more work remains',
+      queued: 'Recipient processing complete',
+      empty: 'No eligible recipients',
+      cancelled: 'Stopped because source or scope changed',
+    },
+    broadcastProgress:
+      '{examined} examined · {skipped} no longer eligible · {suppressed} without enabled routes · {replayed} already queued',
+    queuedBroadcasts: 'Awaiting occurrence creation',
     deliveryAutomation: 'Scheduled delivery',
     recurringBroadcast: 'Recurring Alliance Notice',
     recurringDays: 'Delivery days',
