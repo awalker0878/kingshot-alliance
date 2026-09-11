@@ -1,0 +1,86 @@
+name: PR 163 HARD-095 history source objects
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    if: >-
+      github.repository == 'awalker0878/kingshot-alliance' &&
+      github.event.pull_request.number == 163 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'astra/codebase-hardening' &&
+      github.event.review.user.login == 'awalker0878' &&
+      github.event.review.state == 'commented' &&
+      github.event.review.body == 'Prepare verified HARD-095 history blobs only; no refs.' &&
+      github.event.review.commit_id == github.event.pull_request.head.sha
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.review.commit_id }}
+          persist-credentials: false
+      - name: Reconcile reviewed source and create blob objects only
+        env:
+          SOURCE_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import base64,hashlib,json,lzma,os,pathlib,urllib.request
+          repo='awalker0878/kingshot-alliance'
+          def api(path,data=None):
+              req=urllib.request.Request('https://api.github.com/repos/'+repo+path,
+                  data=None if data is None else json.dumps(data).encode(),
+                  headers={'Authorization':'Bearer '+os.environ['SOURCE_TOKEN'],'Accept':'application/vnd.github+json'},
+                  method='GET' if data is None else 'POST')
+              with urllib.request.urlopen(req,timeout=30) as r:return json.load(r)
+          def blob(data):return hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+          parts=[]
+          for sha in ['6e60485a48108ad8b9406d6c260e5063de879794','791b4075f81d49e74c521cb2154b4c77a5413cc3']:
+              result=api('/git/blobs/'+sha)
+              data=base64.b64decode(result['content'])
+              assert blob(data)==sha and len(data)==11004
+              parts.append(data)
+          decoder=lzma.LZMADecompressor(memlimit=128*1024*1024)
+          raw=decoder.decompress(base64.b64decode(b''.join(parts),validate=True),max_length=200001)
+          assert decoder.eof and not decoder.unused_data and len(raw)==67658
+          assert hashlib.sha256(raw).hexdigest()=='ee7da49010a73286a033c6447d80b6a721f771612677ee94218325a9e24691df'
+          manifest=json.loads(raw)
+          assert manifest['id']=='HARD-095-workflow-histories' and len(manifest['changes'])==35
+          results=[]; seen=set()
+          for change in manifest['changes']:
+              path=pathlib.PurePosixPath(change['path'])
+              assert not path.is_absolute() and '..' not in path.parts and str(path) not in seen
+              assert path.parts[0] in ['app','tests','docs','routes','database','resources'] or str(path)=='.github/workflows/visual-regression.yml'
+              seen.add(str(path)); disk=pathlib.Path(path)
+              assert not disk.is_symlink()
+              old=disk.read_bytes() if disk.exists() else None
+              assert (blob(old) if old is not None else None)==change['before'],str(path)
+              lines=(old or b'').decode().splitlines(keepends=True)
+              boundary=len(lines)
+              for start,end,text in reversed(change['hunks']):
+                  assert 0<=start<=end<=boundary
+                  lines[start:end]=text.splitlines(keepends=True)
+                  boundary=start
+              content=''.join(lines)
+              assert blob(content.encode())==change['after'],str(path)
+              results.append((str(path),content,change['after']))
+          receipt=[]
+          for path,content,sha in results:
+              result=api('/git/blobs',{'encoding':'utf-8','content':content})
+              assert result['sha']==sha
+              receipt.append({'path':path,'sha':sha})
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'hard095-history-receipt.json'
+          out.write_text(json.dumps({'review_sha':os.environ['GITHUB_SHA'],'changes':receipt,'commits_or_refs_changed':False},indent=2)+'\n')
+          print('Verified and prepared',len(receipt),'source blobs; no commits or refs changed.')
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: hard095-history-receipt
+          path: ${{ runner.temp }}/hard095-history-receipt.json
+          if-no-files-found: error
+          retention-days: 3
