@@ -61,3 +61,31 @@ test('only concrete fixture identity formats are normalized', () => {
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
   );
 });
+
+for (const status of ['Scheduled', 'Completed', 'Cancelled']) {
+  test(`adjacent occurrence ${status} preserves state across fixture dates`, () => {
+    assert.deepEqual(normalizeFixtureText(`Sep 12, 11:00 AM${status}`), {
+      text: `Fixture date${status}`,
+      dateCount: 1,
+    });
+    assert.deepEqual(
+      normalizeFixtureText(`Sep 13, 2026, 12:00 PM${status}`),
+      normalizeFixtureText(`Sep 12, 11:00 AM${status}`),
+    );
+    assert.throws(
+      () => normalizeFixtureText(`Feb 30, 1:00 AM${status}`),
+      /invalid formatted fixture date/,
+    );
+  });
+}
+
+test('adjacent status spelling and behavioral changes cannot be normalized away', () => {
+  assert.notEqual(
+    normalizeFixtureText('Sep 13, 11:00 AMScheduled').text,
+    normalizeFixtureText('Sep 13, 11:00 AMCancelled').text,
+  );
+  for (const suffix of ['Unknown', 'ScheduledWrong', 'PMount']) {
+    const text = `Sep 13, 11:00 AM${suffix}`;
+    assert.deepEqual(normalizeFixtureText(text), { text, dateCount: 0 });
+  }
+});

@@ -15,9 +15,11 @@ export function normalizeFixtureText(input: string): { text: string; dateCount: 
     'Dec',
   ];
   let dateCount = 0;
+  // Adjacent occurrence spans have no whitespace in innerText. Recognize only
+  // the current English status labels; do not consume or normalize the status.
   const text = input
     .replace(
-      /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{1,2}), (?:(\d{4}), )?(\d{1,2}):(\d{2}) (AM|PM)\b/g,
+      /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{1,2}), (?:(\d{4}), )?(\d{1,2}):(\d{2}) (AM|PM)(?=\b|(?:Scheduled|Completed|Cancelled)\b)/g,
       (
         _match,
         month: string,
