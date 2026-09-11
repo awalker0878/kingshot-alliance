@@ -4,11 +4,27 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\KingdomTransfers\Queries;
 
+use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
+use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
 
 final class TransferParticipantQuery
 {
+    public function __construct(private readonly TransferAuthorization $authorization) {}
+
+    public function activeForPlayer(string $actorPlayerId, string $allianceId, string $planId, string $playerId): ?TransferParticipant
+    {
+        if (! $this->authorization->allows($actorPlayerId, $allianceId, TransferPermission::View)) {
+            throw new AuthorizationException;
+        }
+
+        return TransferParticipant::query()->where('alliance_id', $allianceId)
+            ->where('transfer_plan_id', $planId)->where('player_id', $playerId)
+            ->whereNull('withdrawn_at')->first();
+    }
+
     /** @return Collection<int,TransferParticipant> */
     public function forPlan(string $allianceId, string $planId, bool $includeWithdrawn = false): Collection
     {

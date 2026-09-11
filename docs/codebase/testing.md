@@ -13,11 +13,11 @@ Owner folders provide navigation, not overlapping suites. PHPUnit retains five d
 | Suite | Resource boundary | PHP files | Expanded cases |
 | --- | --- | ---: | ---: |
 | Unit | Independent logic with pure PHPUnit, no application startup | 18 | 125 |
-| Feature | Actual HTTP, validation, authorization, encryption, persistence and composed behavior | 190 | 786 |
+| Feature | Actual HTTP, validation, authorization, encryption, persistence and composed behavior | 191 | 791 |
 | Integration | Committed state, independent connections, locking, after-commit and infrastructure | 53 | 512 |
 | Architecture | Source/reflection and actual application registration where required | 28 | 74 |
 | Frontend | PHP-side frontend source contracts, not browser journeys | 3 | 10 |
-| **PHP total** | **Each file and case assigned once** | **292** | **1,507** |
+| **PHP total** | **Each file and case assigned once** | **293** | **1,512** |
 
 Playwright separately discovers **62 cases in 17 specs**, with the existing **12 PNG baselines**. Node separately runs **11 source contracts in two owner-local files**. Node contracts may share Unit/Frontend directory names but are neither PHP nor Playwright cases. Support/Fixtures are not suites. Concurrency belongs in owner-local Integration/Concurrency; intentional migration lifecycle belongs in Integration/Schema.
 

@@ -300,3 +300,5 @@ The capability is complete only when the final implementation candidate is green
 - documentation/source-matrix reconciliation.
 
 No compatibility shims, legacy aliases or dual-read/write paths are part of this fresh deployment.
+
+The member capability profile evaluates only that Governor's active participant in the current authorized Alliance Plan. Missing or withdrawn participation remains unavailable as an assessment rather than selecting another Governor. A large plan does not enlarge the participant records or relationship graph read for that single profile.

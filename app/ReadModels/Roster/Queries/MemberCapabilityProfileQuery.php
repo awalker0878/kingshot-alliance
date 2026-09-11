@@ -297,8 +297,7 @@ final readonly class MemberCapabilityProfileQuery
         if (! $plan instanceof TransferPlan) {
             return ['access' => 'available', 'assessment' => null];
         }
-        $participant = $this->transferParticipants->forPlan($allianceId, (string) $plan->id)
-            ->first(static fn (TransferParticipant $candidate): bool => (string) $candidate->player_id === $playerId);
+        $participant = $this->transferParticipants->activeForPlayer($actorPlayerId, $allianceId, (string) $plan->id, $playerId);
         if (! $participant instanceof TransferParticipant) {
             return ['access' => 'available', 'assessment' => null];
         }
