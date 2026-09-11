@@ -7,7 +7,7 @@ import { assertViewportRaster, viewportCapturePlan } from './viewportRaster';
 export async function captureReadiness(page: Page): Promise<string> {
   const viewport = page.viewportSize();
   if (!viewport) throw new Error('Readiness verification requires the configured viewport.');
-  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.evaluate(() => window.scrollTo({ left: 0, top: 0, behavior: 'instant' }));
   await page.evaluate(
     () =>
       new Promise<void>((resolve) =>
@@ -54,7 +54,8 @@ export async function captureReadiness(page: Page): Promise<string> {
   for (const [index, tile] of tiles.entries()) {
     const y = await page.evaluate(
       async ({ top, inset }) => {
-        window.scrollTo(0, top - inset);
+        // CSS scroll-behavior is smooth; a capture must not race an in-flight scroll.
+        window.scrollTo({ left: 0, top: top - inset, behavior: 'instant' });
         await new Promise<void>((resolve) =>
           requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
         );
