@@ -68,3 +68,5 @@ Event writes require `event-participation:write`, an active provider link, and a
 API access does not grant Platform Administrator or Alliance-manager authority. Write scopes expose only the documented linked-Governor self-service actions. A missing, expired, revoked, malformed, or under-scoped key receives an authentication error.
 
 For public webhook event selectors, scope rules, signing and recovery behavior see [Events](../events.md).
+
+Platform API disablement applies to existing access keys and direct external-actor operations. Access requires an active source Alliance and Kingdom; re-enabling restores otherwise valid keys. The switch does not replace credential revocation.

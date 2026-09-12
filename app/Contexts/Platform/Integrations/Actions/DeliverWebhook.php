@@ -7,6 +7,7 @@ namespace App\Contexts\Platform\Integrations\Actions;
 use App\Contexts\Platform\Integrations\Enums\WebhookDeliveryStatus;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
 use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
+use App\Contexts\Platform\Integrations\Policies\IntegrationRuntimePolicy;
 use App\Contexts\Platform\Integrations\Services\WebhookEndpointPolicy;
 use App\Contexts\Platform\Integrations\Services\WebhookTransport;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,7 @@ final readonly class DeliverWebhook
     public function __construct(
         private WebhookEndpointPolicy $endpointPolicy,
         private WebhookTransport $transport,
+        private IntegrationRuntimePolicy $availability,
     ) {}
 
     public function handle(string $deliveryId, ?string $reservationToken = null): void
@@ -55,11 +57,11 @@ final readonly class DeliverWebhook
                 ->lockForUpdate()
                 ->find($locked->webhook_subscription_id);
             if (! $subscription instanceof WebhookSubscription || ! $subscription->is_active || $subscription->revoked_at !== null
-                || $subscription->alliance_id !== $locked->alliance_id) {
+                || $subscription->alliance_id !== $locked->alliance_id || ! $this->availability->allowsWebhooks((string) $locked->alliance_id)) {
                 $locked->forceFill([
                     'status' => WebhookDeliveryStatus::Failed,
                     'attempt_token' => null,
-                    'last_error' => 'Webhook subscription is no longer active.',
+                    'last_error' => 'Webhook subscription or Alliance integration is no longer available.',
                 ])->save();
 
                 return null;
@@ -161,7 +163,8 @@ final readonly class DeliverWebhook
             $subscription = WebhookSubscription::query()->lockForUpdate()->find($claim['subscription_id']);
             if (! $subscription instanceof WebhookSubscription || ! $subscription->is_active || $subscription->revoked_at !== null
                 || $subscription->alliance_id !== $claim['alliance_id'] || $subscription->url !== $claim['url']
-                || ! hash_equals((string) $subscription->signing_secret, (string) $claim['signing_secret'])) {
+                || ! hash_equals((string) $subscription->signing_secret, (string) $claim['signing_secret'])
+                || ! $this->availability->allowsWebhooks((string) $claim['alliance_id'])) {
                 $delivery->forceFill([
                     'status' => WebhookDeliveryStatus::Failed, 'attempt_token' => null,
                     'last_error' => 'Webhook subscription changed before provider handoff.',

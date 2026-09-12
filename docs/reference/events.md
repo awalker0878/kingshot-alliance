@@ -55,3 +55,5 @@ When adding an externally supported webhook event, update the code catalogue, AP
 ## Announcement preparation receipt
 
 `broadcast.run.queued` records completed recipient preparation for an immutable occurrence. It is not a receipt of provider success; pending work has no completion event, and provider outcomes remain Communications-owned. See [ADR-0049](../architecture/adr/0049-bounded-announcement-occurrences.md).
+
+Platform webhook disablement and source Alliance/Kingdom lifecycle are rechecked at claim and immediately before provider handoff. Unavailable queued work fails safely. Re-enabling does not automatically replay it; use the authorized manual retry while the original payload remains retained. Already handed-off provider requests cannot be recalled.

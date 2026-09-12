@@ -44,7 +44,7 @@ test('management catalogues retain drafts, reach history and page cohort assignm
   await assignment.locator('select').selectOption({ label: 'Catalogue 054' });
   await assignment.getByRole('button', { name: 'First page', exact: true }).click();
   await expect(assignment.locator('option:checked')).toHaveText('Catalogue 054');
-  await page.getByRole('button', { name: 'Save cohort assignment', exact: true }).click();
+  await page.getByRole('button', { name: 'Save cohort', exact: true }).click();
   await expect(assignment.locator('option:checked')).toHaveText('Catalogue 054');
   expect(errors).toEqual([]);
 });
