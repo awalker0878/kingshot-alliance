@@ -76,6 +76,7 @@ final class TransferCataloguePagesTest extends TestCase
         $first = $query->page($f->actor->playerId, $f->alliance->allianceId, TransferCatalogueKind::Cohorts, (string) $f->plan->id);
         TransferCohort::query()->whereKey($ids[24])->delete();
         $copy = TransferCohort::query()->findOrFail($ids[0])->replicate();
+        $copy->name = 'Later cohort beyond frontier';
         $copy->save();
         $seen = [];
         $cursor = $first['nextCursor'];

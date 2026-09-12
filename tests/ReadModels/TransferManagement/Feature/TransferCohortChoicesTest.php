@@ -35,9 +35,9 @@ final class TransferCohortChoicesTest extends TestCase
                 'direction' => 'outgoing', 'destination_kingdom_id' => $i % 2 === 0 ? null : $target->kingdomId]);
             $ids[] = (string) $cohort->id;
         }
-        foreach ([['direction' => 'incoming'], ['state' => 'archived'], ['destination_kingdom_id' => $other->kingdomId]] as $changes) {
+        foreach ([['direction' => 'incoming'], ['state' => 'archived'], ['destination_kingdom_id' => $other->kingdomId]] as $index => $changes) {
             $copy = $cohort->replicate();
-            $copy->forceFill($changes)->save();
+            $copy->forceFill(['name' => 'Incompatible cohort '.$index, ...$changes])->save();
         }
         sort($ids);
         $choices = app(TransferManagementChoiceQuery::class);
