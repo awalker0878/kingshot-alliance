@@ -31,7 +31,7 @@ test('Platform pages retain selected settings and recover older exhausted work',
   await expect(rows.first()).toContainText('Platform history 035');
   await expect(selected).toContainText('Manage Platform history 060');
   await featurePager.getByRole('button', { name: 'Next page', exact: true }).click();
-  await expect(selected.locator('li').first()).toContainText('Platform history 035');
+  await expect(featurePager.locator('..').locator('li').first()).toContainText('Platform history 035');
   await expect(rows.first()).toContainText('Platform history 035');
 
   await page.route('**/platform?*', async (route) => {

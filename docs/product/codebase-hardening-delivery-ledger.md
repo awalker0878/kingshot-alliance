@@ -1837,10 +1837,10 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same boundaries with explicit current, bounded contracts.
 - Rationale: complete the repository-wide audit beyond the Platform recovery slice.
 - Remediation: Make current protected Kingdom role authority and bounded delegation/input validation explicit and shared across owner Actions; retain scalar read facts and current consumer behavior.
-- State: Planned.
+- State: In progress.
 - Verification required: Limited-manager escalation rejection; concurrent role revocation/definition change; canonical/archived scope; direct oversized/generated-key inputs; successful bounded delegation and retry.
-- Verification result: production owner, Workflow and projection paths traced; implementation/containing evidence pending.
-- Completion evidence: pending.
+- Verification result: owner writes and exact permission reconciliation now share the exclusive Kingdom barrier; assign/create/update enforce current permission subsets, direct inputs and canonical scopes. Authority snapshots use a bounded scalar permission projection over SQL assignment subqueries. KingdomRoleDelegationTest adds 16 behavioral cases and KingdomRoleAuthorityConcurrencyTest adds four committed competing-connection cases. Hosted execution and adjacent HARD-127 caller migration remain required.
+- Completion evidence: ADR-0066 and the two owner test files; containing execution pending.
 
 ### HARD-125 — Kingdom administrator handoff expands unbounded history and leaves scheduled authority
 
@@ -1866,6 +1866,19 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - State: Planned.
 - Verification required: More-than-page roles/assignments/holders, query budgets, actor/Kingdom isolation, owner health policy parity and desktop/mobile retained interaction.
 - Verification result: production owner, Workflow and projection paths traced; implementation/containing evidence pending.
+- Completion evidence: pending.
+
+### HARD-127 — Operations scope consumers acquire Player before governing lifecycle authority
+
+- Area: EventWriteState/EventTargetResolver, TerritoryPlanWriteState/CreateTerritoryPlan, King Perk reminder preparation and KingdomAuthorityFactsQuery consumers.
+- Finding: protected Operations consumers lock the actor Player before the Kingdom/Alliance owner scope, while Governance bootstrap/reconciliation and lifecycle owners acquire governing scope first. Territory writes also acquire the plan before those authority scopes. These compositions can form lock cycles with current authority or lifecycle changes.
+- Current owner: Operations command/plan/Event state, GameWorld Kingdom/Player/role facts and Alliance access facts.
+- Intended authoritative owner: the same owners with explicit common scope acquisition order.
+- Rationale: bounded protected writes must not rely on database deadlock detection to resolve ordinary competing owners.
+- Remediation: trace all current consumers, acquire stable governing owner scopes before actor/resource rows through owner queries, revalidate routing facts after locking and preserve source-specific authorization and profile gates.
+- State: Planned.
+- Verification required: committed competing Lifecycle/Governance/Operations actions in both orders for supported Event/Territory/King Perk paths, stale scope rejection, rollback and existing profile/capability suites.
+- Verification result: concrete production lock calls and opposing Governance acquisition order traced; implementation pending. HARD-124 must retain this adjacent open item before final gates.
 - Completion evidence: pending.
 
 ## Repository audit coverage
@@ -1960,3 +1973,11 @@ HARD-122 local verification passes full production PHPStan level 8 plus Operatio
 ### HARD-122 migration-reference reset correction
 
 At `42d107547f544aac2fb2aa993dc2d4a4af9fc85d`, Gift Code run `34721639811`, King Perks run `34721639785` and focused run `34721639752` fail committed-test setup with `Unclassified migration reference table: public.gift_code_source_alert_sweep`. The existing guard correctly requires a reset contract for any populated migration table. Register the exact fresh singleton in MigrationReferenceData so ordinary truncation restores it, and remove the redundant per-test initializer. The guard and all normal tests remain enforced; the new alert behavior has not executed successfully yet. Visual setup succeeds and its browser run remains pending.
+
+### HARD-122/123 containing focused evidence on 9a3913
+
+Commit 9a3913fc543ca4eb1ed35c638bcae82c3cd5910c passes focused run 34722074492/job 103629688634: 95 Integrations tests/1,058 assertions; 78 Platform/ReadModel tests/6,367; 37 Governance/Kingdom Workflow tests/165 including all three policy atomicity cases; 47 Gift Code progress, notification-source and migration-reset cases/256; four Participation tests/26; 29 Transfer tests/425. Gift Code Verification 34722074470/job 103629688367 passes 93 tests/774 assertions, including all eight new operational-alert cases. This confirms the canonical reset classification correction and the owner behaviors. Final containing PHP and immutable gates remain required.
+
+Visual run 34722074384/job 103629714130 finishes 82 passed and two failed. Both complete Kingdom recovery journeys pass. Both Platform catalogue journeys stop at the same incorrect feature-list locator: the test selected the preceding entitlement list (api_credentials.max), while the feature pager belongs to a different list. The locator now scopes to the feature pager's parent; all later paging, retry, mutation and draft assertions remain. The complete catalogue journey awaits the corrected containing run.
+
+HARD-124 local verification: scoped production and both new test-file PHPStan pass, Pint passes, architecture verifier passes, 333-source test layout passes and 289-document links pass. Corrected Platform browser spec passes scoped ESLint. The new owner cases are authored; hosted PostgreSQL execution remains pending.

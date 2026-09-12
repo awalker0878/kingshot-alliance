@@ -7,10 +7,10 @@ namespace App\Contexts\GameWorld\Governance\Actions;
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
-use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
+use App\Contexts\GameWorld\Governance\Services\KingdomRoleDelegation;
+use App\Contexts\GameWorld\Governance\Services\KingdomRoleInput;
 use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
-use App\Shared\Infrastructure\Access\Models\Permission;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -21,16 +21,20 @@ final readonly class UpdateKingdomRole
     public function __construct(
         private KingdomWriteState $writeState,
         private KingdomAuthorization $authorization,
-        private KingdomAuthorityFactsQuery $authorityFacts,
+        private KingdomRoleDelegation $delegation,
+        private KingdomRoleInput $input,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
-    /** @param list<string> $permissionKeys */
+    /** @param array<mixed> $permissionKeys */
     public function handle(string $actorPlayerId, string $kingdomId, string $roleId, string $name, ?string $description, array $permissionKeys): void
     {
+        $input = $this->input->definition($name, $description, $permissionKeys);
+        ['name' => $name, 'description' => $description, 'permissions' => $permissionKeys] = $input;
+
         DB::transaction(function () use ($actorPlayerId, $kingdomId, $roleId, $name, $description, $permissionKeys): void {
-            $context = $this->writeState->lockActiveScope($actorPlayerId, $kingdomId);
+            $context = $this->writeState->lockExclusiveScope($actorPlayerId, $kingdomId);
             $this->authorization->authorizeContext($context, KingdomPermission::RoleManage);
             $role = KingdomRole::query()->whereKey($roleId)->where('kingdom_id', $kingdomId)->lockForUpdate()->firstOrFail();
             if ($role->is_system) {
@@ -39,28 +43,8 @@ final readonly class UpdateKingdomRole
             if ($role->archived_at !== null) {
                 throw ValidationException::withMessages(['role' => 'Archived Kingdom roles cannot be edited.']);
             }
-            $name = trim($name);
-            if ($name === '') {
-                throw ValidationException::withMessages(['name' => 'Role name is required.']);
-            }
-
-            $keys = array_values(array_unique(array_map('strval', $permissionKeys)));
-            $actorFacts = $this->authorityFacts->findCurrent($actorPlayerId, $kingdomId);
-            $effective = $actorFacts === null ? [] : $actorFacts->permissionKeysObservedAtRead;
-            foreach ($keys as $key) {
-                if (! in_array($key, $effective, true)) {
-                    throw ValidationException::withMessages(['permissions' => "You cannot delegate permission [{$key}] that the active Player does not hold."]);
-                }
-            }
-            $permissions = Permission::query()->whereIn('key', $keys)->whereNotNull('owner_key')->get()->keyBy('key');
-            $permissionIds = [];
-            foreach ($keys as $key) {
-                $permission = $permissions->get($key);
-                if (! $permission instanceof Permission) {
-                    throw ValidationException::withMessages(['permissions' => 'Every Kingdom-role permission must be a recognized provisioned permission with an owning context.']);
-                }
-                $permissionIds[] = (string) $permission->id;
-            }
+            $keys = $permissionKeys;
+            $permissionIds = $this->delegation->permissionIds($actorPlayerId, $kingdomId, $keys);
 
             $before = $role->permissions()->pluck('permissions.key')->map('strval')->sort()->values()->all();
             $after = $keys;

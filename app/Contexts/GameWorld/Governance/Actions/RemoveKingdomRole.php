@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
+use App\Contexts\GameWorld\Governance\Services\KingdomRoleInput;
 use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -19,14 +20,16 @@ final readonly class RemoveKingdomRole
     public function __construct(
         private KingdomWriteState $kingdomWriteState,
         private KingdomAuthorization $authorization,
+        private KingdomRoleInput $input,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
 
     public function handle(string $actorPlayerId, string $kingdomId, string $assignmentId, ?string $reason = null): void
     {
+        $reason = $this->input->reason($reason);
         DB::transaction(function () use ($actorPlayerId, $kingdomId, $assignmentId, $reason): void {
-            $authority = $this->kingdomWriteState->lockActiveScope($actorPlayerId, $kingdomId);
+            $authority = $this->kingdomWriteState->lockExclusiveScope($actorPlayerId, $kingdomId);
             $this->authorization->authorizeContext($authority, KingdomPermission::RoleManage);
 
             $assignment = KingdomRoleAssignment::query()

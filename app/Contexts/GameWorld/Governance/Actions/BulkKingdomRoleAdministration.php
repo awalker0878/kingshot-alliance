@@ -9,9 +9,11 @@ use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
+use App\Contexts\GameWorld\Governance\Services\KingdomRoleInput;
 use App\Contexts\GameWorld\Players\Models\Player;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 final readonly class BulkKingdomRoleAdministration
@@ -20,10 +22,11 @@ final readonly class BulkKingdomRoleAdministration
         private AssignKingdomRole $assign,
         private RemoveKingdomRole $remove,
         private KingdomAuthorization $authorization,
+        private KingdomRoleInput $input,
     ) {}
 
     /**
-     * @param  list<string>  $playerIds
+     * @param  array<mixed>  $playerIds
      * @return array{eligible:list<string>,ineligible:array<string,string>}
      */
     public function preview(string $actorPlayerId, string $kingdomId, string $roleId, string $operation, array $playerIds): array
@@ -32,10 +35,15 @@ final readonly class BulkKingdomRoleAdministration
             throw new AuthorizationException;
         }
 
-        $playerIds = array_values(array_unique(array_map('strval', $playerIds)));
-        if (count($playerIds) > 50) {
+        if (! array_is_list($playerIds) || count($playerIds) > 50) {
             throw ValidationException::withMessages(['players' => 'Bulk Kingdom role administration is limited to 50 Governors.']);
         }
+        foreach ($playerIds as $playerId) {
+            if (! is_string($playerId) || ! Str::isUlid($playerId)) {
+                throw ValidationException::withMessages(['players' => 'Every Governor must have a valid identifier.']);
+            }
+        }
+        $playerIds = array_values(array_unique($playerIds));
         if (! in_array($operation, ['assign', 'remove'], true)) {
             throw ValidationException::withMessages(['operation' => 'Unsupported Kingdom role bulk operation.']);
         }
@@ -45,7 +53,7 @@ final readonly class BulkKingdomRoleAdministration
         $ineligible = [];
         foreach ($playerIds as $playerId) {
             $player = $players->get($playerId);
-            if (! $player instanceof Player || (string) $player->current_kingdom_id !== $kingdomId) {
+            if (! $player instanceof Player || (string) $player->current_kingdom_id !== $kingdomId || $player->canonical_player_id !== null) {
                 $ineligible[$playerId] = 'Governor is not currently in this Kingdom.';
 
                 continue;
@@ -77,11 +85,12 @@ final readonly class BulkKingdomRoleAdministration
     }
 
     /**
-     * @param  list<string>  $playerIds
+     * @param  array<mixed>  $playerIds
      * @return array{applied:list<string>,skipped:array<string,string>}
      */
     public function handle(string $actorPlayerId, string $kingdomId, string $roleId, string $operation, array $playerIds, ?string $reason = null): array
     {
+        $reason = $this->input->reason($reason);
         $preview = $this->preview($actorPlayerId, $kingdomId, $roleId, $operation, $playerIds);
         $applied = [];
         DB::transaction(function () use ($actorPlayerId, $kingdomId, $roleId, $operation, $reason, $preview, &$applied): void {

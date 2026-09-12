@@ -26,7 +26,7 @@ final readonly class ArchiveKingdomRole
     public function handle(string $actorPlayerId, string $kingdomId, string $roleId): void
     {
         DB::transaction(function () use ($actorPlayerId, $kingdomId, $roleId): void {
-            $context = $this->writeState->lockActiveScope($actorPlayerId, $kingdomId);
+            $context = $this->writeState->lockExclusiveScope($actorPlayerId, $kingdomId);
             $this->authorization->authorizeContext($context, KingdomPermission::RoleManage);
             $role = KingdomRole::query()->whereKey($roleId)->where('kingdom_id', $kingdomId)->lockForUpdate()->firstOrFail();
             if ($role->is_system) {

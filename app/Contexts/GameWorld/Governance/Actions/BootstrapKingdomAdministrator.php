@@ -35,7 +35,7 @@ final readonly class BootstrapKingdomAdministrator
             }
 
             $target = Player::query()->whereKey($targetPlayerId)->lockForUpdate()->firstOrFail();
-            if ((string) $target->current_kingdom_id !== (string) $kingdom->id) {
+            if ((string) $target->current_kingdom_id !== (string) $kingdom->id || $target->canonical_player_id !== null) {
                 throw ValidationException::withMessages(['player' => 'The bootstrap Player must currently belong to the target Kingdom.']);
             }
 
