@@ -44,7 +44,7 @@ final readonly class AllianceDataExportService
                 ->where('column_name', 'alliance_id')
                 ->orderBy('table_name')
                 ->pluck('table_name')
-                ->filter('is_string')
+                ->filter(static fn (mixed $table): bool => is_string($table))
                 ->values();
 
             $generatedAt = now();

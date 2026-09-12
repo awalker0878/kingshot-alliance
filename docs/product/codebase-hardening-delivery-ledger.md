@@ -4,7 +4,7 @@
 
 - Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
 - Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
-- Latest pushed implementation: `cd088c9b09fcdc7dbe9938397158a793cee7009d` (HARD-113–115 export/retention/usage). Its hosted behavior is pending. Last all-nine milestone: `abcc062d7f60fe987ebde07796b2ce89d1f72c57`; CI `34714873738` passes1,840 tests /86,867 assertions, frontend and container/staging/recovery; Visual `34714873690` passes all78 cases; all specialized/security gates pass.
+- Latest pushed implementation: `cd088c9b09fcdc7dbe9938397158a793cee7009d` (HARD-113–115 export/retention/usage). Focused run `34716143412` passes Integrations and the retention/usage cases, but exposes export callback and HTTP fixture defects; follow-up verification remains pending. Last all-nine milestone: `abcc062d7f60fe987ebde07796b2ce89d1f72c57`; CI `34714873738` passes1,840 tests /86,867 assertions, frontend and container/staging/recovery; Visual `34714873690` passes all78 cases; all specialized/security gates pass.
 - Current item/state: HARD-111 / In progress. HARD-095/109/110/112 are Complete with containing evidence; HARD-113–115 are published for verification; HARD-116 records the remaining external participation/credential revocation lock cycle.
 - Active files: Integrations catalogue/usage projection, management adapter and UI, independent cursor pager, canonical indexes, all17 locales, owner/HTTP and desktop/mobile regressions, ADR-0059.
 - Local verification: complete npm check and changed Platform PHPStan/formatting pass; test layout and documentation pass. Seven Connections owner/HTTP cases and two browser journeys are authored. New database-backed cases await hosted execution; no local PostgreSQL pass is claimed.
@@ -1764,3 +1764,7 @@ The desktop trial took 31.3 seconds for nineteen captures plus the existing inte
 ### Full PHP evidence on abcc062
 
 CI `34714873738`, PHP job `103610256346`, on merge checkout `ef2a29fe0c93b6bf59e4d3b3c21b44c782de3ead` contains exact PR head `abcc062d7f60fe987ebde07796b2ce89d1f72c57` and passes1,840 tests /86,867 assertions in19:35.702. Formatting, PHPStan and schema checks also pass. Frontend job `103610256534` passes. Container/staging/recovery job `103613047913` also passes. All nine normal workflows are successful on this containing head.
+
+### Maintenance checkpoint focused feedback
+
+Exact-head run `34716143412`, job `103613621165`, on `cd088c9b09fcdc7dbe9938397158a793cee7009d` passes Integrations. Platform maintenance has31 tests /156 assertions, with three export errors caused by the existing `Collection::filter(is_string)` callback arity and one HTTP fixture rejection because Platform access requires MFA. All other cases, including the new retention traversal/retry and usage progress/rollback/overlap cases, pass. The callback is replaced with a typed closure; the HTTP fixture establishes the existing MFA and recent-authentication requirements. These export cases remain unverified until rerun.

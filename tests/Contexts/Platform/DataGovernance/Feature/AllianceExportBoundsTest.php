@@ -6,6 +6,7 @@ namespace Tests\Contexts\Platform\DataGovernance\Feature;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Accounts\MultiFactorAuthentication\Services\TotpService;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
 use App\Contexts\Platform\DataGovernance\Services\AllianceDataExportService;
 use Illuminate\Database\Events\QueryExecuted;
@@ -132,8 +133,11 @@ final class AllianceExportBoundsTest extends TestCase
         $alliance = $factory->alliance($factory->player($account->userId));
         $grant = app(ManagePlatformAdministrator::class)->grant($account->userId);
         $user = User::query()->findOrFail($account->userId);
-        $user->forceFill(['email_verified_at' => now()])->save();
-        $response = $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()])
+        $user->forceFill(['email_verified_at' => now(),
+            'two_factor_secret' => app(TotpService::class)->generateSecret(),
+            'two_factor_confirmed_at' => now(),
+        ])->save();
+        $response = $this->actingAs($user)->withSession(['accounts.recent_authentication_at' => now()->timestamp])
             ->get('/platform/alliances/'.$alliance->allianceId.'/export.json')->assertOk();
         $contents = $response->streamedContent();
         self::assertSame(hash('sha256', $contents), $response->headers->get('X-Export-SHA256'));
