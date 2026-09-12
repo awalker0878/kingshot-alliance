@@ -17,3 +17,7 @@ The fresh Platform migration defines the checkpoint and indexes for actual reten
 ## Verification
 
 Owner regressions traverse seven-record retention backlogs in successive batches, preserve live credentials and delivery payloads, exercise a locked terminal delivery and both retry/redaction outcomes, visit all five Alliances through a two-record budget, wrap after snapshot retention, roll back a partially captured batch, and skip a concurrent checkpoint holder. ReferencedCredentialRetentionTest additionally verifies both retained reference types, progress past older ineligible credentials, another maintenance category, and an uncommitted foreign-key reference on a second connection. Hosted evidence remains tracked under HARD-114, HARD-115 and HARD-117.
+
+## Interactive capture authority
+
+The HTTP capture adapter enters the AllianceAdministration CaptureAllianceUsage Action. Existing PlatformWriteState and PlatformAuthorization protect the current operator grant, followed by the Lifecycle owner Alliance lock, in the same order as other Platform Alliance commands. Snapshot and operator audit commit together. The trusted scheduled capture primitive returns its scalar snapshot identifier for this owner composition; scheduled cursor behavior is unchanged. InteractiveUsageCaptureTest covers both competing revocation orders, late audit rollback/retry and revocation between HTTP admission and owner mutation. HARD-121 records execution.

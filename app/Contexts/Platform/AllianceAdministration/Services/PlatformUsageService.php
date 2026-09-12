@@ -38,10 +38,11 @@ final readonly class PlatformUsageService
         ];
     }
 
-    public function capture(string $allianceId): void
+    /** Trusted scheduled capture; interactive adapters must use CaptureAllianceUsage. */
+    public function capture(string $allianceId): string
     {
         $usage = $this->current($allianceId);
-        AllianceUsageSnapshot::query()->create([
+        $snapshot = AllianceUsageSnapshot::query()->create([
             'alliance_id' => $allianceId,
             'active_members' => $usage['activeMembers'],
             'storage_bytes' => $usage['storageBytes'],
@@ -50,6 +51,8 @@ final readonly class PlatformUsageService
             'pending_outbox_messages' => $usage['pendingOutboxMessages'],
             'captured_at' => now(),
         ]);
+
+        return (string) $snapshot->id;
     }
 
     public function captureAll(int $limit = 500): int

@@ -4,9 +4,9 @@
 
 - Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
 - Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
-- Latest pushed implementation: `7d87deef78af513b7526f94d08d0dc0ed5bf73a4` passes all nine normal workflows, complete PHP 1,878 tests / 88,189 assertions and 80 browser cases. It contains verified HARD-111/113–118 repairs.
-- Current item/state: HARD-119 / In progress. HARD-001–118 are Complete with containing evidence; HARD-120–122 record remaining traced recovery and operational gaps. Repository coverage and final gates remain open.
-- Active files: PlatformAdministration catalogues/controller and selected details, shared IntegrationUsageQuery, management paging UI/locales, fresh-schema indexes, eighteen PHP cases and two browser journeys, ADR-0062.
+- Latest pushed implementation: `bd8345863c0ade7295901465e271c37b284fd219` contains HARD-119 catalogue repairs and is undergoing hosted checks. Verified milestone `7d87deef78af513b7526f94d08d0dc0ed5bf73a4` passes all nine normal workflows, PHP 1,878 / 88,189 assertions and 80 browser cases.
+- Current item/state: HARD-121 / In progress; HARD-119 awaits hosted catalogue verification. HARD-001–118 are Complete with containing evidence. HARD-120 and HARD-122 remain planned; repository coverage and final gates remain open.
+- Active files: CaptureAllianceUsage owner Action, scalar snapshot result, HTTP adapter, four PostgreSQL regressions and the current usage contract.
 - Local verification: full production PHPStan, changed formatting, architecture, test layout, and complete npm check pass. Eighteen catalogue PostgreSQL cases and two new browser journeys await hosted execution.
 - Next action: verify Platform catalogue behavior and complete remaining repository coverage; preserve the current containing CI milestone before advancing the branch.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
@@ -1796,10 +1796,10 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners with an explicit protected interactive Action, retaining trusted scheduled capture.
 - Rationale: middleware admission must not be the only authority for a privileged write.
 - Remediation: bind current operator authority to the snapshot transaction, retain bounded owner counts and visible failures, and distinguish scheduled system capture from interactive capture.
-- State: Planned.
+- State: In progress.
 - Verification required: revoked actor after admission, successful current-authorized capture, late failure rollback and normal scheduled progress.
-- Verification result: traced PlatformAdministrationController::captureUsage, PlatformUsageService::capture/current/captureAll and PlatformWriteState; snapshot capture currently accepts only an Alliance identifier.
-- Completion evidence: pending.
+- Verification result: CaptureAllianceUsage now holds the current Platform grant and Alliance owner reference through snapshot and operator audit. The HTTP adapter supplies its actor; trusted scheduled capture returns the scalar snapshot identifier and retains its durable sweep. Four PostgreSQL cases exercise competing revocation in both orders, late audit rollback/retry and actual HTTP revocation after middleware admission. Local PHPStan/Pint/architecture pass; hosted execution pending.
+- Completion evidence: InteractiveUsageCaptureTest and the ADR-0058 interactive capture contract; containing execution pending.
 
 ### HARD-122 — Gift Code operational alerts repeat a fixed source prefix and unbounded administrator fan-out
 
@@ -1876,3 +1876,11 @@ Visual `34717559683`, job `103617400828`, passes78 existing cases and both new C
 ### Administrator and Connections checkpoint verification
 
 On `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`, focused run `34718280323`, job `103619324078`, passes 95 Integrations tests / 1,058 assertions; 47 Platform maintenance and Administration tests / 290 assertions, including all eight HARD-118 concurrency/admission cases; 4 Participation tests / 26 assertions; and 29 TransferManagement tests / 425 assertions. Visual `34718280253`, job `103619382870`, passes all 80 browser cases (7.7 minutes), including both corrected Connections journeys. All nine normal workflows now pass. Full CI `34718280342` passes PHP 1,878 tests / 88,189 assertions in 16:28.842 (job `103619423800`), frontend (job `103619423915`) and production image/staging/backup-restore/scan (job `103621773705`). This closes the containing gates for HARD-111/113–118; repository coverage and final candidate gates remain open.
+
+### Dependency-driven interactive capture continuation
+
+While HARD-119 runs on the hosted PostgreSQL/browser gates, HARD-121 follows the already established PlatformWriteState/Alliance lock contract and can be completed independently of the larger HARD-120 recovery composition. No owner boundary is moved. HARD-120 and HARD-122 remain explicitly open.
+
+### HARD-119 first hosted feedback
+
+Focused `34719518199`, job `103622672130`, passes all 95 Integrations cases and executes 65 Platform/ReadModel cases with three catalogue fixture failures. The new historical fixture used uppercase ULIDs while the maintained HasUlids model contract emits lowercase IDs; binary ID ordering therefore placed older owner-created Alliance/administrator rows before the uppercase history, invalidating two exact-order expectations and the off-page selection setup. The fixture now uses the maintained lowercase representation. Catalogue bounds, SQL fingerprint privacy, all scope/revocation checks and the remaining seven catalogue traversals pass. No production ordering, cursor validation or assertion is relaxed.

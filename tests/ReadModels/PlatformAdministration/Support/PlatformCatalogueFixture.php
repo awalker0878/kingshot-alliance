@@ -25,7 +25,7 @@ final class PlatformCatalogueFixture
             'alliance_id' => $alliance->allianceId, 'created_by_player_id' => $playerId,
             'name' => 'Platform history', 'url' => 'https://hooks.example.test/events', 'events' => ['event.created'], 'signing_secret' => 'fixture secret',
         ]) : null;
-        $messageId = (string) Str::ulid();
+        $messageId = strtolower((string) Str::ulid());
         if ($kind === PlatformCatalogueKind::NotificationFailures) {
             DB::table('notification_messages')->insert(['id' => $messageId, 'notification_type' => 'event.reminder',
                 'recipient_user_id' => $actorId, 'title' => 'Private notification', 'body' => self::PRIVATE_ERROR,
@@ -33,7 +33,7 @@ final class PlatformCatalogueFixture
         }
         $ids = [];
         for ($i = 0; $i < $count; $i++) {
-            $id = (string) Str::ulid();
+            $id = strtolower((string) Str::ulid());
             $uuid = (string) Str::uuid();
             $name = sprintf('Platform history %03d', $i);
             $timestamps = ['created_at' => now(), 'updated_at' => now()];
