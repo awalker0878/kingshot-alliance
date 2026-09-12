@@ -21,7 +21,7 @@ final class PlatformCatalogueVisualFixture
 {
     public static function seed(): void
     {
-        $kingdoms = KingdomRecoveryFixture::kingdoms();
+        $kingdoms = KingdomRecoveryFixture::kingdoms(start: 830000);
         KingdomRecoveryFixture::players($kingdoms[259]);
         KingdomRecoveryFixture::players($kingdoms[260]);
         $existing = DB::table('platform_administrators')->whereNull('revoked_at')->value('user_id');

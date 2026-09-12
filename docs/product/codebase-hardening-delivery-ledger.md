@@ -4,8 +4,8 @@
 
 - Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
 - Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
-- Latest pushed implementation: `9189ca9072e9617d052f85d304c946dc9ffa8499` contains HARD-119/121 repairs; full PHP and focused behavior pass, with the new Platform browser fixture ordering correction and HARD-120 implementation prepared for containing reruns. Verified milestone `7d87deef78af513b7526f94d08d0dc0ed5bf73a4` passes all nine normal workflows, PHP 1,878 / 88,189 assertions and 80 browser cases.
-- Current item/state: HARD-120 / In progress; HARD-119 and HARD-121 await containing verification. HARD-001–118 are Complete with containing evidence. HARD-122, repository coverage and final gates remain open.
+- Latest pushed implementation: `89e18cbfeb94677064b599d27195e82195a75d0d` contains HARD-120 recovery and choices; all focused behavior passes. The corrected recovery browser fixture and HARD-122 progress implementation are prepared for containing reruns. Verified milestone `7d87deef78af513b7526f94d08d0dc0ed5bf73a4` passes all nine normal workflows, PHP 1,878 / 88,189 assertions and 80 browser cases.
+- Current item/state: HARD-122 / In progress; HARD-119/120/121 await containing verification. HARD-001–118 are Complete with containing evidence. Repository coverage and final gates remain open.
 - Active files: CaptureAllianceUsage owner Action, scalar snapshot result, HTTP adapter, four PostgreSQL regressions and the current usage contract.
 - Local verification: full production PHPStan, changed formatting, architecture, test layout, and complete npm check pass. Eighteen catalogue PostgreSQL cases and two new browser journeys await hosted execution.
 - Next action: verify Platform catalogue behavior and complete remaining repository coverage; preserve the current containing CI milestone before advancing the branch.
@@ -1810,10 +1810,11 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners with bounded durable producer progress.
 - Rationale: source alert delivery must remain complete and retryable as sources and administrator history grow.
 - Remediation: use bounded source/recipient traversal with durable progress and stable alert idempotency, re-evaluate current source/recipient facts and retain Communications execution-time authority.
-- State: Planned.
+- State: In progress.
 - Verification required: more-than-limit sources and recipients, bounded per-invocation work, concurrent/duplicate invocations, rollback/retry and source/grant revocation.
-- Verification result: traced source selection, alertsFor, administrator directory, notification intent keys and CurrentNotificationSourceAuthorization. Consumer source/administrator reauthorization exists; producer completeness/bounds remain open.
-- Completion evidence: pending.
+- Prior inspection: traced source selection, alertsFor, administrator directory, notification intent keys and CurrentNotificationSourceAuthorization. Consumer source/administrator reauthorization exists; producer completeness/bounds remain open.
+- Verification result: ADR-0064 introduces a finite durable source sweep, per-source subscription/recipient frontiers, 25-row pages and a global 500-intent attempt budget. Current source/health/subscription/administrator facts are reread; notification intents and progress commit atomically. Subscription IDs distinguish equal-timestamp alert meanings, and withdrawn sources fail consumer authority. Eight committed PostgreSQL progress/bounds/rollback/overlap/current-state cases and extended consumer cases await hosted execution.
+- Completion evidence: OperationalAlertProgressTest, NotificationSourceEligibilityTest and ADR-0064; containing verification pending.
 
 ## Repository audit coverage
 
@@ -1897,3 +1898,9 @@ At `9189ca9072e9617d052f85d304c946dc9ffa8499`, focused run `34719880192`, job `1
 HARD-120 implements ADR-0063 with current owner barriers, atomic rollback, bounded replacement including scheduled grants, complete scoped choices and retained/error-visible recovery forms. The temporary focused hosted run additionally includes GameWorld Governance and KingdomGovernance Workflow behavior. All final gates remain required; this is not a readiness declaration.
 
 HARD-120 local validation passes full npm check (only the existing two Recruitment attribute-order warnings), full production PHPStan level 8 plus focused test analysis, Pint, architecture, test layout and documentation links. Twelve recovery loader tests pass, including stale-response cancellation, failed-page retention/retry, bounded caching and all 17 locales. Four additional committed two-connection cases cover Kingdom and Player scope changes in both orders. PostgreSQL/browser execution remains hosted and pending for this implementation.
+
+### HARD-120 focused containing evidence
+
+At `89e18cbfeb94677064b599d27195e82195a75d0d`, focused run `34721085604`, job `103626946928`, passes 95 Integrations / 1,058 assertions, 78 Platform/ReadModel / 6,367 assertions, 34 Governance/KingdomGovernance / 138 assertions, four Participation / 26 assertions and 29 TransferManagement / 425 assertions. All new recovery concurrency, rollback, owner-bound and choice tests pass. Visual `34721085611`, job `103626946977`, stops at setup because the new 63000-range recovery fixture overlaps an existing Kingdom number. The browser fixture now uses the repository-unused 830000 range with matching exact browser choices. No browser case ran on this head. Full CI and containing browser verification remain open.
+
+HARD-122 local verification passes full production PHPStan level 8 plus OperationalAlertProgressTest analysis, Pint, architecture, 330-source test layout, documentation links and scoped browser lint. Canonical migration data is restored in the committed DatabaseTruncation fixture; the production sweep row is created by the fresh migration. Hosted behavior and final containing gates remain required.

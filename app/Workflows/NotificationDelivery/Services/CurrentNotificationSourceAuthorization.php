@@ -62,7 +62,7 @@ final readonly class CurrentNotificationSourceAuthorization implements Notificat
                     && $this->intelligence->canView($player->playerId, $allianceId),
                 'gift_code.expiring', 'gift_code.available', 'gift_code.trust_changed', 'gift_code.reminder' => $this->giftCodes->allowsCatalogue($source),
                 'gift_code.redemption_ready' => $this->giftCodes->allowsWorkspace($source),
-                'gift_code.source_alert' => $this->platform->allows($account) && $this->giftCodes->operationalSourceExists($source),
+                'gift_code.source_alert' => $this->platform->allows($account) && $this->giftCodes->operationalSourceAvailable($source),
                 default => false,
             };
         } catch (ModelNotFoundException|AuthorizationException) {

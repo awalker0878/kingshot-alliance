@@ -152,3 +152,5 @@ Before enabling external sources in a deployment:
 10. keep Century Games disabled unless express permission/cooperation is recorded.
 
 The repository is pre-deployment with an empty database, so source-acquisition state is defined directly for the fresh deployment without compatibility shims or upgrade paths.
+
+Operational alerts use a durable finite source sweep with 25-subscription and 25-administrator pages and a global 500-intent attempt budget. `gift-codes:source-operational-alerts --limit=100` retains its cadence; repeat invocations resume committed progress and overlapping invocations skip the owned sweep. The JSON `sources`/`alerts`/`recipients` fields count evaluated source turns, alert meanings and recipient/source visits; `queued` counts newly created logical messages. Health and eligibility are current each turn; new facts behind a frontier arrive in the next cycle. A failed transaction rolls back messages and progress together. Both progress tables must be included in normal database backup/restore. See [ADR-0064](../architecture/adr/0064-bounded-gift-code-operational-alert-progress.md).

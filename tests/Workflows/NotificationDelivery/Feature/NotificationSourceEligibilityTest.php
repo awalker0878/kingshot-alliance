@@ -355,13 +355,18 @@ final class NotificationSourceEligibilityTest extends TestCase
         $grant = PlatformAdministrator::query()->create(['user_id' => $account->userId, 'granted_at' => now()]);
         $registry = GiftCodeSourceRegistry::query()->create([
             'source_key' => 'authorization-fixture', 'name' => 'Authorization fixture', 'classification' => 'official',
-            'canonical_domain' => 'example.test', 'verification_method' => 'fixture', 'is_active' => true,
+            'canonical_domain' => 'example.test', 'verification_method' => 'fixture', 'is_active' => true, 'ingestion_enabled' => true,
         ]);
         $source = new NotificationSource('gift_code.source_alert', $account->userId, null, 'gift_code_source', (string) $registry->id, ['source_id' => (string) $registry->id]);
         self::assertTrue($this->allows($source));
         $grant->forceFill(['revoked_at' => now()])->save();
         self::assertFalse($this->allows($source));
         $grant->forceFill(['revoked_at' => null])->save();
+        foreach (['is_active' => false, 'ingestion_enabled' => false, 'revoked_at' => now()] as $field => $value) {
+            $registry->forceFill([$field => $value])->save();
+            self::assertFalse($this->allows($source));
+            $registry->forceFill(['is_active' => true, 'ingestion_enabled' => true, 'revoked_at' => null])->save();
+        }
         $registry->delete();
         self::assertFalse($this->allows($source));
     }

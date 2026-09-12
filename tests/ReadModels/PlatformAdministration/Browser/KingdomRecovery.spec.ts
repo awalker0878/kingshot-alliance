@@ -16,7 +16,7 @@ test('Kingdom recovery searches complete choices, retains paging drafts, resets 
   const kingdom = page.locator('#recovery-kingdom');
   const governors = page.locator('#recovery-player');
   const choices = governors.locator('..');
-  const targetKingdom = info.project.name === 'mobile' ? '63260' : '63259';
+  const targetKingdom = info.project.name === 'mobile' ? '830260' : '830259';
   await expect(governors).toBeDisabled();
   await page.locator('#recovery-kingdom-search').fill(targetKingdom);
   await page.locator('#recovery-kingdom-search').press('Enter');

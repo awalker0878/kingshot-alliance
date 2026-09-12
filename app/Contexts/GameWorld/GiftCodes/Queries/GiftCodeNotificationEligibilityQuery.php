@@ -55,10 +55,11 @@ final readonly class GiftCodeNotificationEligibilityQuery
             && $this->players->ownedByUserUpTo($source->recipientUserId, 1) !== [];
     }
 
-    public function operationalSourceExists(NotificationSource $source): bool
+    public function operationalSourceAvailable(NotificationSource $source): bool
     {
         return $source->playerId === null && $source->subjectType === 'gift_code_source'
             && $source->subjectId !== null && $source->metadataString('source_id') === $source->subjectId
-            && GiftCodeSourceRegistry::query()->whereKey($source->subjectId)->exists();
+            && GiftCodeSourceRegistry::query()->whereKey($source->subjectId)->where('is_active', true)
+                ->where('ingestion_enabled', true)->whereNull('revoked_at')->exists();
     }
 }

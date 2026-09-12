@@ -89,6 +89,8 @@ jobs:
         run: php vendor/bin/phpunit tests/Contexts/Platform/DataGovernance tests/Contexts/Platform/AllianceAdministration tests/Contexts/Platform/Administration tests/ReadModels/PlatformAdministration --log-junit storage/logs/platform-maintenance-junit.xml
       - name: Run Kingdom Governance recovery behavior
         run: php vendor/bin/phpunit tests/Contexts/GameWorld/Governance tests/Workflows/KingdomGovernance --log-junit storage/logs/kingdom-recovery-junit.xml
+      - name: Run Gift Code operational alert progress
+        run: php vendor/bin/phpunit tests/Contexts/GameWorld/GiftCodes/Feature/OperationalAlertProgressTest.php tests/Workflows/NotificationDelivery/Feature/NotificationSourceEligibilityTest.php --log-junit storage/logs/operational-alerts-junit.xml
       - name: Run Participation owner behavior
         run: php vendor/bin/phpunit tests/Contexts/Operations/Participation --log-junit storage/logs/participation-junit.xml
       - name: Run TransferManagement behavior
@@ -104,5 +106,6 @@ jobs:
             storage/logs/platform-maintenance-junit.xml
             storage/logs/participation-junit.xml
             storage/logs/kingdom-recovery-junit.xml
+            storage/logs/operational-alerts-junit.xml
           if-no-files-found: ignore
           retention-days: 7
