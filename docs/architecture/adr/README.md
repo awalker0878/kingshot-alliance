@@ -92,3 +92,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0060: Atomic external participation scope order](0060-atomic-external-participation-scope-order.md)
 
 - [ADR-0061: Current Platform Administrator grants](0061-current-platform-administrator-grants.md)
+
+- [ADR-0062: Bounded Platform administration catalogues](0062-bounded-platform-administration-catalogues.md)

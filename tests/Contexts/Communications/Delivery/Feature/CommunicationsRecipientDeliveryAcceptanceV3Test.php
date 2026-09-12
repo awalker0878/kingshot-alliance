@@ -26,6 +26,7 @@ use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\Contexts\Communications\Delivery\Queries\NotificationInboxQuery;
 use App\Contexts\Communications\Delivery\Services\NotificationDeliveryService;
 use App\Contexts\Communications\Delivery\ValueObjects\NotificationIntent;
+use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
 use App\ReadModels\PlatformAdministration\PlatformAdministrationQuery;
 use App\ReadModels\ProductionLaunch\ProductionLaunchReadiness;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
@@ -566,7 +567,8 @@ final class CommunicationsRecipientDeliveryAcceptanceV3Test extends TestCase
         self::assertSame(1, app(ProcessNotificationDeliveries::class)->handle());
         self::assertSame(DeliveryStatus::Failed, $this->route($failed->messageId, DeliveryChannel::Discord)->status);
 
-        $dashboard = app(PlatformAdministrationQuery::class)->dashboard();
+        app(ManagePlatformAdministrator::class)->grant($account->userId);
+        $dashboard = app(PlatformAdministrationQuery::class)->dashboard($account->userId);
         $failure = $dashboard['diagnostics']['notificationFailures'][0] ?? null;
         self::assertIsArray($failure);
         self::assertSame('event.reminder', $failure['notificationType'] ?? null);

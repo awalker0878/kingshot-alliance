@@ -47,19 +47,4 @@ final readonly class AllianceFeatureService
             ->where('enabled', true)
             ->exists();
     }
-
-    /** @return list<array{key:string,enabled:bool,configuration:mixed}> */
-    public function all(string $allianceId): array
-    {
-        return array_values(AllianceFeatureFlag::query()
-            ->where('alliance_id', $allianceId)
-            ->orderBy('feature_key')
-            ->get()
-            ->map(static fn (AllianceFeatureFlag $flag): array => [
-                'key' => (string) $flag->feature_key,
-                'enabled' => $flag->enabled,
-                'configuration' => $flag->configuration,
-            ])
-            ->all());
-    }
 }

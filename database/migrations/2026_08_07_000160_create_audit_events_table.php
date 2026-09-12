@@ -25,6 +25,8 @@ return new class extends Migration
             $table->timestamp('created_at')->useCurrent();
 
             $table->index(['subject_type', 'subject_id']);
+            $table->index(['request_id', 'id'], 'platform_request_audit_catalogue_index');
+            $table->index(['trace_id', 'id'], 'platform_trace_audit_catalogue_index');
             $table->index(['alliance_id', 'created_at']);
             $table->index(['actor_player_id', 'created_at']);
             $table->index(['actor_user_id', 'created_at']);

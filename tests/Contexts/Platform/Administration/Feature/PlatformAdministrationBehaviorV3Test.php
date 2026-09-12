@@ -78,7 +78,9 @@ final class PlatformAdministrationBehaviorV3Test extends TestCase
     public function test_platform_dashboard_includes_privacy_safe_gift_code_workspace_health(): void
     {
         config()->set('game_world.gift_codes.redemption_workspace', true);
-        $dashboard = app(PlatformAdministrationQuery::class)->dashboard();
+        $account = (new ScenarioFactory)->account();
+        app(ManagePlatformAdministrator::class)->grant($account->userId);
+        $dashboard = app(PlatformAdministrationQuery::class)->dashboard($account->userId);
         $health = $dashboard['diagnostics']['giftCodeWorkspace'] ?? null;
 
         self::assertIsArray($health);

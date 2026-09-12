@@ -126,6 +126,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['status', 'due_at']);
+            $table->index(['status', 'id'], 'platform_notification_failure_catalogue_index');
             $table->index(['notification_message_id', 'status']);
             $table->index(['notification_endpoint_id', 'status']);
         });

@@ -4,11 +4,11 @@
 
 - Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
 - Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
-- Latest pushed implementation: `a707ccdef8783620f28c454e885ee863349665fc` contains HARD-117 and corrected competing Eloquent connection names; hosted checks are running. Preceding `24e9a48bc6f959b10b15803caa71e4f04b4bb2d8` passes complete PHP1,856 /87,942 assertions and frontend. Last all-nine milestone remains `abcc062d7f60fe987ebde07796b2ce89d1f72c57` (1,840 PHP tests /86,867 assertions and78 browser cases).
-- Current item/state: HARD-118 / In progress. HARD-095/109/110/112 are Complete with containing evidence; HARD-111/113–117 await containing completion. HARD-119 records remaining Platform management projection gaps.
-- Active files: Accounts current target lock contract, Administration mutation coordinator and grants/HTTP/CLI, retained field errors, eight PostgreSQL regressions, ADR-0061; Connections browser synchronous retry assertion.
-- Local verification: changed production PHPStan, formatting, architecture, test layout, Vue types, affected frontend lint/format and documentation pass. Eight administrator PostgreSQL cases await hosted execution; no local PostgreSQL pass is claimed.
-- Next action: inspect corrected HARD-116/117 results, verify administrator lifecycle/concurrency and corrected Connections journeys, then complete Platform projection and repository audit coverage before final gates.
+- Latest pushed implementation: `7d87deef78af513b7526f94d08d0dc0ed5bf73a4` passes all nine normal workflows, complete PHP 1,878 tests / 88,189 assertions and 80 browser cases. It contains verified HARD-111/113–118 repairs.
+- Current item/state: HARD-119 / In progress. HARD-001–118 are Complete with containing evidence; HARD-120–122 record remaining traced recovery and operational gaps. Repository coverage and final gates remain open.
+- Active files: PlatformAdministration catalogues/controller and selected details, shared IntegrationUsageQuery, management paging UI/locales, fresh-schema indexes, eighteen PHP cases and two browser journeys, ADR-0062.
+- Local verification: full production PHPStan, changed formatting, architecture, test layout, and complete npm check pass. Eighteen catalogue PostgreSQL cases and two new browser journeys await hosted execution.
+- Next action: verify Platform catalogue behavior and complete remaining repository coverage; preserve the current containing CI milestone before advancing the branch.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -1658,10 +1658,12 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Finding: IntegrationManagementController materializes all historical API credentials and subscriptions, while frontend active counters count loaded rows and treat expired credentials as active. The fifty-delivery sample has no history continuation for older failed deliveries.
 - Intended authoritative owner: Existing Integrations read owner and Connections presentation; current write Actions remain authoritative.
 - Remediation: Provide independent authorized pages and complete live active counts, resolved visible subscription names, retained drafts and old-delivery retry access.
-- State: In progress.
+- State: Complete.
 - Verification required: owner behavior, current authorization/lifecycle, cross-Alliance isolation, bounded backlog/query behavior, canonical schema, frontend when applicable and final containing gates.
 - Verification result: independent 25-record owner projections, signed scoped cursors, complete SQL totals, one shared active-usage query, bounded subscription names and current retry flags are implemented. The UI preserves independent page positions and drafts, reports page/revocation errors, and translates queued/expired/history states in all17 locales. Complete npm check and changed Platform PHPStan pass. Seven owner/HTTP feature cases and two viewport browser journeys are authored; hosted behavior remains pending. ADR-0059 records the boundary.
 - Commit SHA: recorded following `a52a69fe99833d021c7244639fb8554f9fa51dcd`.
+
+- Containing completion: `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`; all nine normal workflows pass. CI `34718280342` PHP job `103619423800`: 1,878 tests / 88,189 assertions; Visual `34718280253` job `103619382870`: 80 passed. Focused owner evidence is recorded in the administrator and Connections checkpoint section.
 
 ### HARD-112 — Platform integration switches do not stop existing runtime access
 
@@ -1682,10 +1684,12 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Finding: generate loads every Alliance-scoped row from every discovered table, builds all nested arrays and only then checks the 100 MiB JSON limit while holding repeatable-read and authority locks. The supposed safety limit cannot prevent memory exhaustion.
 - Intended authoritative owner: Existing authorized DataGovernance export owner.
 - Remediation: Bound database reads and encoding before allocation, retain complete export semantics and explicit size rejection, verify deterministic row/count/checksum and current private-field exclusions; document the chosen export contract.
-- State: In progress.
+- State: Complete.
 - Verification required: owner behavior, current authorization/lifecycle, cross-Alliance isolation, bounded backlog/query behavior, canonical schema, frontend when applicable and final containing gates.
 - Verification result: owner remediation and meaningful database regressions are authored; complete Platform PHPStan and formatting pass. Hosted behavior and containing gates are pending. See ADR-0057 for export and ADR-0058 for retention/usage.
 - Commit SHA: recorded following `a52a69fe99833d021c7244639fb8554f9fa51dcd`.
+
+- Containing completion: `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`; all nine normal workflows pass. CI `34718280342` PHP job `103619423800`: 1,878 tests / 88,189 assertions; Visual `34718280253` job `103619382870`: 80 passed. Focused owner evidence is recorded in the administrator and Connections checkpoint section.
 
 ### HARD-114 — Platform retention mutates an entire eligible backlog per invocation
 
@@ -1693,10 +1697,12 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Finding: Each retention invocation updates/deletes every eligible webhook payload, credential, usage snapshot and export record without a bounded batch, leaving transaction work and lock impact proportional to the global backlog.
 - Intended authoritative owner: Existing DataGovernance retention policy, retaining owner state and privacy predicates.
 - Remediation: Bound each retention unit, preserve progress and retention cutoffs, fence concurrent retries/current eligibility, and verify large backlogs and repeat invocations.
-- State: In progress.
+- State: Complete.
 - Verification required: owner behavior, current authorization/lifecycle, cross-Alliance isolation, bounded backlog/query behavior, canonical schema, frontend when applicable and final containing gates.
 - Verification result: owner remediation and meaningful database regressions are authored; complete Platform PHPStan and formatting pass. Hosted behavior and containing gates are pending. See ADR-0057 for export and ADR-0058 for retention/usage.
 - Commit SHA: recorded following `a52a69fe99833d021c7244639fb8554f9fa51dcd`.
+
+- Containing completion: `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`; all nine normal workflows pass. CI `34718280342` PHP job `103619423800`: 1,878 tests / 88,189 assertions; Visual `34718280253` job `103619382870`: 80 passed. Focused owner evidence is recorded in the administrator and Connections checkpoint section.
 
 ### HARD-115 — Platform usage capture repeatedly visits only the first Alliances
 
@@ -1704,10 +1710,12 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Finding: The scheduled capture uses AllianceReferenceQuery::all(limit), ordered from the first ID on every invocation. Alliances beyond that prefix never receive snapshots.
 - Intended authoritative owner: Existing usage owner with an authorized neutral Alliance reference query.
 - Remediation: Use durable or persisted least-visited progression across every Alliance, bound per-sweep work and preserve complete per-Alliance count semantics.
-- State: In progress.
+- State: Complete.
 - Verification required: owner behavior, current authorization/lifecycle, cross-Alliance isolation, bounded backlog/query behavior, canonical schema, frontend when applicable and final containing gates.
 - Verification result: owner remediation and meaningful database regressions are authored; complete Platform PHPStan and formatting pass. Hosted behavior and containing gates are pending. See ADR-0057 for export and ADR-0058 for retention/usage.
 - Commit SHA: recorded following `a52a69fe99833d021c7244639fb8554f9fa51dcd`.
+
+- Containing completion: `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`; all nine normal workflows pass. CI `34718280342` PHP job `103619423800`: 1,878 tests / 88,189 assertions; Visual `34718280253` job `103619382870`: 80 passed. Focused owner evidence is recorded in the administrator and Connections checkpoint section.
 
 ### HARD-116 — External Event participation locks integration authority before Alliance scope
 
@@ -1717,10 +1725,12 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners with composition following the existing Operations scope order before Integration authority.
 - Rationale: preserve current revocation and atomic idempotency while eliminating opposing lock acquisition; do not copy Event or Alliance authorization into Integrations.
 - Remediation: reproduce the competing orders, compose explicit owner scope acquisition in the Workflow, recheck scalar binding under locks and retain complete rollback/replay semantics.
-- State: In progress.
+- State: Complete.
 - Verification required: real PostgreSQL admission/revocation in both orders, current link/credential/runtime revocation, replay after changed authority, and late owner/receipt rollback without duplicate effects.
 - Verification result: Operations now owns one shared current participation scope acquisition; the Workflow composes it before Integrations in an explicit atomic transaction. Credential/link NOWAIT prevents pairing-claim lock inversion and returns a retryable HTTP409 after rollback. Twelve PostgreSQL cases cover both owner revocations and orders for response/registration, pairing contention, HTTP retry/replay, current membership and late receipt rollback. Local static/style checks pass; hosted execution is pending.
 - Completion evidence: ADR-0060 and ExternalActorScopeOrderingTest; containing execution pending.
+
+- Containing completion: `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`; all nine normal workflows pass. CI `34718280342` PHP job `103619423800`: 1,878 tests / 88,189 assertions; Visual `34718280253` job `103619382870`: 80 passed. Focused owner evidence is recorded in the administrator and Connections checkpoint section.
 
 ### HARD-117 — Referenced credentials can starve Platform retention
 
@@ -1730,10 +1740,12 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners, preserving historical references while purging eligible unreferenced credentials.
 - Rationale: maintenance must remain bounded and progress without deleting linked actor or idempotency history or weakening referential integrity.
 - Remediation: exclude currently referenced credentials before batch selection, retain the deletion-time predicate under locks, index reference lookups and test mixed referenced/unreferenced history and concurrent references.
-- State: In progress.
+- State: Complete.
 - Verification required: both reference types, older ineligible rows preceding eligible rows, bounded continued progress, unchanged history and other-category progress, and a concurrent locked credential/reference.
 - Verification result: restrictive foreign keys and the unconditional age-only purge are confirmed in the canonical schema and owner action. The owner now excludes both reference types before selection and on deletion, preserving restrictive foreign keys and adding reference indexes. Two PostgreSQL cases cover mixed history/bounded progress and an uncommitted reference on a second connection. Local PHPStan/Pint pass; hosted behavior remains pending.
 - Completion evidence: ReferencedCredentialRetentionTest and the extended ADR-0058; containing execution pending.
+
+- Containing completion: `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`; all nine normal workflows pass. CI `34718280342` PHP job `103619423800`: 1,878 tests / 88,189 assertions; Visual `34718280253` job `103619382870`: 80 passed. Focused owner evidence is recorded in the administrator and Connections checkpoint section.
 
 ### HARD-118 — Platform administrator grants lack current account and consistent lock ordering
 
@@ -1743,10 +1755,12 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners, with ordered grant acquisition and a current active target-account barrier.
 - Rationale: platform access must not attach to a finalized account or bypass deletion's current blocker check; rare administrative commands must remain retryable under contention without creating a new permission authority.
 - Remediation: reproduce the crossed acquisition and deletion outcomes; use current Accounts owner locking and a consistent grant order, account for absent target grants, and preserve bootstrap/idempotency/audit semantics.
-- State: In progress.
+- State: Complete.
 - Verification required: grant/revoke in both orders, active and finalized target accounts, deletion/grant competing outcomes, concurrent first target grant, bootstrap and late audit rollback.
 - Verification result: traced ManagePlatformAdministrator, PlatformWriteState, bootstrap coordinator, account identity locking, ProcessAccountDeletionRequests blocker and current HTTP adapters. The existing bootstrap coordinator now serializes all grants/revocations before catalogue rows, including absent targets. Accounts owns the active target barrier with NOWAIT; busy/finalized target errors remain visible in the retained grant form. Eight PostgreSQL cases are authored, including authenticated HTTP contention/retry/revocation and explicit CLI bootstrap rejection. Local PHPStan/Pint/architecture/layout pass; hosted execution remains pending.
 - Completion evidence: ADR-0061 and PlatformAdministratorConcurrencyTest; containing execution pending.
+
+- Containing completion: `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`; all nine normal workflows pass. CI `34718280342` PHP job `103619423800`: 1,878 tests / 88,189 assertions; Visual `34718280253` job `103619382870`: 80 passed. Focused owner evidence is recorded in the administrator and Connections checkpoint section.
 
 ### HARD-119 — Platform management clips catalogues and reads unrelated history
 
@@ -1756,9 +1770,48 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: existing Context facts and current-authorized bounded ReadModel catalogues with reachable operator history.
 - Rationale: management must remain truthful and complete as tenants/history grow, without duplicating credential/runtime state or exposing a viewer-less privileged projection.
 - Remediation: trace each catalogue and consumer; add current administrator admission, scoped continuation/complete totals, page-scoped supporting facts, shared active credential semantics and retained management errors/drafts.
-- State: Planned.
+- State: In progress.
 - Verification required: more-than-limit catalogues, independent continuation, current grant revocation, scope-bound cursors, bounded hydration, exact active/pending counts, older outbox retry reachability and desktop/mobile retained errors/drafts.
-- Verification result: traced PlatformAdministrationQuery, HTTP read/write controllers, routes and Index.vue alongside the owner usage/retention APIs. No remediation or behavioral pass is claimed yet.
+- Verification result: nine current-authorized catalogue pages replace clipped or unbounded histories; page-scoped supporting facts use shared IntegrationUsageQuery semantics. Diagnostic fingerprints execute in SQL without hydrating errors/payloads; selected Alliance state is independent of the visible list. Eighteen PostgreSQL cases and two browser journeys cover bounds, privacy, current totals, scope isolation, deleted boundaries, authority revocation, selected forms and older outbox retry. Local static/format/type checks pass; hosted execution is pending.
+- Completion evidence: ADR-0062, PlatformCataloguePagesTest and PlatformCatalogues browser journey; containing execution pending.
+
+### HARD-120 — Kingdom administrator recovery has stale operator admission and clipped choices
+
+- Area: KingdomGovernance Workflow, GameWorld Governance repair owner and PlatformAdministration recovery projection.
+- Finding: recovery checks Platform authority before a separately committed Governance repair, then provisions Operations roles afterward. Revocation between admission and mutation is not fenced, and a later provisioning failure can leave partial recovery. The selector clips Kingdoms to 250 and Governors to 1,000 across that prefix, leaving other valid recovery targets unreachable.
+- Current owner: Platform operator authority, GameWorld Governance assignments, Operations role permissions, Workflow composition and read-only selector.
+- Intended authoritative owner: the same owners with explicit current protected composition and reachable bounded choices.
+- Rationale: recovery must retain operator authorization through its mutation and provide a coherent retry outcome without turning Platform grants into game authority.
+- Remediation: trace owner acquisition order, authorize through the Platform owner inside a documented atomic Workflow boundary, preserve owner role provisioning/audit/outbox, and replace clipped selectors with current-authorized scoped choices and visible errors.
+- State: Planned.
+- Verification required: current revocation, late owner rollback/retry, competing scope changes, cross-Kingdom target rejection, complete selector traversal and retained form/selection behavior.
+- Verification result: traced RecoverKingdomAdministrator, RepairKingdomAdministratorAssignment, KingdomOperationsRoleProvisioner call, HTTP adapters/routes and GovernanceRecovery.vue. Existing two recovery tests cover successful replacement and an initially unauthorized actor, not the identified intervals.
+- Completion evidence: pending.
+
+### HARD-121 — Interactive usage capture discards operator authority
+
+- Area: Platform Administration HTTP capture and AllianceAdministration usage owner.
+- Finding: captureUsage obtains an account but discards it before calling the trusted scheduled capture service. No current Platform grant is locked/rechecked when the interactive snapshot is written.
+- Current owner: Platform Administration admission and AllianceAdministration usage snapshots.
+- Intended authoritative owner: the same owners with an explicit protected interactive Action, retaining trusted scheduled capture.
+- Rationale: middleware admission must not be the only authority for a privileged write.
+- Remediation: bind current operator authority to the snapshot transaction, retain bounded owner counts and visible failures, and distinguish scheduled system capture from interactive capture.
+- State: Planned.
+- Verification required: revoked actor after admission, successful current-authorized capture, late failure rollback and normal scheduled progress.
+- Verification result: traced PlatformAdministrationController::captureUsage, PlatformUsageService::capture/current/captureAll and PlatformWriteState; snapshot capture currently accepts only an Alliance identifier.
+- Completion evidence: pending.
+
+### HARD-122 — Gift Code operational alerts repeat a fixed source prefix and unbounded administrator fan-out
+
+- Area: GiftCodes QueueGiftCodeSourceOperationalAlerts and PlatformAdministratorDirectory.
+- Finding: every scheduled alert invocation reads only the first sourceLimit sources and all active administrator IDs, then synchronously enqueues every source/alert/recipient combination. Sources beyond that prefix cannot progress and recipient work has no batch frontier.
+- Current owner: Gift Code source operational meaning, Platform administrator recipient facts and Communications delivery intents.
+- Intended authoritative owner: the same owners with bounded durable producer progress.
+- Rationale: source alert delivery must remain complete and retryable as sources and administrator history grow.
+- Remediation: use bounded source/recipient traversal with durable progress and stable alert idempotency, re-evaluate current source/recipient facts and retain Communications execution-time authority.
+- State: Planned.
+- Verification required: more-than-limit sources and recipients, bounded per-invocation work, concurrent/duplicate invocations, rollback/retry and source/grant revocation.
+- Verification result: traced source selection, alertsFor, administrator directory, notification intent keys and CurrentNotificationSourceAuthorization. Consumer source/administrator reauthorization exists; producer completeness/bounds remain open.
 - Completion evidence: pending.
 
 ## Repository audit coverage
@@ -1819,3 +1872,7 @@ Focused run `34717559716`, job `103617400920`, onb512 executes95 Integrations ca
 ### HARD-111 second hosted browser feedback
 
 Visual `34717559683`, job `103617400828`, passes78 existing cases and both new Connections journeys reach successful older-delivery retry submission, independent paging and failure/retry navigation. Their Pending assertion is incorrect for the existing synchronous visual queue: the redirected page already shows one additional attempt and the real outbound policy's safe destination-rejection message for the reserved.test fixture. The corrected journey asserts that exact attempt increment and safe result before retained-draft checks; no network policy, workflow queue mode, timeout or assertion scope is weakened.
+
+### Administrator and Connections checkpoint verification
+
+On `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`, focused run `34718280323`, job `103619324078`, passes 95 Integrations tests / 1,058 assertions; 47 Platform maintenance and Administration tests / 290 assertions, including all eight HARD-118 concurrency/admission cases; 4 Participation tests / 26 assertions; and 29 TransferManagement tests / 425 assertions. Visual `34718280253`, job `103619382870`, passes all 80 browser cases (7.7 minutes), including both corrected Connections journeys. All nine normal workflows now pass. Full CI `34718280342` passes PHP 1,878 tests / 88,189 assertions in 16:28.842 (job `103619423800`), frontend (job `103619423915`) and production image/staging/backup-restore/scan (job `103621773705`). This closes the containing gates for HARD-111/113–118; repository coverage and final candidate gates remain open.

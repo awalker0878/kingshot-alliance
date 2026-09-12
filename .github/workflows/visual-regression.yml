@@ -103,6 +103,7 @@ jobs:
           php artisan tinker --execute='\Tests\ReadModels\EventManagement\Fixtures\EventCommandVisualFixture::seed();'
           php artisan tinker --execute='\Tests\Contexts\Alliance\Access\Fixtures\AllianceRoleVisualFixture::seed();'
           php artisan tinker --execute='\Tests\ReadModels\RecruitmentManagement\Fixtures\RecruitmentHistoryVisualFixture::seed();'
+          php artisan tinker --execute='\Tests\ReadModels\PlatformAdministration\Fixtures\PlatformCatalogueVisualFixture::seed();'
 
       - name: Build production frontend
         run: npm run build

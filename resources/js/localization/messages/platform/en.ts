@@ -197,6 +197,9 @@ const messages = {
     },
   },
   platformAdmin: {
+    recordCount: '{count} records',
+    historyUnavailable: 'This page could not be loaded.',
+    retryPage: 'Retry page',
     eyebrow: 'Platform administration',
     title: 'Platform administration',
     subtitle:
@@ -260,7 +263,7 @@ const messages = {
     provision: 'Create Alliance',
     allianceFleet: 'Alliances',
     allianceFleetHelp:
-      'Up to 200 Alliances are shown with current status, membership, storage, connections, pending deliveries, and plan information.',
+      'Browse all Alliances with current status, membership, storage, connections, pending deliveries, and plan information.',
     alliance: 'Alliance',
     status: 'Status',
     members: 'Members',

@@ -61,6 +61,7 @@
             <directory suffix="Test.php">tests/ReadModels/EventManagement/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/IntelligenceSignals/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/KingdomIntelligence/Feature</directory>
+            <directory suffix="Test.php">tests/ReadModels/PlatformAdministration/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/Progression/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/RecruitmentDiscovery/Feature</directory>
             <directory suffix="Test.php">tests/ReadModels/RecruitmentManagement/Feature</directory>

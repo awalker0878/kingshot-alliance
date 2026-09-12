@@ -67,6 +67,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['alliance_id', 'feature_key']);
+            $table->index(['alliance_id', 'id'], 'platform_feature_catalogue_index');
         });
 
         Schema::create('alliance_usage_snapshots', function (Blueprint $table): void {
@@ -104,6 +105,8 @@ return new class extends Migration
 
             $table->index(['subject_type', 'subject_id', 'released_at']);
         });
+
+        DB::statement('CREATE INDEX platform_legal_hold_catalogue_index ON legal_holds (id) WHERE released_at IS NULL');
 
         Schema::create('account_deletion_requests', function (Blueprint $table): void {
             $table->ulid('id')->primary();
@@ -258,6 +261,7 @@ return new class extends Migration
             $table->index(['alliance_id', 'status', 'available_at']);
             $table->index(['alliance_id', 'id'], 'webhook_delivery_catalogue_index');
             $table->index(['status', 'available_at', 'id'], 'webhook_delivery_due_index');
+            $table->index(['status', 'id'], 'platform_webhook_failure_catalogue_index');
             $table->index(['status', 'last_attempt_at', 'id'], 'webhook_delivery_claim_index');
             $table->index(['status', 'updated_at', 'id'], 'webhook_delivery_queue_index');
         });
