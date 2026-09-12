@@ -1850,10 +1850,10 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same boundaries with explicit current, bounded contracts.
 - Rationale: complete the repository-wide audit beyond the Platform recovery slice.
 - Remediation: Bound the atomic handoff, include scheduled unexpired grants, validate owner reason/target and preserve last-administrator protection and a reachable bounded cleanup path.
-- State: Planned.
+- State: In progress.
 - Verification required: Oversized history, scheduled grants, wrong/canonical target, maximum reasons, late rollback and idempotent retry.
-- Verification result: production owner, Workflow and projection paths traced; implementation/containing evidence pending.
-- Completion evidence: pending.
+- Verification result: handoff now validates current canonical target/reason, rejects replacement above 500 before target mutation and revokes bounded unexpired IDs including scheduled grants in one SQL update. Additive/self replays produce no duplicate effects. Handoff and recovery establish lasting target authority instead of reusing a temporary grant; last-administrator checks use current canonical Governor facts and protect the last lasting grant. Thirteen owner behavior cases cover bounds, the cleanup path, future authority, direct input, replay, both temporary-target commands, late audit/outbox rollback and ineligible survivors. Hosted execution pending.
+- Completion evidence: ADR-0067 and KingdomHandoffBoundsTest; containing verification pending.
 
 ### HARD-126 — Kingdom Governance management projections expand complete catalogues and duplicate policy
 
@@ -1981,3 +1981,13 @@ Commit 9a3913fc543ca4eb1ed35c638bcae82c3cd5910c passes focused run 34722074492/j
 Visual run 34722074384/job 103629714130 finishes 82 passed and two failed. Both complete Kingdom recovery journeys pass. Both Platform catalogue journeys stop at the same incorrect feature-list locator: the test selected the preceding entitlement list (api_credentials.max), while the feature pager belongs to a different list. The locator now scopes to the feature pager's parent; all later paging, retry, mutation and draft assertions remain. The complete catalogue journey awaits the corrected containing run.
 
 HARD-124 local verification: scoped production and both new test-file PHPStan pass, Pint passes, architecture verifier passes, 333-source test layout passes and 289-document links pass. Corrected Platform browser spec passes scoped ESLint. The new owner cases are authored; hosted PostgreSQL execution remains pending.
+
+### HARD-124 focused containing evidence on a0c289a
+
+Commit a0c289af8fe91e3d1a6c8b45b0aea3cf30edb9ce passes focused run 34722907071/job 103631913288: 57 Governance/Kingdom Workflow tests/262 assertions, including all 16 new delegation/input/scope/history cases and four competing-connection permission-change cases. The same run passes 95 Integrations/1,058, 78 Platform/ReadModel/6,367, 47 Gift Code/source/reset/256, four Participation/26 and 29 Transfer/425. Final containing gates and HARD-127 remain open.
+
+HARD-125 local verification passes production and new test-file PHPStan, Pint, architecture, 334-source test layout and 290-document links. Its 13 newly authored behavior cases await hosted execution.
+
+### Complete Platform browser journeys on a0c289a
+
+Visual Regression 34722907081/job 103631913173 succeeds on a0c289af8fe91e3d1a6c8b45b0aea3cf30edb9ce. Both Platform catalogue desktop/mobile journeys now reach paging beyond the initial window, failed-page retry, selected-state and draft preservation, and actual older outbox retry. Both Kingdom recovery journeys pass alongside all existing browser coverage. This resolves the feature-list locator failure without weakening the product assertions. The final immutable containing gate remains required.

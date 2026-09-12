@@ -102,3 +102,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0065: Atomic Kingdom policy provisioning](0065-atomic-kingdom-policy-provisioning.md)
 
 - [ADR-0066: Current bounded Kingdom role delegation](0066-current-bounded-kingdom-role-delegation.md)
+
+- [ADR-0067: Bounded lasting Kingdom administrator handoff](0067-bounded-lasting-kingdom-administrator-handoff.md)

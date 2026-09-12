@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAdministratorAssignments;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Governance\Services\KingdomRoleDelegation;
 use App\Contexts\GameWorld\Governance\Services\KingdomRoleInput;
@@ -25,6 +26,7 @@ final readonly class AssignKingdomRole
         private KingdomAuthorization $authorization,
         private KingdomRoleDelegation $delegation,
         private KingdomRoleInput $input,
+        private KingdomAdministratorAssignments $administrators,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -78,13 +80,8 @@ final readonly class AssignKingdomRole
             }
 
             if ($role->key === DefaultKingdomRole::Administrator->value && $expires !== null) {
-                $survivingAdmin = KingdomRoleAssignment::query()
-                    ->where('kingdom_id', $kingdomId)
-                    ->whereNull('revoked_at')
-                    ->whereHas('role', static fn ($query) => $query->where('key', DefaultKingdomRole::Administrator->value))
-                    ->where(function ($query) use ($expires): void {
-                        $query->whereNull('expires_at')->orWhere('expires_at', '>', $expires);
-                    })
+                $survivingAdmin = $this->administrators->effective($kingdomId, $expires)
+                    ->where('player_id', '!=', $targetPlayerId)
                     ->exists();
                 if (! $survivingAdmin) {
                     throw ValidationException::withMessages(['expires_at' => 'A temporary Kingdom Admin requires another administrator whose authority survives that expiry.']);

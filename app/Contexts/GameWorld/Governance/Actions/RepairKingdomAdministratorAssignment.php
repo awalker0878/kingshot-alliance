@@ -59,7 +59,7 @@ final readonly class RepairKingdomAdministratorAssignment
             if ($existing->count() > 500) {
                 throw ValidationException::withMessages(['replace_existing' => 'More than 500 administrator assignments require removal. Recover without replacement, then remove unwanted assignments through ordinary Kingdom role controls.']);
             }
-            $assignment = KingdomRoleAssignment::query()->effective()->where('kingdom_id', $kingdomId)->where('player_id', $targetPlayerId)->where('kingdom_role_id', $administrator->id)->lockForUpdate()->first();
+            $assignment = KingdomRoleAssignment::query()->effective()->where('kingdom_id', $kingdomId)->where('player_id', $targetPlayerId)->where('kingdom_role_id', $administrator->id)->whereNull('expires_at')->orderBy('id')->lockForUpdate()->first();
             $created = ! $assignment instanceof KingdomRoleAssignment;
             if ($created) {
                 $assignment = KingdomRoleAssignment::query()->create([

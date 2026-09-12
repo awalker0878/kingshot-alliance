@@ -7,6 +7,7 @@ namespace App\Contexts\GameWorld\Governance\Actions;
 use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAdministratorAssignments;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Governance\Services\KingdomRoleInput;
 use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
@@ -21,6 +22,7 @@ final readonly class RemoveKingdomRole
         private KingdomWriteState $kingdomWriteState,
         private KingdomAuthorization $authorization,
         private KingdomRoleInput $input,
+        private KingdomAdministratorAssignments $administrators,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -43,14 +45,12 @@ final readonly class RemoveKingdomRole
             }
 
             if ($assignment->role->key === DefaultKingdomRole::Administrator->value && $assignment->isEffectiveAt()) {
-                $anotherAdminExists = KingdomRoleAssignment::query()
-                    ->effective()
-                    ->where('kingdom_id', $kingdomId)
+                $anotherAdminExists = $this->administrators->effective($kingdomId)
                     ->where('id', '!=', $assignment->id)
-                    ->whereHas('role', static fn ($query) => $query->where('key', DefaultKingdomRole::Administrator->value))
+                    ->when($assignment->expires_at === null, static fn ($query) => $query->whereNull('expires_at'))
                     ->exists();
                 if (! $anotherAdminExists) {
-                    throw ValidationException::withMessages(['role' => 'A Kingdom must retain at least one effective Kingdom Admin.']);
+                    throw ValidationException::withMessages(['role' => 'A Kingdom must retain effective administration and cannot remove its last lasting Kingdom Admin.']);
                 }
             }
 

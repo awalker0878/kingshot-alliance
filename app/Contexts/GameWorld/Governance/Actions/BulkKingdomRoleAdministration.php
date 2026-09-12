@@ -8,6 +8,7 @@ use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAdministratorAssignments;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
 use App\Contexts\GameWorld\Governance\Services\KingdomRoleInput;
 use App\Contexts\GameWorld\Players\Models\Player;
@@ -23,6 +24,7 @@ final readonly class BulkKingdomRoleAdministration
         private RemoveKingdomRole $remove,
         private KingdomAuthorization $authorization,
         private KingdomRoleInput $input,
+        private KingdomAdministratorAssignments $administrators,
     ) {}
 
     /**
@@ -72,8 +74,8 @@ final readonly class BulkKingdomRoleAdministration
             $eligible[] = $playerId;
         }
         if ($operation === 'remove' && $role->key === DefaultKingdomRole::Administrator->value && $eligible !== []) {
-            $adminCount = KingdomRoleAssignment::query()->effective()->where('kingdom_id', $kingdomId)->whereHas('role', static fn ($query) => $query->where('key', DefaultKingdomRole::Administrator->value))->distinct('player_id')->count('player_id');
-            if ($adminCount - count($eligible) < 1) {
+            $survivor = $this->administrators->effective($kingdomId)->whereNull('expires_at')->whereNotIn('player_id', $eligible)->exists();
+            if (! $survivor) {
                 foreach ($eligible as $playerId) {
                     $ineligible[$playerId] = 'Bulk removal would leave the Kingdom without an effective administrator.';
                 }
