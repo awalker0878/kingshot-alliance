@@ -31,6 +31,7 @@ return new class extends Migration
             $table->index(['actor_player_id', 'created_at']);
             $table->index(['actor_user_id', 'created_at']);
         });
+        DB::statement("CREATE INDEX kingdom_governance_history_page ON audit_events ((metadata->>'kingdom_id'), id) WHERE event LIKE 'kingdom.%'");
         foreach (['player_id', 'target_player_id', 'owner_player_id', 'previous_r5_player_id', 'new_r5_player_id'] as $key) {
             DB::statement("CREATE INDEX audit_events_{$key}_history_idx ON audit_events (alliance_id, (metadata->>'{$key}'), created_at, id) WHERE metadata->>'{$key}' IS NOT NULL");
         }

@@ -88,7 +88,7 @@ jobs:
       - name: Run Platform maintenance behavior
         run: php vendor/bin/phpunit tests/Contexts/Platform/DataGovernance tests/Contexts/Platform/AllianceAdministration tests/Contexts/Platform/Administration tests/ReadModels/PlatformAdministration --log-junit storage/logs/platform-maintenance-junit.xml
       - name: Run Kingdom Governance recovery behavior
-        run: php vendor/bin/phpunit tests/Contexts/GameWorld/Governance tests/Workflows/KingdomGovernance --log-junit storage/logs/kingdom-recovery-junit.xml
+        run: php vendor/bin/phpunit tests/Contexts/GameWorld/Governance tests/Workflows/KingdomGovernance tests/ReadModels/KingdomGovernance tests/Contexts/GameWorld/Kingdoms/Feature/KingdomDownstreamActiveBoundaryV3Test.php --log-junit storage/logs/kingdom-recovery-junit.xml
       - name: Run Operations scope and Territory behavior
         run: php vendor/bin/phpunit tests/Contexts/Operations/Events tests/Contexts/Operations/TerritoryPlanning tests/Contexts/Operations/KingPerks --log-junit storage/logs/operations-scopes-junit.xml
       - name: Run Gift Code operational alert progress

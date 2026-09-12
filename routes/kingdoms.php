@@ -21,6 +21,7 @@ use App\Contexts\Intelligence\Roster\Http\Controllers\PlayerSnapshotController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\RosterController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\RosterCsvController;
 use App\Contexts\Intelligence\Sharing\Http\Controllers\KingdomIntelligenceSharingController;
+use App\ReadModels\KingdomGovernance\Http\Controllers\KingdomRoleManagementController;
 use App\ReadModels\KingdomIntelligence\Http\Controllers\KingdomAllianceIntelligenceController;
 use App\ReadModels\KingdomIntelligence\Http\Controllers\KingdomAllianceObservationReadController;
 use App\ReadModels\KingdomSettings\Http\Controllers\KingdomSettingsController;
@@ -36,7 +37,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->group(function (): void {
     Route::get('/alliance/settings/kingdom', [KingdomSettingsController::class, 'index'])->name('alliance.kingdom.edit');
-    Route::get('/alliance/settings/kingdom/roles', [KingdomRoleController::class, 'index'])->name('alliance.kingdom.roles.index');
+    Route::get('/alliance/settings/kingdom/roles', KingdomRoleManagementController::class)->name('alliance.kingdom.roles.index');
     Route::get('/alliance/roster', [RosterReadController::class, 'index'])->name('alliance.roster.index');
     Route::get('/alliance/roster/manage', [RosterReadController::class, 'manage'])->name('alliance.roster.manage');
     Route::get('/alliance/roster/intelligence', [RosterIntelligenceController::class, 'index'])->name('alliance.roster.intelligence');

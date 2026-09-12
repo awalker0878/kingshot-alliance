@@ -4,11 +4,11 @@
 
 - Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
 - Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
-- Latest pushed implementation: `42d107547f544aac2fb2aa993dc2d4a4af9fc85d` contains HARD-122 progress and isolated recovery fixtures. Committed-test setup requires the recorded migration-reference classification correction; HARD-123 is prepared for hosted verification. Verified milestone `7d87deef78af513b7526f94d08d0dc0ed5bf73a4` passes all nine normal workflows, PHP 1,878 / 88,189 assertions and 80 browser cases.
-- Current item/state: HARD-127 / In progress; HARD-119–125 have partial containing evidence and await final verification. HARD-001–118 are Complete with containing evidence. HARD-126/128, repository coverage and final gates remain open.
-- Active files: CaptureAllianceUsage owner Action, scalar snapshot result, HTTP adapter, four PostgreSQL regressions and the current usage contract.
-- Local verification: full production PHPStan, changed formatting, architecture, test layout, and complete npm check pass. Eighteen catalogue PostgreSQL cases and two new browser journeys await hosted execution.
-- Next action: verify Platform catalogue behavior and complete remaining repository coverage; preserve the current containing CI milestone before advancing the branch.
+- Latest pushed implementation: `2a85ca526c8c1904fb0d19e54372123be10eced4` contains HARD-128 and passes focused PostgreSQL behavior plus all 84 browser cases. Its full 1,994-test PHP run reports one obsolete KingdomWriteState test call; this checkpoint updates that regression to the current exclusive contract. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`.
+- Current item/state: HARD-126 / In progress; HARD-119–125/127/128 have focused containing evidence and await final verification. HARD-001–118 are Complete with containing evidence. Repository coverage and final gates remain open.
+- Active files: current bounded KingdomGovernance projections, owner-declared Operations policy, catalogues/choices/history UI, baseline traversal indexes and behavioral verification.
+- Local verification: complete npm check, production/new-test PHPStan, formatting, architecture, test layout and documentation links pass; 12 new frontend loader cases pass. Fifteen new PostgreSQL cases and two browser cases await hosted execution.
+- Next action: execute Governance catalogue behavior and continue remaining production audit; complete all final gates on the immutable candidate.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -1863,10 +1863,10 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same boundaries with explicit current, bounded contracts.
 - Rationale: complete the repository-wide audit beyond the Platform recovery slice.
 - Remediation: Use owner-declared system policy facts and current-authorized bounded catalogues/choices/history with retained forms and visible errors; remove superseded full-list consumers.
-- State: Planned.
+- State: In progress.
 - Verification required: More-than-page roles/assignments/holders, query budgets, actor/Kingdom isolation, owner health policy parity and desktop/mobile retained interaction.
-- Verification result: production owner, Workflow and projection paths traced; implementation/containing evidence pending.
-- Completion evidence: pending.
+- Verification result: all six catalogues use current actor/Kingdom-scoped 25-row pages, complete choices and finite cursors. Holder counts deduplicate in SQL; health consumes the Operations owner policy and current canonical assignment facts. Public history and unattributed assignment reasons exclude private recovery/operator data before hydration. Forms retain paging drafts, fence stale responses, expose retry, reset on scope changes and bound bulk intent to 50. Fifteen PostgreSQL and two browser cases are authored; 12 Node cases and full local frontend/architecture checks pass. Hosted execution remains pending.
+- Completion evidence: [ADR-0070](../architecture/adr/0070-bounded-current-kingdom-governance-catalogues.md), GovernanceCataloguePagesTest, KingdomGovernanceHealthBoundsTest, GovernanceChoices.test.ts and GovernanceCatalogues.spec.ts; containing execution pending.
 
 ### HARD-127 — Operations scope consumers acquire Player before governing lifecycle authority
 
@@ -2018,3 +2018,11 @@ HARD-128 local verification: all three production Actions and the five-case Terr
 ### HARD-125/127 focused containing evidence on 5670f991
 
 Commit 5670f991772ef5e49fdeb6271aaa4aa7c124b8a7 passes focused run 34724372389/job 103635800047: 70 Governance/Kingdom Workflow tests/311 assertions including the corrected 13 HARD-125 cases; 62 Events/Territory/King Perks tests/370 assertions including all 18 HARD-127 cases; 95 Integrations/1,058; 78 Platform/ReadModel/6,367; 47 Gift Code/source/reset/256; four Participation/26; 29 Transfer/425. Current source authority, both owner contention orders, bounded target roster resolution and linked-reference rollback/retry now have hosted PostgreSQL evidence. Final containing gates and repository coverage remain open.
+
+### HARD-128 focused containing evidence and full regression feedback on 2a85ca5
+
+Commit `2a85ca526c8c1904fb0d19e54372123be10eced4` passes focused run 34724804560/job 103636960900: 67 Events/Territory/King Perks cases/422 assertions, including all five new HARD-128 atomicity/revision cases. Governance remains 70/311, Integrations 95/1,058, Platform 78/6,367, Gift/source/reset 47/256, Participation four/26 and Transfer 29/425. Visual run 34724804552/job 103636960987 passes all 84 cases in 7.6 minutes.
+
+Full CI run 34724804535/job 103637001953 completes 1,994 tests/95,252 assertions in 17:52.398 with one error: KingdomDownstreamActiveBoundaryV3Test calls the removed KingdomWriteState::lockActiveScope contract. All production call sites already use lockExclusiveScope. The regression now calls that current contract and joins focused validation; no compatibility method or gate exemption is added. Fresh schema, types, formatting and frontend passed; container/staging/recovery was correctly skipped after PHP failure. The full gate remains open.
+
+HARD-126 local verification passes complete npm check, current architecture, focused production/new-test PHPStan, Pint and 340-source test layout. Twelve new frontend loader cases pass. PostgreSQL/browser execution and all final containing gates remain required.

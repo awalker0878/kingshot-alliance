@@ -51,32 +51,34 @@ final class KingdomDownstreamActiveBoundaryV3Test extends TestCase
         $alliance = $factory->alliance($actor);
         $kingdom = $factory->kingdom(16102);
 
-        DB::transaction(fn () => app(KingdomWriteState::class)->lockActiveScope($actor->playerId, $kingdom->kingdomId));
+        DB::transaction(fn () => app(KingdomWriteState::class)->lockExclusiveScope($actor->playerId, $kingdom->kingdomId));
         DB::transaction(fn () => app(AllianceWriteState::class)->lockActiveScope($actor->playerId, $alliance->allianceId));
 
         app(ArchiveKingdom::class)->handle($kingdom->kingdomId, reason: 'freeze-current-work');
+        $rejected = [];
 
         try {
-            DB::transaction(fn () => app(KingdomWriteState::class)->lockActiveScope($actor->playerId, $kingdom->kingdomId));
+            DB::transaction(fn () => app(KingdomWriteState::class)->lockExclusiveScope($actor->playerId, $kingdom->kingdomId));
             self::fail('Archived Kingdom governance state must fail closed.');
         } catch (AuthorizationException) {
-            self::assertTrue(true);
+            $rejected[] = 'governance';
         }
 
         try {
             DB::transaction(fn () => app(AllianceWriteState::class)->lockActiveScope($actor->playerId, $alliance->allianceId));
             self::fail('Alliance writes under an archived Kingdom must fail closed.');
         } catch (AuthorizationException) {
-            self::assertTrue(true);
+            $rejected[] = 'alliance';
         }
 
         try {
             app(BootstrapKingdomAdministrator::class)->handle($kingdom->kingdomId, $actor->playerId);
             self::fail('Administrator bootstrap must reject an archived Kingdom.');
         } catch (ValidationException) {
-            self::assertTrue(true);
+            $rejected[] = 'bootstrap';
         }
 
+        self::assertSame(['governance', 'alliance', 'bootstrap'], $rejected);
         $this->expectException(ValidationException::class);
         app(PersistPlayerIdentity::class)->handle($kingdom->kingdomId, 'Archived Target', 'archived-16102');
     }

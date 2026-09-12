@@ -20,6 +20,7 @@ return new class extends Migration
 
             $table->index(['user_id', 'current_name']);
             $table->index(['current_kingdom_id', 'current_name']);
+            $table->index(['current_kingdom_id', 'id'], 'kingdom_governor_catalogue_page');
         });
     }
 
