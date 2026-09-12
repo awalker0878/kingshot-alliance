@@ -27,6 +27,7 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
 });
 
 Route::middleware(['auth', 'auth.session', 'verified', 'platform.admin', 'password.confirm'])->prefix('platform')->name('platform.')->group(function (): void {
+    Route::get('/kingdom-governance-recovery/choices/{kind}', [PlatformKingdomGovernanceRecoveryReadController::class, 'choices'])->whereIn('kind', ['kingdoms', 'players'])->name('kingdom-governance-recovery.choices');
     Route::get('/kingdom-governance-recovery', PlatformKingdomGovernanceRecoveryReadController::class)->name('kingdom-governance-recovery.index');
     Route::post('/kingdom-governance-recovery', [KingdomGovernanceWorkflowController::class, 'recover'])->name('kingdom-governance-recovery.store');
 });

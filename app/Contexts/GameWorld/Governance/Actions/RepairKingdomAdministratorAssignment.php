@@ -9,6 +9,7 @@ use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Services\KingdomRoleProvisioner;
 use App\Contexts\GameWorld\Governance\ValueObjects\KingdomAdministratorBootstrap;
+use App\Contexts\GameWorld\Kingdoms\Enums\KingdomStatus;
 use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
@@ -29,15 +30,18 @@ final readonly class RepairKingdomAdministratorAssignment
     public function handle(AuditActor $operator, string $kingdomId, string $targetPlayerId, string $reason, bool $replaceExisting): KingdomAdministratorBootstrap
     {
         $reason = trim($reason);
-        if ($reason === '') {
-            throw ValidationException::withMessages(['reason' => 'A break-glass recovery reason is required.']);
+        if (mb_strlen($reason) < 10 || mb_strlen($reason) > 500) {
+            throw ValidationException::withMessages(['reason' => 'A recovery reason between 10 and 500 characters is required.']);
         }
 
         return DB::transaction(function () use ($operator, $kingdomId, $targetPlayerId, $reason, $replaceExisting): KingdomAdministratorBootstrap {
             $kingdom = Kingdom::query()->whereKey($kingdomId)->lockForUpdate()->firstOrFail();
+            if ($kingdom->status !== KingdomStatus::Active) {
+                throw ValidationException::withMessages(['kingdom_id' => 'Recovery requires an active Kingdom.']);
+            }
             $target = Player::query()->whereKey($targetPlayerId)->lockForUpdate()->firstOrFail();
-            if ((string) $target->current_kingdom_id !== $kingdomId) {
-                throw ValidationException::withMessages(['player_id' => 'The recovery Player must currently belong to the target Kingdom.']);
+            if ((string) $target->current_kingdom_id !== $kingdomId || $target->canonical_player_id !== null) {
+                throw ValidationException::withMessages(['player_id' => 'The recovery Governor must be a current direct identity in the target Kingdom.']);
             }
             $roles = $this->provisioner->provision($kingdom);
             $administrator = $roles[DefaultKingdomRole::Administrator->value] ?? null;
@@ -47,23 +51,28 @@ final readonly class RepairKingdomAdministratorAssignment
                 throw new RuntimeException('The default Kingdom roles were not provisioned.');
             }
 
+            $existing = $replaceExisting ? KingdomRoleAssignment::query()->where('kingdom_id', $kingdomId)
+                ->where('kingdom_role_id', $administrator->id)->where('player_id', '!=', $targetPlayerId)
+                ->whereNull('revoked_at')->where(static function ($query): void {
+                    $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                })->orderBy('id')->limit(501)->lockForUpdate()->get(['id', 'player_id']) : collect();
+            if ($existing->count() > 500) {
+                throw ValidationException::withMessages(['replace_existing' => 'More than 500 administrator assignments require removal. Recover without replacement, then remove unwanted assignments through ordinary Kingdom role controls.']);
+            }
             $assignment = KingdomRoleAssignment::query()->effective()->where('kingdom_id', $kingdomId)->where('player_id', $targetPlayerId)->where('kingdom_role_id', $administrator->id)->lockForUpdate()->first();
-            if (! $assignment instanceof KingdomRoleAssignment) {
+            $created = ! $assignment instanceof KingdomRoleAssignment;
+            if ($created) {
                 $assignment = KingdomRoleAssignment::query()->create([
                     'kingdom_id' => $kingdomId,
                     'player_id' => $targetPlayerId,
                     'kingdom_role_id' => $administrator->id,
-                    'reason' => 'Break-glass recovery: '.$reason,
+                    'reason' => $reason,
                 ]);
             }
-
-            $replacedPlayers = [];
-            if ($replaceExisting) {
-                $existing = KingdomRoleAssignment::query()->effective()->where('kingdom_id', $kingdomId)->where('kingdom_role_id', $administrator->id)->where('player_id', '!=', $targetPlayerId)->lockForUpdate()->get();
-                foreach ($existing as $current) {
-                    $replacedPlayers[] = (string) $current->player_id;
-                    $current->forceFill(['revoked_at' => now(), 'revocation_reason' => 'Break-glass recovery: '.$reason])->save();
-                }
+            $replacedPlayers = $existing->pluck('player_id')->all();
+            if ($existing->isNotEmpty()) {
+                KingdomRoleAssignment::query()->whereKey($existing->pluck('id'))->whereNull('revoked_at')
+                    ->update(['revoked_at' => now(), 'revocation_reason' => $reason]);
             }
 
             $metadata = [
@@ -76,8 +85,10 @@ final readonly class RepairKingdomAdministratorAssignment
                 'replaced_player_ids' => $replacedPlayers,
                 'recovery_source' => 'platform_admin_recent_auth',
             ];
-            $this->audit->record('kingdom.administrator_recovered', $operator, $assignment, null, $metadata);
-            $this->outbox->record('kingdom.administrator_recovered', null, $assignment, $metadata);
+            if ($created || $existing->isNotEmpty()) {
+                $this->audit->record('kingdom.administrator_recovered', $operator, $assignment, null, $metadata);
+                $this->outbox->record('kingdom.administrator_recovered', null, $assignment, $metadata);
+            }
 
             return new KingdomAdministratorBootstrap(
                 assignmentId: (string) $assignment->id,

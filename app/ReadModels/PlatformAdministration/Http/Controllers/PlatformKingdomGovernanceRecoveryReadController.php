@@ -4,28 +4,38 @@ declare(strict_types=1);
 
 namespace App\ReadModels\PlatformAdministration\Http\Controllers;
 
-use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
-use App\Contexts\GameWorld\Players\Models\Player;
-use App\Shared\Infrastructure\Http\Controller;
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Platform\Administration\Services\PlatformAdministratorAuthorization;
+use App\ReadModels\PlatformAdministration\KingdomRecoveryChoiceQuery;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-final class PlatformKingdomGovernanceRecoveryReadController extends Controller
+final readonly class PlatformKingdomGovernanceRecoveryReadController
 {
+    public function __construct(private AccountIdentityQuery $accounts, private PlatformAdministratorAuthorization $authorization) {}
+
     public function __invoke(Request $request): Response
     {
-        $user = $request->user();
-        abort_unless($user instanceof User, 401);
-        $kingdoms = Kingdom::query()->orderBy('number')->limit(250)->get(['id', 'number']);
-        $kingdomIds = $kingdoms->pluck('id')->map('strval')->all();
-        $players = Player::query()->whereIn('current_kingdom_id', $kingdomIds)->orderBy('current_name')->limit(1000)->get(['id', 'current_kingdom_id', 'current_name', 'game_player_id']);
+        $identifier = $request->user()?->getAuthIdentifier();
+        abort_unless(is_numeric($identifier), 401);
+        $account = $this->accounts->require((int) $identifier);
+        $this->authorization->authorize($account);
 
         return Inertia::render('Platform/GovernanceRecovery', [
-            'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
-            'kingdoms' => $kingdoms->map(static fn (Kingdom $kingdom): array => ['id' => (string) $kingdom->id, 'number' => (int) $kingdom->number])->values()->all(),
-            'players' => $players->map(static fn (Player $player): array => ['id' => (string) $player->id, 'kingdomId' => (string) $player->current_kingdom_id, 'name' => (string) $player->current_name, 'gamePlayerId' => $player->game_player_id])->values()->all(),
+            'user' => ['name' => $account->name, 'email' => $account->email], 'actorId' => $account->userId,
         ]);
+    }
+
+    public function choices(Request $request, string $kind, KingdomRecoveryChoiceQuery $query): JsonResponse
+    {
+        $identifier = $request->user()?->getAuthIdentifier();
+        abort_unless(is_numeric($identifier), 401);
+        $input = $request->validate(['kingdom' => ['nullable', 'ulid'], 'q' => ['nullable', 'string', 'max:160'],
+            'cursor' => ['nullable', 'string', 'max:4096'], 'selected' => ['nullable', 'ulid']]);
+
+        return response()->json($query->page((int) $identifier, $kind, $input['kingdom'] ?? null,
+            $input['q'] ?? '', $input['cursor'] ?? null, $input['selected'] ?? null));
     }
 }

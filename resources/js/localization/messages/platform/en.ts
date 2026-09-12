@@ -197,6 +197,13 @@ const messages = {
     },
   },
   platformAdmin: {
+    choiceUnavailable: 'Selected choice is no longer available.',
+    searchChoices: 'Search choices',
+    choicePageSummary: '{count} choices on this page; {total} match. Ordered by stable record ID.',
+    choicesFailed:
+      'Choices could not be loaded. Your selection and the displayed page have not changed.',
+    retryChoices: 'Retry choices',
+    recoveryFailed: 'Recovery could not be completed. Please retry.',
     recordCount: '{count} records',
     historyUnavailable: 'This page could not be loaded.',
     retryPage: 'Retry page',

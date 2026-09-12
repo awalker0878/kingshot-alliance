@@ -94,3 +94,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0061: Current Platform Administrator grants](0061-current-platform-administrator-grants.md)
 
 - [ADR-0062: Bounded Platform administration catalogues](0062-bounded-platform-administration-catalogues.md)
+
+- [ADR-0063: Atomic bounded Kingdom administrator recovery](0063-atomic-bounded-kingdom-administrator-recovery.md)

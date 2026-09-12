@@ -49,6 +49,7 @@ return new class extends Migration
             $table->index(['kingdom_id', 'player_id', 'kingdom_role_id', 'revoked_at'], 'kingdom_role_assignment_lookup');
             $table->index(['player_id', 'kingdom_id']);
             $table->index(['kingdom_id', 'kingdom_role_id']);
+            $table->index(['kingdom_id', 'kingdom_role_id', 'revoked_at', 'id'], 'kingdom_recovery_assignment_page');
             $table->index(['kingdom_id', 'expires_at', 'revoked_at']);
 
             $table->foreign('kingdom_id')->references('id')->on('kingdoms')->cascadeOnDelete();

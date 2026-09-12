@@ -27,3 +27,5 @@ Platform recovery is deliberately separate from the Alliance/Kingdom interface. 
 - Custom roles never accept arbitrary permission strings from the UI.
 
 Detailed labels use the Governance expansion localization overlay for all supported locales with complete English fallback text.
+
+Platform recovery uses searchable 25-row Kingdom/Governor choice pages with independently resolved off-page selections. Every lookup checks current operator authority, and Governors are current direct identities in the selected active Kingdom. Paging/retry retains the reason and target; changing Kingdom or actor clears dependent intent. Choice and submission failures are visible and retryable. See [ADR-0063](../architecture/adr/0063-atomic-bounded-kingdom-administrator-recovery.md).

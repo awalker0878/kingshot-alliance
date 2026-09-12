@@ -8,6 +8,7 @@ use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
 use App\ReadModels\PlatformAdministration\PlatformCatalogueKind;
+use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -19,7 +20,7 @@ final class PlatformCatalogueFixture
     public const PRIVATE_ERROR = 'private diagnostic content';
 
     /** @return list<string> Public row identifiers, newest first. */
-    public static function seed(PlatformCatalogueKind $kind, int $actorId, AllianceReference $alliance, string $playerId, int $count = 61): array
+    public static function seed(PlatformCatalogueKind $kind, int $actorId, AllianceReference $alliance, string $playerId, int $count = 61, ?DateTimeInterface $idTime = null): array
     {
         $subscription = $kind === PlatformCatalogueKind::WebhookFailures ? WebhookSubscription::query()->create([
             'alliance_id' => $alliance->allianceId, 'created_by_player_id' => $playerId,
@@ -33,7 +34,7 @@ final class PlatformCatalogueFixture
         }
         $ids = [];
         for ($i = 0; $i < $count; $i++) {
-            $id = strtolower((string) Str::ulid());
+            $id = strtolower((string) Str::ulid($idTime));
             $uuid = (string) Str::uuid();
             $name = sprintf('Platform history %03d', $i);
             $timestamps = ['created_at' => now(), 'updated_at' => now()];

@@ -103,11 +103,12 @@ foreach ($phpFiles($app.'/Contexts') as $file) {
         }
     }
 }
-// ADR-0019/0060: these reviewed commands compose owner transactions with rollback coverage.
+// ADR-0019/0060/0063: these reviewed commands compose owner transactions with rollback coverage.
 $atomicWorkflowActions = [
     $app.'/Workflows/AccountOnboarding/Actions/RegisterAccount.php',
     $app.'/Workflows/AccountOnboarding/Actions/AcceptInvitationForAccount.php',
     $app.'/Workflows/ExternalEventParticipation/Actions/ExecuteExternalEventParticipation.php',
+    $app.'/Workflows/KingdomGovernance/Actions/RecoverKingdomAdministrator.php',
 ];
 foreach ($phpFiles($app.'/Workflows') as $file) {
     $source = file_get_contents($file) ?: '';

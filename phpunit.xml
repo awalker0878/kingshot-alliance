@@ -71,6 +71,7 @@
             <directory suffix="Test.php">tests/Shared/Infrastructure/Pagination/Feature</directory>
             <directory suffix="Test.php">tests/Shared/Infrastructure/Security/Feature</directory>
             <directory suffix="Test.php">tests/System/Acceptance/Feature</directory>
+            <directory suffix="Test.php">tests/Workflows/KingdomGovernance/Feature</directory>
             <directory suffix="Test.php">tests/Workflows/NotificationDelivery/Feature</directory>
         </testsuite>
         <testsuite name="Integration">

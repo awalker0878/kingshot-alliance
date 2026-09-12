@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::table('players', function (Blueprint $table): void {
             $table->ulid('canonical_player_id')->nullable();
             $table->index('canonical_player_id', 'players_canonical_idx');
+            $table->index(['current_kingdom_id', 'canonical_player_id', 'id'], 'players_recovery_choice_page');
         });
 
         Schema::table('players', function (Blueprint $table): void {
@@ -76,6 +77,7 @@ return new class extends Migration
         Schema::table('players', function (Blueprint $table): void {
             $table->dropForeign('players_canonical_fk');
             $table->dropIndex('players_canonical_idx');
+            $table->dropIndex('players_recovery_choice_page');
             $table->dropColumn('canonical_player_id');
         });
     }

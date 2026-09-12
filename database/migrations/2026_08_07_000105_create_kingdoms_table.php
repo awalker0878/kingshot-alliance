@@ -15,6 +15,7 @@ return new class extends Migration
             $table->integer('number')->unique();
             $table->string('status', 24)->default('active')->index();
             $table->timestamps();
+            $table->index(['status', 'id'], 'kingdoms_recovery_choice_page');
         });
     }
 

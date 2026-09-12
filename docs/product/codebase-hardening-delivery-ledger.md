@@ -4,8 +4,8 @@
 
 - Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
 - Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
-- Latest pushed implementation: `bd8345863c0ade7295901465e271c37b284fd219` contains HARD-119 catalogue repairs and is undergoing hosted checks. Verified milestone `7d87deef78af513b7526f94d08d0dc0ed5bf73a4` passes all nine normal workflows, PHP 1,878 / 88,189 assertions and 80 browser cases.
-- Current item/state: HARD-121 / In progress; HARD-119 awaits hosted catalogue verification. HARD-001–118 are Complete with containing evidence. HARD-120 and HARD-122 remain planned; repository coverage and final gates remain open.
+- Latest pushed implementation: `9189ca9072e9617d052f85d304c946dc9ffa8499` contains HARD-119/121 repairs; full PHP and focused behavior pass, with the new Platform browser fixture ordering correction and HARD-120 implementation prepared for containing reruns. Verified milestone `7d87deef78af513b7526f94d08d0dc0ed5bf73a4` passes all nine normal workflows, PHP 1,878 / 88,189 assertions and 80 browser cases.
+- Current item/state: HARD-120 / In progress; HARD-119 and HARD-121 await containing verification. HARD-001–118 are Complete with containing evidence. HARD-122, repository coverage and final gates remain open.
 - Active files: CaptureAllianceUsage owner Action, scalar snapshot result, HTTP adapter, four PostgreSQL regressions and the current usage contract.
 - Local verification: full production PHPStan, changed formatting, architecture, test layout, and complete npm check pass. Eighteen catalogue PostgreSQL cases and two new browser journeys await hosted execution.
 - Next action: verify Platform catalogue behavior and complete remaining repository coverage; preserve the current containing CI milestone before advancing the branch.
@@ -1783,10 +1783,11 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners with explicit current protected composition and reachable bounded choices.
 - Rationale: recovery must retain operator authorization through its mutation and provide a coherent retry outcome without turning Platform grants into game authority.
 - Remediation: trace owner acquisition order, authorize through the Platform owner inside a documented atomic Workflow boundary, preserve owner role provisioning/audit/outbox, and replace clipped selectors with current-authorized scoped choices and visible errors.
-- State: Planned.
+- State: In progress.
 - Verification required: current revocation, late owner rollback/retry, competing scope changes, cross-Kingdom target rejection, complete selector traversal and retained form/selection behavior.
-- Verification result: traced RecoverKingdomAdministrator, RepairKingdomAdministratorAssignment, KingdomOperationsRoleProvisioner call, HTTP adapters/routes and GovernanceRecovery.vue. Existing two recovery tests cover successful replacement and an initially unauthorized actor, not the identified intervals.
-- Completion evidence: pending.
+- Prior inspection: traced RecoverKingdomAdministrator, RepairKingdomAdministratorAssignment, KingdomOperationsRoleProvisioner call, HTTP adapters/routes and GovernanceRecovery.vue. Existing two recovery tests cover successful replacement and an initially unauthorized actor, not the identified intervals.
+- Verification result: current Platform owner barrier now encloses Governance repair and Operations provisioning in the documented ADR-0063 atomic Workflow exception. Repair validates current active Kingdom/direct Player and 10–500-character reasons, includes scheduled grants, and bounds replacement to 500 with rollback on overflow and additive recovery plus owner removal as the retry path. Read-only choices use 25-row actor/parent/search-scoped frontiers; the screen retains paging drafts, clears changed scope and exposes failed lookups/submissions. Authored committed concurrency, late rollback, owner bounds, complete 261/1,001 choice traversal and desktop/mobile recovery tests await hosted execution.
+- Completion evidence: ADR-0063, RecoveryAtomicityTest, KingdomRecoveryBoundsTest, KingdomRecoveryChoiceTest and KingdomRecovery.spec.ts; executed containing evidence pending.
 
 ### HARD-121 — Interactive usage capture discards operator authority
 
@@ -1888,3 +1889,11 @@ Focused `34719518199`, job `103622672130`, passes all 95 Integrations cases and 
 ### Platform visual fixture isolation
 
 The first HARD-119 visual run `34719518190`, job `103622671990`, stops during fixture setup: ScenarioFactory::alliance uses process-local sequence names, and earlier separately invoked fixtures already own that slug. The Platform visual fixture now calls the normal CreateAlliance owner with its own explicit `platform-catalogue-anchor` slug, as the other dedicated visual fixtures do. No application slug uniqueness rule or browser gate changes. HARD-121 and the lowercase-ID correction are durable at `9336a3c0b4c880e0f7b55f6b77dc4ce7a9cb33b0`; this separate fixture repair awaits containing verification.
+
+### HARD-119/121 corrected focused evidence and HARD-120 implementation
+
+At `9189ca9072e9617d052f85d304c946dc9ffa8499`, focused run `34719880192`, job `103623672451`, passes 95 Integrations tests / 1,058 assertions, 69 Platform/ReadModel tests / 4,657 assertions (including all 18 catalogue cases and all four interactive capture cases), four Participation tests / 26 assertions and 29 TransferManagement tests / 425 assertions. Visual run `34719880177`, job `103623652612`, passes the existing 80 cases and fails the two new global Platform catalogue cases at the first-row expectation: browser-time content fixtures create newer Alliances after the database seed. The catalogue fixture now uses a dedicated future ULID block to keep its expected global rows contiguous while preserving the real descending query and all paging/retry assertions. No production ordering or gate changes. Containing CI is still pending.
+
+HARD-120 implements ADR-0063 with current owner barriers, atomic rollback, bounded replacement including scheduled grants, complete scoped choices and retained/error-visible recovery forms. The temporary focused hosted run additionally includes GameWorld Governance and KingdomGovernance Workflow behavior. All final gates remain required; this is not a readiness declaration.
+
+HARD-120 local validation passes full npm check (only the existing two Recruitment attribute-order warnings), full production PHPStan level 8 plus focused test analysis, Pint, architecture, test layout and documentation links. Twelve recovery loader tests pass, including stale-response cancellation, failed-page retention/retry, bounded caching and all 17 locales. Four additional committed two-connection cases cover Kingdom and Player scope changes in both orders. PostgreSQL/browser execution remains hosted and pending for this implementation.
