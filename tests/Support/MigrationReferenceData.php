@@ -26,6 +26,8 @@ final class MigrationReferenceData
         'event_types',
         'event_type_scopes',
         'event_type_workflow_dimensions',
+        // Mutable sweep position is restored to its exact migrated singleton after each committed test.
+        'gift_code_source_alert_sweep',
     ];
 
     /** @var array<string, array<string, list<array<string, mixed>>>> */
@@ -42,8 +44,8 @@ final class MigrationReferenceData
         self::assertCommittedPostgres($connection);
         $rows = [];
         foreach (self::TABLES as $table) {
-            $rows[$table] = $connection->table($table)->get()
-                ->map(static fn (object $row): array => (array) $row)->all();
+            $rows[$table] = array_values($connection->table($table)->get()
+                ->map(static fn (object $row): array => (array) $row)->all());
             if ($rows[$table] === []) {
                 throw new LogicException('Fresh migration reference table is empty: '.$table);
             }
@@ -94,13 +96,19 @@ final class MigrationReferenceData
                 if (! is_string($sequence?->name) || $sequence->name === '') {
                     throw new LogicException('The plan entitlement identity sequence is missing.');
                 }
+                $entitlementIds = array_column($rows['platform_plan_entitlements'], 'id');
+                if ($entitlementIds === []) {
+                    throw new LogicException('The migrated plan entitlement identities are missing.');
+                }
                 $connection->selectOne('select setval(?::regclass, ?, true)', [
                     $sequence->name,
-                    max(array_column($rows['platform_plan_entitlements'], 'id')),
+                    max($entitlementIds),
                 ]);
             });
         } finally {
-            $connection->setEventDispatcher($dispatcher);
+            if ($dispatcher !== null) {
+                $connection->setEventDispatcher($dispatcher);
+            }
         }
     }
 

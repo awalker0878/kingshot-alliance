@@ -4,8 +4,8 @@
 
 - Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
 - Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
-- Latest pushed implementation: `89e18cbfeb94677064b599d27195e82195a75d0d` contains HARD-120 recovery and choices; all focused behavior passes. The corrected recovery browser fixture and HARD-122 progress implementation are prepared for containing reruns. Verified milestone `7d87deef78af513b7526f94d08d0dc0ed5bf73a4` passes all nine normal workflows, PHP 1,878 / 88,189 assertions and 80 browser cases.
-- Current item/state: HARD-122 / In progress; HARD-119/120/121 await containing verification. HARD-001–118 are Complete with containing evidence. Repository coverage and final gates remain open.
+- Latest pushed implementation: `42d107547f544aac2fb2aa993dc2d4a4af9fc85d` contains HARD-122 progress and isolated recovery fixtures. Committed-test setup requires the recorded migration-reference classification correction; HARD-123 is prepared for hosted verification. Verified milestone `7d87deef78af513b7526f94d08d0dc0ed5bf73a4` passes all nine normal workflows, PHP 1,878 / 88,189 assertions and 80 browser cases.
+- Current item/state: HARD-123 / In progress; HARD-119–122 await corrected containing verification. HARD-001–118 are Complete with containing evidence. HARD-124–126, repository coverage and final gates remain open.
 - Active files: CaptureAllianceUsage owner Action, scalar snapshot result, HTTP adapter, four PostgreSQL regressions and the current usage contract.
 - Local verification: full production PHPStan, changed formatting, architecture, test layout, and complete npm check pass. Eighteen catalogue PostgreSQL cases and two new browser journeys await hosted execution.
 - Next action: verify Platform catalogue behavior and complete remaining repository coverage; preserve the current containing CI milestone before advancing the branch.
@@ -1816,6 +1816,58 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Verification result: ADR-0064 introduces a finite durable source sweep, per-source subscription/recipient frontiers, 25-row pages and a global 500-intent attempt budget. Current source/health/subscription/administrator facts are reread; notification intents and progress commit atomically. Subscription IDs distinguish equal-timestamp alert meanings, and withdrawn sources fail consumer authority. Eight committed PostgreSQL progress/bounds/rollback/overlap/current-state cases and extended consumer cases await hosted execution.
 - Completion evidence: OperationalAlertProgressTest, NotificationSourceEligibilityTest and ADR-0064; containing verification pending.
 
+### HARD-123 — Kingdom bootstrap and policy reconciliation commit owner provisioning separately
+
+- Area: KingdomGovernance Workflow bootstrap/reconciliation and GameWorld/Operations provisioning.
+- Finding: Both Workflows commit their first GameWorld Action before Operations provisioning. A late Operations failure leaves partial policy or bootstrap state; reconciliation also releases the actor scope before completing the second owner.
+- Current owner: Context domain and permission owners, Workflow composition and read-only ReadModels.
+- Intended authoritative owner: the same boundaries with explicit current, bounded contracts.
+- Rationale: complete the repository-wide audit beyond the Platform recovery slice.
+- Remediation: Retain one documented atomic Workflow composition around the existing owner calls, with no Workflow persistence or permission interpretation.
+- State: In progress.
+- Verification required: Late Operations failure and full rollback/retry for both commands; current actor/scope revocation and trusted CLI bootstrap behavior.
+- Verification result: both Workflows now wrap only their existing owner calls in one transaction, named by ADR-0065 and the architecture verifier. Three committed PostgreSQL cases cover late Operations rollback with exact restoration for bootstrap/reconciliation, successful retry, and competing actor revocation through the final owner call. Local scoped PHPStan, Pint, architecture, layout and documentation checks pass; hosted execution pending.
+- Completion evidence: ADR-0065 and KingdomPolicyAtomicityTest; containing execution pending.
+
+### HARD-124 — Kingdom role writes lack current bounded delegation and owner input invariants
+
+- Area: GameWorld Governance assignment, role-definition, authority facts and write-state.
+- Finding: AssignKingdomRole checks RoleManage but not the permissions in the target role, allowing a limited delegated manager to assign a stronger role. Role mutations use shared Kingdom scope while authorization does not hold the effective role rows, allowing definition revocation to overtake admission. Direct owner text/permission inputs rely on HTTP limits; current actor/target checks also omit canonical aliases.
+- Current owner: Context domain and permission owners, Workflow composition and read-only ReadModels.
+- Intended authoritative owner: the same boundaries with explicit current, bounded contracts.
+- Rationale: complete the repository-wide audit beyond the Platform recovery slice.
+- Remediation: Make current protected Kingdom role authority and bounded delegation/input validation explicit and shared across owner Actions; retain scalar read facts and current consumer behavior.
+- State: Planned.
+- Verification required: Limited-manager escalation rejection; concurrent role revocation/definition change; canonical/archived scope; direct oversized/generated-key inputs; successful bounded delegation and retry.
+- Verification result: production owner, Workflow and projection paths traced; implementation/containing evidence pending.
+- Completion evidence: pending.
+
+### HARD-125 — Kingdom administrator handoff expands unbounded history and leaves scheduled authority
+
+- Area: GameWorld Governance HandoffKingdomAdministrator and owner adapters.
+- Finding: Replacing an actor hydrates every effective assignment and updates each separately; future-effective grants are not revoked and can restore the old actor. Handoff also audits unchanged additive replays and accepts owner reasons beyond the canonical column when called directly.
+- Current owner: Context domain and permission owners, Workflow composition and read-only ReadModels.
+- Intended authoritative owner: the same boundaries with explicit current, bounded contracts.
+- Rationale: complete the repository-wide audit beyond the Platform recovery slice.
+- Remediation: Bound the atomic handoff, include scheduled unexpired grants, validate owner reason/target and preserve last-administrator protection and a reachable bounded cleanup path.
+- State: Planned.
+- Verification required: Oversized history, scheduled grants, wrong/canonical target, maximum reasons, late rollback and idempotent retry.
+- Verification result: production owner, Workflow and projection paths traced; implementation/containing evidence pending.
+- Completion evidence: pending.
+
+### HARD-126 — Kingdom Governance management projections expand complete catalogues and duplicate policy
+
+- Area: KingdomGovernance projections/health/timeline, configuration UI and read adapters.
+- Finding: The management projection hydrates every role and unrevoked assignment, counts each role separately and expands all permission holders; health loads every role and duplicates Operations default policy. Trace current consumers and selectors before choosing complete bounded contracts.
+- Current owner: Context domain and permission owners, Workflow composition and read-only ReadModels.
+- Intended authoritative owner: the same boundaries with explicit current, bounded contracts.
+- Rationale: complete the repository-wide audit beyond the Platform recovery slice.
+- Remediation: Use owner-declared system policy facts and current-authorized bounded catalogues/choices/history with retained forms and visible errors; remove superseded full-list consumers.
+- State: Planned.
+- Verification required: More-than-page roles/assignments/holders, query budgets, actor/Kingdom isolation, owner health policy parity and desktop/mobile retained interaction.
+- Verification result: production owner, Workflow and projection paths traced; implementation/containing evidence pending.
+- Completion evidence: pending.
+
 ## Repository audit coverage
 
 This table records production paths actually traced and remaining audit scope. Findings have their own stable ledger entries; passing one capability does not close the table.
@@ -1904,3 +1956,7 @@ HARD-120 local validation passes full npm check (only the existing two Recruitme
 At `89e18cbfeb94677064b599d27195e82195a75d0d`, focused run `34721085604`, job `103626946928`, passes 95 Integrations / 1,058 assertions, 78 Platform/ReadModel / 6,367 assertions, 34 Governance/KingdomGovernance / 138 assertions, four Participation / 26 assertions and 29 TransferManagement / 425 assertions. All new recovery concurrency, rollback, owner-bound and choice tests pass. Visual `34721085611`, job `103626946977`, stops at setup because the new 63000-range recovery fixture overlaps an existing Kingdom number. The browser fixture now uses the repository-unused 830000 range with matching exact browser choices. No browser case ran on this head. Full CI and containing browser verification remain open.
 
 HARD-122 local verification passes full production PHPStan level 8 plus OperationalAlertProgressTest analysis, Pint, architecture, 330-source test layout, documentation links and scoped browser lint. Canonical migration data is restored in the committed DatabaseTruncation fixture; the production sweep row is created by the fresh migration. Hosted behavior and final containing gates remain required.
+
+### HARD-122 migration-reference reset correction
+
+At `42d107547f544aac2fb2aa993dc2d4a4af9fc85d`, Gift Code run `34721639811`, King Perks run `34721639785` and focused run `34721639752` fail committed-test setup with `Unclassified migration reference table: public.gift_code_source_alert_sweep`. The existing guard correctly requires a reset contract for any populated migration table. Register the exact fresh singleton in MigrationReferenceData so ordinary truncation restores it, and remove the redundant per-test initializer. The guard and all normal tests remain enforced; the new alert behavior has not executed successfully yet. Visual setup succeeds and its browser run remains pending.

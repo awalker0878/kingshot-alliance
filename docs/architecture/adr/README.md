@@ -98,3 +98,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0063: Atomic bounded Kingdom administrator recovery](0063-atomic-bounded-kingdom-administrator-recovery.md)
 
 - [ADR-0064: Bounded Gift Code operational alert progress](0064-bounded-gift-code-operational-alert-progress.md)
+
+- [ADR-0065: Atomic Kingdom policy provisioning](0065-atomic-kingdom-policy-provisioning.md)

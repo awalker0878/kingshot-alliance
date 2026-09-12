@@ -39,6 +39,9 @@ final class MigrationReferenceDataIsolationTest extends TestCase
         $alliance = $factory->alliance($owner);
         DB::table('platform_plans')->where('code', 'standard')->update(['name' => 'Mutated by test']);
         DB::table('event_types')->update(['is_active' => false]);
+        DB::table('gift_code_source_alert_sweep')->where('id', 'scheduled')->update([
+            'last_source_id' => strtolower((string) Str::ulid()), 'source_through_id' => strtolower((string) Str::ulid()), 'last_batch_at' => now(),
+        ]);
         DB::table('event_metric_definitions')->delete();
 
         $this->resetCommittedDatabase();

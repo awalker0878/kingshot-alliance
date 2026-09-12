@@ -50,3 +50,5 @@ Remote/retryable effects execute after commit. Durable intent that must survive 
 Consumers must tolerate at-least-once delivery through idempotency/deduplication.
 
 Kingdom administrator recovery is a named atomic Workflow exception: Platform holds the current operator grant, GameWorld holds current Kingdom/Player scope and owns assignments, and Operations provisions its permission meanings before the same commit. Late failure rolls all owners back. See [ADR-0063](adr/0063-atomic-bounded-kingdom-administrator-recovery.md).
+
+Trusted Kingdom administrator bootstrap and Governor-authorized system-policy reconciliation likewise compose their GameWorld and Operations owner calls atomically. Their existing scope and owner contracts remain authoritative until both owners commit; see [ADR-0065](adr/0065-atomic-kingdom-policy-provisioning.md).

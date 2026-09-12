@@ -18,13 +18,6 @@ final class OperationalAlertProgressTest extends TestCase
 {
     use DatabaseTruncation;
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        // DatabaseTruncation clears canonical migration data after the first test.
-        DB::table('gift_code_source_alert_sweep')->insertOrIgnore(['id' => 'scheduled']);
-    }
-
     /** @return list<int> */
     private function administrators(int $count): array
     {

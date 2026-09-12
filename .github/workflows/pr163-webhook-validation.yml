@@ -90,7 +90,7 @@ jobs:
       - name: Run Kingdom Governance recovery behavior
         run: php vendor/bin/phpunit tests/Contexts/GameWorld/Governance tests/Workflows/KingdomGovernance --log-junit storage/logs/kingdom-recovery-junit.xml
       - name: Run Gift Code operational alert progress
-        run: php vendor/bin/phpunit tests/Contexts/GameWorld/GiftCodes/Feature/OperationalAlertProgressTest.php tests/Workflows/NotificationDelivery/Feature/NotificationSourceEligibilityTest.php --log-junit storage/logs/operational-alerts-junit.xml
+        run: php vendor/bin/phpunit tests/Contexts/GameWorld/GiftCodes/Feature/OperationalAlertProgressTest.php tests/Workflows/NotificationDelivery/Feature/NotificationSourceEligibilityTest.php tests/Shared/Testing/Integration/MigrationReferenceDataIsolationTest.php --log-junit storage/logs/operational-alerts-junit.xml
       - name: Run Participation owner behavior
         run: php vendor/bin/phpunit tests/Contexts/Operations/Participation --log-junit storage/logs/participation-junit.xml
       - name: Run TransferManagement behavior
