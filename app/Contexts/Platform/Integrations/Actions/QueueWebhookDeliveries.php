@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace App\Contexts\Platform\Integrations\Actions;
 
 use App\Contexts\Platform\Integrations\Contracts\WebhookEventCatalog;
-use App\Contexts\Platform\Integrations\Enums\WebhookDeliveryStatus;
-use App\Contexts\Platform\Integrations\Jobs\DeliverWebhookJob;
-use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
+use App\Contexts\Platform\Integrations\Models\WebhookFanout;
 use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
 use App\Shared\Infrastructure\Messaging\Outbox\Events\OutboxPublished;
+use Illuminate\Support\Facades\DB;
 use UnexpectedValueException;
 
-final class QueueWebhookDeliveries
+final readonly class QueueWebhookDeliveries
 {
+    public function __construct(private ProcessWebhookFanouts $fanouts) {}
+
     public function handle(OutboxPublished $event): int
     {
         if (! $this->isExternallyContracted($event->eventType)) {
@@ -29,55 +30,29 @@ final class QueueWebhookDeliveries
             throw new UnexpectedValueException('Global webhook event unexpectedly carries an Alliance scope.');
         }
 
-        $queued = 0;
-
-        $subscriptionQuery = WebhookSubscription::query()
-            ->where('is_active', true)
-            ->whereNull('revoked_at');
-        if ($event->allianceId !== null) {
-            $subscriptionQuery->where('alliance_id', $event->allianceId);
-        }
-        $subscriptions = $subscriptionQuery->orderBy('alliance_id')->orderBy('id')->get();
-
-        foreach ($subscriptions as $subscription) {
-            if (! $subscription->receives($event->eventType)) {
-                continue;
-            }
-
-            $deliveryAllianceId = (string) $subscription->alliance_id;
-            $payload = [
-                'schema_version' => '1.0',
-                'id' => $event->messageId,
-                'event' => $event->eventType,
+        $encodedPayload = json_encode($event->payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        $oversized = strlen($encodedPayload) > 262144;
+        $fingerprint = hash('sha256', $encodedPayload);
+        $fanout = DB::transaction(function () use ($event, $oversized, $fingerprint): WebhookFanout {
+            return WebhookFanout::query()->firstOrCreate(['source_message_id' => $event->messageId], [
+                'alliance_id' => $event->allianceId,
+                'event_type' => $event->eventType,
+                'payload' => $oversized ? null : $event->payload,
+                'payload_oversized' => $oversized,
+                'payload_fingerprint' => $fingerprint,
                 'occurred_at' => $event->occurredAt,
-                'alliance_id' => $deliveryAllianceId,
-                'data' => $event->payload,
-            ];
-            $encoded = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
-            $oversized = strlen($encoded) > 262144;
-
-            $delivery = WebhookDelivery::query()->firstOrCreate(
-                ['idempotency_key' => 'webhook:'.$subscription->id.':'.$event->messageId],
-                [
-                    'alliance_id' => $deliveryAllianceId,
-                    'webhook_subscription_id' => $subscription->id,
-                    'source_message_id' => $event->messageId,
-                    'event_type' => $event->eventType,
-                    'payload' => $oversized ? null : $payload,
-                    'status' => $oversized ? WebhookDeliveryStatus::Failed : WebhookDeliveryStatus::Pending,
-                    'attempts' => 0,
-                    'available_at' => now(),
-                    'last_error' => $oversized ? 'Webhook payload exceeded the 256 KiB delivery limit.' : null,
-                ],
-            );
-
-            if ($delivery->wasRecentlyCreated && ! $oversized) {
-                DeliverWebhookJob::dispatch((string) $delivery->id)->onQueue('integrations');
-                $queued++;
-            }
+                'upper_subscription_id' => WebhookSubscription::query()
+                    ->when($event->allianceId !== null, fn ($query) => $query->where('alliance_id', $event->allianceId))
+                    ->max('id'),
+            ]);
+        });
+        if ($fanout->alliance_id !== $event->allianceId || $fanout->event_type !== $event->eventType
+            || ! hash_equals((string) $fanout->payload_fingerprint, $fingerprint)
+            || $fanout->occurred_at !== $event->occurredAt) {
+            throw new UnexpectedValueException('Webhook source identity was replayed with different facts.');
         }
 
-        return $queued;
+        return $this->fanouts->page((string) $fanout->id, 25);
     }
 
     private function isExternallyContracted(string $eventType): bool

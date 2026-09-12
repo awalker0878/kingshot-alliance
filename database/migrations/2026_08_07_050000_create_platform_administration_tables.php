@@ -204,6 +204,23 @@ return new class extends Migration
             $table->index(['alliance_id', 'is_active']);
         });
 
+        Schema::create('webhook_fanouts', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->string('source_message_id', 64)->unique();
+            $table->foreignUlid('alliance_id')->nullable()->constrained('alliances')->cascadeOnDelete();
+            $table->string('event_type', 120);
+            $table->json('payload')->nullable();
+            $table->char('payload_fingerprint', 64);
+            $table->boolean('payload_oversized')->default(false);
+            $table->string('occurred_at', 64);
+            $table->ulid('upper_subscription_id')->nullable();
+            $table->ulid('after_subscription_id')->nullable();
+            $table->timestamp('visited_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
+            $table->timestamps();
+            $table->index(['completed_at', 'visited_at', 'id'], 'webhook_fanout_progress_index');
+        });
+
         Schema::create('webhook_deliveries', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->foreignUlid('alliance_id')->constrained('alliances')->cascadeOnDelete();
@@ -212,7 +229,8 @@ return new class extends Migration
             $table->string('event_type', 120);
             $table->json('payload')->nullable();
             $table->string('status', 24)->default('pending')->index();
-            $table->unsignedTinyInteger('attempts')->default(0);
+            $table->unsignedInteger('attempts')->default(0);
+            $table->unsignedInteger('max_attempts')->default(5);
             $table->uuid('attempt_token')->nullable();
             $table->timestamp('available_at')->index();
             $table->timestamp('last_attempt_at')->nullable();
@@ -225,6 +243,8 @@ return new class extends Migration
 
             $table->index(['alliance_id', 'status', 'available_at']);
             $table->index(['status', 'available_at', 'id'], 'webhook_delivery_due_index');
+            $table->index(['status', 'last_attempt_at', 'id'], 'webhook_delivery_claim_index');
+            $table->index(['status', 'updated_at', 'id'], 'webhook_delivery_queue_index');
         });
 
         $now = now();
@@ -266,6 +286,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('webhook_deliveries');
+        Schema::dropIfExists('webhook_fanouts');
         Schema::dropIfExists('webhook_subscriptions');
         Schema::dropIfExists('external_actor_action_receipts');
         Schema::dropIfExists('external_actor_links');

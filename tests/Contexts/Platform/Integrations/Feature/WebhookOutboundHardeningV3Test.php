@@ -9,12 +9,13 @@ use App\Contexts\Platform\Integrations\Actions\DeliverWebhook;
 use App\Contexts\Platform\Integrations\Actions\QueueDueWebhookDeliveries;
 use App\Contexts\Platform\Integrations\Actions\QueueWebhookTestDelivery;
 use App\Contexts\Platform\Integrations\Enums\WebhookDeliveryStatus;
-use App\Contexts\Platform\Integrations\Exceptions\WebhookAttemptFailed;
 use App\Contexts\Platform\Integrations\Jobs\DeliverWebhookJob;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
+use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
 use App\Contexts\Platform\Integrations\Services\WebhookEndpointPolicy;
 use App\Contexts\Platform\Integrations\Services\WebhookHostResolver;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Validation\ValidationException;
@@ -23,7 +24,7 @@ use Tests\TestCase;
 
 final class WebhookOutboundHardeningV3Test extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTruncation;
 
     public function test_dns_answers_must_be_entirely_public_and_the_selected_address_is_pinned(): void
     {
@@ -54,18 +55,13 @@ final class WebhookOutboundHardeningV3Test extends TestCase
         Http::preventStrayRequests();
         Http::fake(['hooks.example.test/*' => Http::response('', 302, ['Location' => 'https://127.0.0.1/internal'])]);
 
-        try {
-            app(DeliverWebhook::class)->handle((string) $delivery->id);
-            self::fail('Redirect response should remain a failed provider attempt.');
-        } catch (WebhookAttemptFailed) {
-            // Expected: the transport records the response without following it.
-        }
+        app(DeliverWebhook::class)->handle((string) $delivery->id);
 
         Http::assertSentCount(1);
         $delivery->refresh();
         self::assertSame(WebhookDeliveryStatus::Pending, $delivery->status);
         self::assertSame(302, $delivery->response_code);
-        self::assertNotNull($delivery->attempt_token);
+        self::assertNull($delivery->attempt_token);
     }
 
     public function test_private_rebinding_fails_closed_before_transport(): void
@@ -79,7 +75,7 @@ final class WebhookOutboundHardeningV3Test extends TestCase
         Http::assertNothingSent();
         $delivery->refresh();
         self::assertSame(WebhookDeliveryStatus::Failed, $delivery->status);
-        self::assertSame(0, $delivery->attempts);
+        self::assertSame(1, $delivery->attempts);
         self::assertNull($delivery->attempt_token);
     }
 
@@ -96,26 +92,38 @@ final class WebhookOutboundHardeningV3Test extends TestCase
         self::assertSame(0, $delivery->fresh()->attempts);
     }
 
-    public function test_failed_callback_is_fenced_to_the_exact_transport_attempt(): void
+    public function test_durable_attempt_budget_exhausts_even_with_new_jobs(): void
     {
         $delivery = $this->delivery();
         $this->app->instance(WebhookHostResolver::class, $this->resolver(['203.10.20.30']));
-        Http::fake(['hooks.example.test/*' => Http::response('', 503)]);
-
-        try {
-            app(DeliverWebhook::class)->handle((string) $delivery->id);
-            self::fail('The provider failure should throw for queue retry.');
-        } catch (WebhookAttemptFailed $failure) {
+        Http::fake(['hooks.example.test/*' => Http::response('private-provider-body', 503)]);
+        for ($attempt = 1; $attempt <= 5; $attempt++) {
+            $delivery->forceFill(['available_at' => now()])->save();
+            (new DeliverWebhookJob((string) $delivery->id))->handle(app(DeliverWebhook::class));
             $delivery->refresh();
-            $delivery->forceFill(['attempt_token' => '00000000-0000-4000-8000-000000000002'])->save();
-            (new DeliverWebhookJob((string) $delivery->id))->failed($failure);
-            self::assertSame(WebhookDeliveryStatus::Pending, $delivery->fresh()->status);
-
-            $delivery->forceFill(['attempt_token' => $failure->attemptToken])->save();
-            (new DeliverWebhookJob((string) $delivery->id))->failed($failure);
-            self::assertSame(WebhookDeliveryStatus::Failed, $delivery->fresh()->status);
-            self::assertNull($delivery->fresh()->attempt_token);
+            self::assertSame($attempt, $delivery->attempts);
+            self::assertSame($attempt === 5 ? WebhookDeliveryStatus::Failed : WebhookDeliveryStatus::Pending, $delivery->status);
+            self::assertNull($delivery->response_excerpt);
         }
+        (new DeliverWebhookJob((string) $delivery->id))->handle(app(DeliverWebhook::class));
+        Http::assertSentCount(5);
+    }
+
+    public function test_old_queued_job_cannot_consume_a_replacement_reservation(): void
+    {
+        $delivery = $this->delivery();
+        Queue::fake();
+        app(QueueDueWebhookDeliveries::class)->handle(1);
+        $oldToken = $delivery->fresh()->attempt_token;
+        $delivery->refresh()->forceFill(['status' => WebhookDeliveryStatus::Pending, 'attempt_token' => null])->save();
+        app(QueueDueWebhookDeliveries::class)->handle(1);
+        $newToken = $delivery->fresh()->attempt_token;
+        self::assertNotSame($oldToken, $newToken);
+        Http::preventStrayRequests();
+        app(DeliverWebhook::class)->handle((string) $delivery->id, $oldToken);
+        Http::assertNothingSent();
+        self::assertSame($newToken, $delivery->fresh()->attempt_token);
+        self::assertSame(0, $delivery->fresh()->attempts);
     }
 
     public function test_recovery_and_due_fanout_are_bounded_and_rows_are_reserved(): void
@@ -139,6 +147,58 @@ final class WebhookOutboundHardeningV3Test extends TestCase
         self::assertSame(0, WebhookDelivery::query()->where('status', WebhookDeliveryStatus::Delivering->value)->count());
         self::assertSame(4, WebhookDelivery::query()->where('status', WebhookDeliveryStatus::Queued->value)->count());
         Queue::assertPushed(DeliverWebhookJob::class, 4);
+    }
+
+    public function test_revocation_during_dns_prevents_handoff_and_dns_holds_no_transaction(): void
+    {
+        $delivery = $this->delivery();
+        $this->app->instance(WebhookHostResolver::class, new class((string) $delivery->webhook_subscription_id) extends WebhookHostResolver
+        {
+            public function __construct(private string $subscriptionId) {}
+
+            public function resolve(string $host): array
+            {
+                WebhookOutboundHardeningV3Test::assertSame(0, DB::transactionLevel());
+                WebhookSubscription::query()->whereKey($this->subscriptionId)->update(['is_active' => false, 'revoked_at' => now()]);
+
+                return ['203.10.20.30'];
+            }
+        });
+        Http::preventStrayRequests();
+        app(DeliverWebhook::class)->handle((string) $delivery->id);
+        Http::assertNothingSent();
+        self::assertSame(WebhookDeliveryStatus::Failed, $delivery->fresh()->status);
+        self::assertNull($delivery->fresh()->attempt_token);
+    }
+
+    public function test_late_provider_response_cannot_overwrite_a_recovered_attempt(): void
+    {
+        $delivery = $this->delivery();
+        $this->app->instance(WebhookHostResolver::class, $this->resolver(['203.10.20.30']));
+        $requests = 0;
+        Http::fake(function () use ($delivery, &$requests) {
+            self::assertSame(0, DB::transactionLevel());
+            $requests++;
+            if ($requests === 1) {
+                $oldToken = $delivery->fresh()->attempt_token;
+                $this->travel(6)->minutes();
+                app(QueueDueWebhookDeliveries::class)->handle(1);
+                $replacement = $delivery->fresh()->attempt_token;
+                self::assertNotSame($oldToken, $replacement);
+                app(DeliverWebhook::class)->handle((string) $delivery->id, $replacement);
+
+                return Http::response('old attempt', 500);
+            }
+
+            return Http::response('new attempt', 204);
+        });
+        app(DeliverWebhook::class)->handle((string) $delivery->id);
+        self::assertSame(2, $requests);
+        self::assertSame(2, $delivery->fresh()->attempts);
+        self::assertSame(WebhookDeliveryStatus::Delivered, $delivery->fresh()->status);
+        self::assertSame(204, $delivery->fresh()->response_code);
+        self::assertNull($delivery->fresh()->attempt_token);
+        $this->travelBack();
     }
 
     /** @param list<string> $answers */

@@ -8,6 +8,7 @@ use App\Contexts\Platform\Integrations\Enums\WebhookDeliveryStatus;
 use App\Contexts\Platform\Integrations\Jobs\DeliverWebhookJob;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 final class QueueDueWebhookDeliveries
 {
@@ -31,14 +32,16 @@ final class QueueDueWebhookDeliveries
                 ->orderBy('updated_at')
                 ->orderBy('id')
                 ->limit($recoveryLimit)
-                ->lockForUpdate()
+                ->lock('for update skip locked')
                 ->get()
                 ->each(static function (WebhookDelivery $delivery) use ($now): void {
                     $delivery->forceFill([
-                        'status' => WebhookDeliveryStatus::Pending,
+                        'status' => $delivery->attempts >= $delivery->max_attempts ? WebhookDeliveryStatus::Failed : WebhookDeliveryStatus::Pending,
                         'available_at' => $now,
                         'attempt_token' => null,
-                        'last_error' => 'Recovered a stale webhook delivery claim after worker interruption.',
+                        'last_error' => $delivery->attempts >= $delivery->max_attempts
+                            ? 'Webhook attempt budget exhausted after interruption; provider acknowledgement is unknown.'
+                            : 'Recovered a stale webhook delivery claim after worker interruption.',
                     ])->save();
                 });
         });
@@ -54,14 +57,19 @@ final class QueueDueWebhookDeliveries
                 ->get();
 
             foreach ($deliveries as $delivery) {
-                $delivery->forceFill(['status' => WebhookDeliveryStatus::Queued])->save();
+                $delivery->forceFill([
+                    'status' => WebhookDeliveryStatus::Queued,
+                    'attempt_token' => (string) Str::uuid(),
+                ])->save();
             }
 
-            return $deliveries->modelKeys();
+            return $deliveries->map(static fn (WebhookDelivery $delivery): array => [
+                (string) $delivery->id, (string) $delivery->attempt_token,
+            ])->all();
         });
 
-        foreach ($deliveryIds as $deliveryId) {
-            DeliverWebhookJob::dispatch((string) $deliveryId)->onQueue('integrations');
+        foreach ($deliveryIds as [$deliveryId, $token]) {
+            DeliverWebhookJob::dispatch($deliveryId, $token)->onQueue('integrations');
         }
 
         return count($deliveryIds);

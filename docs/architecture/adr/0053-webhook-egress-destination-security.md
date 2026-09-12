@@ -2,20 +2,20 @@
 
 Status: Accepted
 
-## Problem
+## Problem and alternatives
 
-The Integrations owner accepted HTTPS URLs and rejected literal private addresses, but a hostname could resolve to a private or reserved address after configuration. The HTTP client could also follow a redirect to a destination that had never passed the owner policy. Rechecking a hostname without binding the connection to the checked answer leaves a DNS rebinding interval.
+Literal-address validation alone allowed hostname rebinding; following redirects or an environment proxy could bypass the destination check. PHP's generic private/reserved filters also accepted mapped IPv6 destinations. Merely resolving before a normal HTTP request leaves the client free to resolve again. An external proxy allowlist would introduce another operational authority without a current requirement.
 
 ## Decision
 
-`WebhookEndpointPolicy` remains the single Integrations-owned destination policy. Configuration validates URL structure and literal addresses. Every transport claim resolves the current hostname again, requires a non-empty answer set containing only public IPv4/IPv6 addresses, and returns a typed resolved endpoint. Delivery pins one vetted address to the original HTTPS hostname for TLS/SNI and certificate validation. Redirects are disabled and curl is restricted to HTTPS.
+Integrations owns `WebhookEndpointPolicy` and `WebhookTransport`. Configuration validates canonical HTTPS URL syntax. A delivery first claims a bounded attempt, commits, resolves all current A/AAAA answers, and requires a non-empty bounded set of ordinary public unicast addresses. Explicit IPv4 special-use exclusions and a conservative IPv6 global-unicast allow policy reject mapped, translated, tunnel, documentation and private addresses. Canonical request and pin use the same hostname and port.
 
-The policy is applied before an attempt is opened or any provider request occurs. A destination that no longer passes becomes a terminal, privacy-safe failure without exposing its address or response. The signed payload and existing public event catalogue remain unchanged.
+After DNS, the owner rechecks the exact attempt and current subscription scope, activation, revocation, URL and signing secret in a short transaction. Network IO holds no database transaction. The CurlHandler connects freshly to one vetted address, preserves hostname TLS/SNI verification, disables proxies and redirects, and restricts transport to HTTPS. Missing curl fails closed. The exact JSON bytes signed are the bytes sent.
 
-## Consequences
+Connection and total transfer limits are three and ten seconds. Provider response headers/progress abort responses exceeding 64 KiB; decompression is disabled. No response body or raw exception is persisted. Destination rejection terminalizes the attempt with a safe diagnostic.
 
-DNS changes are observed on each new attempt. Mixed public/private answers fail closed. Pinning removes the resolution-to-connection substitution window while normal TLS hostname verification remains active. Redirects are treated as provider failures and never traversed. Operations must diagnose or replace a rejected subscription rather than bypassing the policy.
+## Consequences and verification
 
-## Verification
+Every attempt observes current DNS. Mixed answers fail closed. A revocation committed before the final handoff check prevents transport; a request already handed to a remote provider cannot be recalled. Consumers must deduplicate the stable delivery identity. Operations must correct rejected subscriptions through the authorized owner.
 
-Owner tests cover empty, private, reserved, mixed and IPv6 answers, pinned address formatting, delivery-time rebinding rejection, redirect non-following and absence of provider IO on policy failure. Final acceptance still requires the normal security, static-analysis, schema and containing gates recorded by HARD-109.
+Owner tests cover URL ambiguity, special-use IPv4/IPv6, mixed answers, canonical pins, exact signed bytes, proxy/redirect/TLS options, response limits, revocation during DNS and no transaction during network work. Local policy/options tests pass; HARD-109 retains actual HTTPS and containing verification requirements. This replaces the earlier resolve-inside-claim and generic client behavior.
