@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Actions;
 
-use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
-use App\Contexts\Operations\Events\Models\EventOccurrence;
-use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
-use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
 use App\Contexts\Operations\Participation\Enums\EventResponseSource;
 use App\Contexts\Operations\Participation\Models\EventResponse;
+use App\Contexts\Operations\Participation\Services\EventParticipationWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
@@ -21,9 +17,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class RespondToEvent
 {
     public function __construct(
-        private EventWriteState $eventWriteState,
-        private EventAuthorization $authorization,
-        private EventWorkflowGuard $workflows,
+        private EventParticipationWriteState $state,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -46,16 +40,7 @@ final readonly class RespondToEvent
         }
 
         DB::transaction(function () use ($actorPlayerId, $occurrenceId, $response, $preferredRole, $preferredTeam, $availableFrom, $availableUntil, $note, $source): void {
-            $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
-            $context = $this->eventWriteState->lockSelfScope($actorPlayerId, (string) $route->event_id, $actorPlayerId);
-            $this->authorization->authorizeSelf($context, $actorPlayerId);
-            $this->workflows->require($context->event, EventWorkflowDimension::Participation);
-
-            $occurrence = EventOccurrence::query()
-                ->whereKey($occurrenceId)
-                ->where('event_id', $context->event->id)
-                ->sharedLock()
-                ->firstOrFail();
+            [$context, $occurrence] = $this->state->lock($actorPlayerId, $occurrenceId, false);
 
             $record = EventResponse::query()->updateOrCreate(
                 ['occurrence_id' => $occurrence->id, 'player_id' => $actorPlayerId],

@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Participation\Actions;
 
-use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
-use App\Contexts\Operations\Events\Models\EventOccurrence;
-use App\Contexts\Operations\Events\Services\EventAuthorization;
-use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
-use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
 use App\Contexts\Operations\Participation\Models\EventRegistration;
+use App\Contexts\Operations\Participation\Services\EventParticipationWriteState;
 use App\Contexts\Operations\Participation\Services\EventPlayerContextFreezer;
 use App\Contexts\Operations\Participation\Services\EventRegistrationWindow;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -21,9 +17,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class RegisterForEvent
 {
     public function __construct(
-        private EventWriteState $eventWriteState,
-        private EventAuthorization $authorization,
-        private EventWorkflowGuard $workflows,
+        private EventParticipationWriteState $state,
         private EventRegistrationWindow $window,
         private EventPlayerContextFreezer $contexts,
         private AuditRecorder $audit,
@@ -33,16 +27,7 @@ final readonly class RegisterForEvent
     public function handle(string $actorPlayerId, string $occurrenceId): void
     {
         DB::transaction(function () use ($actorPlayerId, $occurrenceId): void {
-            $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
-            $context = $this->eventWriteState->lockSelfScope($actorPlayerId, (string) $route->event_id, $actorPlayerId);
-            $this->authorization->authorizeSelf($context, $actorPlayerId);
-            $this->workflows->require($context->event, EventWorkflowDimension::Participation);
-
-            $occurrence = EventOccurrence::query()
-                ->whereKey($occurrenceId)
-                ->where('event_id', $context->event->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            [$context, $occurrence] = $this->state->lock($actorPlayerId, $occurrenceId, true);
 
             $window = $this->window->for($context->event, $occurrence);
             if (! $window['is_open']) {

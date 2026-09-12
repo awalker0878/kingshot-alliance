@@ -4,11 +4,11 @@
 
 - Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
 - Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
-- Latest pushed implementation: `cd088c9b09fcdc7dbe9938397158a793cee7009d` (HARD-113–115 export/retention/usage). Focused run `34716143412` passes Integrations and the retention/usage cases, but exposes export callback and HTTP fixture defects; follow-up verification remains pending. Last all-nine milestone: `abcc062d7f60fe987ebde07796b2ce89d1f72c57`; CI `34714873738` passes1,840 tests /86,867 assertions, frontend and container/staging/recovery; Visual `34714873690` passes all78 cases; all specialized/security gates pass.
-- Current item/state: HARD-111 / In progress. HARD-095/109/110/112 are Complete with containing evidence; HARD-113–115 are published for verification; HARD-116 records the remaining external participation/credential revocation lock cycle.
-- Active files: Integrations catalogue/usage projection, management adapter and UI, independent cursor pager, canonical indexes, all17 locales, owner/HTTP and desktop/mobile regressions, ADR-0059.
-- Local verification: complete npm check and changed Platform PHPStan/formatting pass; test layout and documentation pass. Seven Connections owner/HTTP cases and two browser journeys are authored. New database-backed cases await hosted execution; no local PostgreSQL pass is claimed.
-- Next action: inspect the maintenance-focused run, publish the Connections checkpoint, reproduce and repair HARD-116 through existing owners, and complete repository audit coverage before final gates.
+- Latest pushed implementation: `24e9a48bc6f959b10b15803caa71e4f04b4bb2d8`. Focused run `34716370802` passes83 Integrations cases /1,002 assertions,31 Platform maintenance cases /200 assertions, and29 TransferManagement cases /425 assertions. The new Connections browser journeys fail on an incorrect password-confirmation locator; all78 existing browser cases pass. Last all-nine milestone remains `abcc062d7f60fe987ebde07796b2ce89d1f72c57` (1,840 PHP tests /86,867 assertions and78 browser cases).
+- Current item/state: HARD-116 / In progress. HARD-095/109/110/112 are Complete with containing evidence; HARD-111/113–115 await containing completion; HARD-117 records referenced-credential retention starvation.
+- Active files: Operations participation scope, ExternalEventParticipation atomic composition, Integrations contention adapter, PostgreSQL competing-order regressions, architecture decision and exact named enforcement, Connections browser locator.
+- Local verification: PHPStan and formatting pass for changed production PHP. Twelve new PostgreSQL cases are authored; their hosted execution remains pending. No local PostgreSQL pass is claimed.
+- Next action: verify the lock-order checkpoint and corrected Connections journeys, repair HARD-117 through existing owners, and complete repository audit coverage before final gates.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -1717,9 +1717,22 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners with composition following the existing Operations scope order before Integration authority.
 - Rationale: preserve current revocation and atomic idempotency while eliminating opposing lock acquisition; do not copy Event or Alliance authorization into Integrations.
 - Remediation: reproduce the competing orders, compose explicit owner scope acquisition in the Workflow, recheck scalar binding under locks and retain complete rollback/replay semantics.
-- State: Planned.
+- State: In progress.
 - Verification required: real PostgreSQL admission/revocation in both orders, current link/credential/runtime revocation, replay after changed authority, and late owner/receipt rollback without duplicate effects.
-- Verification result: traced ExecuteExternalEventParticipation → ExecuteExternalActorAction → RespondToEvent/EventWriteState and RevokeApiCredential → AllianceWriteAuthorization. No implementation or passing reproduction is claimed yet.
+- Verification result: Operations now owns one shared current participation scope acquisition; the Workflow composes it before Integrations in an explicit atomic transaction. Credential/link NOWAIT prevents pairing-claim lock inversion and returns a retryable HTTP409 after rollback. Twelve PostgreSQL cases cover both owner revocations and orders for response/registration, pairing contention, HTTP retry/replay, current membership and late receipt rollback. Local static/style checks pass; hosted execution is pending.
+- Completion evidence: ADR-0060 and ExternalActorScopeOrderingTest; containing execution pending.
+
+### HARD-117 — Referenced credentials can starve Platform retention
+
+- Area: DataGovernance credential retention and Integrations actor history.
+- Finding: The90-day credential purge selects revoked credentials even when external actor links or action receipts retain restrictive foreign keys to them. One old referenced credential makes the batch fail before other maintenance categories progress.
+- Current owner: DataGovernance retention and Integrations history schema.
+- Intended authoritative owner: the same owners, preserving historical references while purging eligible unreferenced credentials.
+- Rationale: maintenance must remain bounded and progress without deleting linked actor or idempotency history or weakening referential integrity.
+- Remediation: exclude currently referenced credentials before batch selection, retain the deletion-time predicate under locks, index reference lookups and test mixed referenced/unreferenced history and concurrent references.
+- State: Planned.
+- Verification required: both reference types, older ineligible rows preceding eligible rows, bounded continued progress, unchanged history and other-category progress, and a concurrent locked credential/reference.
+- Verification result: restrictive foreign keys and the unconditional age-only purge are confirmed in the canonical schema and owner action. Reproduction and repair pending.
 - Completion evidence: pending.
 
 ## Repository audit coverage

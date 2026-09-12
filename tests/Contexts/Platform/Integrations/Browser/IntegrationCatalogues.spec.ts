@@ -11,7 +11,7 @@ test('Connections history pages independently, retains drafts and retries an old
   await page.locator('button[type="submit"]').click();
   await page.waitForURL('**/dashboard');
   await page.goto('/confirm-password');
-  await page.locator('#password').fill('password');
+  await page.locator('#confirm-password').fill('password');
   await page.locator('button[type="submit"]').click();
   await page.waitForURL((url) => !url.pathname.includes('confirm-password'));
   await page.goto('/alliance/integrations');

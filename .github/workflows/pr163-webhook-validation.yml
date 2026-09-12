@@ -85,6 +85,8 @@ jobs:
         run: php vendor/bin/phpunit tests/Contexts/Platform/Integrations --log-junit storage/logs/webhooks-junit.xml
       - name: Run Platform maintenance behavior
         run: php vendor/bin/phpunit tests/Contexts/Platform/DataGovernance tests/Contexts/Platform/AllianceAdministration --log-junit storage/logs/platform-maintenance-junit.xml
+      - name: Run Participation owner behavior
+        run: php vendor/bin/phpunit tests/Contexts/Operations/Participation --log-junit storage/logs/participation-junit.xml
       - name: Run TransferManagement behavior
         run: php vendor/bin/phpunit tests/ReadModels/TransferManagement --log-junit storage/logs/transfer-management-junit.xml
       - name: Upload behavior result
@@ -96,5 +98,6 @@ jobs:
             storage/logs/webhooks-junit.xml
             storage/logs/transfer-management-junit.xml
             storage/logs/platform-maintenance-junit.xml
+            storage/logs/participation-junit.xml
           if-no-files-found: ignore
           retention-days: 7
