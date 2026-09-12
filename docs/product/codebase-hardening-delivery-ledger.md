@@ -1889,10 +1889,10 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners with atomic Operations composition.
 - Rationale: complete the production caller trace of HARD-127 without leaving late effects outside the owner transaction.
 - Remediation: compose current owner admission, create/save and required audit in one bounded Operations transaction, preserving source authorization, expected revisions and existing import validation.
-- State: Planned.
+- State: In progress.
 - Verification required: late save/audit failure, exact rollback, successful retry, current scope/revision changes and existing import/clone/restore behavior.
-- Verification result: concrete split transaction boundaries traced; implementation pending.
-- Completion evidence: pending.
+- Verification result: clone retains source admission through destination create/save; import and restore retain current scope, revision and map/snapshot admission through save and required final audit in one outer Operations transaction. Released identity rereads are removed. Five new committed-database cases cover late audit/competing archive, exact rollback, retry and stale revisions. Hosted execution remains pending.
+- Completion evidence: ADR-0069 and TerritoryCompositionAtomicityTest; containing execution pending.
 
 ## Repository audit coverage
 
@@ -2012,3 +2012,9 @@ Focused run 34723468919/job 103633383811 passes Integrations (95/1,058) and Plat
 ### HARD-127 local verification and remaining documentation audit
 
 Scoped production and all four touched/new test files pass PHPStan; Pint passes, the current tests/System/Architecture/verify.php passes, 337-source layout passes and 291-document links pass. Eighteen new behavior cases await hosted PostgreSQL execution. The old docs/frontend/FRONTEND-V3-ARCHITECTURE.md still advertises tests/System/Frontend/verify-architecture.php, whose obsolete page-root rules reject current Platform/Assistant/Dashboard ownership. This ungated documentation/script pair requires reconciliation in the remaining Frontend/repository audit; the current architecture gate is not changed or weakened.
+
+HARD-128 local verification: all three production Actions and the five-case TerritoryCompositionAtomicityTest pass PHPStan, Pint passes, current architecture passes, 338-source test layout passes and 292-document links pass. PostgreSQL behavior execution remains pending.
+
+### HARD-125/127 focused containing evidence on 5670f991
+
+Commit 5670f991772ef5e49fdeb6271aaa4aa7c124b8a7 passes focused run 34724372389/job 103635800047: 70 Governance/Kingdom Workflow tests/311 assertions including the corrected 13 HARD-125 cases; 62 Events/Territory/King Perks tests/370 assertions including all 18 HARD-127 cases; 95 Integrations/1,058; 78 Platform/ReadModel/6,367; 47 Gift Code/source/reset/256; four Participation/26; 29 Transfer/425. Current source authority, both owner contention orders, bounded target roster resolution and linked-reference rollback/retry now have hosted PostgreSQL evidence. Final containing gates and repository coverage remain open.

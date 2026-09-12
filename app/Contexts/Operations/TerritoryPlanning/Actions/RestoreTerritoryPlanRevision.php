@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\TerritoryPlanning\Actions;
 
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
-use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanningAuthorization;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanWriteState;
@@ -20,7 +18,6 @@ final readonly class RestoreTerritoryPlanRevision
         private TerritoryPlanWriteState $writeState,
         private TerritoryPlanningAuthorization $authorization,
         private SaveTerritoryPlan $save,
-        private PlayerReferenceQuery $players,
         private AuditRecorder $audit,
     ) {}
 
@@ -30,23 +27,7 @@ final readonly class RestoreTerritoryPlanRevision
         string $revisionId,
         int $expectedRevision,
     ): TerritoryPlanMutationReceipt {
-        $revision = TerritoryPlanRevision::query()
-            ->where('territory_plan_id', $planId)
-            ->findOrFail($revisionId);
-        $snapshot = $revision->snapshot;
-        $alliances = $this->rows($snapshot['alliances'] ?? null);
-        $groups = $this->rows($snapshot['groups'] ?? null);
-        $objects = $this->rows($snapshot['objects'] ?? null);
-        $planData = $snapshot['plan'] ?? null;
-        if (! is_array($planData)) {
-            throw $this->invalidSnapshot();
-        }
-        $preferences = $planData['planning_preferences'] ?? [];
-        if (! is_array($preferences)) {
-            throw $this->invalidSnapshot();
-        }
-
-        DB::transaction(function () use ($actorPlayerId, $planId, $expectedRevision): void {
+        return DB::transaction(function () use ($actorPlayerId, $planId, $revisionId, $expectedRevision): TerritoryPlanMutationReceipt {
             $context = $this->writeState->lock($actorPlayerId, $planId);
             $this->authorization->authorizeManage($context);
             if ($context->plan->revision !== $expectedRevision) {
@@ -54,33 +35,48 @@ final readonly class RestoreTerritoryPlanRevision
                     'revision' => 'This plan changed before the revision could be restored.',
                 ]);
             }
+
+            $revision = TerritoryPlanRevision::query()
+                ->where('territory_plan_id', $planId)
+                ->sharedLock()->findOrFail($revisionId);
+            $snapshot = $revision->snapshot;
+            $alliances = $this->rows($snapshot['alliances'] ?? null);
+            $groups = $this->rows($snapshot['groups'] ?? null);
+            $objects = $this->rows($snapshot['objects'] ?? null);
+            $planData = $snapshot['plan'] ?? null;
+            if (! is_array($planData)) {
+                throw $this->invalidSnapshot();
+            }
+            $preferences = $planData['planning_preferences'] ?? [];
+            if (! is_array($preferences)) {
+                throw $this->invalidSnapshot();
+            }
+
+            $receipt = $this->save->handle(
+                $actorPlayerId,
+                $planId,
+                $expectedRevision,
+                $alliances,
+                $groups,
+                $objects,
+                $preferences,
+            );
+
+            $plan = $context->plan->refresh();
+            $this->audit->record(
+                'territory.plan.revision_restored',
+                $context->actor,
+                $plan,
+                $plan->owner_alliance_id,
+                [
+                    'territory_plan_revision_id' => $revisionId,
+                    'source_revision_number' => $revision->revision_number,
+                    'result_revision' => $receipt->revision,
+                ],
+            );
+
+            return $receipt;
         });
-
-        $receipt = $this->save->handle(
-            $actorPlayerId,
-            $planId,
-            $expectedRevision,
-            $alliances,
-            $groups,
-            $objects,
-            $preferences,
-        );
-
-        $actor = $this->players->require($actorPlayerId);
-        $plan = TerritoryPlan::query()->findOrFail($planId);
-        $this->audit->record(
-            'territory.plan.revision_restored',
-            $actor,
-            $plan,
-            $plan->owner_alliance_id,
-            [
-                'territory_plan_revision_id' => $revisionId,
-                'source_revision_number' => $revision->revision_number,
-                'result_revision' => $receipt->revision,
-            ],
-        );
-
-        return $receipt;
     }
 
     /** @return list<array<string, mixed>> */
