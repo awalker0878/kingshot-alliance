@@ -246,6 +246,8 @@ final class TransferManagementChoiceTest extends TestCase
                 self::assertCount(25, $result['page']['items']);
                 self::assertTrue($result['page']['hasMore']);
             }
+            self::assertSame('transfer-choices-'.$project, $actor->game_player_id);
+            self::assertSame('transfer-choices-'.$project, DB::table('alliances')->where('id', $allianceId)->value('slug'));
             $seen[] = $allianceId;
         }
         self::assertNotSame($seen[0], $seen[1]);

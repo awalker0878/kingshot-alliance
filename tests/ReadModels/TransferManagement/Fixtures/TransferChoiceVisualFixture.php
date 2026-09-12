@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\ReadModels\TransferManagement\Fixtures;
 
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Alliance\Lifecycle\Actions\CreateAlliance;
+use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Alliance\Membership\Models\AllianceRosterEntry;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\CreateTransferPlan;
@@ -24,8 +26,9 @@ final class TransferChoiceVisualFixture
             $factory = new ScenarioFactory;
             $user = User::factory()->create(['name' => 'Choice captain '.$project, 'email' => 'transfer-choices-'.$project.'@example.test',
                 'password' => Hash::make('password'), 'email_verified_at' => now(), 'timezone' => 'UTC']);
-            $actor = $factory->player((int) $user->id, 59541 + $offset);
-            $alliance = $factory->alliance($actor);
+            $actor = $factory->player((int) $user->id, 59541 + $offset, 'transfer-choices-'.$project);
+            $allianceId = app(CreateAlliance::class)->handle((int) $user->id, $actor->playerId, 'Transfer Choices '.$project, 'transfer-choices-'.$project);
+            $alliance = app(AllianceReferenceQuery::class)->require($allianceId);
             $windowId = app(SaveTransferWindow::class)->handle($alliance->allianceId, $actor->playerId, [
                 'label' => 'Current choice window', 'pre_transfer_starts_at' => now()->subDays(3)->toIso8601String(),
                 'invitational_starts_at' => now()->subDays(2)->toIso8601String(), 'transfer_opens_at' => now()->subDay()->toIso8601String(),
