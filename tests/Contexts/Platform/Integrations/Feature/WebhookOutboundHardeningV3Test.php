@@ -30,6 +30,11 @@ final class WebhookOutboundHardeningV3Test extends TestCase
         $public = new WebhookEndpointPolicy($this->resolver(['203.10.20.30', '2001:4860:4860::8888']));
         $resolved = $public->resolveAllowed('https://hooks.example.com/events');
         self::assertSame('hooks.example.com:443:203.10.20.30', $resolved->curlResolution());
+        self::assertSame(
+            'hooks.example.com:8443:[2001:4860:4860::8888]',
+            (new WebhookEndpointPolicy($this->resolver(['2001:4860:4860::8888'])))
+                ->resolveAllowed('https://hooks.example.com:8443/events')->curlResolution(),
+        );
 
         foreach ([['127.0.0.1'], ['10.0.0.7'], ['203.10.20.30', '169.254.169.254'], ['2001:db8::1']] as $answers) {
             try {

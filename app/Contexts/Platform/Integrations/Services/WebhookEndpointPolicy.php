@@ -17,8 +17,10 @@ final class WebhookEndpointPolicy
         $parts = parse_url($url);
         $scheme = is_array($parts) ? ($parts['scheme'] ?? null) : null;
         $host = is_array($parts) ? ($parts['host'] ?? null) : null;
+        $port = is_array($parts) ? ($parts['port'] ?? 443) : null;
 
-        if ($scheme !== 'https' || ! is_string($host) || $host === '') {
+        if ($scheme !== 'https' || ! is_string($host) || $host === '' || ! is_int($port)
+            || $port < 1 || $port > 65535 || isset($parts['user']) || isset($parts['pass'])) {
             throw ValidationException::withMessages([
                 'url' => 'Webhook endpoints must use HTTPS and include a valid host.',
             ]);
@@ -38,6 +40,7 @@ final class WebhookEndpointPolicy
     {
         $this->assertAllowed($url);
         $host = strtolower(rtrim((string) parse_url($url, PHP_URL_HOST), '.'));
+        $port = parse_url($url, PHP_URL_PORT) ?: 443;
         $addresses = $this->resolver->resolve($host);
         if ($addresses === [] || array_filter($addresses, fn (string $address): bool => ! $this->isPublicAddress($address)) !== []) {
             throw ValidationException::withMessages([
@@ -45,7 +48,7 @@ final class WebhookEndpointPolicy
             ]);
         }
 
-        return new ResolvedWebhookEndpoint($url, $host, $addresses[0]);
+        return new ResolvedWebhookEndpoint($url, $host, $port, $addresses[0]);
     }
 
     private function isPublicAddress(string $address): bool

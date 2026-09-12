@@ -9,6 +9,7 @@ final readonly class ResolvedWebhookEndpoint
     public function __construct(
         public string $url,
         public string $host,
+        public int $port,
         public string $address,
     ) {}
 
@@ -16,6 +17,6 @@ final readonly class ResolvedWebhookEndpoint
     {
         $address = str_contains($this->address, ':') ? '['.$this->address.']' : $this->address;
 
-        return $this->host.':443:'.$address;
+        return $this->host.':'.$this->port.':'.$address;
     }
 }
