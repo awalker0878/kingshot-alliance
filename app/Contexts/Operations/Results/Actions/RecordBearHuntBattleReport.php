@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Results\Actions;
 
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Models\EventType;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventLinkedReferenceState;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Models\EventPlayerContext;
 use App\Contexts\Operations\Participation\Services\EventParticipantAuthorization;
@@ -30,9 +30,9 @@ use Illuminate\Validation\ValidationException;
 final readonly class RecordBearHuntBattleReport
 {
     public function __construct(
+        private EventLinkedReferenceState $references,
         private EventWriteState $eventWriteState,
         private EventAuthorization $authorization,
-        private PlayerReferenceQuery $players,
         private RosterEntryQuery $roster,
         private EventParticipantAuthorization $participants,
         private EventPlayerContextFreezer $contexts,
@@ -116,7 +116,7 @@ final readonly class RecordBearHuntBattleReport
                 if ($damage < 0 || ($rank !== null && ($rank < 1 || $rank > 999))) {
                     throw ValidationException::withMessages(['entries' => 'Bear Hunt damage/rank values are invalid.']);
                 }
-                $player = $context->actor->playerId === $playerId ? $context->actor : $this->players->lockCurrent($playerId);
+                $player = $context->actor->playerId === $playerId ? $context->actor : $this->references->player($playerId);
                 $activePresence = $this->roster->lockActiveRosterPresence($context->target->allianceId, $playerId);
                 if (! $this->participants->eligibleAgainstTarget($context->target, $player, $activePresence)) {
                     throw ValidationException::withMessages(['entries' => 'A reviewed Governor is no longer eligible for this Bear Hunt.']);

@@ -1,24 +1,18 @@
-name: PR 163 webhook validation
+name: Hardening focused validation
 
 on:
   pull_request:
     paths:
-      - 'app/Contexts/Platform/**'
-      - 'tests/Contexts/Platform/**'
-      - 'app/ReadModels/PlatformAdministration/**'
-      - 'tests/ReadModels/PlatformAdministration/**'
-      - 'app/ReadModels/TransferManagement/**'
-      - 'tests/ReadModels/TransferManagement/**'
-      - 'app/Contexts/GameWorld/KingdomTransfers/**'
-      - 'tests/Contexts/Platform/Integrations/**'
-      - 'database/migrations/2026_08_07_050000_create_platform_administration_tables.php'
-      - '.github/workflows/pr163-webhook-validation.yml'
+      - 'app/**'
+      - 'tests/**'
+      - 'database/**'
+      - '.github/workflows/hardening-validation.yml'
 
 permissions:
   contents: read
 
 concurrency:
-  group: pr163-webhooks-${{ github.ref }}
+  group: hardening-focused-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -90,7 +84,7 @@ jobs:
       - name: Run Kingdom Governance recovery behavior
         run: php vendor/bin/phpunit tests/Contexts/GameWorld/Governance tests/Workflows/KingdomGovernance tests/ReadModels/KingdomGovernance tests/Contexts/GameWorld/Kingdoms/Feature/KingdomDownstreamActiveBoundaryV3Test.php --log-junit storage/logs/kingdom-recovery-junit.xml
       - name: Run Operations scope and Territory behavior
-        run: php vendor/bin/phpunit tests/Contexts/Operations/Events tests/Contexts/Operations/TerritoryPlanning tests/Contexts/Operations/KingPerks --log-junit storage/logs/operations-scopes-junit.xml
+        run: php vendor/bin/phpunit tests/Contexts/Operations --log-junit storage/logs/operations-scopes-junit.xml
       - name: Run Gift Code operational alert progress
         run: php vendor/bin/phpunit tests/Contexts/GameWorld/GiftCodes/Feature/OperationalAlertProgressTest.php tests/Workflows/NotificationDelivery/Feature/NotificationSourceEligibilityTest.php tests/Shared/Testing/Integration/MigrationReferenceDataIsolationTest.php --log-junit storage/logs/operational-alerts-junit.xml
       - name: Run Participation owner behavior

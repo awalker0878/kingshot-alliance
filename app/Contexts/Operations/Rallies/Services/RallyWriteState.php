@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Rallies\Services;
 
-use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\AllianceReference;
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Enums\EventScope;
+use App\Contexts\Operations\Events\Services\EventLinkedReferenceState;
 use App\Contexts\Operations\Events\ValueObjects\EventTargetReference;
 use App\Contexts\Operations\Participation\Services\EventParticipantAuthorization;
 use Illuminate\Support\Facades\DB;
@@ -19,9 +18,8 @@ use LogicException;
 final readonly class RallyWriteState
 {
     public function __construct(
-        private AllianceReferenceQuery $alliances,
+        private EventLinkedReferenceState $references,
         private RosterEntryQuery $roster,
-        private PlayerReferenceQuery $players,
         private EventParticipantAuthorization $participants,
     ) {}
 
@@ -29,7 +27,7 @@ final readonly class RallyWriteState
     {
         $this->assertTransaction();
 
-        $alliance = $this->alliances->lockCurrent($allianceId);
+        $alliance = $this->references->alliance($allianceId);
         $valid = $alliance->active() && match ($target->scope) {
             EventScope::Alliance => $target->allianceId === $alliance->allianceId,
             EventScope::Kingdom => $target->kingdomId === $alliance->kingdomId,
@@ -54,7 +52,7 @@ final readonly class RallyWriteState
     ): PlayerReference {
         $this->assertTransaction();
 
-        $player = $this->players->lockCurrent($playerId);
+        $player = $this->references->player($playerId);
         $rallyRosterPresence = $this->roster->lockActiveRosterPresence($alliance->allianceId, $player->playerId);
         $eventRosterPresence = $target->scope === EventScope::Alliance && $target->allianceId !== null
             ? $this->roster->lockActiveRosterPresence($target->allianceId, $player->playerId)

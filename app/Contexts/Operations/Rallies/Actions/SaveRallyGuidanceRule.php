@@ -6,6 +6,7 @@ namespace App\Contexts\Operations\Rallies\Actions;
 
 use App\Contexts\Alliance\Access\Queries\AllianceAuthorityFactsQuery;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Access\Services\AllianceOperationsAuthorization;
@@ -23,6 +24,7 @@ final readonly class SaveRallyGuidanceRule
     public function __construct(
         private PlayerReferenceQuery $players,
         private AllianceReferenceQuery $alliances,
+        private KingdomReferenceQuery $kingdoms,
         private AllianceAuthorityFactsQuery $authorityFacts,
         private AllianceOperationsAuthorization $authority,
         private AuditRecorder $audit,
@@ -55,10 +57,11 @@ final readonly class SaveRallyGuidanceRule
         $heroes = $this->normalizeHeroes($heroes);
 
         DB::transaction(function () use ($actorPlayerId, $allianceId, $name, $composition, $heroes, $leadRequirements, $joinerGuidance, $source, $rationale, $effectiveFrom, $effectiveUntil, $isActive, $ruleId): void {
-            $actor = $this->players->lockCurrent($actorPlayerId);
             $alliance = $this->alliances->lockCurrent($allianceId);
+            $this->kingdoms->lockActiveShared($alliance->kingdomId);
             $facts = $this->authorityFacts->lockCurrent($actorPlayerId, $allianceId);
-            if ($facts === null || ! $this->authority->allowsFacts($facts, OperationsPermission::EventAllianceManage)) {
+            $actor = $this->players->lockCurrent($actorPlayerId);
+            if ($actor->kingdomId !== $alliance->kingdomId || $facts === null || ! $this->authority->allowsFacts($facts, OperationsPermission::EventAllianceManage)) {
                 throw new AuthorizationException;
             }
 

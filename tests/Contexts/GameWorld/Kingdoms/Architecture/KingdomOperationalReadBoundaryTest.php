@@ -14,7 +14,7 @@ final class KingdomOperationalReadBoundaryTest extends TestCase
         $expectations = [
             'app/ReadModels/AllianceDashboard/Http/Controllers/AllianceOverviewController.php' => 'requireActive(',
             'app/ReadModels/BotCommands/Queries/AllianceCommandFeedQuery.php' => 'requireActive(',
-            'app/Contexts/GameWorld/Governance/Http/Controllers/KingdomRoleController.php' => 'requireActive(',
+            'app/ReadModels/KingdomGovernance/Http/Controllers/KingdomRoleManagementController.php' => 'requireActive(',
             'app/Contexts/Intelligence/Ingestion/Http/Controllers/KingdomIngestionController.php' => 'requireActive(',
             'app/Contexts/Intelligence/Observations/Http/Controllers/KingdomAllianceController.php' => 'requireActive(',
             'app/Contexts/Intelligence/Diplomacy/Http/Controllers/KingdomAllianceDiplomacyContactController.php' => 'requireActiveCanonical(',

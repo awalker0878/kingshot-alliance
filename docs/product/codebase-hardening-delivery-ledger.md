@@ -2,13 +2,13 @@
 
 ## Resume header
 
-- Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
-- Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
-- Latest pushed implementation: `2a85ca526c8c1904fb0d19e54372123be10eced4` contains HARD-128 and passes focused PostgreSQL behavior plus all 84 browser cases. Its full 1,994-test PHP run reports one obsolete KingdomWriteState test call; this checkpoint updates that regression to the current exclusive contract. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`.
-- Current item/state: HARD-126 / In progress; HARD-119–125/127/128 have focused containing evidence and await final verification. HARD-001–118 are Complete with containing evidence. Repository coverage and final gates remain open.
-- Active files: current bounded KingdomGovernance projections, owner-declared Operations policy, catalogues/choices/history UI, baseline traversal indexes and behavioral verification.
-- Local verification: complete npm check, production/new-test PHPStan, formatting, architecture, test layout and documentation links pass; 12 new frontend loader cases pass. Fifteen new PostgreSQL cases and two browser cases await hosted execution.
-- Next action: execute Governance catalogue behavior and continue remaining production audit; complete all final gates on the immutable candidate.
+- Program state: In progress. Keep the active hardening follow-up PR draft until the full ledger, repository audit and final gates are complete. PR #163 was merged outside this continuation at 2026-09-12 23:40:58 UTC; that merge is not completion evidence.
+- Original baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`. Continuation base: merge `044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c`, whose tree matches `b9a7b7ed90516eb229646d69af2ff488901dc538`; working branch `astra/hardening-followup`.
+- Latest containing implementation: b9a7b7ed contains HARD-126 and passes all focused PostgreSQL groups, including 88 Governance cases/1,435 assertions. Its architecture and visual-fixture failures are corrected in this follow-up. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`.
+- Current item/state: HARD-129 / In progress; HARD-119–128 have partial containing evidence and await final verification. HARD-001–118 are Complete with containing evidence. Repository coverage and final gates remain open.
+- Active files: Event secondary reference acquisition, current Rally guidance scope, eight committed-database regressions, Governance policy/fixture corrections and obsolete temporary-workflow cleanup.
+- Local verification: complete npm check for HARD-126; current production/new-test PHPStan, Pint and all 78 architecture cases pass. HARD-129's eight PostgreSQL cases await hosted execution. The focused workflow now covers all Operations.
+- Next action: verify the follow-up's current Governance browser and Operations behavior, then continue production audit and final immutable gates. Do not treat the external merge as a readiness declaration.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -1894,6 +1894,19 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Verification result: clone retains source admission through destination create/save; import and restore retain current scope, revision and map/snapshot admission through save and required final audit in one outer Operations transaction. Released identity rereads are removed. Five new committed-database cases cover late audit/competing archive, exact rollback, retry and stale revisions. Hosted execution remains pending.
 - Completion evidence: ADR-0069 and TerritoryCompositionAtomicityTest; containing execution pending.
 
+### HARD-129 — Adjacent Operations writers acquire lower owner references after protected resources
+
+- Area: Rally guidance, RallyWriteState, Event roster/objective assignments and Alliance/Player result commands.
+- Finding: Rally guidance acquires Player before governing Alliance and omits active Kingdom admission. Event subcommands acquire additional Alliance/Player locks after the actor and occurrence, permitting inverse lock waits with lifecycle and concurrent actors.
+- Current owner: Operations commands with Alliance/GameWorld owner reference facts.
+- Intended authoritative owner: unchanged, with governing scopes first and fail-fast secondary references.
+- Rationale: finish the EventWriteState caller trace beyond Event/Territory admission itself.
+- Remediation: acquire Rally guidance Alliance/active Kingdom/current facts before actor; revalidate current canonical scope; use owner NOWAIT secondary references with atomic retryable rejection in Event subcommands.
+- State: In progress.
+- Verification required: actual competing owner/reference transactions, current authority and lifecycle withdrawal, rollback, successful retry and full related capability behavior.
+- Verification result: Rally guidance now holds active governing scope before its canonical actor, and Event subcommands use owner NOWAIT secondary references with whole-command retryable rollback. Four enabled Bear Hunt contention/retry cases and four actual rank/Kingdom changes in both orders are authored. Candidate profiles remain disabled. Production and test PHPStan pass; hosted behavior remains pending.
+- Completion evidence: [ADR-0071](../architecture/adr/0071-event-secondary-references-and-rally-guidance-scope.md), EventLinkedReferenceContentionTest and RallyGuidanceScopeOrderingTest; containing execution pending.
+
 ## Repository audit coverage
 
 This table records production paths actually traced and remaining audit scope. Findings have their own stable ledger entries; passing one capability does not close the table.
@@ -2026,3 +2039,15 @@ Commit `2a85ca526c8c1904fb0d19e54372123be10eced4` passes focused run 34724804560
 Full CI run 34724804535/job 103637001953 completes 1,994 tests/95,252 assertions in 17:52.398 with one error: KingdomDownstreamActiveBoundaryV3Test calls the removed KingdomWriteState::lockActiveScope contract. All production call sites already use lockExclusiveScope. The regression now calls that current contract and joins focused validation; no compatibility method or gate exemption is added. Fresh schema, types, formatting and frontend passed; container/staging/recovery was correctly skipped after PHP failure. The full gate remains open.
 
 HARD-126 local verification passes complete npm check, current architecture, focused production/new-test PHPStan, Pint and 340-source test layout. Twelve new frontend loader cases pass. PostgreSQL/browser execution and all final containing gates remain required.
+
+### HARD-126 first hosted feedback on b9a7b7ed
+
+Architecture run 34725949868/job 103639962005 identifies the moved GET adapter's stale source-contract path and a newly introduced foreign Governance role-enum import in the Operations provisioning Service. The adapter assertion follows its new read-only owner, and Operations policy now exposes its own management/viewing facts without importing GameWorld role vocabulary. No architecture exemption is added. Visual run 34725949897/job 103639962052 rejects a fixture's reused process-local Player identity before browser execution; it now supplies explicit stable Governor and Alliance identities. Hosted PostgreSQL and complete containing gates remain required.
+
+HARD-126 focused containing PostgreSQL evidence: b9a7b7ed90516eb229646d69af2ff488901dc538 passes run 34725949859/job 103639961990, including 88 Governance/ReadModel/Kingdom-boundary cases/1,435 assertions. This includes all 15 new catalogue/health cases and the corrected archived-Kingdom regression. All six catalogues traverse completely within the asserted bounds; scoped continuations, current authority, duplicate-heavy holder counts and private history/assignment filtering pass. The remaining focused groups also pass unchanged (95/1,058 Integrations; 78/6,367 Platform; 67/422 Operations; 47/256 Gift/source/reset; four/26 Participation; 29/425 Transfer). The corrected architecture suite passes locally: 78 tests/72,378 assertions. Browser fixture execution and final containing gates remain open.
+
+### External merge and continuation boundary
+
+A fresh GitHub read before the prepared non-forced checkpoint publication reported PR #163 already merged at 2026-09-12 23:40:58 UTC, merge 044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c, head b9a7b7ed90516eb229646d69af2ff488901dc538. The continuation did not mark ready or merge it. Publication to that merged PR was stopped. Main's merge tree exactly equals the inspected b9a7b7ed tree, and no other open PR was returned; changes continue on astra/hardening-followup with the same incomplete-ledger/final-gate rule.
+
+The four obsolete PR-163 review-triggered preparation/source/content/raster workflows and their superseded reviewed-slice manifest are removed. The current read-only focused behavior workflow is renamed hardening-validation.yml, covers current changed paths and includes all Operations. Its eventual removal remains a final gate; no normal check is removed. The orphan prepared commit a620302a1534695ccf06cbc1ccdaeef619c11bc8 was never attached to a branch and is superseded by this continuation.

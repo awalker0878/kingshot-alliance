@@ -3,7 +3,8 @@
 Status: In progress — repository-wide implementation program
 
 Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49` (2026-09-08).
-Working branch: `astra/codebase-hardening`.
+Working branch: `astra/hardening-followup`.
+Continuation base: `main` merge `044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c`. GitHub records PR #163 merged on 2026-09-12 at 23:40:58 UTC while the full ledger/final gates remained incomplete. The follow-up draft retains those completion requirements and the original baseline history.
 Continuation authority: [delivery ledger](codebase-hardening-delivery-ledger.md), branch history, architectural decisions and draft PR checks.
 
 ## Purpose and deployment assumptions

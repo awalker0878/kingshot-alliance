@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\Results\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventLinkedReferenceState;
 use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Results\Enums\EventMetricSource;
@@ -22,10 +22,10 @@ use Illuminate\Validation\ValidationException;
 final readonly class SaveEventAllianceResult
 {
     public function __construct(
+        private EventLinkedReferenceState $references,
         private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventWorkflowGuard $workflows,
-        private AllianceReferenceQuery $alliances,
         private EventMetricCapture $metrics,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -54,7 +54,7 @@ final readonly class SaveEventAllianceResult
             }
 
             $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->where('event_id', $context->event->id)->lockForUpdate()->firstOrFail();
-            $alliance = $this->alliances->lockCurrent($allianceId);
+            $alliance = $this->references->alliance($allianceId);
             if (! $alliance->active() || $alliance->kingdomId !== $context->target->kingdomId) {
                 throw ValidationException::withMessages(['alliance' => 'Alliance result must belong to the active Kingdom Event target.']);
             }
