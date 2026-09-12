@@ -5,7 +5,7 @@
 - Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
 - Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
 - Latest pushed implementation: `42d107547f544aac2fb2aa993dc2d4a4af9fc85d` contains HARD-122 progress and isolated recovery fixtures. Committed-test setup requires the recorded migration-reference classification correction; HARD-123 is prepared for hosted verification. Verified milestone `7d87deef78af513b7526f94d08d0dc0ed5bf73a4` passes all nine normal workflows, PHP 1,878 / 88,189 assertions and 80 browser cases.
-- Current item/state: HARD-123 / In progress; HARD-119–122 await corrected containing verification. HARD-001–118 are Complete with containing evidence. HARD-124–126, repository coverage and final gates remain open.
+- Current item/state: HARD-127 / In progress; HARD-119–125 have partial containing evidence and await final verification. HARD-001–118 are Complete with containing evidence. HARD-126/128, repository coverage and final gates remain open.
 - Active files: CaptureAllianceUsage owner Action, scalar snapshot result, HTTP adapter, four PostgreSQL regressions and the current usage contract.
 - Local verification: full production PHPStan, changed formatting, architecture, test layout, and complete npm check pass. Eighteen catalogue PostgreSQL cases and two new browser journeys await hosted execution.
 - Next action: verify Platform catalogue behavior and complete remaining repository coverage; preserve the current containing CI milestone before advancing the branch.
@@ -1876,9 +1876,22 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners with explicit common scope acquisition order.
 - Rationale: bounded protected writes must not rely on database deadlock detection to resolve ordinary competing owners.
 - Remediation: trace all current consumers, acquire stable governing owner scopes before actor/resource rows through owner queries, revalidate routing facts after locking and preserve source-specific authorization and profile gates.
-- State: Planned.
+- State: In progress.
 - Verification required: committed competing Lifecycle/Governance/Operations actions in both orders for supported Event/Territory/King Perk paths, stale scope rejection, rollback and existing profile/capability suites.
-- Verification result: concrete production lock calls and opposing Governance acquisition order traced; implementation pending. HARD-124 must retain this adjacent open item before final gates.
+- Verification result: Event and Territory writes now acquire governing scope before current identities and mutable resources, revalidate routes, and reject mismatched Event/plan scope before foreign owner locks. Player Event manager resolution reads only the actor’s one canonical active membership and the corresponding target roster. Linked Territory references use owner NOWAIT queries with atomic retryable rejection. King Perk commands inherit Event scope ordering; reminder preparation already holds Kingdom shared scope before the recipient and requires no acquisition change. Eighteen new committed-connection/history cases are authored; hosted execution remains required.
+- Completion evidence: ADR-0068 and KingdomScopeOrderingTest, PlayerEventScopeOrderingTest and TerritoryScopeOrderingTest; containing execution pending.
+
+### HARD-128 — Territory clone/import/restore split their persistence and audit boundaries
+
+- Area: Operations TerritoryPlanning CloneTerritoryPlan, ImportTerritoryPlan and RestoreTerritoryPlanRevision.
+- Finding: clone commits destination creation before the subsequent save; import and restore commit their save before their final operation-specific audit. Late validation, current-identity or audit failure can leave a partial clone or a successful mutation without its required audit. Initial scope/revision admission is also released before composition completes.
+- Current owner: Operations TerritoryPlanning; GameWorld and Alliance supply current scope/identity facts.
+- Intended authoritative owner: the same owners with atomic Operations composition.
+- Rationale: complete the production caller trace of HARD-127 without leaving late effects outside the owner transaction.
+- Remediation: compose current owner admission, create/save and required audit in one bounded Operations transaction, preserving source authorization, expected revisions and existing import validation.
+- State: Planned.
+- Verification required: late save/audit failure, exact rollback, successful retry, current scope/revision changes and existing import/clone/restore behavior.
+- Verification result: concrete split transaction boundaries traced; implementation pending.
 - Completion evidence: pending.
 
 ## Repository audit coverage
@@ -1991,3 +2004,11 @@ HARD-125 local verification passes production and new test-file PHPStan, Pint, a
 ### Complete Platform browser journeys on a0c289a
 
 Visual Regression 34722907081/job 103631913173 succeeds on a0c289af8fe91e3d1a6c8b45b0aea3cf30edb9ce. Both Platform catalogue desktop/mobile journeys now reach paging beyond the initial window, failed-page retry, selected-state and draft preservation, and actual older outbox retry. Both Kingdom recovery journeys pass alongside all existing browser coverage. This resolves the feature-list locator failure without weakening the product assertions. The final immutable containing gate remains required.
+
+### HARD-125 first hosted feedback
+
+Focused run 34723468919/job 103633383811 passes Integrations (95/1,058) and Platform/ReadModels (78/6,367). Governance runs 70 cases/308 assertions with one test-setup error: the new foreign-survivor fixture attempted to move a current role holder, correctly rejected by the canonical players_prevent_kingdom_role_drift trigger. The test now asserts that rejection, removes the target grant through its owner, moves the Governor through PersistPlayerIdentity and checks that the remaining historical foreign grant cannot justify removing the last lasting administrator. The trigger and owner gates are preserved. The corrected containing run remains required.
+
+### HARD-127 local verification and remaining documentation audit
+
+Scoped production and all four touched/new test files pass PHPStan; Pint passes, the current tests/System/Architecture/verify.php passes, 337-source layout passes and 291-document links pass. Eighteen new behavior cases await hosted PostgreSQL execution. The old docs/frontend/FRONTEND-V3-ARCHITECTURE.md still advertises tests/System/Frontend/verify-architecture.php, whose obsolete page-root rules reject current Platform/Assistant/Dashboard ownership. This ungated documentation/script pair requires reconciliation in the remaining Frontend/repository audit; the current architecture gate is not changed or weakened.

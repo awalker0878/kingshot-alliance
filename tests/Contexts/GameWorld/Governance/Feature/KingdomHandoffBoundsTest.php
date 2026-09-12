@@ -12,9 +12,11 @@ use App\Contexts\GameWorld\Governance\Actions\RepairKingdomAdministratorAssignme
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
+use App\Contexts\GameWorld\Players\Actions\PersistPlayerIdentity;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -173,12 +175,20 @@ final class KingdomHandoffBoundsTest extends TestCase
     public function test_last_lasting_administrator_is_not_removed_based_on_ineligible_survivor(string $state): void
     {
         [$actor, $target, $role, $assignment] = $this->administration();
-        KingdomRoleAssignment::query()->create(['kingdom_id' => $actor->kingdomId, 'player_id' => $target->playerId, 'kingdom_role_id' => $role,
+        $survivor = KingdomRoleAssignment::query()->create(['kingdom_id' => $actor->kingdomId, 'player_id' => $target->playerId, 'kingdom_role_id' => $role,
             'effective_from' => $state === 'future' ? now()->addDay() : null, 'expires_at' => $state === 'temporary' ? now()->addDay() : null]);
         if ($state === 'alias') {
             DB::table('players')->where('id', $target->playerId)->update(['canonical_player_id' => $actor->playerId]);
         } elseif ($state === 'foreign') {
-            DB::table('players')->where('id', $target->playerId)->update(['current_kingdom_id' => app(ScenarioFactory::class)->kingdom(61626)->kingdomId]);
+            $destination = app(ScenarioFactory::class)->kingdom(61626);
+            try {
+                DB::transaction(static fn () => DB::table('players')->where('id', $target->playerId)->update(['current_kingdom_id' => $destination->kingdomId]));
+                self::fail('The canonical schema must reject moving a current role holder.');
+            } catch (QueryException $exception) {
+                self::assertSame('P0001', $exception->errorInfo[0] ?? null);
+            }
+            app(RemoveKingdomRole::class)->handle($actor->playerId, $actor->kingdomId, (string) $survivor->id);
+            app(PersistPlayerIdentity::class)->handle($destination->kingdomId, $target->currentName, $target->gamePlayerId, $target->playerId);
         }
         try {
             app(RemoveKingdomRole::class)->handle($actor->playerId, $actor->kingdomId, $assignment);

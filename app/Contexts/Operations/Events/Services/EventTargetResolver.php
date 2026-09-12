@@ -34,13 +34,16 @@ final readonly class EventTargetResolver
         };
     }
 
-    /** Transaction-time operational resolution; the target's current Kingdom must be active. */
-    public function lockCurrent(EventScope $scope, string $targetId): EventTargetReference
+    /**
+     * Lock lifecycle scope before identities. Player scope returns routing facts;
+     * EventWriteState locks both identities in ID order and revalidates this route.
+     */
+    public function lockScope(EventScope $scope, string $targetId): EventTargetReference
     {
         return match ($scope) {
             EventScope::Alliance => $this->allianceTarget($this->alliances->lockCurrent($targetId), true),
             EventScope::Kingdom => $this->kingdomTarget($this->kingdoms->lockActive($targetId)),
-            EventScope::Player => $this->playerTarget($this->players->lockCurrent($targetId), true),
+            EventScope::Player => $this->playerTarget($this->players->require($targetId), true),
         };
     }
 

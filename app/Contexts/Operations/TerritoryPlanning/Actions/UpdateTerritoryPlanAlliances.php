@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\TerritoryPlanning\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanStatus;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanAlliance;
@@ -21,7 +20,6 @@ final readonly class UpdateTerritoryPlanAlliances
     public function __construct(
         private TerritoryPlanWriteState $writeState,
         private TerritoryPlanningAuthorization $authorization,
-        private AllianceReferenceQuery $alliances,
         private AuditRecorder $audit,
     ) {}
 
@@ -61,7 +59,7 @@ final readonly class UpdateTerritoryPlanAlliances
                     continue;
                 }
 
-                $reference = $this->alliances->lockCurrent($allianceId);
+                $reference = $this->writeState->lockLinkedAlliance($allianceId);
                 if ($reference->kingdomId !== (string) $context->plan->kingdom_id) {
                     throw ValidationException::withMessages([
                         'alliances' => 'Linked Alliances must belong to the plan Kingdom.',

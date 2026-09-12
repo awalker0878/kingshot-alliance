@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\TerritoryPlanning\Actions;
 
-use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
 use App\Contexts\GameWorld\KingdomMaps\Queries\KingdomMapDatasetQuery;
 use App\Contexts\GameWorld\KingdomMaps\Services\PlacementValidator;
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryObjectType;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanStatus;
@@ -31,8 +29,6 @@ final readonly class SaveTerritoryPlan
         private TerritoryPlanningAuthorization $authorization,
         private KingdomMapDatasetQuery $datasets,
         private PlacementValidator $placement,
-        private AllianceReferenceQuery $alliances,
-        private PlayerReferenceQuery $players,
         private PlayerMembershipQuery $memberships,
         private AuditRecorder $audit,
     ) {}
@@ -507,7 +503,7 @@ final readonly class SaveTerritoryPlan
                 continue;
             }
 
-            $reference = $this->alliances->lockCurrent($allianceId);
+            $reference = $this->writeState->lockLinkedAlliance($allianceId);
             if ($reference->kingdomId !== $kingdomId) {
                 throw ValidationException::withMessages([
                     'alliances' => 'Linked Alliances must belong to the plan Kingdom.',
@@ -556,7 +552,7 @@ final readonly class SaveTerritoryPlan
 
         ksort($players);
         foreach ($players as $playerId => $allianceId) {
-            $player = $this->players->lockCurrent($playerId);
+            $player = $this->writeState->lockLinkedPlayer($playerId);
             if ($player->kingdomId !== $kingdomId) {
                 throw ValidationException::withMessages([
                     'objects' => 'Linked Governors must belong to the plan Kingdom.',

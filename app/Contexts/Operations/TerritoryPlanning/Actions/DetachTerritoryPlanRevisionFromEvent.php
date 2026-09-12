@@ -32,15 +32,14 @@ final readonly class DetachTerritoryPlanRevisionFromEvent
         }
 
         return DB::transaction(function () use ($actorPlayerId, $occurrenceId, $purpose): bool {
-            $occurrence = EventOccurrence::query()
-                ->whereKey($occurrenceId)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $route = EventOccurrence::query()->whereKey($occurrenceId)->firstOrFail(['id', 'event_id']);
             $eventContext = $this->eventWriteState->lockEventScope(
                 $actorPlayerId,
-                (string) $occurrence->event_id,
+                (string) $route->event_id,
             );
             $this->eventAuthorization->authorizeManager($eventContext);
+            $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->where('event_id', $eventContext->event->id)
+                ->lockForUpdate()->firstOrFail();
 
             $link = EventTerritoryPlanRevision::query()
                 ->where('event_occurrence_id', $occurrenceId)

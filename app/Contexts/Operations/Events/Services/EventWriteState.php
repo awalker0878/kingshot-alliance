@@ -60,9 +60,7 @@ final readonly class EventWriteState
             ->sharedLock()
             ->firstOrFail();
 
-        $actor = $this->players->lockCurrent($actorPlayerId);
-        $target = $this->targets->lockCurrent($scope, $this->targetId($route, $scope));
-        $authority = $this->lockAuthority($actor, $target);
+        [$actor, $target, $authority] = $this->lockTargetAndActor($actorPlayerId, $scope, $this->targetId($route, $scope));
 
         $query = Event::query()->whereKey($route->id);
         $lockedEvent = $exclusiveEvent
@@ -120,48 +118,58 @@ final readonly class EventWriteState
             ->sharedLock()
             ->firstOrFail();
 
-        $actor = $this->players->lockCurrent($actorPlayerId);
-        $target = $this->targets->lockCurrent($scope, $targetId);
-        $authority = $this->lockAuthority($actor, $target);
+        [$actor, $target, $authority] = $this->lockTargetAndActor($actorPlayerId, $scope, $targetId);
 
         return new EventCreationMutationContext($configuration, $actor, $target, $authority);
     }
 
-    private function lockAuthority(PlayerReference $actor, EventTargetReference $target): EventScopeAuthorityFacts
+    /** @return array{PlayerReference,EventTargetReference,EventScopeAuthorityFacts} */
+    private function lockTargetAndActor(string $actorPlayerId, EventScope $scope, string $targetId): array
     {
-        return match ($target->scope) {
-            EventScope::Alliance => new EventScopeAuthorityFacts(
-                allianceFacts: $target->allianceId === null
-                    ? null
-                    : $this->allianceAuthority->lockCurrent($actor->playerId, $target->allianceId),
-            ),
-            EventScope::Kingdom => new EventScopeAuthorityFacts(
-                kingdomFacts: $target->kingdomId === null
-                    ? null
-                    : $this->kingdomAuthority->lockCurrent($actor->playerId, $target->kingdomId),
-            ),
-            EventScope::Player => new EventScopeAuthorityFacts(
-                playerManagerAllianceFacts: $this->lockPlayerManagerAllianceFacts($actor, $target),
-            ),
-        };
-    }
-
-    /** @return list<AllianceAuthorityFacts> */
-    private function lockPlayerManagerAllianceFacts(PlayerReference $actor, EventTargetReference $target): array
-    {
-        if ($target->playerId === null || $target->kingdomId === null || $actor->playerId === $target->playerId) {
-            return [];
-        }
-
-        $facts = [];
-        foreach ($this->roster->lockActiveAllianceIdsForPlayerInKingdom($target->playerId, $target->kingdomId) as $allianceId) {
-            $authority = $this->allianceAuthority->lockCurrent($actor->playerId, $allianceId);
-            if ($authority instanceof AllianceAuthorityFacts) {
-                $facts[] = $authority;
+        $manager = null;
+        $playerRoute = null;
+        if ($scope === EventScope::Player) {
+            $playerRoute = $this->players->require($targetId);
+            if ($actorPlayerId !== $targetId) {
+                // The canonical partial unique index permits one active Alliance
+                // membership per Governor. Never scan all of the target's rosters.
+                $allianceIds = $this->memberships->activeAllianceIdsForPlayerInKingdom($actorPlayerId, $playerRoute->kingdomId);
+                if ($allianceIds !== []) {
+                    $manager = $this->allianceAuthority->lockCurrent($actorPlayerId, $allianceIds[0]);
+                }
             }
         }
 
-        return $facts;
+        $target = $this->targets->lockScope($scope, $targetId);
+        $allianceFacts = $scope === EventScope::Alliance && $target->allianceId !== null
+            ? $this->allianceAuthority->lockCurrent($actorPlayerId, $target->allianceId) : null;
+        $kingdomFacts = $scope === EventScope::Kingdom && $target->kingdomId !== null
+            ? $this->kingdomAuthority->lockCurrent($actorPlayerId, $target->kingdomId) : null;
+
+        $ids = $scope === EventScope::Player ? array_values(array_unique([$actorPlayerId, $targetId])) : [$actorPlayerId];
+        sort($ids);
+        $lockedPlayers = [];
+        foreach ($ids as $id) {
+            $lockedPlayers[$id] = $this->players->lockCurrent($id);
+        }
+        $actor = $lockedPlayers[$actorPlayerId];
+        if ($actor->kingdomId !== $target->kingdomId) {
+            throw new AuthorizationException('The current Governor belongs to another Kingdom.');
+        }
+        $managerFacts = [];
+        if ($scope === EventScope::Player) {
+            if ($playerRoute === null || $lockedPlayers[$targetId]->kingdomId !== $target->kingdomId
+                || $playerRoute->kingdomId !== $target->kingdomId) {
+                throw new AuthorizationException('The Player target changed while its scope was being acquired.');
+            }
+            $target = $this->targets->resolve($scope, $targetId);
+            if ($manager instanceof AllianceAuthorityFacts && $manager->kingdomId === $target->kingdomId
+                && $this->roster->lockActiveRosterPresence($manager->allianceId, $targetId)) {
+                $managerFacts[] = $manager;
+            }
+        }
+
+        return [$actor, $target, new EventScopeAuthorityFacts($allianceFacts, $kingdomFacts, $managerFacts)];
     }
 
     private function targetId(Event $event, EventScope $scope): string
