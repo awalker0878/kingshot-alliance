@@ -9,4 +9,5 @@ enum TransferChoiceKind: string
     case Windows = 'windows';
     case Coordinators = 'coordinators';
     case Roster = 'roster';
+    case Cohorts = 'cohorts';
 }

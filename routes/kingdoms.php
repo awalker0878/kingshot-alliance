@@ -29,6 +29,7 @@ use App\ReadModels\Roster\Http\Controllers\RosterImportReadController;
 use App\ReadModels\Roster\Http\Controllers\RosterIntelligenceController;
 use App\ReadModels\Roster\Http\Controllers\RosterReadController;
 use App\ReadModels\SharedKingdomIntelligence\Http\Controllers\KingdomIntelligenceSharingReadController;
+use App\ReadModels\TransferManagement\Http\Controllers\TransferGroupKingdomPageController;
 use App\ReadModels\TransferManagement\Http\Controllers\TransferManagementChoiceController;
 use App\ReadModels\TransferManagement\Http\Controllers\TransferManagementPageController;
 use Illuminate\Support\Facades\Route;
@@ -55,6 +56,7 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
     Route::get('/alliance/transfers', [TransferManagementPageController::class, 'index'])->name('alliance.transfers.index');
     Route::get('/alliance/transfers/manage', [TransferManagementPageController::class, 'manage'])->name('alliance.transfers.manage');
     Route::get('/alliance/transfers/manage/choices/{kind}', TransferManagementChoiceController::class)->name('alliance.transfers.manage.choices');
+    Route::get('/alliance/transfers/manage/plans/{plan}/groups/{group}/kingdoms', TransferGroupKingdomPageController::class)->whereUlid(['plan', 'group'])->name('alliance.transfers.manage.group-kingdoms');
     Route::get('/alliance/transfers/readiness', [TransferReadinessController::class, 'index'])->name('alliance.transfers.readiness');
     Route::get('/alliance/transfers/{plan}/participants/{participant}/observations', [TransferReadinessController::class, 'history'])->name('alliance.transfers.participants.observations.index');
     Route::get('/alliance/transfers/{plan}/participants/{participant}/blockers', [TransferWorkflowHistoryController::class, 'blockers'])->name('alliance.transfers.participants.blockers.index');

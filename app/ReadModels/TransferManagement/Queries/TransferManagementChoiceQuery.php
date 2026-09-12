@@ -10,7 +10,9 @@ use App\Contexts\Alliance\Membership\Enums\RosterState;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
+use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
+use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferCohortAssignmentQuery;
 use App\ReadModels\TransferManagement\Enums\TransferChoiceKind;
 use App\Shared\Infrastructure\Pagination\PageSlice;
 use App\Shared\Infrastructure\Pagination\ScopedCursorCodec;
@@ -28,10 +30,11 @@ final readonly class TransferManagementChoiceQuery
         private TransferAuthorization $authorization,
         private AllianceReferenceQuery $alliances,
         private ScopedCursorCodec $cursors,
+        private TransferCohortAssignmentQuery $assignments,
     ) {}
 
     /** @return array{page:array{items:list<array{id:string,name:string}>,nextCursor:?string,hasMore:bool,pageSize:int,isFirstPage:bool},total:int,selected:?array{id:string,name:string}} */
-    public function page(string $actorPlayerId, string $allianceId, TransferChoiceKind $kind, ?string $planId = null, string $search = '', ?string $cursor = null, ?string $selectedId = null): array
+    public function page(string $actorPlayerId, string $allianceId, TransferChoiceKind $kind, ?string $planId = null, string $search = '', ?string $cursor = null, ?string $selectedId = null, ?string $participantId = null): array
     {
         if (! $this->authorization->allows($actorPlayerId, $allianceId, TransferPermission::Manage)) {
             throw new AuthorizationException;
@@ -54,7 +57,18 @@ final readonly class TransferManagementChoiceQuery
                 ->whereIn('state', [TransferPlanState::Draft->value, TransferPlanState::Open->value])
                 ->firstOrFail(['id']);
         }
+        $participant = null;
+        if ($kind === TransferChoiceKind::Cohorts) {
+            if (! $this->isId($participantId)) {
+                throw ValidationException::withMessages(['participant' => 'A current participant is required.']);
+            }
+            $participant = TransferParticipant::query()->where('alliance_id', $allianceId)
+                ->where('transfer_plan_id', $planId)->whereKey($participantId)->firstOrFail();
+        } elseif ($participantId !== null) {
+            throw ValidationException::withMessages(['participant' => 'This choice does not accept a participant.']);
+        }
         $base = match ($kind) {
+            TransferChoiceKind::Cohorts => $this->assignments->compatible($participant ?? throw new \LogicException('Participant required.'))->select(['id', 'name'])->toBase(),
             TransferChoiceKind::Windows => DB::table('transfer_windows')->where('alliance_id', $allianceId)->select(['id', 'label as name']),
             TransferChoiceKind::Coordinators => DB::table('alliance_memberships as membership')
                 ->join('players as player', 'player.id', '=', 'membership.player_id')
@@ -71,6 +85,9 @@ final readonly class TransferManagementChoiceQuery
         }
         $total = (clone $choices)->count();
         $scope = implode('|', ['transfer-choices', $actorPlayerId, $allianceId, $kind->value, $planId ?? '', hash('sha256', $search)]);
+        if ($participant !== null) {
+            $scope .= '|'.implode('|', [(string) $participant->id, $participant->direction->value, $participant->destination_kingdom_id ?? '', $participant->withdrawn_at?->toIso8601String() ?? '']);
+        }
         $through = $cursor === null ? (clone $choices)->max('id') : null;
         if ($cursor !== null) {
             $position = $this->cursors->decode($cursor, $scope);

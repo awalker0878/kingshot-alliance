@@ -8,19 +8,12 @@ use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
-use App\Contexts\GameWorld\KingdomTransfers\Models\TransferCohort;
-use App\Contexts\GameWorld\KingdomTransfers\Models\TransferGroup;
-use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomCapacityObservation;
-use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomConditionObservation;
+use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
-use App\Contexts\GameWorld\KingdomTransfers\Models\TransferWindow;
-use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferCohortQuery;
-use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferGroupQuery;
-use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferKingdomConditionQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferParticipantQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferPlanQuery;
-use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferWindowQuery;
+use App\ReadModels\TransferManagement\Enums\TransferCatalogueKind;
 use App\ReadModels\TransferManagement\Presenters\TransferManagementPresenter;
 use App\Shared\Infrastructure\Pagination\PageSlice;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -34,10 +27,7 @@ final readonly class TransferManagementPageQuery
         private TransferAuthorization $authorization,
         private TransferPlanQuery $plans,
         private TransferParticipantQuery $participants,
-        private TransferCohortQuery $cohorts,
-        private TransferWindowQuery $windows,
-        private TransferGroupQuery $groups,
-        private TransferKingdomConditionQuery $conditions,
+        private TransferManagementCatalogueQuery $catalogues,
         private TransferManagementPresenter $presenter,
     ) {}
 
@@ -61,38 +51,36 @@ final readonly class TransferManagementPageQuery
         ];
     }
 
-    /** @return array<string,mixed> */
-    public function management(string $actorPlayerId, string $allianceId, ?string $cursor = null): array
+    /**
+     * @param  array<string,?string>  $catalogueCursors
+     * @return array<string,mixed>
+     */
+    public function management(string $actorPlayerId, string $allianceId, ?string $cursor = null, ?string $planId = null, array $catalogueCursors = []): array
     {
         if (! $this->authorization->allows($actorPlayerId, $allianceId, TransferPermission::Manage)) {
             throw new AuthorizationException;
         }
         $alliance = $this->alliances->require($allianceId);
         $kingdom = $this->kingdoms->require($alliance->kingdomId);
-        $mutable = $this->plans->mutableForAlliance($allianceId);
-        $participantPage = $mutable === null ? new PageSlice([], null, TransferParticipantQuery::PAGE_SIZE) : $this->participants->page($actorPlayerId, $allianceId, (string) $mutable->id, true, $cursor, TransferPermission::Manage);
-        $windowRows = $this->windows->forAlliance($allianceId);
-        $selectedWindow = $mutable?->window;
-        $capacityRows = $selectedWindow === null
-            ? collect()
-            : TransferKingdomCapacityObservation::query()
-                ->where('alliance_id', $allianceId)
-                ->where('transfer_window_id', $selectedWindow->id)
-                ->with('kingdom:id,number')
-                ->orderByDesc('observed_at')
-                ->orderByDesc('id')
-                ->get();
+        $selected = $planId === null ? ($this->plans->mutableForAlliance($allianceId) ?? $this->plans->currentForAlliance($allianceId))
+            : TransferPlan::query()->where('alliance_id', $allianceId)->whereKey($planId)->with(['homeKingdom', 'window'])->firstOrFail();
+        $mutable = $selected !== null && in_array($selected->state, [TransferPlanState::Draft, TransferPlanState::Open], true)
+            && $selected->home_kingdom_id === $alliance->kingdomId ? $selected : null;
+        $participantPage = $selected === null ? new PageSlice([], null, TransferParticipantQuery::PAGE_SIZE)
+            : $this->participants->page($actorPlayerId, $allianceId, (string) $selected->id, true, $cursor, TransferPermission::Manage);
+        $catalogues = [];
+        foreach (TransferCatalogueKind::cases() as $kind) {
+            $catalogues[$kind->value] = $this->catalogues->page($actorPlayerId, $allianceId, $kind,
+                in_array($kind, [TransferCatalogueKind::Windows, TransferCatalogueKind::Plans], true) ? null : $selected?->id,
+                $catalogueCursors[$kind->value] ?? null);
+        }
 
         return [
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name, 'kingdom' => (string) $kingdom->number],
-            'plans' => $this->plans->forAlliance($allianceId)->map(fn (TransferPlan $p): array => $this->presenter->plan($p))->all(),
+            'selectedPlan' => $selected === null ? null : $this->presenter->plan($selected),
             'mutablePlan' => $mutable === null ? null : $this->presenter->plan($mutable),
-            'windows' => $windowRows->map(fn (TransferWindow $w): array => $this->presenter->window($w))->all(),
-            'officialGroups' => $selectedWindow === null ? [] : $this->groups->historyForWindow($allianceId, (string) $selectedWindow->id)->map(fn (TransferGroup $g): array => $this->presenter->officialGroup($g))->all(),
-            'conditions' => $selectedWindow === null ? [] : $this->conditions->forWindow($allianceId, (string) $selectedWindow->id)->map(fn (TransferKingdomConditionObservation $c): array => $this->presenter->condition($c))->all(),
-            'capacities' => $capacityRows->map(fn (TransferKingdomCapacityObservation $c): array => $this->presenter->capacity($c))->all(),
-            'cohorts' => $mutable === null ? [] : $this->cohorts->forPlan($allianceId, (string) $mutable->id, true)->map(fn (TransferCohort $c): array => $this->presenter->cohort($c, true))->all(),
-            'participantSummary' => $mutable === null ? null : $this->participants->summary($actorPlayerId, $allianceId, (string) $mutable->id, true, TransferPermission::Manage),
+            'catalogues' => $catalogues,
+            'participantSummary' => $selected === null ? null : $this->participants->summary($actorPlayerId, $allianceId, (string) $selected->id, true, TransferPermission::Manage),
             'participants' => [...$participantPage->toArray(), 'items' => array_map(fn (TransferParticipant $p): array => $this->presenter->participant($p, true), $participantPage->items)],
 
         ];

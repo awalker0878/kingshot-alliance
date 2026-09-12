@@ -1,5 +1,5 @@
 export type TransferChoice = { id: string; name: string };
-export type TransferChoiceKind = 'windows' | 'coordinators' | 'roster';
+export type TransferChoiceKind = 'windows' | 'coordinators' | 'roster' | 'cohorts';
 export type TransferChoiceResult = {
   page: {
     items: TransferChoice[];
@@ -15,6 +15,7 @@ export type TransferChoiceRequest = {
   scope: string;
   kind: TransferChoiceKind;
   planId: string | null;
+  participantId?: string | null;
   search: string;
   cursor: string | null;
   selectedId: string | null;
@@ -113,7 +114,7 @@ export class TransferChoiceLoader {
   }
 
   async load(request: TransferChoiceRequest): Promise<void> {
-    const context = `${request.scope}|${request.kind}|${request.planId ?? ''}`;
+    const context = `${request.scope}|${request.kind}|${request.planId ?? ''}|${request.participantId ?? ''}`;
     if (context !== this.context) this.reset(context);
     this.active?.abort();
     const active = new AbortController();
@@ -124,6 +125,7 @@ export class TransferChoiceLoader {
     this.changed({ ...this.view });
     const params = new URLSearchParams({ q: request.search });
     if (request.planId) params.set('plan', request.planId);
+    if (request.participantId) params.set('participant', request.participantId);
     if (request.cursor) params.set('cursor', request.cursor);
     if (request.selectedId) params.set('selected', request.selectedId);
     try {

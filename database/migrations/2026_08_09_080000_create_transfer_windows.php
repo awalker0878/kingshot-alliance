@@ -44,6 +44,7 @@ return new class extends Migration
             $table->foreignUlid('recorded_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamps();
             $table->index(['alliance_id', 'transfer_window_id', 'superseded_at']);
+            $table->index(['alliance_id', 'transfer_window_id', 'id'], 'transfer_group_catalogue_cursor');
         });
 
         DB::statement('CREATE UNIQUE INDEX transfer_groups_one_current_label_per_window ON transfer_groups (transfer_window_id, lower(official_label)) WHERE superseded_at IS NULL');
@@ -74,6 +75,7 @@ return new class extends Migration
             $table->foreignUlid('recorded_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamps();
             $table->index(['alliance_id', 'transfer_window_id', 'kingdom_id', 'observed_at', 'id'], 'transfer_condition_current_fact_idx');
+            $table->index(['alliance_id', 'transfer_window_id', 'id'], 'transfer_condition_catalogue_cursor');
         });
     }
 

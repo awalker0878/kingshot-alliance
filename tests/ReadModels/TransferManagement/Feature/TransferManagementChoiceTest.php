@@ -48,7 +48,7 @@ final class TransferManagementChoiceTest extends TestCase
 
     public static function kinds(): iterable
     {
-        foreach (TransferChoiceKind::cases() as $kind) {
+        foreach ([TransferChoiceKind::Windows, TransferChoiceKind::Coordinators, TransferChoiceKind::Roster] as $kind) {
             yield $kind->value => [$kind];
         }
     }
@@ -240,7 +240,7 @@ final class TransferManagementChoiceTest extends TestCase
             $allianceId = (string) AllianceMembership::query()->where('player_id', $actor->id)->sole()->alliance_id;
             $plan = TransferPlan::query()->where('alliance_id', $allianceId)->sole();
             $query = app(TransferManagementChoiceQuery::class);
-            foreach (TransferChoiceKind::cases() as $kind) {
+            foreach ([TransferChoiceKind::Windows, TransferChoiceKind::Coordinators, TransferChoiceKind::Roster] as $kind) {
                 $result = $query->page((string) $actor->id, $allianceId, $kind, $kind === TransferChoiceKind::Windows ? null : (string) $plan->id, 'Fixture choice');
                 self::assertSame(55, $result['total']);
                 self::assertCount(25, $result['page']['items']);

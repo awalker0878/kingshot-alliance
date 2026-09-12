@@ -250,3 +250,24 @@ test('management consumes lazy selectors without keeping the superseded audience
     'Read failure cannot clear a user draft.',
   );
 });
+
+test('cohort requests bind participant identity and discard an old participant response', async () => {
+  const old = deferred<Response>();
+  const urls: string[] = [];
+  let view: TransferChoiceView | undefined;
+  const loader = new TransferChoiceLoader(
+    async (url) => {
+      urls.push(url);
+      return urls.length === 1 ? old.promise : response(result());
+    },
+    (next) => {
+      view = next;
+    },
+  );
+  const first = loader.load({ ...request, kind: 'cohorts', participantId: id(91) });
+  await loader.load({ ...request, kind: 'cohorts', participantId: id(92) });
+  assert.equal(new URL(urls[1]!, 'https://example.test').searchParams.get('participant'), id(92));
+  old.resolve(response(result(51, 15, null)));
+  await first;
+  assert.equal(view?.result?.page.items[0]?.id, id(1));
+});

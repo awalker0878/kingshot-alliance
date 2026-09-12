@@ -21,6 +21,7 @@ return new class extends Migration
             $table->timestamps();
             $table->index(['alliance_id', 'state', 'created_at']);
             $table->index(['alliance_id', 'home_kingdom_id']);
+            $table->index(['alliance_id', 'id'], 'transfer_plan_catalogue_cursor');
             $table->unique(['alliance_id', 'transfer_window_id']);
         });
         DB::statement("CREATE UNIQUE INDEX transfer_plans_one_open_per_alliance ON transfer_plans (alliance_id) WHERE state = 'open'");

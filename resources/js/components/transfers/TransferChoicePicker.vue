@@ -9,6 +9,7 @@ const props = defineProps<{
   kind: TransferChoiceKind;
   scope: string;
   planId?: string;
+  participantId?: string;
   modelValue: string;
   selectedName?: string | undefined;
   label: string;
@@ -41,7 +42,7 @@ const offPage = computed(
     props.modelValue && !view.value.result?.page.items.some((item) => item.id === props.modelValue),
 );
 watch(
-  () => [props.scope, props.kind, props.planId] as const,
+  () => [props.scope, props.kind, props.planId, props.participantId] as const,
   () => {
     search.value = '';
     chosen.value = null;
@@ -56,6 +57,7 @@ function load(cursor: string | null = null): void {
     scope: props.scope,
     kind: props.kind,
     planId: props.planId ?? null,
+    participantId: props.participantId ?? null,
     search: cursor === null ? search.value.trim() : view.value.search,
     cursor,
     selectedId: props.modelValue || null,

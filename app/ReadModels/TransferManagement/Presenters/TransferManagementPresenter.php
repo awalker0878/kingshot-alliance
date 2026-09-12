@@ -65,18 +65,12 @@ final class TransferManagementPresenter
     }
 
     /** @return array<string,mixed> */
-    public function officialGroup(TransferGroup $group): array
+    public function officialGroupSummary(TransferGroup $group): array
     {
         return [
-            'id' => (string) $group->id,
-            'officialLabel' => $group->official_label,
-            'revision' => $group->revision,
-            'kingdoms' => $group->kingdoms->map(static fn ($kingdom): array => [
-                'id' => (string) $kingdom->id,
-                'number' => (string) $kingdom->number,
-            ])->all(),
-            'sourceType' => $group->source_type->value,
-            'sourceReference' => $group->source_reference,
+            'id' => (string) $group->id, 'officialLabel' => $group->official_label,
+            'revision' => $group->revision, 'kingdomCount' => (int) $group->getAttribute('kingdoms_count'),
+            'sourceType' => $group->source_type->value, 'sourceReference' => $group->source_reference,
             'observedAt' => $group->observed_at->toIso8601String(),
             'supersededAt' => $group->superseded_at?->toIso8601String(),
         ];

@@ -17,10 +17,10 @@ final class TransferManagementChoiceController extends Controller
     {
         $scope = $context->scope();
         $input = $request->validate(['plan' => ['nullable', 'ulid'], 'q' => ['nullable', 'string', 'max:160'],
-            'cursor' => ['nullable', 'string', 'max:4096'], 'selected' => ['nullable', 'ulid']]);
+            'cursor' => ['nullable', 'string', 'max:4096'], 'selected' => ['nullable', 'ulid'], 'participant' => ['nullable', 'ulid']]);
 
         return response()->json($choices->page($scope->playerId, $scope->allianceId, $kind,
-            $input['plan'] ?? null, $input['q'] ?? '', $input['cursor'] ?? null, $input['selected'] ?? null))
+            $input['plan'] ?? null, $input['q'] ?? '', $input['cursor'] ?? null, $input['selected'] ?? null, $input['participant'] ?? null))
             ->header('Cache-Control', 'private, no-store');
     }
 }

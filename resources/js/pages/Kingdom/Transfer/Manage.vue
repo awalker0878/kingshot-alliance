@@ -5,6 +5,8 @@ import { computed, watch } from 'vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import TransferChoicePicker from '@/components/transfers/TransferChoicePicker.vue';
+import TransferCataloguePager from '@/components/transfers/TransferCataloguePager.vue';
+import TransferGroupKingdoms from '@/components/transfers/TransferGroupKingdoms.vue';
 import TransferParticipantPager from '@/components/transfers/TransferParticipantPager.vue';
 import type { ParticipantPage, ParticipantSummary } from '@/components/transfers/participantPages';
 import { useTransferDrafts } from '@/components/transfers/useTransferDrafts';
@@ -37,7 +39,7 @@ type OfficialGroup = {
   id: string;
   officialLabel: string;
   revision: number;
-  kingdoms: { id: string; number: string }[];
+  kingdomCount: number;
   sourceType: SourceType;
   sourceReference: string;
   observedAt: string;
@@ -97,25 +99,35 @@ type Participant = {
   managerNotes?: string | null;
   withdrawnAt: string | null;
 };
+type Catalogue<T> = ParticipantPage<T> & { total: number };
 const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string; kingdom: string };
-  plans: Plan[];
+  selectedPlan: Plan | null;
   mutablePlan: Plan | null;
-  windows: WindowRow[];
-  officialGroups: OfficialGroup[];
-  conditions: Condition[];
-  capacities: Capacity[];
-  cohorts: Cohort[];
+  catalogues: {
+    plans: Catalogue<Plan>;
+    windows: Catalogue<WindowRow>;
+    officialGroups: Catalogue<OfficialGroup>;
+    conditions: Catalogue<Condition>;
+    capacities: Catalogue<Capacity>;
+    cohorts: Catalogue<Cohort>;
+  };
   participants: ParticipantPage<Participant>;
   participantSummary: ParticipantSummary | null;
 }>();
+const plans = computed(() => props.catalogues.plans.items);
+const windows = computed(() => props.catalogues.windows.items);
+const officialGroups = computed(() => props.catalogues.officialGroups.items);
+const conditions = computed(() => props.catalogues.conditions.items);
+const capacities = computed(() => props.catalogues.capacities.items);
+const cohorts = computed(() => props.catalogues.cohorts.items);
 const participants = computed(() => props.participants.items);
 const { t, formatDate, formatNumber } = useLocale();
 const page = usePage();
 const transferScope = computed(
   () =>
-    `${(page.props.playerContext as SharedPlayerContext).activePlayerId ?? ''}|${props.alliance.id}|${props.mutablePlan?.id ?? ''}`,
+    `${(page.props.playerContext as SharedPlayerContext).activePlayerId ?? ''}|${props.alliance.id}|${props.selectedPlan?.id ?? ''}`,
 );
 const validationErrors = computed(() =>
   Object.values(
@@ -200,7 +212,7 @@ watch(transferScope, () => {
   participantForm.reset();
 });
 const cohortDrafts = useTransferDrafts(
-  () => props.cohorts,
+  () => cohorts.value,
   () => transferScope.value,
   (c) => ({
     name: c.name,
@@ -229,7 +241,6 @@ const participantDrafts = useTransferDrafts(
     manager_notes: p.managerNotes ?? '',
   }),
 );
-const activeCohorts = computed(() => props.cohorts.filter((c) => c.state === 'active'));
 function sourceLabel(v: SourceType): string {
   return t(`kingdomP7D.source_${v}`);
 }
@@ -376,15 +387,6 @@ function assignCohort(p: Participant): void {
     { preserveScroll: true },
   );
 }
-function compatibleCohorts(p: Participant): Cohort[] {
-  return activeCohorts.value.filter(
-    (c) =>
-      c.direction === p.direction &&
-      (c.direction !== 'outgoing' ||
-        c.destinationKingdom === null ||
-        c.destinationKingdom === p.destinationKingdom),
-  );
-}
 </script>
 
 <template>
@@ -479,6 +481,14 @@ function compatibleCohorts(p: Participant): Cohort[] {
       <div class="ks-surface p-5">
         <h2 class="text-xl font-semibold">{{ t('kingdomP7D.transferWindows') }}</h2>
         <div class="mt-3 grid gap-3">
+          <TransferCataloguePager
+            kind="windows"
+            :label="t('kingdomP7D.transferWindow')"
+            :page="catalogues.windows"
+            :total="catalogues.windows.total"
+            :scope="transferScope"
+            :plan-id="selectedPlan?.id"
+          />
           <article
             v-for="w in windows"
             :key="w.id"
@@ -520,6 +530,14 @@ function compatibleCohorts(p: Participant): Cohort[] {
         </button>
       </form>
       <div class="mt-4 grid gap-2">
+        <TransferCataloguePager
+          kind="plans"
+          :label="t('kingdomP7D.transferPlans')"
+          :page="catalogues.plans"
+          :total="catalogues.plans.total"
+          :scope="transferScope"
+          :plan-id="selectedPlan?.id"
+        />
         <article
           v-for="p in plans"
           :key="p.id"
@@ -527,7 +545,9 @@ function compatibleCohorts(p: Participant): Cohort[] {
           class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--ks-border)] p-3"
         >
           <div>
-            <strong>{{ p.label }}</strong>
+            <Link :href="`/alliance/transfers/manage?plan=${p.id}`" class="font-bold underline">{{
+              p.label
+            }}</Link>
             <p class="text-xs text-[var(--ks-muted)]">
               {{ p.window.label }} · {{ stateLabel(p.state) }}
             </p>
@@ -562,9 +582,12 @@ function compatibleCohorts(p: Participant): Cohort[] {
         </article>
       </div>
     </section>
-    <template v-if="mutablePlan"
+    <p v-if="selectedPlan" class="mt-5 text-lg font-semibold" data-testid="transfer-selected-plan">
+      {{ t('kingdomP7D.cycle') }}: {{ selectedPlan.label }} · {{ stateLabel(selectedPlan.state) }}
+    </p>
+    <template v-if="selectedPlan"
       ><section class="mt-5 grid gap-5 xl:grid-cols-2">
-        <form class="ks-surface p-5" @submit.prevent="createOfficialGroup">
+        <form v-if="mutablePlan" class="ks-surface p-5" @submit.prevent="createOfficialGroup">
           <h2 class="text-xl font-semibold">{{ t('kingdomP7D.officialTransferGroups') }}</h2>
           <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ t('kingdomP7D.officialGroupHelp') }}</p>
           <label class="mt-3 block"
@@ -604,6 +627,14 @@ function compatibleCohorts(p: Participant): Cohort[] {
         </form>
         <div class="ks-surface p-5">
           <h2 class="text-xl font-semibold">{{ t('kingdomP7D.officialGroupHistory') }}</h2>
+          <TransferCataloguePager
+            kind="officialGroups"
+            :label="t('kingdomP7D.officialGroupHistory')"
+            :page="catalogues.officialGroups"
+            :total="catalogues.officialGroups.total"
+            :scope="transferScope"
+            :plan-id="selectedPlan?.id"
+          />
           <article
             v-for="g in officialGroups"
             :key="g.id"
@@ -615,7 +646,12 @@ function compatibleCohorts(p: Participant): Cohort[] {
                 g.supersededAt ? t('kingdomP7D.historical') : t('kingdomP7D.current')
               }}</span>
             </div>
-            <p class="mt-2 text-sm">{{ g.kingdoms.map((k) => k.number).join(', ') }}</p>
+            <TransferGroupKingdoms
+              :plan-id="selectedPlan.id"
+              :group-id="g.id"
+              :scope="transferScope"
+              :total="g.kingdomCount"
+            />
             <p class="mt-1 text-xs break-all text-[var(--ks-muted)]">
               {{ sourceLabel(g.sourceType) }} · {{ ts(g.observedAt) }} · {{ g.sourceReference }}
             </p>
@@ -623,7 +659,7 @@ function compatibleCohorts(p: Participant): Cohort[] {
         </div>
       </section>
       <section class="mt-5 grid gap-5 xl:grid-cols-2">
-        <form class="ks-surface p-5" @submit.prevent="recordCondition">
+        <form v-if="mutablePlan" class="ks-surface p-5" @submit.prevent="recordCondition">
           <h2 class="text-xl font-semibold">{{ t('kingdomP7D.targetKingdomCondition') }}</h2>
           <div class="mt-3 grid gap-3 sm:grid-cols-2">
             <label
@@ -700,6 +736,14 @@ function compatibleCohorts(p: Participant): Cohort[] {
         </form>
         <div class="ks-surface p-5">
           <h2 class="text-xl font-semibold">{{ t('kingdomP7D.conditionHistory') }}</h2>
+          <TransferCataloguePager
+            kind="conditions"
+            :label="t('kingdomP7D.conditionHistory')"
+            :page="catalogues.conditions"
+            :total="catalogues.conditions.total"
+            :scope="transferScope"
+            :plan-id="selectedPlan?.id"
+          />
           <article
             v-for="c in conditions"
             :key="c.id"
@@ -723,7 +767,7 @@ function compatibleCohorts(p: Participant): Cohort[] {
         </div>
       </section>
       <section class="mt-5 grid gap-5 xl:grid-cols-2">
-        <form class="ks-surface p-5" @submit.prevent="recordCapacity">
+        <form v-if="mutablePlan" class="ks-surface p-5" @submit.prevent="recordCapacity">
           <h2 class="text-xl font-semibold">{{ t('kingdomP7D.capacityObservationTitle') }}</h2>
           <p class="mt-2 text-sm text-[var(--ks-muted)]">
             {{ t('kingdomP7D.capacityObservationHelp') }}
@@ -799,6 +843,14 @@ function compatibleCohorts(p: Participant): Cohort[] {
         <div class="ks-surface p-5">
           <h2 class="text-xl font-semibold">{{ t('kingdomP7D.capacityHistory') }}</h2>
           <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ t('kingdomP7D.observedFactsHelp') }}</p>
+          <TransferCataloguePager
+            kind="capacities"
+            :label="t('kingdomP7D.capacityHistory')"
+            :page="catalogues.capacities"
+            :total="catalogues.capacities.total"
+            :scope="transferScope"
+            :plan-id="selectedPlan?.id"
+          />
           <article
             v-for="c in capacities"
             :key="c.id"
@@ -822,7 +874,11 @@ function compatibleCohorts(p: Participant): Cohort[] {
       <section class="ks-surface mt-5 p-5">
         <h2 class="text-xl font-semibold">{{ t('kingdomP7D.planningCohorts') }}</h2>
         <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ t('kingdomP7D.cohortHelp') }}</p>
-        <form class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5" @submit.prevent="createCohort">
+        <form
+          v-if="mutablePlan"
+          class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
+          @submit.prevent="createCohort"
+        >
           <input
             v-model="cohortForm.name"
             class="ks-input"
@@ -842,13 +898,21 @@ function compatibleCohorts(p: Participant): Cohort[] {
             v-model="cohortForm.coordinator_player_id"
             kind="coordinators"
             :scope="transferScope"
-            :plan-id="mutablePlan.id"
+            :plan-id="selectedPlan?.id"
             :label="t('kingdomP7D.coordinator')"
             :empty-label="t('kingdomP7D.unassigned')"
           /><button class="rounded-lg border border-[var(--ks-border)] px-3 py-2 font-semibold">
             {{ t('kingdomP7D.createCohort') }}
           </button>
         </form>
+        <TransferCataloguePager
+          kind="cohorts"
+          :label="t('kingdomP7D.planningCohorts')"
+          :page="catalogues.cohorts"
+          :total="catalogues.cohorts.total"
+          :scope="transferScope"
+          :plan-id="selectedPlan?.id"
+        />
         <article
           v-for="c in cohorts"
           :key="c.id"
@@ -857,11 +921,11 @@ function compatibleCohorts(p: Participant): Cohort[] {
           <input
             v-model="cohortDrafts[c.id]!.name"
             class="ks-input"
-            :disabled="c.state === 'archived'"
+            :disabled="!mutablePlan || c.state === 'archived'"
           /><select
             v-model="cohortDrafts[c.id]!.direction"
             class="ks-input"
-            :disabled="c.state === 'archived'"
+            :disabled="!mutablePlan || c.state === 'archived'"
           >
             <option value="incoming">{{ t('kingdomP7D.directionIncoming') }}</option>
             <option value="outgoing">{{ t('kingdomP7D.directionOutgoing') }}</option></select
@@ -875,18 +939,22 @@ function compatibleCohorts(p: Participant): Cohort[] {
             v-model="cohortDrafts[c.id]!.coordinator_player_id"
             kind="coordinators"
             :scope="transferScope"
-            :plan-id="mutablePlan.id"
+            :plan-id="selectedPlan?.id"
             :selected-name="c.coordinator?.name"
             :label="t('kingdomP7D.coordinator')"
             :empty-label="t('kingdomP7D.unassigned')"
-            :disabled="c.state === 'archived'"
+            :disabled="!mutablePlan || c.state === 'archived'"
           /><button
-            :disabled="c.state === 'archived'"
+            :disabled="!mutablePlan || c.state === 'archived'"
             class="ks-command-link"
             @click="saveCohort(c)"
           >
             {{ t('kingdomP7D.save') }}</button
-          ><button v-if="c.state === 'active'" class="ks-command-link" @click="archiveCohort(c)">
+          ><button
+            v-if="mutablePlan && c.state === 'active'"
+            class="ks-command-link"
+            @click="archiveCohort(c)"
+          >
             {{ t('kingdomP7D.archive') }}
           </button>
         </article>
@@ -894,14 +962,15 @@ function compatibleCohorts(p: Participant): Cohort[] {
       <section class="ks-surface mt-5 p-5">
         <h2 class="text-xl font-semibold">{{ t('kingdomP7D.participants') }}</h2>
         <TransferParticipantPager
-          v-if="mutablePlan"
+          v-if="selectedPlan"
           :page="props.participants"
           :total="participantSummary?.total ?? 0"
-          href="/alliance/transfers/manage"
+          :href="`/alliance/transfers/manage?plan=${selectedPlan.id}`"
           :scope="transferScope"
         />
 
         <form
+          v-if="mutablePlan"
           class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
           @submit.prevent="createParticipant"
         >
@@ -915,7 +984,7 @@ function compatibleCohorts(p: Participant): Cohort[] {
             v-model="participantForm.roster_entry_id"
             kind="roster"
             :scope="transferScope"
-            :plan-id="mutablePlan.id"
+            :plan-id="selectedPlan?.id"
             :label="t('kingdomP7D.chooseRosterEntry')"
             :empty-label="t('kingdomP7D.chooseRosterEntry')"
             required
@@ -955,12 +1024,17 @@ function compatibleCohorts(p: Participant): Cohort[] {
             >
           </div>
           <div v-if="!p.withdrawnAt" class="mt-3 grid gap-2 md:grid-cols-4">
-            <select v-model="assignments[p.id]" class="ks-input">
-              <option value="">{{ t('kingdomP7D.noCohort') }}</option>
-              <option v-for="c in compatibleCohorts(p)" :key="c.id" :value="c.id">
-                {{ c.name }}
-              </option></select
-            ><button class="ks-command-link" @click="assignCohort(p)">
+            <TransferChoicePicker
+              :id="'transfer-assignment-' + p.id"
+              v-model="assignments[p.id]!"
+              kind="cohorts"
+              :scope="transferScope + '|' + p.direction + '|' + (p.destinationKingdom ?? '')"
+              :plan-id="selectedPlan?.id"
+              :participant-id="p.id"
+              :selected-name="p.cohort?.name"
+              :label="t('kingdomP7D.planningCohorts')"
+              :empty-label="t('kingdomP7D.noCohort')"
+            /><button class="ks-command-link" @click="assignCohort(p)">
               {{ t('kingdomP7D.saveCohortAssignment') }}</button
             ><input
               v-if="p.direction === 'outgoing'"

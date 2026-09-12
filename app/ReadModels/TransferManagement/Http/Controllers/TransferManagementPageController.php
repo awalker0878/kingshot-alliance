@@ -6,6 +6,7 @@ namespace App\ReadModels\TransferManagement\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
+use App\ReadModels\TransferManagement\Enums\TransferCatalogueKind;
 use App\ReadModels\TransferManagement\Queries\TransferManagementPageQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
@@ -26,8 +27,16 @@ final class TransferManagementPageController extends Controller
     public function manage(Request $request, AllianceContext $context, TransferManagementPageQuery $pages, AccountIdentityQuery $accounts): Response
     {
         $scope = $context->scope();
-        $input = $request->validate(['participant_cursor' => ['nullable', 'string', 'max:4096']]);
-        $payload = $pages->management($scope->playerId, $scope->allianceId, $input['participant_cursor'] ?? null);
+        $rules = ['participant_cursor' => ['nullable', 'string', 'max:4096'], 'plan' => ['nullable', 'ulid']];
+        foreach (TransferCatalogueKind::cases() as $kind) {
+            $rules[$kind->value.'_cursor'] = ['nullable', 'string', 'max:4096'];
+        }
+        $input = $request->validate($rules);
+        $cursors = [];
+        foreach (TransferCatalogueKind::cases() as $kind) {
+            $cursors[$kind->value] = $input[$kind->value.'_cursor'] ?? null;
+        }
+        $payload = $pages->management($scope->playerId, $scope->allianceId, $input['participant_cursor'] ?? null, $input['plan'] ?? null, $cursors);
 
         return Inertia::render('Kingdom/Transfer/Manage', ['user' => $this->user($request, $accounts), ...$payload]);
     }
