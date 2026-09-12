@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    pageRecords: '{count} wpisów na tej stronie · łącznie {total}',
+    collectionFailed: 'Nie udało się załadować listy. Spróbuj ponownie od pierwszej strony.',
+    selectedUnavailable: 'Wybrany element jest niedostępny',
+    reviewOnThisPage: 'Ta lista przeglądu obejmuje bieżącą stronę katalogu.',
+    allStatuses: 'Wszystkie stany',
+    retryCandidateSummary:
+      'Wyświetlono {selected} z {total} błędów poniżej limitu prób do ponowienia.',
     eyebrow: 'Treści sojuszu',
     hubTitle: 'Centrum treści',
     manageContent: 'Zarządzaj treścią',

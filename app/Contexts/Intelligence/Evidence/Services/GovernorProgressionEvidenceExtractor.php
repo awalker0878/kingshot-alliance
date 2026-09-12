@@ -26,7 +26,7 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
     {
         $this->schemas->require($kind);
 
-        return '1.0.2';
+        return '1.1.0';
     }
 
     public function schemaVersion(EvidenceKind $kind): string
@@ -49,6 +49,9 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
             EvidenceKind::GovernorHeroGear => $this->heroGear($document),
             EvidenceKind::GovernorGear => $this->governorGear($document),
             EvidenceKind::GovernorCharms => $this->charms($document),
+            EvidenceKind::GovernorBuildings => $this->structuredStates($document, 'Building', 'building_name', 'building_level'),
+            EvidenceKind::GovernorAcademyResearch,
+            EvidenceKind::GovernorWarAcademyResearch => $this->structuredStates($document, 'Technology', 'technology_name', 'research_level'),
             default => throw new InvalidArgumentException('Unsupported Governor Progression screenshot kind.'),
         };
 
@@ -56,6 +59,26 @@ final readonly class GovernorProgressionEvidenceExtractor implements EvidenceExt
             if (! in_array($field->fieldKey, $schema->supportedFields, true)) {
                 throw new InvalidArgumentException('Governor Progression extractor emitted a field outside its registered schema.');
             }
+        }
+
+        return $fields;
+    }
+
+    /** @return list<ExtractedFieldCandidate> */
+    private function structuredStates(OcrDocument $document, string $label, string $nameField, string $levelField): array
+    {
+        $fields = [];
+        $ordinal = 0;
+        foreach ($document->lines() as $line) {
+            $text = $this->lineText($line);
+            if (preg_match('/^'.preg_quote($label, '/').'\s*:\s*([\pL\pN][\pL\pN .()\x{2019}\x{0027}_-]{0,119}?)(?=\s+(?:level|lv\.?)\b|$)/iu', $text, $name) !== 1) {
+                continue;
+            }
+            $fields[] = $this->candidate($nameField, $ordinal, $line, trim($name[1]), 'string');
+            if (preg_match('/\b(?:level|lv\.?)\s*:?\s*(\d{1,3})(?![\d.,])\b(?=\s|$)/iu', $text, $level) === 1) {
+                $fields[] = $this->candidate($levelField, $ordinal, $line, (string) ((int) $level[1]), 'integer');
+            }
+            $ordinal++;
         }
 
         return $fields;

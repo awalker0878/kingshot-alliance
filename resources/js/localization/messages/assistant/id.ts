@@ -40,6 +40,9 @@ const messages = {
       observation: 'Apa yang sudah kita amati tentang lawan?',
     },
     answers: {
+      transferVerificationIncomplete:
+        'Ringkasan ini menilai {assessed} dari {total} peserta transfer. Setidaknya {count} perlu diperhatikan; {unassessed} belum dinilai di sini. Buka kesiapan transfer untuk pemeriksaan terkini.',
+
       help: 'Saya dapat menjawab dari Event, roster-mu, panduan Aliansi, dan observasi yang berizin. Saya tidak memakai pengetahuan KingShot tanpa sumber.',
       unsupported:
         'Saya hanya dapat menjawab dari Event yang berizin, roster-mu, panduan Aliansi, dan observasi. Saya tidak dapat membuat perubahan dari sini.',

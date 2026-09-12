@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
+
+import IntegrationCataloguePager from '@/components/integrations/IntegrationCataloguePager.vue';
+import type { IntegrationPage } from '@/components/integrations/integrationPages';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
@@ -14,6 +17,9 @@ import { useLocale } from '@/localization';
 const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string };
+  actorId: string;
+  activeCounts: { credentials: number; webhooks: number };
+  pagination: Record<'credentials' | 'webhooks' | 'deliveries', IntegrationPage>;
   settings: { apiAccessEnabled: boolean; webhooksEnabled: boolean };
   limits: {
     members: number;
@@ -27,6 +33,7 @@ const props = defineProps<{
     id: string;
     name: string;
     prefix: string;
+    active: boolean;
     scopes: string[];
     expiresAt: string | null;
     lastUsedAt: string | null;
@@ -44,6 +51,8 @@ const props = defineProps<{
   recentDeliveries: Array<{
     id: string;
     subscriptionId: string;
+    subscriptionName: string | null;
+    canRetry: boolean;
     event: string;
     status: string;
     attempts: number;
@@ -123,12 +132,18 @@ function scopeDescription(scope: string): string {
   return scopeDescriptions[scope] ?? scope;
 }
 
-const activeCredentialCount = computed(
-  () => props.credentials.filter((credential) => credential.revokedAt === null).length,
-);
-const activeWebhookCount = computed(
-  () => props.webhooks.filter((webhook) => webhook.active && webhook.revokedAt === null).length,
-);
+const pageScope = computed(() => `${props.alliance.id}:${props.actorId}`);
+watch(pageScope, () => {
+  credentialForm.cancel();
+  webhookForm.cancel();
+  credentialForm.reset();
+  webhookForm.reset();
+  credentialForm.clearErrors();
+  webhookForm.clearErrors();
+  pendingRevoke.value = null;
+  pendingSecretRotation.value = null;
+  mutationError.value = null;
+});
 const revokeDescription = computed(() =>
   pendingRevoke.value
     ? t('integrationExperience.revokeDescription', { name: pendingRevoke.value.name })
@@ -241,10 +256,9 @@ function confirmRevoke(): void {
       : `/alliance/integrations/webhooks/${target.id}`;
   router.delete(path, {
     preserveScroll: true,
-    onFinish: () => {
-      revoking.value = false;
-      pendingRevoke.value = null;
-    },
+    onError: captureMutationError,
+    onSuccess: () => (pendingRevoke.value = null),
+    onFinish: () => (revoking.value = false),
   });
 }
 
@@ -252,8 +266,10 @@ function date(value: string | null): string {
   return value ? formatDate(value, { dateStyle: 'medium', timeStyle: 'short' }) : '—';
 }
 
-function credentialState(revokedAt: string | null): string {
-  return revokedAt ? t('integrationExperience.revoked') : t('integrationExperience.active');
+function credentialState(credential: { revokedAt: string | null; active: boolean }): string {
+  return t(
+    `integrationExperience.${credential.revokedAt ? 'revoked' : credential.active ? 'active' : 'expired'}`,
+  );
 }
 
 function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
@@ -267,16 +283,13 @@ function stateTone(state: string): 'success' | 'warning' | 'danger' | 'info' {
 function deliveryStatusLabel(status: string): string {
   const keys: Record<string, string> = {
     pending: 'deliveryPending',
+    queued: 'deliveryQueued',
     delivering: 'deliveryDelivering',
     delivered: 'deliveryDelivered',
     failed: 'deliveryFailed',
   };
 
   return t(`integrationExperience.${keys[status] ?? 'deliveryUnknown'}`);
-}
-
-function webhookName(subscriptionId: string): string {
-  return props.webhooks.find((webhook) => webhook.id === subscriptionId)?.name ?? '—';
 }
 </script>
 
@@ -294,7 +307,7 @@ function webhookName(subscriptionId: string): string {
     <section class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-5">
       <StatSeal
         :label="t('integrationExperience.activeCredentials')"
-        :value="formatNumber(activeCredentialCount)"
+        :value="formatNumber(activeCounts.credentials)"
         icon="⌘"
       />
       <StatSeal
@@ -305,7 +318,7 @@ function webhookName(subscriptionId: string): string {
       />
       <StatSeal
         :label="t('integrationExperience.activeWebhooks')"
-        :value="formatNumber(activeWebhookCount)"
+        :value="formatNumber(activeCounts.webhooks)"
         icon="↗"
         tone="teal"
       />
@@ -315,8 +328,8 @@ function webhookName(subscriptionId: string): string {
         icon="◎"
       />
       <StatSeal
-        :label="t('integrationExperience.recentDeliveries')"
-        :value="formatNumber(recentDeliveries.length)"
+        :label="t('integrationExperience.deliveryHistory')"
+        :value="formatNumber(pagination.deliveries.total)"
         icon="▤"
         tone="teal"
       />
@@ -504,9 +517,9 @@ function webhookName(subscriptionId: string): string {
                   }}</strong>
                   <span
                     class="ks-status"
-                    :data-tone="stateTone(credential.revokedAt ? 'revoked' : 'active')"
+                    :data-tone="stateTone(credential.active ? 'active' : 'revoked')"
                   >
-                    {{ credentialState(credential.revokedAt) }}
+                    {{ credentialState(credential) }}
                   </span>
                 </div>
                 <p class="mt-1 font-mono text-xs text-[var(--ks-muted)]">{{ credential.prefix }}</p>
@@ -540,6 +553,12 @@ function webhookName(subscriptionId: string): string {
         <div v-else class="ks-fantasy-empty m-5">
           {{ t('integrationExperience.noCredentials') }}
         </div>
+        <IntegrationCataloguePager
+          :page="pagination.credentials"
+          kind="credentials"
+          :label="t('integrationExperience.apiCredentials')"
+          :scope="pageScope"
+        />
       </section>
 
       <section class="ks-surface overflow-hidden" aria-labelledby="webhook-heading">
@@ -689,7 +708,10 @@ function webhookName(subscriptionId: string): string {
                 <AppButton
                   variant="secondary"
                   :busy="testingWebhook === webhook.id"
-                  :disabled="testingWebhook !== null && testingWebhook !== webhook.id"
+                  :disabled="
+                    !settings.webhooksEnabled ||
+                    (testingWebhook !== null && testingWebhook !== webhook.id)
+                  "
                   :busy-label="t('integrationExperience.sendingTest')"
                   @click="testWebhook(webhook.id)"
                 >
@@ -718,6 +740,12 @@ function webhookName(subscriptionId: string): string {
           </article>
         </div>
         <div v-else class="ks-fantasy-empty m-5">{{ t('integrationExperience.noWebhooks') }}</div>
+        <IntegrationCataloguePager
+          :page="pagination.webhooks"
+          kind="webhooks"
+          :label="t('integrationExperience.webhookSubscriptions')"
+          :scope="pageScope"
+        />
       </section>
     </div>
 
@@ -726,9 +754,9 @@ function webhookName(subscriptionId: string): string {
         class="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--ks-border)] p-5"
       >
         <div>
-          <p class="ks-kicker">{{ t('integrationExperience.recentDeliveries') }}</p>
+          <p class="ks-kicker">{{ t('integrationExperience.deliveryHistory') }}</p>
           <h2 id="delivery-heading" class="ks-display mt-1 text-2xl font-semibold">
-            {{ t('integrationExperience.deliveryLog') }}
+            {{ t('integrationExperience.deliveryHistory') }}
           </h2>
         </div>
         <p class="max-w-2xl text-xs text-[var(--ks-muted)]">
@@ -746,7 +774,7 @@ function webhookName(subscriptionId: string): string {
             <div class="min-w-0">
               <p class="truncate font-mono text-sm font-semibold">{{ delivery.event }}</p>
               <p class="mt-1 truncate text-xs text-[var(--ks-muted)]">
-                {{ webhookName(delivery.subscriptionId) }}
+                {{ delivery.subscriptionName ?? '—' }}
               </p>
               <p class="mt-1 text-xs text-[var(--ks-muted)]">
                 {{ t('integrationExperience.attempts') }}: {{ delivery.attempts }} · HTTP
@@ -767,7 +795,7 @@ function webhookName(subscriptionId: string): string {
             {{ delivery.lastError || t('integrationExperience.noError') }}
           </p>
           <AppButton
-            v-if="delivery.status === 'failed'"
+            v-if="delivery.canRetry"
             class="mt-3"
             variant="secondary"
             :busy="retryingDelivery === delivery.id"
@@ -804,7 +832,7 @@ function webhookName(subscriptionId: string): string {
               <td class="px-4 py-4">
                 <span class="block font-mono text-xs">{{ delivery.event }}</span>
                 <span class="mt-1 block text-xs text-[var(--ks-muted)]">{{
-                  webhookName(delivery.subscriptionId)
+                  delivery.subscriptionName ?? '—'
                 }}</span>
               </td>
               <td class="px-4 py-4">
@@ -822,7 +850,7 @@ function webhookName(subscriptionId: string): string {
               </td>
               <td class="px-4 py-4">
                 <AppButton
-                  v-if="delivery.status === 'failed'"
+                  v-if="delivery.canRetry"
                   variant="secondary"
                   :busy="retryingDelivery === delivery.id"
                   :disabled="retryingDelivery !== null && retryingDelivery !== delivery.id"
@@ -840,6 +868,12 @@ function webhookName(subscriptionId: string): string {
       <div v-if="!recentDeliveries.length" class="ks-fantasy-empty m-5">
         {{ t('integrationExperience.noDeliveries') }}
       </div>
+      <IntegrationCataloguePager
+        :page="pagination.deliveries"
+        kind="deliveries"
+        :label="t('integrationExperience.deliveryHistory')"
+        :scope="pageScope"
+      />
     </section>
 
     <ConfirmActionDialog

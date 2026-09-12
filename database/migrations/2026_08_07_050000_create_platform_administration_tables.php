@@ -67,6 +67,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['alliance_id', 'feature_key']);
+            $table->index(['alliance_id', 'id'], 'platform_feature_catalogue_index');
         });
 
         Schema::create('alliance_usage_snapshots', function (Blueprint $table): void {
@@ -81,6 +82,14 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['alliance_id', 'captured_at']);
+            $table->index(['captured_at', 'id'], 'usage_snapshot_retention_index');
+        });
+
+        Schema::create('alliance_usage_capture_state', function (Blueprint $table): void {
+            $table->string('id', 24)->primary();
+            // A deleted Alliance must not erase the durable traversal frontier.
+            $table->ulid('last_alliance_id')->nullable();
+            $table->timestamp('last_batch_at')->nullable();
         });
 
         Schema::create('legal_holds', function (Blueprint $table): void {
@@ -97,16 +106,21 @@ return new class extends Migration
             $table->index(['subject_type', 'subject_id', 'released_at']);
         });
 
+        DB::statement('CREATE INDEX platform_legal_hold_catalogue_index ON legal_holds (id) WHERE released_at IS NULL');
+
         Schema::create('account_deletion_requests', function (Blueprint $table): void {
             $table->ulid('id')->primary();
             $table->foreignId('user_id')->unique()->constrained('users')->cascadeOnDelete();
             $table->string('status', 32)->default('pending')->index();
             $table->timestamp('requested_at');
             $table->timestamp('eligible_at')->index();
+            $table->timestamp('next_attempt_at')->nullable();
             $table->timestamp('processed_at')->nullable();
             $table->string('blocked_reason', 500)->nullable();
             $table->timestamps();
         });
+
+        DB::statement("CREATE INDEX account_deletion_due_attempt_index ON account_deletion_requests ((COALESCE(next_attempt_at, eligible_at)), id) WHERE status IN ('pending', 'blocked')");
 
         Schema::create('alliance_data_exports', function (Blueprint $table): void {
             $table->ulid('id')->primary();
@@ -120,6 +134,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['alliance_id', 'generated_at']);
+            $table->index(['generated_at', 'id'], 'alliance_export_retention_index');
         });
 
         Schema::create('api_credentials', function (Blueprint $table): void {
@@ -136,6 +151,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['alliance_id', 'revoked_at']);
+            $table->index(['alliance_id', 'id'], 'api_credential_catalogue_index');
+            $table->index(['revoked_at', 'id'], 'api_credential_retention_index');
         });
 
         Schema::create('external_actor_pairing_codes', function (Blueprint $table): void {
@@ -165,6 +182,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['alliance_id', 'provider', 'subject_hash'], 'actor_link_subject_unique');
+            $table->index('api_credential_id', 'actor_link_credential_index');
             $table->index(['alliance_id', 'player_id', 'provider', 'revoked_at'], 'actor_link_player_provider_index');
         });
 
@@ -182,6 +200,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['external_actor_link_id', 'idempotency_key'], 'actor_action_idempotency_unique');
+            $table->index('api_credential_id', 'actor_action_credential_index');
             $table->index(['alliance_id', 'created_at'], 'actor_action_alliance_created_index');
         });
 
@@ -199,6 +218,24 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['alliance_id', 'is_active']);
+            $table->index(['alliance_id', 'id'], 'webhook_subscription_catalogue_index');
+        });
+
+        Schema::create('webhook_fanouts', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->string('source_message_id', 64)->unique();
+            $table->foreignUlid('alliance_id')->nullable()->constrained('alliances')->cascadeOnDelete();
+            $table->string('event_type', 120);
+            $table->json('payload')->nullable();
+            $table->char('payload_fingerprint', 64);
+            $table->boolean('payload_oversized')->default(false);
+            $table->string('occurred_at', 64);
+            $table->ulid('upper_subscription_id')->nullable();
+            $table->ulid('after_subscription_id')->nullable();
+            $table->timestamp('visited_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
+            $table->timestamps();
+            $table->index(['completed_at', 'visited_at', 'id'], 'webhook_fanout_progress_index');
         });
 
         Schema::create('webhook_deliveries', function (Blueprint $table): void {
@@ -209,7 +246,9 @@ return new class extends Migration
             $table->string('event_type', 120);
             $table->json('payload')->nullable();
             $table->string('status', 24)->default('pending')->index();
-            $table->unsignedTinyInteger('attempts')->default(0);
+            $table->unsignedInteger('attempts')->default(0);
+            $table->unsignedInteger('max_attempts')->default(5);
+            $table->uuid('attempt_token')->nullable();
             $table->timestamp('available_at')->index();
             $table->timestamp('last_attempt_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
@@ -220,7 +259,14 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['alliance_id', 'status', 'available_at']);
+            $table->index(['alliance_id', 'id'], 'webhook_delivery_catalogue_index');
+            $table->index(['status', 'available_at', 'id'], 'webhook_delivery_due_index');
+            $table->index(['status', 'id'], 'platform_webhook_failure_catalogue_index');
+            $table->index(['status', 'last_attempt_at', 'id'], 'webhook_delivery_claim_index');
+            $table->index(['status', 'updated_at', 'id'], 'webhook_delivery_queue_index');
         });
+
+        DB::statement("CREATE INDEX webhook_payload_retention_index ON webhook_deliveries (updated_at, id) WHERE payload IS NOT NULL AND status IN ('delivered', 'failed')");
 
         $now = now();
         DB::table('platform_plans')->insert([
@@ -261,6 +307,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('webhook_deliveries');
+        Schema::dropIfExists('webhook_fanouts');
         Schema::dropIfExists('webhook_subscriptions');
         Schema::dropIfExists('external_actor_action_receipts');
         Schema::dropIfExists('external_actor_links');
@@ -270,6 +317,7 @@ return new class extends Migration
         Schema::dropIfExists('account_deletion_requests');
         Schema::dropIfExists('legal_holds');
         Schema::dropIfExists('alliance_usage_snapshots');
+        Schema::dropIfExists('alliance_usage_capture_state');
         Schema::dropIfExists('alliance_feature_flags');
         Schema::dropIfExists('alliance_platform_settings');
         Schema::dropIfExists('alliance_plan_assignments');

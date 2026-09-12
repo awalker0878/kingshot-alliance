@@ -1,7 +1,13 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': 'İşe alım uyum öğesi güncellendi.',
+  },
   common: {
+    yes: 'Evet',
+    no: 'Hayır',
+    historyItemsOnPage: 'Bu sayfada {count} kayıt (en fazla {pageSize}).',
     all: 'Tümü',
     language: 'Dil',
     signIn: 'Giriş yap',
@@ -44,6 +50,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: 'Ek değerlendirme gerekli' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          'En az {count} transfer katılımcısı dikkat gerektiriyor; bu özette {unassessed} kişi henüz değerlendirilmedi',
+      },
+
       title: 'Ana sayfa',
       eyebrow: 'Vali özeti',
       welcome: 'Hoş geldin, Vali {name}',

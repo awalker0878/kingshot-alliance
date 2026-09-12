@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
+import GovernanceCataloguePager from '@/components/governance/GovernanceCataloguePager.vue';
+import type { GovernancePage } from '@/components/governance/governancePages';
 import AppLayout from '@/layouts/AppLayout.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import { useLocale } from '@/localization';
@@ -13,23 +16,58 @@ type Role = {
   permissions: Permission[];
   effectiveAssignmentCount: number;
 };
-type Holder = { playerId: string; playerName: string; roles: string[] };
-defineProps<{
+type Holder = { playerId: string; playerName: string; roleCount: number };
+const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string };
   kingdom: { id: string; number: number };
+  catalogueScope: string;
+  pages: { roles: GovernancePage; holders: GovernancePage | null };
   roles: Role[];
   permissions: Permission[];
   selectedPermission: string | null;
   holders: Holder[];
 }>();
 const { t } = useLocale();
-function choose(event: Event): void {
-  const value = (event.target as HTMLSelectElement).value;
+const selection = ref(props.selectedPermission ?? '');
+const busy = ref(false);
+const failed = ref(false);
+watch(
+  () => props.catalogueScope,
+  () => {
+    selection.value = props.selectedPermission ?? '';
+    failed.value = false;
+  },
+);
+function holderLink(playerId: string): string {
+  return (
+    '/alliance/settings/kingdom/roles?' +
+    new URLSearchParams({
+      player_id: playerId,
+      permission: props.selectedPermission ?? '',
+    }).toString()
+  );
+}
+function choose(): void {
+  busy.value = true;
+  failed.value = false;
+  const fail = (): false => {
+    failed.value = true;
+    return false;
+  };
   router.get(
     '/alliance/settings/kingdom/governance/authority',
-    value ? { permission: value } : {},
-    { preserveState: true, replace: true },
+    selection.value ? { permission: selection.value } : {},
+    {
+      preserveState: true,
+      replace: true,
+      onError: fail,
+      onHttpException: fail,
+      onNetworkError: fail,
+      onFinish: () => {
+        busy.value = false;
+      },
+    },
   );
 }
 </script>
@@ -57,13 +95,19 @@ function choose(event: Event): void {
     <section class="ks-surface mt-5 p-5">
       <label class="text-sm font-semibold"
         >{{ t('governanceExpansion.selectPermission')
-        }}<select class="ks-input mt-2" :value="selectedPermission ?? ''" @change="choose">
+        }}<select v-model="selection" class="ks-input mt-2" :disabled="busy" @change="choose">
           <option value="">—</option>
           <option v-for="permission in permissions" :key="permission.key" :value="permission.key">
             {{ permission.key }} · {{ permission.owner }}
           </option>
         </select></label
       >
+      <div v-if="failed" role="alert" class="mt-3">
+        <p>{{ t('governanceExpansion.historyUnavailable') }}</p>
+        <button class="ks-command-link" :disabled="busy" @click="choose">
+          {{ t('governanceExpansion.retryPage') }}
+        </button>
+      </div>
       <div v-if="selectedPermission" class="mt-5">
         <h2 class="ks-display text-xl font-semibold">
           {{ t('governanceExpansion.whoHasAuthority') }}
@@ -72,13 +116,23 @@ function choose(event: Event): void {
           <div v-for="holder in holders" :key="holder.playerId" class="py-3">
             <p class="font-semibold">{{ holder.playerName }}</p>
             <p class="text-sm text-[var(--ks-text-muted)]">
-              {{ t('governanceExpansion.grantedBy') }}: {{ holder.roles.join(', ') }}
+              {{ t('governanceExpansion.grantedBy') }}: {{ holder.roleCount }}
+              <Link :href="holderLink(holder.playerId)" class="ks-command-link ml-2">{{
+                t('governanceExpansion.navRoles')
+              }}</Link>
             </p>
           </div>
         </div>
         <p v-else class="mt-3 text-sm text-[var(--ks-text-muted)]">
           {{ t('governanceExpansion.noHolders') }}
         </p>
+        <GovernanceCataloguePager
+          v-if="pages.holders"
+          :page="pages.holders"
+          kind="holders"
+          :scope="catalogueScope + '|' + selectedPermission"
+          :label="t('governanceExpansion.whoHasAuthority')"
+        />
       </div>
     </section>
     <section class="mt-5 grid gap-4 lg:grid-cols-2">
@@ -107,5 +161,11 @@ function choose(event: Event): void {
         </table>
       </article>
     </section>
+    <GovernanceCataloguePager
+      :page="pages.roles"
+      kind="roles"
+      :scope="catalogueScope"
+      :label="t('governanceExpansion.rolesTitle')"
+    />
   </AppLayout>
 </template>

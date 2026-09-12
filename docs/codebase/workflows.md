@@ -10,7 +10,8 @@ Status: Current — Architecture V3
 app/Workflows/
 ├── AccountOnboarding/
 ├── ExternalEventParticipation/
-└── KingdomGovernance/
+├── KingdomGovernance/
+└── NotificationDelivery/
 ```
 
 ### AccountOnboarding
@@ -24,6 +25,10 @@ Coordinates a Kingdom governance process when execution requires GameWorld gover
 ### ExternalEventParticipation
 
 Owns the multi-context bot/API write adapter and coordinates Platform external-actor identity and idempotency with Operations participation Actions. Platform remains owner of provider links and receipts; Operations remains owner of Event response, registration, capacity, and waitlist rules.
+
+### NotificationDelivery
+
+Coordinates the bounded Officer Brief and Intelligence notification sweeps through owner-authorized ReadModels and Communications intent. It also binds the delivery-side source authorization port to current account/Governor and source-owner checks for queued external publication. It does not own provider retries, endpoint state, source Models, permission enums, migrations or transactions. The source check is part of a cross-owner publication command, not another user-facing ReadModel. See [ADR-0018](../architecture/adr/0018-notification-orchestration-workflow.md) and [ADR-0046](../architecture/adr/0046-current-notification-source-authorization.md).
 
 ## What is not a Workflow
 
@@ -53,4 +58,4 @@ A Workflow must not:
 
 ## Transaction boundary
 
-The preferred model is for each owning context to protect its own write transaction and invariants. A Workflow coordinates owner operations rather than becoming the place where foreign persistence and authorization are implemented.
+Owner Actions protect domain invariants and acquire domain locks. Only the two explicit AccountOnboarding commands reviewed in [ADR-0019](../architecture/adr/0019-atomic-account-onboarding-owner-composition.md) may wrap their dependent owner calls in a bounded same-database transaction. The architecture verifier rejects other Workflow transactions, foreign Model access, raw persistence, business locks and foreign permission vocabularies. NotificationDelivery does not gain a transaction exception by coordinating source authorization.

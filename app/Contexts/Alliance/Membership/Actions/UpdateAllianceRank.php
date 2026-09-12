@@ -37,8 +37,12 @@ final readonly class UpdateAllianceRank
         }
 
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $membershipId, $rank): string {
-            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
+            $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RoleManage);
+
+            if (! $context->membership->rank->canDelegate($rank)) {
+                throw ValidationException::withMessages(['rank' => 'You cannot assign a rank above your current rank.']);
+            }
 
             $locked = AllianceMembership::query()
                 ->whereKey($membershipId)

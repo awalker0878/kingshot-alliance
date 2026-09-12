@@ -34,6 +34,7 @@ final readonly class TransferEvidencePreviewQuery
         private TransferKingdomConditionSelector $conditionSelector,
         private TransferCapacityPlanningQuery $capacity,
         private KingdomReferenceQuery $kingdoms,
+        private TransferEligibilityEvidenceQuery $evidence,
     ) {}
 
     /**
@@ -206,18 +207,8 @@ final readonly class TransferEvidencePreviewQuery
             return [TransferRequirementState::Unknown, null, null];
         }
 
-        $groups = TransferGroup::query()
-            ->where('alliance_id', $allianceId)
-            ->where('transfer_window_id', $windowId)
-            ->whereNull('superseded_at')
-            ->with('kingdoms:id')
-            ->get();
-        $byKingdom = [];
-        foreach ($groups as $group) {
-            foreach ($group->kingdoms as $kingdom) {
-                $byKingdom[(string) $kingdom->id] = $group;
-            }
-        }
+        $kingdomIds = array_values(array_filter([$sourceId, $targetId], static fn (?string $id): bool => $id !== null));
+        $byKingdom = $this->evidence->groups($allianceId, $windowId, $kingdomIds);
         $source = $sourceId === null ? null : ($byKingdom[$sourceId] ?? null);
         $target = $targetId === null ? null : ($byKingdom[$targetId] ?? null);
         $state = $source instanceof TransferGroup
@@ -269,13 +260,7 @@ final readonly class TransferEvidencePreviewQuery
             return collect();
         }
 
-        return TransferKingdomConditionObservation::query()
-            ->where('alliance_id', $allianceId)
-            ->where('transfer_window_id', $windowId)
-            ->where('kingdom_id', $targetId)
-            ->orderByDesc('observed_at')
-            ->orderByDesc('id')
-            ->get();
+        return $this->evidence->conditions($allianceId, $windowId, [$targetId]);
     }
 
     /** @return list<string> */

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @property string $id
@@ -79,6 +80,13 @@ final class RecruitmentCandidate extends Model
             'retention_due_at' => 'datetime',
             'anonymized_at' => 'datetime',
         ];
+    }
+
+    public function ensureNotAnonymized(): void
+    {
+        if ($this->anonymized_at !== null) {
+            throw ValidationException::withMessages(['candidate' => 'This recruitment record has been anonymized.']);
+        }
     }
 
     public function recruitmentStage(): RecruitmentStage

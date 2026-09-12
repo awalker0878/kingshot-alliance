@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace App\ReadModels\RecruitmentManagement\Queries;
 
-use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
-use App\Contexts\Alliance\Membership\Models\AllianceMembership;
+use App\Contexts\Alliance\Access\Enums\AlliancePermission;
+use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentDecisionTemplate;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentOnboardingItem;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
 use App\Contexts\Alliance\Recruitment\Queries\RecruitmentMetricsQuery;
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\Pagination\PageSlice;
 use App\Shared\Infrastructure\Pagination\ScopedCursorCodec;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
 
 final readonly class RecruitmentManagementQuery
@@ -25,48 +24,36 @@ final readonly class RecruitmentManagementQuery
 
     public function __construct(
         private RecruitmentMetricsQuery $metrics,
-        private PlayerReferenceQuery $players,
+        private AllianceAuthorization $authorization,
         private ScopedCursorCodec $cursors,
     ) {}
 
     /**
      * @param  array{q?: string|null, stage?: string|null, source?: string|null}  $filters
+     * @param  array{questions?:string|null,templates?:string|null,onboarding?:string|null}  $catalogueCursors
      * @return array{
      *   settings: array{mode: string, title: string, introduction: string|null, retentionDays: int, open: bool, listed: bool}|null,
-     *   questions: list<array{id: string, prompt: string, helpText: string|null, type: string, options: list<string>, required: bool, position: int, active: bool}>,
+     *   questionPage: array{items: list<array{id: string, prompt: string, helpText: string|null, type: string, options: list<string>, required: bool, position: int, active: bool}>, nextCursor:string|null, hasMore:bool, pageSize:int, isFirstPage:bool},
      *   candidatePage: array{items: list<array{id: string, name: string, email: string, contactHandle: string|null, source: string|null, stage: string, submittedAt: string, firstRespondedAt: string|null, nextActionAt: string|null}>, nextCursor: string|null, hasMore: bool, pageSize: int, isFirstPage: bool},
      *   candidateFilters: array{q: string, stage: string, source: string},
-     *   members: list<array{id: string, name: string, rank: string}>,
-     *   decisionTemplates: list<array{id: string, name: string, decisionStage: string, subject: string, body: string, active: bool}>,
-     *   onboardingItems: list<array{id: string, name: string, description: string|null, position: int, required: bool, active: bool}>,
+     *   nextPositions: array{questions:int,onboarding:int},
+     *   templatePage: array{items: list<array{id: string, name: string, decisionStage: string, subject: string, body: string, active: bool}>, nextCursor:string|null, hasMore:bool, pageSize:int, isFirstPage:bool},
+     *   onboardingPage: array{items: list<array{id: string, name: string, description: string|null, position: int, required: bool, active: bool}>, nextCursor:string|null, hasMore:bool, pageSize:int, isFirstPage:bool},
      *   metrics: array<string, mixed>
      * }
      */
     public function forAlliance(
+        string $actorPlayerId,
         string $allianceId,
         array $filters = [],
         ?string $cursor = null,
+        array $catalogueCursors = [],
     ): array {
+        $this->authorization->authorize($actorPlayerId, $allianceId, AlliancePermission::RecruitmentManage);
         $settings = RecruitmentSetting::query()->where('alliance_id', $allianceId)->first();
-        $questions = RecruitmentQuestion::query()
-            ->where('alliance_id', $allianceId)
-            ->orderBy('position')
-            ->orderBy('id')
-            ->get();
-        $memberships = AllianceMembership::query()
-            ->where('alliance_id', $allianceId)
-            ->where('status', MembershipStatus::Active->value)
-            ->orderBy('created_at')
-            ->get();
-        $templates = RecruitmentDecisionTemplate::query()
-            ->where('alliance_id', $allianceId)
-            ->orderBy('name')
-            ->get();
-        $onboardingItems = RecruitmentOnboardingItem::query()
-            ->where('alliance_id', $allianceId)
-            ->orderBy('position')
-            ->orderBy('name')
-            ->get();
+        $questions = $this->cataloguePage(RecruitmentQuestion::query()->where('alliance_id', $allianceId), 'recruitment-questions|'.$allianceId, 'position', $catalogueCursors['questions'] ?? null);
+        $templates = $this->cataloguePage(RecruitmentDecisionTemplate::query()->where('alliance_id', $allianceId), 'recruitment-templates|'.$allianceId, 'name', $catalogueCursors['templates'] ?? null);
+        $onboardingItems = $this->cataloguePage(RecruitmentOnboardingItem::query()->where('alliance_id', $allianceId), 'recruitment-onboarding|'.$allianceId, 'position', $catalogueCursors['onboarding'] ?? null);
 
         $normalizedFilters = $this->normalizeFilters($filters);
 
@@ -79,7 +66,7 @@ final readonly class RecruitmentManagementQuery
                 'open' => (bool) $settings->is_open,
                 'listed' => (bool) $settings->is_listed,
             ] : null,
-            'questions' => array_values($questions->map(static fn (RecruitmentQuestion $question): array => [
+            'questionPage' => (new PageSlice(array_map(static fn (RecruitmentQuestion $question): array => [
                 'id' => (string) $question->id,
                 'prompt' => (string) $question->prompt,
                 'helpText' => $question->help_text,
@@ -88,26 +75,29 @@ final readonly class RecruitmentManagementQuery
                 'required' => (bool) $question->is_required,
                 'position' => (int) $question->position,
                 'active' => (bool) $question->is_active,
-            ])->values()->all()),
+            ], $questions->items), $questions->nextCursor, $questions->pageSize, $questions->isFirstPage))->toArray(),
             'candidatePage' => $this->candidates($allianceId, $normalizedFilters, $cursor)->toArray(),
             'candidateFilters' => $normalizedFilters,
-            'members' => $this->members($memberships),
-            'decisionTemplates' => array_values($templates->map(static fn (RecruitmentDecisionTemplate $template): array => [
+            'nextPositions' => [
+                'questions' => min(65535, (int) RecruitmentQuestion::query()->where('alliance_id', $allianceId)->max('position') + 1),
+                'onboarding' => min(65535, (int) RecruitmentOnboardingItem::query()->where('alliance_id', $allianceId)->max('position') + 1),
+            ],
+            'templatePage' => (new PageSlice(array_map(static fn (RecruitmentDecisionTemplate $template): array => [
                 'id' => (string) $template->id,
                 'name' => (string) $template->name,
                 'decisionStage' => $template->decisionStage()->value,
                 'subject' => (string) $template->subject,
                 'body' => (string) $template->body,
                 'active' => (bool) $template->is_active,
-            ])->values()->all()),
-            'onboardingItems' => array_values($onboardingItems->map(static fn (RecruitmentOnboardingItem $item): array => [
+            ], $templates->items), $templates->nextCursor, $templates->pageSize, $templates->isFirstPage))->toArray(),
+            'onboardingPage' => (new PageSlice(array_map(static fn (RecruitmentOnboardingItem $item): array => [
                 'id' => (string) $item->id,
                 'name' => (string) $item->name,
                 'description' => $item->description,
                 'position' => (int) $item->position,
                 'required' => (bool) $item->is_required,
                 'active' => (bool) $item->is_active,
-            ])->values()->all()),
+            ], $onboardingItems->items), $onboardingItems->nextCursor, $onboardingItems->pageSize, $onboardingItems->isFirstPage))->toArray(),
             'metrics' => $this->metrics->summary($allianceId),
         ];
     }
@@ -198,31 +188,36 @@ final readonly class RecruitmentManagementQuery
     }
 
     /**
-     * @param  Collection<int, AllianceMembership>  $memberships
-     * @return list<array{id: string, name: string, rank: string}>
+     * @template T of Model
+     *
+     * @param  Builder<T>  $query
+     * @return PageSlice<T>
      */
-    private function members(Collection $memberships): array
+    private function cataloguePage(Builder $query, string $scope, string $column, ?string $cursor): PageSlice
     {
-        $references = $this->players->byIds($memberships
-            ->pluck('player_id')
-            ->map(static fn ($id): string => (string) $id)
-            ->all());
-        $members = [];
-
-        foreach ($memberships as $membership) {
-            $player = $references[(string) $membership->player_id] ?? null;
-            if ($player === null) {
-                continue;
+        if ($cursor !== null) {
+            $position = $this->cursors->decode($cursor, $scope);
+            $value = $position['value'] ?? null;
+            $id = $position['id'] ?? null;
+            if (! is_string($id) || ! preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/Di', $id)
+                || ($column === 'position' ? (! is_int($value) || $value < 0 || $value > 65535) : (! is_string($value) || mb_strlen($value) > 120))) {
+                throw ValidationException::withMessages(['cursor' => 'The recruitment catalogue cursor is invalid.']);
             }
-
-            $members[] = [
-                'id' => $player->playerId,
-                'name' => $player->currentName,
-                'rank' => $membership->rank->value,
-            ];
+            $query->where(static function (Builder $after) use ($column, $value, $id): void {
+                $after->where($column, '>', $value)->orWhere(static function (Builder $tie) use ($column, $value, $id): void {
+                    $tie->where($column, $value)->where('id', '>', $id);
+                });
+            });
         }
+        /** @var list<T> $rows */
+        $rows = array_values($query->orderBy($column)->orderBy('id')->limit(26)->get()->all());
+        $items = array_slice($rows, 0, 25);
+        $last = $items === [] ? null : $items[array_key_last($items)];
+        $next = count($rows) > 25 && $last instanceof Model
+            ? $this->cursors->encode($scope, ['value' => $column === 'position' ? (int) $last->getAttribute($column) : (string) $last->getAttribute($column), 'id' => (string) $last->getKey()])
+            : null;
 
-        return $members;
+        return new PageSlice($items, $next, 25, $cursor === null);
     }
 
     /**

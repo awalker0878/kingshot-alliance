@@ -8,17 +8,17 @@ use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
 
 final class PlatformAdministratorDirectory
 {
-    /** @return list<int> */
-    public function activeUserIds(): array
+    public function lastActiveUserId(): int
     {
-        return array_values(
-            PlatformAdministrator::query()
-                ->whereNull('revoked_at')
-                ->orderBy('user_id')
-                ->pluck('user_id')
-                ->map(static fn (mixed $value): int => (int) $value)
-                ->filter(static fn (int $value): bool => $value > 0)
-                ->all(),
-        );
+        return (int) PlatformAdministrator::query()->whereNull('revoked_at')->max('user_id');
+    }
+
+    /** @return list<int> */
+    public function activeUserIdsAfter(int $after, int $through, int $limit = 25): array
+    {
+        return array_values(PlatformAdministrator::query()->whereNull('revoked_at')
+            ->where('user_id', '>', $after)->where('user_id', '<=', $through)
+            ->orderBy('user_id')->limit(max(1, min(25, $limit)))->pluck('user_id')
+            ->map(static fn (mixed $value): int => (int) $value)->all());
     }
 }

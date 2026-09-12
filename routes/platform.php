@@ -38,7 +38,7 @@ Route::middleware(['auth', 'auth.session', 'verified', 'platform.admin', 'passwo
             ->name('alliances.usage');
         Route::get('/alliances/{alliance}/export.json', [PlatformAdministrationController::class, 'export'])
             ->whereUlid('alliance')
-            ->middleware('throttle:5,1')
+            ->middleware('throttle:5,1,platform-alliance-export:')
             ->name('alliances.export');
         Route::post('/legal-holds', [PlatformAdministrationController::class, 'placeLegalHold'])
             ->name('legal-holds.store');
@@ -47,6 +47,6 @@ Route::middleware(['auth', 'auth.session', 'verified', 'platform.admin', 'passwo
             ->name('legal-holds.destroy');
         Route::post('/operations/outbox/{message}/retry', [PlatformAdministrationController::class, 'retryOutbox'])
             ->whereUlid('message')
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,platform-outbox-retry:')
             ->name('operations.outbox.retry');
     });

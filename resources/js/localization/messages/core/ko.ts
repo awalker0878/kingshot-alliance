@@ -1,7 +1,13 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': '모집 온보딩 항목을 업데이트했습니다.',
+  },
   common: {
+    yes: '예',
+    no: '아니요',
+    historyItemsOnPage: '이 페이지에 {count}개 기록(최대 {pageSize}개).',
     all: '전체',
     language: '언어',
     signIn: '로그인',
@@ -44,6 +50,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: '추가 평가 필요' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          '이전 참가자 중 최소 {count}명에게 확인이 필요하며, 이 개요에서 {unassessed}명은 아직 평가되지 않았습니다',
+      },
+
       title: '홈',
       eyebrow: '총독 개요',
       welcome: '환영합니다, 총독 {name}',

@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    pageRecords: 'このページは{count}件 · 全{total}件',
+    collectionFailed: '一覧を読み込めませんでした。最初のページから再試行してください。',
+    selectedUnavailable: '選択した項目は利用できません',
+    reviewOnThisPage: 'この確認リストは現在のカタログページを対象としています。',
+    allStatuses: 'すべての状態',
+    retryCandidateSummary:
+      '試行回数の上限未満の失敗 {total} 件のうち、再試行用に {selected} 件を表示しています。',
     eyebrow: '同盟コンテンツ',
     hubTitle: 'コンテンツハブ',
     manageContent: 'コンテンツ管理',

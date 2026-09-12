@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    pageRecords: '{count} รายการในหน้านี้ · ทั้งหมด {total} รายการ',
+    collectionFailed: 'ไม่สามารถโหลดรายการได้ โปรดลองอีกครั้งจากหน้าแรก',
+    selectedUnavailable: 'รายการที่เลือกไม่พร้อมใช้งาน',
+    reviewOnThisPage: 'รายการตรวจสอบนี้ครอบคลุมเฉพาะหน้าแคตตาล็อกปัจจุบัน',
+    allStatuses: 'ทุกสถานะ',
+    retryCandidateSummary:
+      'แสดง {selected} จากความล้มเหลว {total} รายการที่ยังไม่ถึงขีดจำกัดการลอง เพื่อให้ลองอีกครั้ง',
     eyebrow: 'เนื้อหาพันธมิตร',
     hubTitle: 'ศูนย์เนื้อหา',
     manageContent: 'จัดการเนื้อหา',

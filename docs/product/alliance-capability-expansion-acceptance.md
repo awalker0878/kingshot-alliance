@@ -22,13 +22,20 @@ Status: Current complete capability
 - Authorized officers can create, rename, change permissions and archive Alliance-local non-system roles.
 - System roles cannot be archived or have protected semantics changed.
 - Role keys remain stable after creation.
-- Permission delegation is limited to the actor's current effective Alliance permissions.
+- Custom permission delegation is limited to the actor's current effective Alliance permissions.
+- R5 may commission a provisioned system role on another member without acquiring its data access; this exception does not authorize custom-role grants or self-assignment. Event Coordinator grants require R5 or current holding of that role, plus role management.
+- Direct and bulk grants apply that ceiling to every recipient and recheck each mutation; role removal requires role-management authority, not the removed permissions.
+- Rank grants cannot exceed the actor's current rank; self-rank and R5 leadership protections remain enforced.
 - Self-escalation and cross-Alliance role mutation/assignment are rejected.
 - Inactive/archived roles cannot receive new assignments.
+- Role-definition changes and archives serialize with protected Alliance writes; an operation admitted after revocation cannot use the previous permission definition, while another Alliance remains independent.
+- Management and assignment catalogs are bounded to 25 rows with usable name-prefix search and paging; cursors cannot cross Alliances or filters. Archived roles are excluded from assignment choices, and management counts do not query once per role.
+- Create then edit works on the retained page without a reload. Row errors remain visible and preserve the draft; successful edits and archives reflect current server state.
+- Missing/malformed permission replacement and oversized generated keys fail with validation feedback, without partial role/audit/outbox changes. An explicit empty permission list remains valid.
 
 ## ACE-04 Membership governance history
 
-- Authorized officers can view bounded chronological membership/invitation/rank/role/leadership facts for a member.
+- Authorized officers can view bounded chronological membership/invitation/rank/role/leadership facts for a member. The query checks current viewer access, filters all supported target keys before limiting, and provides scope-bound timestamp/ID continuation; unrelated Alliance activity cannot hide older relevant facts.
 - History is composed from owner audit/outbox evidence and does not create a second authoritative state machine.
 - Actor, target, timestamp, old/new values and owner source are shown when present.
 - Cross-Alliance history is not retrievable.
@@ -55,16 +62,16 @@ Status: Current complete capability
 ## ACE-07 Recruitment re-entry controls
 
 - Controls are Alliance-local, recruiter-private and one of `normal`, `do_not_invite`, `reapply_after`, `review_required`.
-- Optional reason/review date are audited.
+- Optional reason/review date are audited until the candidate retention boundary; expired private metadata is redacted atomically with candidate anonymization.
 - Conversion/invitation respects active controls.
 - Expired `reapply_after` controls no longer block once their date is reached.
 - Duplicate merge preserves the stricter unresolved control deterministically.
-- Existing retention/anonymization policy remains authoritative.
+- Existing retention/anonymization policy remains authoritative, including re-entry fields and alternate detail routes.
 - No global blacklist or public exposure is introduced.
 
 ## ACE-08 Alliance governance timeline
 
-- Authorized officers can read a bounded chronological timeline of consequential settings, membership, role, leadership, recruitment, Content and Integration administration.
+- Authorized officers can read a bounded chronological timeline of consequential settings, membership, role, leadership, recruitment, Content and Integration administration. Recruitment entries additionally require current RecruitmentManage and are filtered before pagination; HTTP and Assistant use the same viewer-authorized projection.
 - Timeline entries retain owner source and handoff links where supported.
 - Timeline owns no domain truth and performs no writes.
 - Ordering/filtering and pagination are deterministic and scope bound.
@@ -72,7 +79,7 @@ Status: Current complete capability
 ## ACE-09 Composition integration
 
 - Alliance Hall links/settings/actions are permission aware.
-- Member Capability Profile exposes factual membership governance history.
+- Member Capability Profile exposes a labeled twelve-record preview of factual membership governance history with a handoff to the complete paginated history.
 - Command Overview adds only actionable reconciliation/recruitment reason codes backed by concrete owner state.
 - Alliance Assistant may answer bounded factual settings/history/reconciliation questions and remains read-only; mutations return owner-workflow handoff only.
 

@@ -6,16 +6,9 @@ namespace App\Contexts\GameWorld\KingdomTransfers\Queries;
 
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
-use Illuminate\Database\Eloquent\Collection;
 
 final class TransferPlanQuery
 {
-    /** @return Collection<int,TransferPlan> */
-    public function forAlliance(string $allianceId): Collection
-    {
-        return TransferPlan::query()->where('alliance_id', $allianceId)->with(['homeKingdom', 'window'])->orderByDesc('created_at')->orderByDesc('id')->limit(50)->get();
-    }
-
     public function currentForAlliance(string $allianceId): ?TransferPlan
     {
         foreach ([TransferPlanState::Open, TransferPlanState::Locked, TransferPlanState::Draft] as $state) {

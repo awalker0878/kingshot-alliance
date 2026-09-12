@@ -6,7 +6,6 @@ namespace App\Contexts\Intelligence\Roster\Services;
 
 use App\Contexts\GameWorld\Progression\Queries\ProgressionDatasetQuery;
 use App\Contexts\GameWorld\Progression\Queries\ProgressionTopologyQuery;
-use App\Contexts\GameWorld\Progression\ValueObjects\ProgressionDataset;
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceKind;
 use Illuminate\Validation\ValidationException;
 
@@ -23,7 +22,7 @@ final readonly class StructuredGovernorProgressionObservationValidator
     }
 
     /** @param array<string,mixed> $payload
-     *  @return array{states:list<array{subject_id:string,state_id:string,level:int}>}
+     * @return array{states:list<array{subject_id:string,state_id:string,level:int}>}
      */
     public function validate(
         EvidenceKind $kind,
@@ -110,7 +109,7 @@ final readonly class StructuredGovernorProgressionObservationValidator
     }
 
     /** @param list<array<string,mixed>> $states
-     *  @return array<string,mixed>|null
+     * @return array<string,mixed>|null
      */
     private function state(array $states, string $stateId): ?array
     {

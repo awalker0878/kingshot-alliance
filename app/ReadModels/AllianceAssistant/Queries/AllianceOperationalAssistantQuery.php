@@ -216,14 +216,19 @@ final readonly class AllianceOperationalAssistantQuery
             return $this->notFound($intent, $notFoundKey);
         }
 
+        $coverage = is_array($item['metadata']['coverage'] ?? null) ? $item['metadata']['coverage'] : [];
+        $parameters = ['state' => (string) ($item['state'] ?? 'unknown'), 'count' => (int) ($item['count'] ?? 0)];
+        if ($intent === AssistantIntent::TransferVerification && ($item['state'] ?? null) === 'assessment_incomplete') {
+            $messageKey = 'assistant.answers.transferVerificationIncomplete';
+            $parameters += ['assessed' => (int) ($coverage['assessed'] ?? 0), 'total' => (int) ($coverage['total'] ?? 0),
+                'unassessed' => (int) ($coverage['unassessed'] ?? 0)];
+        }
+
         return new AssistantResult(
             $intent,
             AssistantStatus::Answered,
             $messageKey,
-            [
-                'state' => (string) ($item['state'] ?? 'unknown'),
-                'count' => (int) ($item['count'] ?? 0),
-            ],
+            $parameters,
             [$this->itemEvidence($item, $sourceType, $title)],
         );
     }

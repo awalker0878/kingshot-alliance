@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
+import TransferParticipantPager from '@/components/transfers/TransferParticipantPager.vue';
+import type { ParticipantPage, ParticipantSummary } from '@/components/transfers/participantPages';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
+import type { SharedPlayerContext } from '@/types/player-context';
 type WindowRow = {
   id: string;
   label: string;
@@ -47,16 +50,19 @@ const props = defineProps<{
   alliance: { id: string; name: string; kingdom: string };
   canManage: boolean;
   plan: Plan | null;
-  cohorts: Cohort[];
-  participants: Participant[];
+  participants: ParticipantPage<Participant>;
+  participantSummary: ParticipantSummary | null;
 }>();
+const page = usePage();
+const transferScope = computed(
+  () =>
+    `${(page.props.playerContext as SharedPlayerContext).activePlayerId ?? ''}|${props.alliance.id}|${props.plan?.id ?? ''}`,
+);
+const participants = computed(() => props.participants.items);
 const { t, formatDate, formatNumber } = useLocale();
-const counts = computed(() => ({
-  incoming: props.participants.filter((p) => p.direction === 'incoming').length,
-  outgoing: props.participants.filter((p) => p.direction === 'outgoing').length,
-  staying: props.participants.filter((p) => p.direction === 'staying').length,
-  completed: props.participants.filter((p) => p.completedAt).length,
-}));
+const counts = computed(
+  () => props.participantSummary ?? { incoming: 0, outgoing: 0, staying: 0, completed: 0 },
+);
 function ts(v: string): string {
   return formatDate(v, { dateStyle: 'medium', timeStyle: 'short' });
 }
@@ -141,6 +147,13 @@ function phase(v: string): string {
       <h2 class="text-xl font-semibold">{{ t('kingdomP7D.noCurrentCycle') }}</h2>
       <p class="mt-2 text-[var(--ks-muted)]">{{ t('kingdomP7D.createWindowAndPlan') }}</p>
     </section>
+    <TransferParticipantPager
+      v-if="plan"
+      :page="props.participants"
+      :total="participantSummary?.total ?? 0"
+      href="/alliance/transfers"
+      :scope="transferScope"
+    />
     <section v-if="plan" class="ks-surface mt-5 overflow-hidden">
       <div class="border-b border-[var(--ks-border)] p-5">
         <h2 class="ks-display text-2xl">{{ t('kingdomP7D.participants') }}</h2>
@@ -149,7 +162,12 @@ function phase(v: string): string {
         </p>
       </div>
       <div class="grid gap-0 divide-y divide-[var(--ks-border)]">
-        <article v-for="p in participants" :key="p.id" class="p-4">
+        <article
+          v-for="p in participants"
+          :key="p.id"
+          :data-transfer-participant="p.id"
+          class="p-4"
+        >
           <div class="flex flex-wrap justify-between gap-3">
             <div>
               <strong>{{ p.name }}</strong>

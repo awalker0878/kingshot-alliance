@@ -9,6 +9,7 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentReentryControl;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Carbon;
@@ -32,7 +33,7 @@ final readonly class SetRecruitmentReentryControl
         ?string $reason = null,
         ?string $reviewAt = null,
     ): string {
-        $reason = $reason === null || trim($reason) === '' ? null : trim($reason);
+        $reason = RecruitmentTextInput::reason($reason);
         $review = $reviewAt === null || trim($reviewAt) === '' ? null : Carbon::parse($reviewAt);
         if ($control === RecruitmentReentryControl::ReapplyAfter && $review === null) {
             throw ValidationException::withMessages(['review_at' => 'A reapply-after control requires a review date.']);
@@ -51,7 +52,9 @@ final readonly class SetRecruitmentReentryControl
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($candidate->merged_into_id !== null || $candidate->anonymized_at !== null) {
+            $candidate->ensureNotAnonymized();
+
+            if ($candidate->merged_into_id !== null) {
                 throw ValidationException::withMessages(['candidate' => 'This recruitment record cannot receive a re-entry control.']);
             }
 
@@ -80,7 +83,13 @@ final readonly class SetRecruitmentReentryControl
 
             $metadata = ['candidate_id' => (string) $candidate->id, 'from' => $before, 'to' => $after];
             $this->audit->record('recruitment.reentry_control_changed', $context->actor, $candidate, $context->alliance, $metadata);
-            $this->outbox->record('recruitment.reentry_control_changed', $allianceId, $candidate, $metadata);
+            $this->outbox->record('recruitment.reentry_control_changed', $allianceId, $candidate, [
+                'candidate_id' => (string) $candidate->id,
+                'from_control' => $before['control'],
+                'to_control' => $after['control'],
+                'reason_changed' => $before['reason'] !== $after['reason'],
+                'review_at_changed' => $before['review_at'] !== $after['review_at'],
+            ]);
 
             return (string) $candidate->id;
         });

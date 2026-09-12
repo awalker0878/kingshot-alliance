@@ -2,6 +2,15 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    searchChoices: '搜尋選項',
+    findChoices: '搜尋',
+    noChoices: '沒有符合的選項。',
+    choiceLookupFailed: '無法載入選項，請重試。',
+    activeConfigurationLimit: '最多啟用 {limit} 項。請停用一項後再新增其他項。',
+    historyItemsOnPage: '此頁有 {count} 筆記錄（最多 {pageSize} 筆）。',
+    bulkOutcome: {
+      'permission-denied': '權限不足',
+    },
     eyebrow: '聯盟招募',
     title: '招募',
     candidates: '候選人',

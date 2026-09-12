@@ -22,6 +22,7 @@ const props = defineProps<{
     blocking: boolean;
   };
   controls: string[];
+  reasonMaxLength: number;
 }>();
 
 const { t, formatDate } = useLocale();
@@ -89,7 +90,7 @@ function submit(): void {
             id="reentry-reason"
             v-model="form.reason"
             class="ks-input mt-2 min-h-32"
-            maxlength="5000"
+            :maxlength="reasonMaxLength"
           />
           <FormError :message="form.errors.reason" />
         </div>

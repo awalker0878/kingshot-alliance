@@ -2,6 +2,15 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    searchChoices: 'Pesquisar opções',
+    findChoices: 'Pesquisar',
+    noChoices: 'Nenhuma opção correspondente.',
+    choiceLookupFailed: 'Não foi possível carregar as opções. Tente novamente.',
+    activeConfigurationLimit: 'Até {limit} itens ativos. Desative um item para adicionar outro.',
+    historyItemsOnPage: '{count} registros nesta página (até {pageSize}).',
+    bulkOutcome: {
+      'permission-denied': 'Permissão negada',
+    },
     eyebrow: 'Recrutamento da aliança',
     title: 'Recrutamento',
     candidates: 'Candidatos',

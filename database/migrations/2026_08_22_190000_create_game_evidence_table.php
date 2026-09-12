@@ -40,6 +40,7 @@ return new class extends Migration
             $table->index(['alliance_id', 'sha256'], 'game_evidence_alliance_hash_idx');
             $table->index(['alliance_id', 'occurrence_id', 'perceptual_hash'], 'game_evidence_visual_hash_idx');
             $table->index(['alliance_id', 'lifecycle_status', 'created_at'], 'game_evidence_alliance_status_idx');
+            $table->index(['created_at', 'id'], 'game_evidence_retention_age_idx');
         });
     }
 

@@ -161,21 +161,6 @@ final class AllianceOverviewController extends Controller
             $memberTotal = $memberManagement['total'];
         }
 
-        $roleCatalog = [];
-        if ($canManageRoles) {
-            $roleCatalog = Role::query()
-                ->where('alliance_id', $scope->allianceId)
-                ->orderBy('name')
-                ->get()
-                ->map(static fn (Role $role): array => [
-                    'id' => (string) $role->id,
-                    'key' => (string) $role->key,
-                    'name' => (string) $role->name,
-                ])
-                ->values()
-                ->all();
-        }
-
         $notices = $contentQuery
             ->memberList($scope->allianceId, null, ContentType::Announcement->value)
             ->take(5)
@@ -231,7 +216,6 @@ final class AllianceOverviewController extends Controller
                 ),
                 'memberPage' => $memberPage,
                 'total' => $memberTotal,
-                'roleCatalog' => $roleCatalog,
                 'currentPlayerId' => $scope->playerId,
             ],
             'membershipBulkPreview' => $request->session()->get('membershipBulkPreview'),

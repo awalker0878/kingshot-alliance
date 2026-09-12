@@ -8,10 +8,11 @@ use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentOnboardingItem;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentConfigurationCapacity;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentInput;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 final class CreateRecruitmentOnboardingItem
 {
@@ -20,6 +21,7 @@ final class CreateRecruitmentOnboardingItem
         private AllianceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
+        private RecruitmentConfigurationCapacity $capacity,
     ) {}
 
     public function handle(
@@ -31,23 +33,22 @@ final class CreateRecruitmentOnboardingItem
         bool $isRequired = true,
         bool $isActive = true,
     ): string {
-        $cleanName = trim($name);
-        if ($cleanName === '') {
-            throw ValidationException::withMessages(['name' => 'An onboarding item name is required.']);
-        }
-
-        if ($position < 0 || $position > 65535) {
-            throw ValidationException::withMessages(['position' => 'The onboarding item position is invalid.']);
-        }
+        $cleanName = RecruitmentInput::requiredText($name, 'name', RecruitmentInput::LIMITS['onboardingName']);
+        $description = RecruitmentInput::optionalText($description, 'description', RecruitmentInput::LIMITS['description']);
+        RecruitmentInput::position($position);
 
         return DB::transaction(function () use ($actorPlayerId, $allianceId, $cleanName, $description, $position, $isRequired, $isActive): string {
-            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
+            $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
+
+            if ($isActive) {
+                $this->capacity->onboarding((string) $context->alliance->id);
+            }
 
             $item = RecruitmentOnboardingItem::query()->create([
                 'alliance_id' => $context->alliance->id,
                 'name' => $cleanName,
-                'description' => $description === null ? null : trim($description),
+                'description' => $description,
                 'position' => $position,
                 'is_required' => $isRequired,
                 'is_active' => $isActive,

@@ -41,4 +41,9 @@ final readonly class AllianceIntelligenceAuthorization
             IntelligencePermission::ContributionManage => $facts->rankObservedAtRead === AllianceRank::R5,
         };
     }
+
+    public function canView(string $playerId, string $allianceId): bool
+    {
+        return $this->allows($playerId, $allianceId, IntelligencePermission::View);
+    }
 }

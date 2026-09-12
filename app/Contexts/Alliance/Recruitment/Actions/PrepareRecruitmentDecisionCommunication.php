@@ -41,6 +41,8 @@ final class PrepareRecruitmentDecisionCommunication
                 ->sharedLock()
                 ->firstOrFail();
 
+            $candidate->ensureNotAnonymized();
+
             if ($candidate->merged_into_id !== null) {
                 throw ValidationException::withMessages([
                     'candidate' => 'Prepare communications from the current merged candidate record.',

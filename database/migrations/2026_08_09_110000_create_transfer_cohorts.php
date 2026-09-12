@@ -23,6 +23,8 @@ return new class extends Migration
             $table->text('manager_notes')->nullable();
             $table->timestamps();
             $table->index(['alliance_id', 'transfer_plan_id', 'state']);
+            $table->index(['alliance_id', 'transfer_plan_id', 'id'], 'transfer_cohort_catalogue_cursor');
+            $table->index(['alliance_id', 'transfer_plan_id', 'state', 'direction', 'id'], 'transfer_cohort_choice_cursor');
             $table->index(['transfer_plan_id', 'direction', 'destination_kingdom_id']);
         });
         DB::statement('CREATE UNIQUE INDEX transfer_cohorts_one_active_name_per_plan ON transfer_cohorts (transfer_plan_id, lower(name)) WHERE state = \'active\'');

@@ -29,8 +29,6 @@ final class RecentAuthentication
             self::AT,
             self::METHOD,
             self::CREDENTIAL,
-            'auth.password_confirmed_at',
-            'accounts.google_reauthenticated_at',
         ]);
     }
 
@@ -40,16 +38,6 @@ final class RecentAuthentication
         $threshold = (int) now()->timestamp - $timeout;
         $confirmedAt = (int) $request->session()->get(self::AT, 0);
 
-        if ($confirmedAt >= $threshold) {
-            return true;
-        }
-
-        // Transitional aliases are accepted while existing routes/tests are reconciled.
-        $legacyConfirmedAt = max(
-            (int) $request->session()->get('auth.password_confirmed_at', 0),
-            (int) $request->session()->get('accounts.google_reauthenticated_at', 0),
-        );
-
-        return $legacyConfirmedAt >= $threshold;
+        return $confirmedAt >= $threshold;
     }
 }

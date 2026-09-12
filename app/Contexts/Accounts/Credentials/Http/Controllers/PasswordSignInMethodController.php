@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Credentials\Http\Controllers;
 
-use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
 use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
 use App\Contexts\Accounts\Credentials\Actions\AddPassword;
 use App\Contexts\Accounts\Credentials\Actions\RemovePassword;
@@ -19,7 +18,6 @@ final class PasswordSignInMethodController extends Controller
     public function store(
         Request $request,
         AddPassword $addPassword,
-        RevokeOtherAccountSessions $revokeOtherSessions,
         RecentAuthentication $recentAuthentication,
     ): RedirectResponse {
         $user = $request->user();
@@ -29,8 +27,7 @@ final class PasswordSignInMethodController extends Controller
             'password' => ['required', 'confirmed', Password::min(12)->letters()->mixedCase()->numbers()],
         ]);
 
-        $addPassword->handle((int) $user->id, (string) $validated['password']);
-        $revokeOtherSessions->handle((int) $user->id, $request->session()->getId());
+        $addPassword->handle((int) $user->id, (string) $validated['password'], $request->session()->getId());
         $recentAuthentication->clear($request);
 
         return redirect()->route('profile.show')->with('actionReceipt', $this->receipt('password-added'));
@@ -39,14 +36,12 @@ final class PasswordSignInMethodController extends Controller
     public function destroy(
         Request $request,
         RemovePassword $removePassword,
-        RevokeOtherAccountSessions $revokeOtherSessions,
         RecentAuthentication $recentAuthentication,
     ): RedirectResponse {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
 
-        $removePassword->handle((int) $user->id);
-        $revokeOtherSessions->handle((int) $user->id, $request->session()->getId());
+        $removePassword->handle((int) $user->id, $request->session()->getId());
         $recentAuthentication->clear($request);
 
         return redirect()->route('profile.show')->with('actionReceipt', $this->receipt('password-removed'));

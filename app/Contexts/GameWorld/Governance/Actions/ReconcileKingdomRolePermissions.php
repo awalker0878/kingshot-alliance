@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\Governance\Actions;
 
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Shared\Infrastructure\Access\Models\Permission;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -28,7 +29,17 @@ final readonly class ReconcileKingdomRolePermissions
             throw new RuntimeException('Permission owner key is required for exact reconciliation.');
         }
 
+        if (count($permissionKeysByRoleId) > 50) {
+            throw new RuntimeException('Exact reconciliation supports at most 50 roles.');
+        }
+        foreach ($permissionKeysByRoleId as $keys) {
+            if (! array_is_list($keys) || count($keys) > 50) {
+                throw new RuntimeException('Exact reconciliation supports lists of at most 50 permissions per role.');
+            }
+        }
+
         DB::transaction(function () use ($kingdomId, $permissionOwnerKey, $permissionKeysByRoleId): void {
+            Kingdom::query()->whereKey($kingdomId)->lockForUpdate()->firstOrFail();
             $roles = KingdomRole::query()
                 ->where('kingdom_id', $kingdomId)
                 ->whereIn('id', array_keys($permissionKeysByRoleId))

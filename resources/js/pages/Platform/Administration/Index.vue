@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { computed, watch } from 'vue';
+import PlatformCataloguePager from '@/components/platform/PlatformCataloguePager.vue';
+import type { PlatformPage } from '@/components/platform/platformPages';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
@@ -62,6 +64,17 @@ const props = defineProps<{
   user: { name: string; email: string };
   platform: {
     metrics: Record<string, number>;
+    pagination: Record<
+      | 'alliances'
+      | 'administrators'
+      | 'legalHolds'
+      | 'outboxFailures'
+      | 'webhookFailures'
+      | 'notificationFailures'
+      | 'failedJobs'
+      | 'correlatedAudit',
+      PlatformPage
+    >;
     alliances: AllianceRow[];
     administrators: Array<{
       id: string;
@@ -91,15 +104,15 @@ const props = defineProps<{
       correlatedAudit: CorrelatedAudit[];
     };
   };
-  selectedAlliance: null | {
-    id: string;
-    name: string;
-    features: Array<{
-      key: string;
-      enabled: boolean;
-      configuration: Record<string, unknown> | null;
-    }>;
-  };
+  selectedAlliance:
+    | null
+    | (AllianceRow & {
+        featuresPagination: PlatformPage;
+        features: Array<{
+          key: string;
+          enabled: boolean;
+        }>;
+      });
   currentUserId: number;
 }>();
 
@@ -112,12 +125,13 @@ const lifecycleForm = useForm({ reason: '' });
 const featureForm = useForm({ feature_key: '', enabled: true });
 const correlationForm = useForm({ correlation: props.platform.diagnostics.correlation ?? '' });
 
-const selected = computed(() =>
-  props.selectedAlliance
-    ? (props.platform.alliances.find((alliance) => alliance.id === props.selectedAlliance?.id) ??
-      null)
-    : null,
+const currentPage = usePage();
+const catalogueScope = computed(() => `${props.currentUserId}`);
+const featureScope = computed(() => `${catalogueScope.value}:${props.selectedAlliance?.id ?? ''}`);
+const auditScope = computed(
+  () => `${catalogueScope.value}:${props.platform.diagnostics.correlation ?? ''}`,
 );
+const selected = computed(() => props.selectedAlliance);
 
 const planForm = useForm({ plan_code: selected.value?.plan ?? 'standard' });
 const settingsForm = useForm({
@@ -126,6 +140,35 @@ const settingsForm = useForm({
   api_access_enabled: selected.value?.apiAccessEnabled ?? true,
   webhooks_enabled: selected.value?.webhooksEnabled ?? true,
 });
+
+watch(featureScope, () => {
+  lifecycleForm.reset();
+  lifecycleForm.clearErrors();
+  featureForm.reset();
+  featureForm.clearErrors();
+  planForm.plan_code = selected.value?.plan ?? 'standard';
+  planForm.clearErrors();
+  settingsForm.retention_days = selected.value?.retentionDays ?? 30;
+  settingsForm.queue_partition = selected.value?.queuePartition ?? 'standard';
+  settingsForm.api_access_enabled = selected.value?.apiAccessEnabled ?? true;
+  settingsForm.webhooks_enabled = selected.value?.webhooksEnabled ?? true;
+  settingsForm.clearErrors();
+});
+watch(catalogueScope, () => {
+  adminForm.reset();
+  adminForm.clearErrors();
+  holdForm.reset();
+  holdForm.clearErrors();
+  correlationForm.reset();
+  correlationForm.clearErrors();
+  cancelConfirmation();
+});
+function allianceUrl(id: string): string {
+  const url = new URL(currentPage.url, 'https://platform.invalid');
+  url.searchParams.set('alliance', id);
+  url.searchParams.delete('features_cursor');
+  return url.pathname + url.search;
+}
 
 const fleetMetricKeys = [
   'alliances',
@@ -225,7 +268,14 @@ function lifecycle(operation: 'suspend' | 'close' | 'delete' | 'restore'): void 
 }
 
 function searchCorrelation(): void {
-  correlationForm.get('/platform', { preserveScroll: true, preserveState: true, replace: true });
+  const url = new URL(currentPage.url, window.location.origin);
+  url.searchParams.delete('correlatedAudit_cursor');
+  url.searchParams.delete('correlation');
+  correlationForm.get(url.pathname + url.search, {
+    preserveScroll: true,
+    preserveState: true,
+    replace: true,
+  });
 }
 
 function retryOutbox(failure: DiagnosticFailure): void {
@@ -297,7 +347,7 @@ function diagnosticTitle(item: DiagnosticFailure): string {
       />
       <StatSeal
         :label="t('platformAdmin.administrators')"
-        :value="platform.administrators.filter((admin) => !admin.revokedAt).length"
+        :value="platform.metrics.activeAdministrators ?? 0"
         icon="♛"
       />
     </section>
@@ -392,7 +442,7 @@ function diagnosticTitle(item: DiagnosticFailure): string {
         >
           <div class="flex flex-wrap items-center justify-between gap-3">
             <h3 class="font-semibold">{{ t('platformAdmin.correlatedAudit') }}</h3>
-            <span class="ks-chip">{{ platform.diagnostics.correlatedAudit.length }}</span>
+            <span class="ks-chip">{{ platform.pagination.correlatedAudit.total }}</span>
           </div>
           <ol v-if="platform.diagnostics.correlatedAudit.length" class="mt-3 space-y-2">
             <li
@@ -412,6 +462,12 @@ function diagnosticTitle(item: DiagnosticFailure): string {
             </li>
           </ol>
           <div v-else class="ks-fantasy-empty mt-3">{{ t('platformAdmin.noCorrelatedAudit') }}</div>
+          <PlatformCataloguePager
+            kind="correlatedAudit"
+            :page="platform.pagination.correlatedAudit"
+            :label="t('platformAdmin.correlatedAudit')"
+            :scope="auditScope"
+          />
         </div>
       </div>
 
@@ -428,7 +484,7 @@ function diagnosticTitle(item: DiagnosticFailure): string {
                 }}
               </p>
             </div>
-            <span class="ks-chip">{{ platform.diagnostics.outboxFailures.length }}</span>
+            <span class="ks-chip">{{ platform.pagination.outboxFailures.total }}</span>
           </div>
           <div v-if="platform.diagnostics.outboxFailures.length" class="mt-4 space-y-3">
             <div
@@ -460,6 +516,13 @@ function diagnosticTitle(item: DiagnosticFailure): string {
             </div>
           </div>
           <div v-else class="ks-fantasy-empty mt-4">{{ t('platformAdmin.noOutboxFailures') }}</div>
+
+          <PlatformCataloguePager
+            kind="outboxFailures"
+            :page="platform.pagination.outboxFailures"
+            :label="t('platformAdmin.outboxFailures')"
+            :scope="catalogueScope"
+          />
         </article>
 
         <article class="ks-surface p-5">
@@ -470,7 +533,7 @@ function diagnosticTitle(item: DiagnosticFailure): string {
                 {{ t('platformAdmin.webhookFailureHelp') }}
               </p>
             </div>
-            <span class="ks-chip">{{ platform.diagnostics.webhookFailures.length }}</span>
+            <span class="ks-chip">{{ platform.pagination.webhookFailures.total }}</span>
           </div>
           <div v-if="platform.diagnostics.webhookFailures.length" class="mt-4 space-y-3">
             <div
@@ -488,12 +551,19 @@ function diagnosticTitle(item: DiagnosticFailure): string {
             </div>
           </div>
           <div v-else class="ks-fantasy-empty mt-4">{{ t('platformAdmin.noWebhookFailures') }}</div>
+
+          <PlatformCataloguePager
+            kind="webhookFailures"
+            :page="platform.pagination.webhookFailures"
+            :label="t('platformAdmin.webhookFailures')"
+            :scope="catalogueScope"
+          />
         </article>
 
         <article class="ks-surface p-5">
           <div class="flex items-start justify-between gap-3">
             <h3 class="font-semibold">{{ t('platformAdmin.notificationFailures') }}</h3>
-            <span class="ks-chip">{{ platform.diagnostics.notificationFailures.length }}</span>
+            <span class="ks-chip">{{ platform.pagination.notificationFailures.total }}</span>
           </div>
           <div v-if="platform.diagnostics.notificationFailures.length" class="mt-4 space-y-3">
             <div
@@ -515,12 +585,19 @@ function diagnosticTitle(item: DiagnosticFailure): string {
           <div v-else class="ks-fantasy-empty mt-4">
             {{ t('platformAdmin.noNotificationFailures') }}
           </div>
+
+          <PlatformCataloguePager
+            kind="notificationFailures"
+            :page="platform.pagination.notificationFailures"
+            :label="t('platformAdmin.notificationFailures')"
+            :scope="catalogueScope"
+          />
         </article>
 
         <article class="ks-surface p-5">
           <div class="flex items-start justify-between gap-3">
             <h3 class="font-semibold">{{ t('platformAdmin.failedJobs') }}</h3>
-            <span class="ks-chip">{{ platform.diagnostics.failedJobs.length }}</span>
+            <span class="ks-chip">{{ platform.pagination.failedJobs.total }}</span>
           </div>
           <div v-if="platform.diagnostics.failedJobs.length" class="mt-4 space-y-3">
             <div
@@ -540,6 +617,13 @@ function diagnosticTitle(item: DiagnosticFailure): string {
             </div>
           </div>
           <div v-else class="ks-fantasy-empty mt-4">{{ t('platformAdmin.noFailedJobs') }}</div>
+
+          <PlatformCataloguePager
+            kind="failedJobs"
+            :page="platform.pagination.failedJobs"
+            :label="t('platformAdmin.failedJobs')"
+            :scope="catalogueScope"
+          />
         </article>
       </div>
     </section>
@@ -567,7 +651,16 @@ function diagnosticTitle(item: DiagnosticFailure): string {
               type="email"
               required
               class="ks-input"
+              :aria-invalid="!!adminForm.errors.email"
+              :aria-describedby="adminForm.errors.email ? 'platform-admin-email-error' : undefined"
             />
+            <span
+              v-if="adminForm.errors.email"
+              id="platform-admin-email-error"
+              role="alert"
+              class="text-xs text-rose-300"
+              >{{ adminForm.errors.email }}</span
+            >
           </label>
           <button
             type="submit"
@@ -658,6 +751,13 @@ function diagnosticTitle(item: DiagnosticFailure): string {
             </button>
           </article>
         </div>
+
+        <PlatformCataloguePager
+          kind="administrators"
+          :page="platform.pagination.administrators"
+          :label="t('platformAdmin.administrators')"
+          :scope="catalogueScope"
+        />
       </section>
     </div>
 
@@ -720,7 +820,9 @@ function diagnosticTitle(item: DiagnosticFailure): string {
               <td class="px-3 py-3">
                 <div class="flex flex-wrap gap-2">
                   <Link
-                    :href="`/platform?alliance=${alliance.id}`"
+                    :href="allianceUrl(alliance.id)"
+                    preserve-state
+                    preserve-scroll
                     class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-2.5 py-1.5 text-xs font-semibold"
                     >{{ t('platformAdmin.manage') }}</Link
                   >
@@ -778,7 +880,9 @@ function diagnosticTitle(item: DiagnosticFailure): string {
           </dl>
           <div class="mt-4 flex flex-wrap gap-2">
             <Link
-              :href="`/platform?alliance=${alliance.id}`"
+              :href="allianceUrl(alliance.id)"
+              preserve-state
+              preserve-scroll
               class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-2.5 py-1.5 text-xs font-semibold"
               >{{ t('platformAdmin.manage') }}</Link
             >
@@ -797,6 +901,13 @@ function diagnosticTitle(item: DiagnosticFailure): string {
           </div>
         </article>
       </div>
+
+      <PlatformCataloguePager
+        kind="alliances"
+        :page="platform.pagination.alliances"
+        :label="t('platformAdmin.allianceFleet')"
+        :scope="catalogueScope"
+      />
     </section>
 
     <section
@@ -978,6 +1089,12 @@ function diagnosticTitle(item: DiagnosticFailure): string {
             <p v-else class="mt-2 text-xs text-[var(--ks-text-muted)]">
               {{ t('platformAdmin.noFeatures') }}
             </p>
+            <PlatformCataloguePager
+              kind="features"
+              :page="selectedAlliance.featuresPagination"
+              :label="t('platformAdmin.configuredFeatures')"
+              :scope="featureScope"
+            />
           </div>
         </form>
       </div>
@@ -1105,6 +1222,13 @@ function diagnosticTitle(item: DiagnosticFailure): string {
         <p v-else class="mt-5 text-sm text-[var(--ks-text-muted)]">
           {{ t('platformAdmin.noLegalHolds') }}
         </p>
+
+        <PlatformCataloguePager
+          kind="legalHolds"
+          :page="platform.pagination.legalHolds"
+          :label="t('platformAdmin.legalHolds')"
+          :scope="catalogueScope"
+        />
       </section>
 
       <section aria-labelledby="localization-heading" class="ks-surface p-5 sm:p-6">

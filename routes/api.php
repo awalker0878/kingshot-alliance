@@ -14,34 +14,34 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/internal/gift-code-sources/{source}/observations', GiftCodeSourceWebhookController::class)
     ->whereUlid('source')
-    ->middleware('throttle:60,1')
+    ->middleware(['throttle:120,1,gift-source-ingress:', 'throttle:60,1,gift-source-internal:'])
     ->name('api.internal.gift-code-sources.observations');
 
 Route::get('/gift-code-sources/{source}/youtube-websub', [YouTubeWebSubGiftCodeController::class, 'verify'])
     ->whereUlid('source')
-    ->middleware('throttle:120,1')
+    ->middleware('throttle:120,1,gift-source-ingress:')
     ->name('api.gift-code-sources.youtube-websub.verify');
 Route::post('/gift-code-sources/{source}/youtube-websub', [YouTubeWebSubGiftCodeController::class, 'receive'])
     ->whereUlid('source')
-    ->middleware('throttle:120,1')
+    ->middleware('throttle:120,1,gift-source-ingress:')
     ->name('api.gift-code-sources.youtube-websub.receive');
 
 Route::get('/gift-code-sources/{source}/facebook-webhook', [FacebookPageGiftCodeWebhookController::class, 'verify'])
     ->whereUlid('source')
-    ->middleware('throttle:120,1')
+    ->middleware('throttle:120,1,gift-source-ingress:')
     ->name('api.gift-code-sources.facebook-webhook.verify');
 Route::post('/gift-code-sources/{source}/facebook-webhook', [FacebookPageGiftCodeWebhookController::class, 'receive'])
     ->whereUlid('source')
-    ->middleware('throttle:120,1')
+    ->middleware('throttle:120,1,gift-source-ingress:')
     ->name('api.gift-code-sources.facebook-webhook.receive');
 
 Route::get('/gift-code-sources/{source}/x-webhook', [XGiftCodeWebhookController::class, 'verify'])
     ->whereUlid('source')
-    ->middleware('throttle:120,1')
+    ->middleware('throttle:120,1,gift-source-ingress:')
     ->name('api.gift-code-sources.x-webhook.verify');
 Route::post('/gift-code-sources/{source}/x-webhook', [XGiftCodeWebhookController::class, 'receive'])
     ->whereUlid('source')
-    ->middleware('throttle:120,1')
+    ->middleware('throttle:120,1,gift-source-ingress:')
     ->name('api.gift-code-sources.x-webhook.receive');
 
 Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
@@ -66,7 +66,7 @@ Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
         ->name('api.v1.commands.knowledge');
 
     Route::post('/actor-links/claims', [ExternalActorApiController::class, 'claim'])
-        ->middleware(['api.credential:actor-links:write', 'throttle:10,1'])
+        ->middleware(['api.credential:actor-links:write', 'throttle:10,1,api-actor-claim:'])
         ->name('api.v1.actor-links.claim');
     Route::put('/me/events/{occurrence}/response', [ExternalActorApiController::class, 'respond'])
         ->whereUlid('occurrence')

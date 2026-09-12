@@ -10,19 +10,20 @@ Date: 2026-09-07
 
 KingdomMaps introduced class-based commands under its capability and registered them through `KingdomMapsServiceProvider`. Intelligence Evidence already used the same pattern for `EvidenceDiagnosticsCommand`. Keeping both patterns would make command ownership depend on when a feature was implemented rather than on an architectural rule.
 
-The repository also has application actions owned by read models and cross-context workflows. Placing a CLI adapter for one of those actions inside an unrelated context would invert the dependency direction merely to satisfy a directory convention.
+The repository also exposes composed queries and cross-context workflows. Placing their CLI adapters inside an unrelated context would invert the dependency direction merely to satisfy a directory convention. [ADR-0018](0018-notification-orchestration-workflow.md) removes notification Actions formerly placed in ReadModels and establishes their correct Workflow owner.
 
 ## Decision
 
 Console commands are application adapters owned by the application package whose action, query or service they expose.
 
 - Context capability command implementations live under the owning capability at `app/Contexts/.../Console/Commands`.
-- Commands that directly expose a read-model action live under that read model at `app/ReadModels/.../Console/Commands`.
+- Commands that expose read-only composed Queries may live under that read model at `app/ReadModels/.../Console/Commands`. ReadModels do not own Actions or notification-writing orchestration.
 - Commands that directly expose cross-context workflow orchestration live under that workflow at `app/Workflows/.../Console/Commands`.
 - Each command is registered from a service provider in the same owning application package.
 - A command class may parse CLI arguments and options, perform CLI-specific validation and cursor handling, invoke the owner's Actions, Queries or Services, render output and select an exit code.
 - Domain and application behavior stays in Actions, Queries, Services and workflows; command classes do not become a new business-logic layer.
 - `routes/console.php` remains the centralized location for global scheduling and may contain only deliberately small application-wide closure commands.
+- [ADR-0017](0017-single-scheduler-registry.md) enforces one scheduler registry: bootstrap and providers do not register additional schedules; recurring workloads invoke owner commands.
 - Shared infrastructure commands may live with the infrastructure component that owns them and are registered by its infrastructure provider.
 - Existing command names, options, outputs and schedules are preserved when moving a closure into a class. No compatibility shim is required.
 

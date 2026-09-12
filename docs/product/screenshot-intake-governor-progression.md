@@ -1,6 +1,6 @@
 # Screenshot Intake: Governor Progression
 
-Status: Current complete capability — verified 2026-08-30
+Status: Complete — nine-kind pipeline, lifecycle, retention and query-budget hardening verified 2026-09-08
 
 This document is the single implementation source of truth for Screenshot Intake: Governor Progression. The capability is not complete until every requirement and delivery-ledger item below agrees with implementation, tests, UX, architecture/reference/operations documentation and all applicable repository gates on one immutable candidate SHA.
 
@@ -87,7 +87,7 @@ Application validation and database constraints enforce mutual exclusion among B
 
 ## Supported v1 screenshot classes
 
-Only these six classes are supported. Each has an explicit `EvidenceKind`, schema version, executable fixture corpus, allowlisted fields, confidence thresholds and dedicated Roster destination action.
+Nine explicit classes are implemented. The three structured classes added below passed HARD-010 integration verification. Each has an explicit `EvidenceKind`, schema version, executable fixture corpus, allowlisted fields, confidence thresholds and dedicated Roster destination action.
 
 ### `governor_profile`
 
@@ -112,6 +112,14 @@ May observe explicit screen-local Governor gear slots and directly visible quali
 ### `governor_charms`
 
 May observe explicit screen-local Charm slots and directly visible level. An OCR-visible Charm name may be retained as Evidence provenance, but v1 does not create or commit a canonical `charm_id` because the current pinned Progression release publishes a Charm level ladder rather than Charm identity IDs.
+
+### Structured building and research classes
+
+`governor_buildings`, `governor_academy_research` and `governor_war_academy_research` use their respective `/1` schemas and the existing `RecordStructuredProgressionEvidence` destination. Independent classification requires an explicit **Governor Buildings** (or **Buildings**), **Academy Research**, or **War Academy Research** heading. Mixed Academy/War Academy headings are ambiguous. Expected kind selection cannot determine the detected kind.
+
+Extraction accepts explicit `Building: <name> Level <integer>` or `Technology: <name> Level <integer>` rows (including `Lv.`). Row ordinals, raw OCR, bounds and confidence stay attached. Missing levels stay absent; unrelated power/cost/time numbers and formatted, negative or fractional levels are not inferred. This is a narrow English label contract. Synthetic OCR fixtures exercise these boundaries and do not establish support for arbitrary screenshots, layouts or languages.
+
+Review submits closed `states` rows. The Roster validator resolves reviewed names/IDs to the pinned family and validates level/state identity; unknown names, missing levels, impossible states and duplicate subjects fail. Evidence cannot manufacture canonical subjects. Accepted states use the same append-only history, idempotent receipt, scope/provenance checks and owner authorization as the other kinds. HARD-010 records passed database-backed pipeline verification and documentation reconciliation on `5a01bf68930c52cfac3ee77564e2f5a1570ae1ad`.
 
 ### Deferred screenshot families
 
@@ -236,7 +244,7 @@ Narrow screenshot observations use a dedicated append-only Governor Progression 
 
 Each observation retains Alliance ID, Roster entry ID, Player ID, kind, typed payload, captured time, pinned dataset ID/checksum, `source=screenshot_evidence`, Evidence/review provenance, destination idempotency key and acceptance metadata.
 
-Evidence commits through six explicit Roster actions:
+Evidence commits through explicit Roster actions:
 
 - `RecordGovernorProfileEvidence`
 - `RecordHeroRosterEvidence`
@@ -244,6 +252,7 @@ Evidence commits through six explicit Roster actions:
 - `RecordHeroGearEvidence`
 - `RecordGovernorGearEvidence`
 - `RecordGovernorCharmsEvidence`
+- `RecordStructuredProgressionEvidence` for building/Academy/War Academy states
 
 Every action reacquires current authority, re-resolves target scope, validates exact approved-review provenance and pinned dataset, validates canonical IDs/factual bounds, appends owner history atomically, enforces stable destination idempotency and returns a scalar receipt.
 
@@ -311,7 +320,7 @@ Evidence retention may remove image/OCR/raw sensitive material after policy boun
 
 The family is complete only when all are true:
 
-1. Six v1 screenshot kinds are explicit `EvidenceKind` cases with registered schemas and executable fixture corpora.
+1. Nine screenshot kinds are explicit `EvidenceKind` cases with registered schemas and executable fixture corpora.
 2. Independent classification rejects mismatches/unsupported UI safely, including generic Charm screens.
 3. Extraction emits only allowlisted fixture-proven fields, preserves provenance and respects compound-field boundaries.
 4. Normalization pins immutable Progression dataset ID/checksum and preserves match provenance.
@@ -320,7 +329,7 @@ The family is complete only when all are true:
 7. Review cannot create canonical Progression identities/facts and preserves machine output when corrected.
 8. Application/database enforce explicit Governor/Roster Evidence scope without generic polymorphism.
 9. Governor review provenance uses a dedicated Evidence-owned contract; shared Evidence contracts remain family-neutral.
-10. Six destination actions reacquire authority and validate scope, provenance and exact pinned dataset.
+10. Six original destination actions plus the structured-state destination reacquire authority and validate scope, provenance and exact pinned dataset.
 11. Accepted observations are append-only, closed/typed and owner-idempotent.
 12. Hero identity and catalogue-backed facts/bounds validate against the pinned release; screen-local slots remain non-canonical structure.
 13. Partial observations do not erase unobserved state; complete roster semantics are explicit and Hero-Roster-only.
@@ -379,4 +388,4 @@ Status values: `Planned`, `In progress`, `Complete`, `Blocked`. `Complete` requi
 | GP-21 | Unit/feature/fixture/authorization/idempotency/interface/catalogue-bound tests | Complete |
 | GP-22 | Repository-wide release verification on one immutable candidate | Complete |
 
-The family is **Current complete**. A future failed required gate or contract regression reopens the affected ledger row.
+The six-kind release remains the historical verified baseline. The nine-kind pipeline, lifecycle guards, retention/redaction and bounded summary queries pass all nine candidate workflows on `51416d5d70c93393a657b232e488788072d63a00` (737 PHP tests, 73,514 assertions). HARD-010 and HARD-013–017 are Complete in the [hardening ledger](codebase-hardening-delivery-ledger.md). This capability verification does not complete the repository-wide hardening program.

@@ -8,6 +8,7 @@ use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\ValueObjects\TenantContextSnapshot;
 use App\Contexts\Platform\Integrations\Actions\RecordApiCredentialUse;
 use App\Contexts\Platform\Integrations\Models\ApiCredential;
+use App\Contexts\Platform\Integrations\Policies\IntegrationRuntimePolicy;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,6 +18,7 @@ final readonly class AuthenticateApiCredential
     public function __construct(
         private RecordApiCredentialUse $recordUse,
         private AllianceReferenceQuery $alliances,
+        private IntegrationRuntimePolicy $availability,
     ) {}
 
     public function handle(Request $request, Closure $next, string $requiredScope = 'alliance:read'): Response
@@ -38,7 +40,7 @@ final readonly class AuthenticateApiCredential
         }
 
         $alliance = $this->alliances->find((string) $credential->alliance_id);
-        if ($alliance === null || ! $alliance->active()) {
+        if ($alliance === null || ! $this->availability->allowsApi($alliance->allianceId)) {
             abort(403, 'The alliance is not available for API access.');
         }
 

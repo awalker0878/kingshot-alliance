@@ -26,6 +26,12 @@ final class AllianceReferenceQuery
         return $this->snapshot(Alliance::query()->whereKey($allianceId)->lockForUpdate()->firstOrFail());
     }
 
+    /** Lower-scope references must not wait while their caller holds other owners' rows. */
+    public function lockCurrentNowait(string $allianceId): AllianceReference
+    {
+        return $this->snapshot(Alliance::query()->whereKey($allianceId)->lock('for update nowait')->firstOrFail());
+    }
+
     public function exists(string $allianceId): bool
     {
         return Alliance::query()->whereKey($allianceId)->exists();
@@ -34,7 +40,14 @@ final class AllianceReferenceQuery
     /** @return list<AllianceReference> */
     public function all(int $limit = 500): array
     {
+        return $this->after(null, $limit);
+    }
+
+    /** @return list<AllianceReference> */
+    public function after(?string $allianceId, int $limit = 500): array
+    {
         return array_values(Alliance::query()
+            ->when($allianceId !== null, static fn ($query) => $query->where('id', '>', $allianceId))
             ->orderBy('id')
             ->limit(max(1, min(5000, $limit)))
             ->get()

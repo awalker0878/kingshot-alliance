@@ -36,6 +36,9 @@ final readonly class CreateAllianceRole
         if ($name === '' || $key === '') {
             throw ValidationException::withMessages(['name' => 'Role name is required.']);
         }
+        if (mb_strlen($name) > 100 || strlen($key) > 64) {
+            throw ValidationException::withMessages(['name' => 'Use a shorter role name.']);
+        }
 
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $name, $key, $permissions): string {
             $context = $this->writeState->lockActiveScope($actorPlayerId, $allianceId);
@@ -44,17 +47,19 @@ final readonly class CreateAllianceRole
                 $this->authorization->authorizeContext($context, $permission);
             }
 
-            if (Role::query()->where('alliance_id', $allianceId)->where('key', $key)->lockForUpdate()->exists()) {
-                throw ValidationException::withMessages(['name' => 'A specialist role with this key already exists.']);
-            }
-
-            $role = Role::query()->create([
+            // firstOrCreate uses a savepoint for a competing unique-key insert.
+            // An existing winner is validation feedback, never an update target.
+            $role = Role::query()->firstOrCreate([
                 'alliance_id' => $allianceId,
                 'key' => $key,
+            ], [
                 'name' => $name,
                 'is_system' => false,
                 'archived_at' => null,
             ]);
+            if (! $role->wasRecentlyCreated) {
+                throw ValidationException::withMessages(['name' => 'A specialist role with this key already exists.']);
+            }
 
             $permissionIds = [];
             foreach ($permissions as $permission) {

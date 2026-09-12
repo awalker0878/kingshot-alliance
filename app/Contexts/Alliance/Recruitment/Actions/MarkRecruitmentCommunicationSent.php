@@ -30,23 +30,32 @@ final class MarkRecruitmentCommunicationSent
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
-            $locked = RecruitmentCommunication::query()
+            $routing = RecruitmentCommunication::query()
+                ->select(['candidate_id'])
                 ->where('alliance_id', $context->alliance->id)
                 ->whereKey($communicationId)
-                ->lockForUpdate()
                 ->firstOrFail();
 
             $candidate = RecruitmentCandidate::query()
-                ->whereKey($locked->candidate_id)
+                ->whereKey($routing->candidate_id)
                 ->where('alliance_id', $context->alliance->id)
                 ->sharedLock()
                 ->firstOrFail();
+
+            $candidate->ensureNotAnonymized();
 
             if ($candidate->merged_into_id !== null) {
                 throw ValidationException::withMessages([
                     'candidate' => 'Communication state must be updated on the current merged candidate record.',
                 ]);
             }
+
+            $locked = RecruitmentCommunication::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->where('candidate_id', $candidate->id)
+                ->whereKey($communicationId)
+                ->lockForUpdate()
+                ->firstOrFail();
 
             if ($locked->status === RecruitmentCommunicationStatus::Sent) {
                 return (string) $locked->id;

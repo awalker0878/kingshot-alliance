@@ -35,7 +35,7 @@ final readonly class MarkRosterEntryLeft
             }
             $routing = AllianceRosterEntry::query()->where('alliance_id', $allianceId)->whereKey($rosterEntryId)->firstOrFail();
             $this->players->lockCurrent((string) $routing->player_id);
-            $entry = AllianceRosterEntry::query()->where('alliance_id', $allianceId)->whereKey($rosterEntryId)->lockForUpdate()->firstOrFail();
+            $entry = AllianceRosterEntry::query()->where('alliance_id', $allianceId)->whereKey($rosterEntryId)->where('player_id', $routing->player_id)->lockForUpdate()->firstOrFail();
             if ($entry->state !== RosterState::Left) {
                 $entry->forceFill(['state' => RosterState::Left, 'left_at' => now(), 'last_observed_at' => now(), 'source' => 'manual'])->save();
                 $metadata = [

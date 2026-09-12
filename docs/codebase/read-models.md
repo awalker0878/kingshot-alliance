@@ -38,12 +38,14 @@ Examples of V3 cross-context composition include:
 - `ReadModels/CommandOverview` for recomputable R4/R5 owner attention plus deterministic Officer Brief projections;
 - `ReadModels/NotificationDelivery` for bounded active-membership recipient pages used by scheduled Officer Brief and Intelligence delivery orchestration;
 - `ReadModels/ContributionHistory` for contribution-history presentation over Intelligence-owned contribution facts;
-- `ReadModels/RecruitmentManagement` for the filterable, cursor-paginated recruitment pipeline and authorized Transfer Campaign workspace over Recruitment, Membership, Transfer, Evidence and Communications facts;
+- `ReadModels/AnnouncementBroadcastManagement` for current-manager catalogue presentation, independent category/media and per-item revision/run pages, and exact retained outcomes composed from Communications; [ADR-0052](../architecture/adr/0052-bounded-current-manager-content-workspaces.md) defines the owner boundary and cursor semantics;
+- `ReadModels/RecruitmentManagement` for the filterable, cursor-paginated recruitment pipeline, authorized candidate-detail composition with independent bounded history pages, and authorized Transfer Campaign workspace over Recruitment, Membership, Transfer, Evidence and Communications facts;
+- `ReadModels/TransferManagement` for authorized Transfer overview and management composition over Alliance, Player and GameWorld owners; the context HTTP controller remains a thin adapter for plan mutations.
 - `ReadModels/Roster` for roster/history/intelligence presentation and the factual Member Capability Profile over Alliance, GameWorld, Operations and Intelligence facts;
 - `ReadModels/KingdomIntelligence` and `ReadModels/SharedKingdomIntelligence` for composed intelligence screens, including the bounded owner-linked Kingdom Intelligence Timeline;
 - `ReadModels/AllianceAssistant` for closed, source-backed questions over exact authorized owner projections and navigation-only write handoffs;
 - Platform administration and launch-readiness projections that read across tenant/context ownership.
 
-Officer Brief fingerprints and Intelligence signals are semantic values derived from composed owner facts. Their queue actions authorize and build those read projections, then pass immutable scalar payloads to Communications-owned publishers. Communications may persist preference/attempt/receipt state, but recipient sweeps, briefs, signals and Alliance attention are not persisted as parallel domain truth.
+Officer Brief fingerprints and Intelligence signals are semantic values derived from composed owner facts. `Workflows/NotificationDelivery` owns their queue Actions, publishers, CLI adapters and execution results. It consumes the authorized ReadModel projections and passes immutable delivery intent to Communications. Communications persists preference/attempt/receipt state; ReadModels own no queue Actions or writer dependencies, and briefs/signals/Alliance attention are not persisted as parallel domain truth.
 
 Moving a query into a ReadModel does not transfer write ownership. Source facts remain owned by their business contexts.

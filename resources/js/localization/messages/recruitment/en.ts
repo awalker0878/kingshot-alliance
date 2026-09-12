@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    searchChoices: 'Search choices',
+    findChoices: 'Search',
+    noChoices: 'No matching choices.',
+    choiceLookupFailed: 'Could not load choices. Try again.',
+    activeConfigurationLimit:
+      'Up to {limit} active items. Deactivate an item to make room for another.',
+    historyItemsOnPage: '{count} records on this page (up to {pageSize}).',
     eyebrow: 'Alliance recruitment',
     title: 'Recruitment',
     subtitle:
@@ -58,6 +65,7 @@ const messages = {
     failedItemsSelected:
       'Candidates that could not be updated remain selected so you can review them.',
     bulkOutcome: {
+      'permission-denied': 'Permission denied',
       ready: 'Ready',
       'candidate-unavailable': 'Unavailable',
       'already-in-target-stage': 'Already in stage',

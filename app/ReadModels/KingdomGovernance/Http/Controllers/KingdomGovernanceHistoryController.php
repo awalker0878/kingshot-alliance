@@ -29,8 +29,9 @@ final class KingdomGovernanceHistoryController extends Controller
         abort_unless($user instanceof AuthenticatedAccount, 401);
         $alliance = $alliances->require($scope->allianceId);
         $kingdom = $kingdoms->require($scope->kingdomId);
-        $history = $timeline->forKingdom($scope->kingdomId, $request->query('before'));
+        $validated = $request->validate(['history_cursor' => ['nullable', 'string', 'max:4096']]);
+        $history = $timeline->forKingdom($scope->playerId, $scope->kingdomId, $validated['history_cursor'] ?? null);
 
-        return Inertia::render('Kingdom/Governance/History', ['user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()], 'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name], 'kingdom' => ['id' => $kingdom->kingdomId, 'number' => $kingdom->number], 'items' => $history['items'], 'nextCursor' => $history['nextCursor']]);
+        return Inertia::render('Kingdom/Governance/History', ['user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()], 'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name], 'kingdom' => ['id' => $kingdom->kingdomId, 'number' => $kingdom->number], 'items' => $history['items'], 'page' => array_diff_key($history, ['items' => true]), 'catalogueScope' => $scope->playerId.'|'.$scope->kingdomId]);
     }
 }

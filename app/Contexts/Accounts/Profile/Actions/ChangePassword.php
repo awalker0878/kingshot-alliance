@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Profile\Actions;
 
+use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -18,17 +19,19 @@ final readonly class ChangePassword
 {
     public function __construct(
         private AuditRecorder $audit,
+        private RevokeOtherAccountSessions $revokeOtherSessions,
         private SecurityNotificationService $securityNotifications,
     ) {}
 
-    public function handle(int $userId, string $currentPassword, string $newPassword): void
+    public function handle(int $userId, string $currentPassword, string $newPassword, ?string $currentSessionId): void
     {
-        DB::transaction(function () use ($userId, $currentPassword, $newPassword): void {
+        DB::transaction(function () use ($userId, $currentPassword, $newPassword, $currentSessionId): void {
             $locked = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $locked->ensureActive();
 
             if (! $locked->supportsPasswordAuthentication()) {
                 throw ValidationException::withMessages([
-                    'current_password' => 'This account uses Google sign-in and does not have a local password.',
+                    'current_password' => 'This account does not have a local password.',
                 ]);
             }
 
@@ -38,6 +41,7 @@ final readonly class ChangePassword
                 ]);
             }
 
+            Password::deleteToken($locked);
             $locked->forceFill([
                 'password' => Hash::make($newPassword),
                 'remember_token' => Str::random(60),
@@ -61,17 +65,14 @@ final readonly class ChangePassword
                 'available_at' => now(),
                 'attempts' => 0,
             ]);
+            $this->revokeOtherSessions->handle($userId, $currentSessionId);
+            $this->securityNotifications->publish(
+                userId: $userId,
+                event: 'profile.password.updated',
+                title: (string) __('accounts.security.password_changed.title'),
+                body: (string) __('accounts.security.password_changed.body'),
+                idempotencyKey: 'profile.password.updated:'.$userId.':'.now()->format('Uu'),
+            );
         });
-
-        $current = User::query()->findOrFail($userId);
-        Auth::setUser($current);
-        Auth::logoutOtherDevices($newPassword);
-        $this->securityNotifications->publish(
-            userId: $userId,
-            event: 'profile.password.updated',
-            title: (string) __('accounts.security.password_changed.title'),
-            body: (string) __('accounts.security.password_changed.body'),
-            idempotencyKey: 'profile.password.updated:'.$userId.':'.now()->format('Uu'),
-        );
     }
 }

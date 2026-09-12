@@ -2,6 +2,15 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    searchChoices: '搜索选项',
+    findChoices: '搜索',
+    noChoices: '没有匹配的选项。',
+    choiceLookupFailed: '无法加载选项，请重试。',
+    activeConfigurationLimit: '最多启用 {limit} 项。请停用一项后再添加其他项。',
+    historyItemsOnPage: '此页有 {count} 条记录（最多 {pageSize} 条）。',
+    bulkOutcome: {
+      'permission-denied': '权限不足',
+    },
     eyebrow: '联盟招募',
     title: '招募',
     candidates: '候选人',

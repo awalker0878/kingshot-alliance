@@ -53,7 +53,9 @@ type DashboardOverview = {
       actionable: boolean;
       affectedIds: string[];
       handoff: { href: string };
-      metadata: Record<string, unknown>;
+      metadata: Record<string, unknown> & {
+        coverage?: { assessed: number; total: number; unassessed: number };
+      };
     }>;
   } | null;
   officerBriefs: Array<{
@@ -290,7 +292,12 @@ function eventActionLabel(action: string): string {
                     {{ t(`application.dashboard.commandOwners.${item.owner}`) }}
                   </p>
                   <strong class="mt-2 block text-base break-words text-[var(--ks-ivory)]">
-                    {{ t(item.reasonKey, { count: item.count }) }}
+                    {{
+                      t(item.reasonKey, {
+                        count: item.count,
+                        unassessed: item.metadata.coverage?.unassessed ?? 0,
+                      })
+                    }}
                   </strong>
                 </div>
                 <span

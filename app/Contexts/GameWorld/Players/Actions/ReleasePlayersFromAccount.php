@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Players\Actions;
 
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\GameWorld\Players\Enums\PlayerIdentitySource;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Services\PlayerIdentityHistoryRecorder;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class ReleasePlayersFromAccount
 {
     public function __construct(
+        private AccountIdentityQuery $accounts,
         private PlayerIdentityHistoryRecorder $history,
         private AuditRecorder $audit,
     ) {}
@@ -25,6 +27,7 @@ final readonly class ReleasePlayersFromAccount
         }
 
         DB::transaction(function () use ($userId, $playerIds): void {
+            $this->accounts->lockCurrent($userId);
             $players = Player::query()
                 ->whereIn('id', $playerIds)
                 ->where('user_id', $userId)

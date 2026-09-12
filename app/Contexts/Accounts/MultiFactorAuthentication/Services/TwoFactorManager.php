@@ -9,6 +9,7 @@ use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 final readonly class TwoFactorManager
@@ -25,6 +26,7 @@ final readonly class TwoFactorManager
         $secret = $this->totp->generateSecret();
         DB::transaction(function () use ($user, $secret): void {
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
+            $locked->ensureActive();
             if ($locked->two_factor_confirmed_at !== null) {
                 throw ValidationException::withMessages(['two_factor' => 'Two-factor authentication is already enabled.']);
             }
@@ -49,8 +51,9 @@ final readonly class TwoFactorManager
     /** @return list<string> */
     public function confirm(User $user, string $code): array
     {
-        $codes = DB::transaction(function () use ($user, $code): array {
+        return DB::transaction(function () use ($user, $code): array {
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
+            $locked->ensureActive();
             if ($locked->two_factor_confirmed_at !== null) {
                 throw ValidationException::withMessages(['two_factor' => 'Two-factor authentication is already enabled.']);
             }
@@ -65,29 +68,29 @@ final readonly class TwoFactorManager
                     $plainCodes,
                 ),
                 'two_factor_confirmed_at' => now(),
+                'remember_token' => Str::random(60),
             ])->save();
             $this->audit->record(event: 'auth.mfa.enabled', actor: $locked, subject: $locked);
             $this->outbox($locked, 'auth.mfa.enabled');
 
+            $this->securityNotifications->publish(
+                userId: (int) $user->id,
+                event: 'auth.mfa.enabled',
+                title: (string) __('accounts.security.mfa_enabled.title'),
+                body: (string) __('accounts.security.mfa_enabled.body'),
+                idempotencyKey: 'auth.mfa.enabled:'.$user->id.':'.now()->format('Uu'),
+            );
+
             return $plainCodes;
         });
-
-        $this->securityNotifications->publish(
-            userId: (int) $user->id,
-            event: 'auth.mfa.enabled',
-            title: (string) __('accounts.security.mfa_enabled.title'),
-            body: (string) __('accounts.security.mfa_enabled.body'),
-            idempotencyKey: 'auth.mfa.enabled:'.$user->id.':'.now()->format('Uu'),
-        );
-
-        return $codes;
     }
 
     /** @return list<string> */
     public function regenerateRecoveryCodes(User $user): array
     {
-        $codes = DB::transaction(function () use ($user): array {
+        return DB::transaction(function () use ($user): array {
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
+            $locked->ensureActive();
             if ($locked->two_factor_confirmed_at === null || (string) $locked->two_factor_secret === '') {
                 throw ValidationException::withMessages(['two_factor' => 'Two-factor authentication is not enabled.']);
             }
@@ -97,43 +100,43 @@ final readonly class TwoFactorManager
                     static fn (string $recoveryCode): string => hash('sha256', $recoveryCode),
                     $plainCodes,
                 ),
+                'remember_token' => Str::random(60),
             ])->save();
             $this->audit->record(event: 'auth.mfa.recovery_codes_regenerated', actor: $locked, subject: $locked);
 
+            $this->securityNotifications->publish(
+                userId: (int) $user->id,
+                event: 'auth.mfa.recovery_codes_regenerated',
+                title: (string) __('accounts.security.recovery_codes_regenerated.title'),
+                body: (string) __('accounts.security.recovery_codes_regenerated.body'),
+                idempotencyKey: 'auth.mfa.recovery_codes_regenerated:'.$user->id.':'.now()->format('Uu'),
+            );
+
             return $plainCodes;
         });
-
-        $this->securityNotifications->publish(
-            userId: (int) $user->id,
-            event: 'auth.mfa.recovery_codes_regenerated',
-            title: (string) __('accounts.security.recovery_codes_regenerated.title'),
-            body: (string) __('accounts.security.recovery_codes_regenerated.body'),
-            idempotencyKey: 'auth.mfa.recovery_codes_regenerated:'.$user->id.':'.now()->format('Uu'),
-        );
-
-        return $codes;
     }
 
     public function disable(User $user): void
     {
         DB::transaction(function () use ($user): void {
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
+            $locked->ensureActive();
             $locked->forceFill([
                 'two_factor_secret' => null,
                 'two_factor_recovery_codes' => null,
                 'two_factor_confirmed_at' => null,
+                'remember_token' => Str::random(60),
             ])->save();
             $this->audit->record(event: 'auth.mfa.disabled', actor: $locked, subject: $locked);
             $this->outbox($locked, 'auth.mfa.disabled');
+            $this->securityNotifications->publish(
+                userId: (int) $user->id,
+                event: 'auth.mfa.disabled',
+                title: (string) __('accounts.security.mfa_disabled.title'),
+                body: (string) __('accounts.security.mfa_disabled.body'),
+                idempotencyKey: 'auth.mfa.disabled:'.$user->id.':'.now()->format('Uu'),
+            );
         });
-
-        $this->securityNotifications->publish(
-            userId: (int) $user->id,
-            event: 'auth.mfa.disabled',
-            title: (string) __('accounts.security.mfa_disabled.title'),
-            body: (string) __('accounts.security.mfa_disabled.body'),
-            idempotencyKey: 'auth.mfa.disabled:'.$user->id.':'.now()->format('Uu'),
-        );
     }
 
     public function verifyTotp(User $user, string $code): bool
@@ -152,6 +155,7 @@ final readonly class TwoFactorManager
 
         return DB::transaction(function () use ($user, $normalized): bool {
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
+            $locked->ensureActive();
             $codes = $locked->two_factor_recovery_codes;
             if (! is_array($codes)) {
                 return false;
@@ -169,6 +173,21 @@ final readonly class TwoFactorManager
 
             return false;
         });
+    }
+
+    public function verifyRecoveryCode(User $user, string $code): bool
+    {
+        if ($user->two_factor_confirmed_at === null || (string) $user->two_factor_secret === '' || trim($code) === '') {
+            return false;
+        }
+        $candidate = hash('sha256', strtolower(trim($code)));
+        foreach ($user->two_factor_recovery_codes ?? [] as $hash) {
+            if (is_string($hash) && hash_equals($hash, $candidate)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** @return list<string> */

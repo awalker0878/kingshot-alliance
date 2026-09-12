@@ -7,6 +7,8 @@ namespace App\Workflows\ExternalEventParticipation\Http\Controllers;
 use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
 use App\Contexts\Platform\Integrations\Actions\ClaimExternalActorLink;
 use App\Contexts\Platform\Integrations\Enums\ExternalActorProvider;
+use App\Contexts\Platform\Integrations\Exceptions\ExternalActionBusy;
+use App\Contexts\Platform\Integrations\ValueObjects\ExternalActionResult;
 use App\Shared\Infrastructure\Http\Controller;
 use App\Workflows\ExternalEventParticipation\Actions\ExecuteExternalEventParticipation;
 use Carbon\CarbonImmutable;
@@ -56,7 +58,8 @@ final class ExternalActorApiController extends Controller
             'available_until' => ['nullable', 'date'],
             'note' => ['nullable', 'string', 'max:2000'],
         ]);
-        $result = $participation->respond(
+
+        return $this->actionResponse(fn () => $participation->respond(
             allianceId: $this->attribute($request, 'alliance_id'),
             apiCredentialId: $this->attribute($request, 'api_credential_id'),
             provider: ExternalActorProvider::from((string) $validated['provider']),
@@ -69,9 +72,7 @@ final class ExternalActorApiController extends Controller
             availableFrom: isset($validated['available_from']) ? CarbonImmutable::parse((string) $validated['available_from']) : null,
             availableUntil: isset($validated['available_until']) ? CarbonImmutable::parse((string) $validated['available_until']) : null,
             note: isset($validated['note']) ? (string) $validated['note'] : null,
-        );
-
-        return response()->json(['data' => $result->data, 'meta' => ['replayed' => $result->replayed]]);
+        ));
     }
 
     public function registration(
@@ -84,7 +85,8 @@ final class ExternalActorApiController extends Controller
             'external_subject' => ['required', 'string', 'max:25'],
             'registered' => ['required', 'boolean'],
         ]);
-        $result = $participation->registration(
+
+        return $this->actionResponse(fn () => $participation->registration(
             allianceId: $this->attribute($request, 'alliance_id'),
             apiCredentialId: $this->attribute($request, 'api_credential_id'),
             provider: ExternalActorProvider::from((string) $validated['provider']),
@@ -92,7 +94,17 @@ final class ExternalActorApiController extends Controller
             idempotencyKey: $this->idempotencyKey($request),
             occurrenceId: $occurrence,
             registered: (bool) $validated['registered'],
-        );
+        ));
+    }
+
+    /** @param callable():ExternalActionResult $operation */
+    private function actionResponse(callable $operation): JsonResponse
+    {
+        try {
+            $result = $operation();
+        } catch (ExternalActionBusy) {
+            return response()->json(['message' => 'The connection is busy. Retry the same request shortly.'], 409, ['Retry-After' => '1']);
+        }
 
         return response()->json(['data' => $result->data, 'meta' => ['replayed' => $result->replayed]]);
     }

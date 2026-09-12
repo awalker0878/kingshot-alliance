@@ -3,6 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { useLocale } from '@/localization';
+import type { RecruitmentInputLimits } from '@/types/recruitment';
 
 type Question = {
   id: string;
@@ -14,6 +15,7 @@ type Question = {
 };
 
 const props = defineProps<{
+  inputLimits: RecruitmentInputLimits;
   alliance: { name: string; slug: string; kingdom: string | null };
   application: {
     open: boolean;
@@ -181,9 +183,9 @@ function setStringAnswer(questionId: string, event: Event): void {
                     id="recruitment-name"
                     v-model="form.full_name"
                     class="ks-input mt-2"
-                    maxlength="160"
                     required
                     autocomplete="name"
+                    :maxlength="inputLimits.fullName"
                   />
                   <p v-if="form.errors.full_name" class="mt-2 text-sm text-rose-300" role="alert">
                     {{ form.errors.full_name }}
@@ -198,10 +200,10 @@ function setStringAnswer(questionId: string, event: Event): void {
                     v-model="form.email"
                     class="ks-input mt-2 disabled:cursor-not-allowed disabled:opacity-60"
                     type="email"
-                    maxlength="320"
                     required
                     autocomplete="email"
                     :disabled="prefill.emailLocked"
+                    :maxlength="inputLimits.email"
                   />
                   <p v-if="form.errors.email" class="mt-2 text-sm text-rose-300" role="alert">
                     {{ form.errors.email }}
@@ -218,8 +220,8 @@ function setStringAnswer(questionId: string, event: Event): void {
                     id="recruitment-handle"
                     v-model="form.contact_handle"
                     class="ks-input mt-2"
-                    maxlength="160"
                     :placeholder="t('publicRecruitment.optional')"
+                    :maxlength="inputLimits.contactHandle"
                   />
                 </div>
                 <div v-if="attribution.source">
@@ -241,8 +243,8 @@ function setStringAnswer(questionId: string, event: Event): void {
                     id="recruitment-source"
                     v-model="form.source"
                     class="ks-input mt-2"
-                    maxlength="120"
                     :placeholder="t('publicRecruitment.sourcePlaceholder')"
+                    :maxlength="inputLimits.source"
                   />
                 </div>
               </div>
@@ -332,6 +334,7 @@ function setStringAnswer(questionId: string, event: Event): void {
                     </p>
                     <textarea
                       v-if="question.type === 'long_text'"
+                      :maxlength="inputLimits.longAnswer"
                       :id="`question-${question.id}`"
                       :value="stringAnswer(question.id)"
                       class="mt-2 min-h-32 w-full rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-[var(--ks-bg)] px-3.5 py-2.5 transition outline-none hover:border-[var(--ks-border-strong)] focus:border-[var(--ks-blue)]"
@@ -353,6 +356,7 @@ function setStringAnswer(questionId: string, event: Event): void {
                     </select>
                     <input
                       v-else
+                      :maxlength="inputLimits.shortAnswer"
                       :id="`question-${question.id}`"
                       :value="stringAnswer(question.id)"
                       class="ks-input mt-2"

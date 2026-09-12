@@ -124,7 +124,7 @@ Contributor quality is derived from useful/corroborated/rejected/moderation-conf
 
 - All list and scheduled operations are bounded.
 - Session creation has configurable Gift Code/Governor/item limits.
-- Personal reminders are idempotent and scheduled every minute.
+- Personal reminders are scheduled every minute in bounded pages (default 100, maximum 500). Each candidate is reloaded under an account-state row lock and processed only if its second-precision reminder timestamp still matches. A cancelled/rescheduled occurrence is left untouched by a stale worker. Communications intent persistence and occurrence consumption share one per-reminder transaction; channel delivery remains asynchronous. The idempotency key identifies the account-state row and exact reminder second, so retries deduplicate while distinct reminders within one minute remain independent. Current owned Governors and Gift Code status/expiry are rechecked before intent creation.
 - Consolidated actionable-workspace notifications are idempotent and scheduled every 15 minutes.
 - Contributor projections rebuild through a bounded hourly cycle.
 - Aggregate intelligence is privacy gated.

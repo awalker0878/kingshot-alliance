@@ -125,6 +125,10 @@ Capacity observation and planning commitment Actions remain explicit owner Actio
 
 ## Idempotency/concurrency
 
+Planning identity resolution owns its transaction and locks the active source Kingdom shared before current canonical Player identity. Conflicting game IDs reject without foreign Player locks; reconciled aliases require explicit participant replacement. Transfer placement guards remain in the planning adapter, while current identity/history writes remain with PersistPlayerIdentity. [ADR-0034](../../adr/0034-current-stable-player-identity-and-registration.md) defines current identity conflicts and registration preconditions.
+
+Completion discovers scoped participant routing and acquires its current Alliance authority followed by shared home/destination Kingdom locks in sorted ID order before locking the canonical target Player. It revalidates the locked participant's routing before new handoff. Existing completion is an idempotent return even if the outgoing destination has since archived; new movement still requires an active destination. Transfer authority stabilizes the actor's active membership under the Alliance barrier and reads actor identity without taking an early Player lock. Each roster handoff owner locks its current Player before its roster row. [ADR-0033](../../adr/0033-transfer-kingdom-and-player-lock-order.md) records the lifecycle ordering and verification contract.
+
 - observation writes use deterministic fingerprints;
 - Evidence commit uses stable destination receipt keys;
 - official-group revision is serialized per window;
@@ -139,6 +143,26 @@ Every external mutation is behind an owner Action. HTTP password confirmation is
 
 The concrete actor/Alliance/Plan/window/participant/target scope is re-resolved at mutation time. Foreign IDs must not become a cross-Alliance existence oracle.
 
+## Bounded workflow history
+
+Readiness responses contain complete SQL counts for active blockers, resolved blockers and readiness transitions, not embedded historical collections. `TransferWorkflowHistoryQuery` provides separate 25-record keyset pages. Every request rechecks current Transfer View authority and the concrete Alliance/Plan/participant before reading rows. History predicates include all three IDs even when a malformed row references a participant from another scope. Cursors are encrypted and bound to the concrete history and blocker state; a token is not authorization.
+
+Active and resolved blockers have independent navigation so newer resolved records cannot hide an older current blocker. Histories use `(created_at, id)` descending, with one bounded look-ahead row; continuation does not require the boundary row still to exist. Counts describe the current matching relation, not the size of the displayed page. New writes are visible after first-page refresh; pagination is not a cross-request snapshot transaction.
+
+The canonical fresh schema requires dated workflow records and indexes each scope/order predicate. No compatibility row limit, backfill or duplicate history representation is retained. Readiness transitions and blocker writes remain with their existing Actions; pagination does not evaluate or mutate game eligibility. The owner-local frontend loads a history only when opened, retains unrelated form drafts, rejects malformed responses, and discards superseded requests after scope/filter changes. Participant navigation follows the separate contract below; dashboard and remaining catalogue expansion stays tracked under HARD-095.
+
+## Bounded participant workspaces
+
+The overview, management, readiness and completion workspaces use `TransferParticipantQuery::page` rather than an embedded complete participant array. Each request verifies current Transfer permission and exact Alliance/Plan ownership before selecting at most 25 participants and one look-ahead row. Encrypted cursors bind the actor, Alliance, Plan, withdrawal view and required permission. The stable participant ID is the ordering key: changes to labels, readiness or direction cannot move a row across a cursor boundary, and continuation does not need the boundary row still to exist. The canonical fresh schema indexes the full scope/key and the active-only predicate separately.
+
+`summary` returns complete current SQL counts for the same authorized view: direction, completion, confirmed-awaiting-completion and withdrawal. These are persisted workflow facts, not a second game-eligibility evaluation. Counts are not derived from the displayed page. Related cohorts, completions, reservations and invitations must match both the participant's Alliance and Plan; a malformed foreign reference is not a readable relationship. Full history counts retain their independent scoped predicates.
+
+Only displayed participants are passed to the existing canonical eligibility composition. Readiness filters are explicitly page-local; continuation remains available even when a filter leaves the current page empty. The UI does not interpret a page's eligible or blocked count as the whole plan. Current summary and page data are separate current reads, not a long-lived snapshot across browser requests.
+
+The owner-local pager retains the displayed page and edited drafts on a failed request, exposes retry, cancels obsolete requests and resets on scope changes. `useTransferDrafts` retains only current-page defaults plus deliberately edited drafts; clean departed rows are discarded. Changing Alliance/Plan discards old-scope drafts. Observation-history requests are cancelled when their participant page leaves the view. All four producers/consumers use the single PageSlice response; no old array alias is retained. This extends [ADR-0001](../../adr/0001-composed-management-reads-and-scoped-cursors.md), not a competing pagination framework.
+
+Dashboard-wide evaluation and the management catalogues/selectors are separate remaining HARD-095 consumers until their own bounded contracts are implemented and verified. A bounded participant page does not claim those remaining queries are bounded.
+
 ## Read-model boundary
 
 Read models may compose `TransferSelfEligibilityQuery` or other typed KingdomTransfers projections after authorization. They may render requirement/outcome/next-action information but must not calculate substitute game rules or persist a second transfer truth store.
@@ -146,3 +170,29 @@ Read models may compose `TransferSelfEligibilityQuery` or other typed KingdomTra
 ## Fresh deployment
 
 No compatibility aliases, legacy planning `TransferGroup`, dual reads/writes, migration backfills or schema shims are retained. The database is treated as fresh deployment state.
+
+Eligibility and screenshot preview load only bounded factual witnesses for the requested participants and source/target Kingdoms, preserving current conflicts and authoritative provenance. Capacity planning counts consuming commitments in SQL against the latest authoritative capacity observation. The Readiness page separately loads complete observation history in current-authorized 25-record pages, with scoped continuation and retry. Recruitment campaign evidence and active-blocker totals are SQL counts over all matching records.
+
+Member capability profiles resolve the active participant by current-authorized Alliance, Plan and Player at the KingdomTransfers query boundary. They do not load the plan-wide participant collection or unrelated relationship graphs to locate a single Governor. The selected row is evaluated by the existing canonical eligibility query; a missing or withdrawn row is absence, never a fallback to another participant.
+
+Self-transfer assessment, including Assistant answers, delegates current persisted facts to TransferEligibilityQuery after current authorization and exact actor/plan selection. It uses the same bounded conflict witnesses and provenance as management, not a second evaluator composition. The self response counts complete observation history in SQL without hydrating it or equating the witness set with the total. [ADR-0044](../../adr/0044-canonical-self-transfer-eligibility.md) records this authority boundary; hypothetical evidence preview remains explicitly distinct from current assessment.
+
+## Bounded verification overview
+
+The dashboard, Assistant and Officer Brief consume the owner-local `TransferVerificationPreviewQuery`, not the eager participant collection. It evaluates at most 25 active participants with the canonical eligibility query, retains complete SQL totals/manual blockers, and makes unassessed coverage explicit. An incomplete preview is never verified. Full current per-participant checks remain reachable through readiness pages; no derived status becomes a write authority. [ADR-0051](../../adr/0051-bounded-transfer-verification-overviews.md) defines counts, coverage, dependency direction and operational limits.
+
+## Management read ownership
+
+The overview and management GET adapters and transport projection live in `ReadModels/TransferManagement`, following [ADR-0001](../../adr/0001-composed-management-reads-and-scoped-cursors.md). Every projection rechecks the current Transfer View or Manage authority before loading plan data. The overview no longer loads a complete unused cohort catalogue; it projects only cohorts belonging to the bounded visible participant page. The existing current/mutable-plan queries remain the authoritative selection rules. Plan writes stay with the context Actions and thin TransferPlanController; no Context imports this ReadModel and no compatibility controller aliases remain. Remaining management catalogue/selector bounds are tracked by HARD-095 rather than described as complete.
+
+## Management choice reads
+
+TransferManagement owns `GET /alliance/transfers/manage/choices/{kind}` for window, coordinator and roster choices. Each request resolves the active actor and Alliance from the server context and checks current Transfer Manage permission before selecting records. Coordinator and roster choices additionally require the exact current Alliance/home-Kingdom Draft/Open plan. Window choices are independent of an existing plan. These projections do not authorize the later mutation: existing context Actions retain their own current ownership, compatibility and lifecycle checks.
+
+Choice pages materialize at most 25 scalar rows plus one look-ahead. Stable ID cursors are encrypted and bind actor, Alliance, kind, plan, search and the initial high-water ID. Deleting a boundary row or renaming a choice does not invalidate continuation. New rows beyond the high-water boundary appear after a first-page refresh; this is not a cross-request database snapshot. Counts describe the complete current matching scope, independently of the visible page. A selected value is resolved separately against current scope, even outside the current search/page; an ineligible or foreign selection is not exposed.
+
+Substring search escapes wildcard characters and has an explicit request-length bound. The canonical fresh schema indexes each tenant/state/ID traversal. Responses are private and not cacheable. The read model does not hydrate all Player or roster models to populate selectors, and the former whole-array `players`/`rosterOptions` props are removed without aliases. The frontend loads choices only when needed, retains selected IDs and existing labels, preserves the last successful page and drafts after failed requests, and discards obsolete responses on actor/Alliance/plan changes. All 17 locales provide the same choice/error/count contract.
+
+This applies the existing read-composition and cursor decision in ADR-0001. Complete management catalogues and participant-cohort assignment choices remain separate HARD-095 work; this choice endpoint does not claim to have bounded those remaining producers.
+
+TransferManagement catalogue composition follows [ADR-0055](../../adr/0055-transfer-management-catalogue-pages.md): authorized independent pages and totals, historical selected-plan reads, separate official-group membership pages and current-compatible cohort selection. `TransferCohortAssignmentQuery` remains Context-owned and is reused by the locked assignment Action; the ReadModel does not authorize mutations. Superseded eager window/group/cohort/condition catalogue query classes are removed.

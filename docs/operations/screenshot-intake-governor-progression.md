@@ -1,6 +1,6 @@
 # Screenshot Intake: Governor Progression Operations
 
-Status: Current complete capability — verified 2026-08-30
+Status: Current structured intake contracts — pipeline verified 2026-09-08; retention hardening remains In progress under HARD-014–015.
 
 ## Operational boundary
 
@@ -38,6 +38,8 @@ For failed/stuck intake:
 10. Inspect semantic duplicate state before retrying commit.
 11. Inspect destination idempotency key/receipt before assuming an Evidence acknowledgement failure means the Roster write failed.
 
+For Buildings, Academy Research and War Academy Research, verify explicit supported English headings and `Building:`/`Technology:` rows. An absent level must stay unknown; a different or conflicting research heading must stop classification. Current corpora are synthetic OCR examples and do not establish support for arbitrary screenshots or languages. Correct reviewed names/IDs against the pinned family; never fill an unseen level with zero to bypass validation.
+
 ## Processing retry behavior
 
 The first normalization attempt establishes the automatic-processing Progression dataset pin, including when that attempt fails.
@@ -47,6 +49,8 @@ The first normalization attempt establishes the automatic-processing Progression
 - Retry must fail closed if that exact release is unavailable or checksum mismatches.
 - Never substitute `latest()` for a pinned retry.
 - Moving Evidence to a newer dataset is a distinct explicit re-normalization product action; v1 does not provide it.
+
+Normalization redelivery cannot reopen approved, committed, deleted or redacted Evidence. Active normalization uses the existing `extracting` lifecycle; retries from `failed` reacquire that state under lock, and the deletion guard blocks active processing. Review requests are rejected while processing/committing and after commit or redaction. Corrections to accepted observations use the Roster owner's correction workflow.
 
 Commit retry uses the stable destination idempotency key associated with the immutable approved review. If Roster already committed and Evidence acknowledgement failed, retry must receive the existing authorized Roster receipt and mark Evidence acknowledgement; do not delete/re-import the Roster observation.
 
@@ -64,6 +68,7 @@ Before a destination write, verify exact Evidence/review, Alliance, roster entry
 - Charm level must fit the pinned Charm ladder.
 - Gear/Charm slot IDs are structural observation keys, not canonical Progression identities.
 - OCR-visible Charm names remain Evidence provenance; do not synthesize or manually enter a `charm_id` in v1.
+- Building/research subjects must resolve to the pinned family's exact IDs/labels. Level/state identity must agree, and each subject may occur once per observation. Missing levels and unknown subjects require explicit human correction before review can be approved.
 
 A directly visible structural/screen value is not permission to modify `GameWorld/Progression`.
 
@@ -89,6 +94,8 @@ Evidence deletion/redaction must not cascade into an accepted `GovernorProgressi
 
 If an accepted observation is wrong, use an explicit audited Roster correction/removal capability. Evidence deletion is not correction.
 
+Redaction removes classification OCR, extracted raw and normalized candidates, bounds/warnings, and Governor normalization payload copies. Dataset/attempt identity, immutable reviewed handoff and destination receipts remain. The summary therefore exposes redacted machine candidates while preserving accepted review meaning. A failed private-storage deletion fails the operation before provenance/path cleanup so an authorized retry can complete deletion.
+
 ## Privacy-safe diagnostics
 
 Logs/audit/outbox may identify lifecycle event names, schema/version, attempt/receipt IDs and privacy-safe failure codes. They must not emit screenshot pixels, OCR text, raw content hashes, Governor names, Player identity details or cross-tenant duplicate information.
@@ -99,6 +106,7 @@ Do not mark the family complete until the same immutable candidate passes:
 
 - clean PostgreSQL migration/install;
 - Governor schema/fixture/classification/extraction tests;
+- structured upload-to-commit pipeline checks, including real review provenance, wrong-class stops, missing levels, cross-Alliance rejection and destination replay;
 - dataset-retry pin regression tests;
 - Governor provenance interface/Transfer Evidence regression tests;
 - pinned catalogue-bound validation tests;

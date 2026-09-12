@@ -10,36 +10,21 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: architecture-v3-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   architecture-v3:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-
-    services:
-      postgres:
-        image: postgres:18-alpine
-        env:
-          POSTGRES_DB: kingshot_test
-          POSTGRES_USER: kingshot
-          POSTGRES_PASSWORD: kingshot
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U kingshot -d kingshot_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
+    # Full PostgreSQL, static analysis and behavior coverage remain mandatory in CI.
+    # This specialized gate owns only the lightweight architecture contracts.
+    timeout-minutes: 10
 
     env:
       APP_ENV: testing
       APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
       APP_DEBUG: false
-      DB_CONNECTION: pgsql
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
-      DB_DATABASE: kingshot_test
-      DB_USERNAME: kingshot
-      DB_PASSWORD: kingshot
       CACHE_STORE: array
       QUEUE_CONNECTION: sync
       SESSION_DRIVER: array
@@ -51,59 +36,24 @@ jobs:
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
         with:
           php-version: '8.5'
-          extensions: dom, gd, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          extensions: dom, gd, intl, mbstring, simplexml, xml, xmlwriter, zip
           coverage: none
           tools: composer:v2
 
+      # The source-only guard needs no installed packages or application startup.
+      - name: Verify test layout
+        run: php scripts/verify-test-layout.php
+
+      - name: Restore Composer package cache
+        uses: ./.github/actions/composer-package-cache
+
       - name: Install PHP dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist
+        # The next step generates the autoloader and runs package discovery once.
+        # Keep scripts enabled and retain the strict PSR-4 failure exit code.
+        run: composer install --no-interaction --no-progress --prefer-dist --no-autoloader
 
       - name: Validate optimized PSR-4 autoload
         run: composer dump-autoload --optimize --strict-psr
 
-      - name: PHP syntax
-        shell: bash
-        run: find app bootstrap config database routes tests/v3 -type f -name '*.php' -print0 | xargs -0 -n1 php -l
-
-      - name: Boot routes
-        run: php artisan route:list --no-ansi
-
-      - name: Architecture V3 tests
-        shell: bash
-        run: |
-          set +e
-          vendor/bin/phpunit tests/v3/Architecture 2>&1 | tee /tmp/architecture-v3-tests.txt
-          status=${PIPESTATUS[0]}
-          set -e
-
-          if [ "$status" -ne 0 ]; then
-            grep -E '^[0-9]+\)|^app/' /tmp/architecture-v3-tests.txt | head -n 10 | while IFS= read -r line; do
-              printf '::error title=Architecture V3::%s\n' "$line"
-            done
-          fi
-
-          exit "$status"
-
-      - name: Migrate V3 test schema
-        run: php artisan migrate --force
-
-      - name: Static analysis
-        shell: bash
-        run: |
-          set +e
-          composer types:check 2>&1 | tee "${RUNNER_TEMP}/architecture-v3-phpstan.log"
-          status=${PIPESTATUS[0]}
-          set -e
-          exit "$status"
-
-      - name: Upload static-analysis diagnostics
-        if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: architecture-v3-static-analysis
-          path: ${{ runner.temp }}/architecture-v3-phpstan.log
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - name: Full V3 PHPUnit suite
-        run: vendor/bin/phpunit --configuration phpunit.xml --testsuite "Architecture V3"
+      - name: Architecture contracts
+        run: composer test:architecture

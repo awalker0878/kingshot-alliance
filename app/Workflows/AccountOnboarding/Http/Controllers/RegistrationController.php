@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Workflows\AccountOnboarding\Http\Controllers;
 
+use App\Contexts\Accounts\Authentication\Actions\AuthenticateWithPassword;
 use App\Contexts\Alliance\Membership\Queries\FindPendingInvitation;
 use App\Shared\Infrastructure\Http\Controller;
 use App\Workflows\AccountOnboarding\Actions\RegisterAccount;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -38,6 +38,7 @@ final class RegistrationController extends Controller
         Request $request,
         FindPendingInvitation $invitations,
         RegisterAccount $registerAccount,
+        AuthenticateWithPassword $authenticate,
     ): RedirectResponse {
         $request->merge([
             'email' => Str::lower(trim((string) $request->input('email'))),
@@ -85,8 +86,10 @@ final class RegistrationController extends Controller
             invitationToken: $token === '' ? null : $token,
         );
 
-        Auth::loginUsingId($result->userId);
-        $request->session()->regenerate();
+        if ($authenticate->handle($request, (string) $validated['email'], (string) $validated['password'],
+            false, $token === '' ? null : $token, $result->userId)) {
+            return redirect()->route('two-factor.login');
+        }
 
         if ($result->joinedAlliance() && $result->playerId !== null) {
             $request->session()->put(

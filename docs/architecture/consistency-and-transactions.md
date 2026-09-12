@@ -37,6 +37,10 @@ A context does not extend its transaction boundary by reaching through another c
 
 When a process genuinely spans multiple owners, a Workflow coordinates those owner operations. The Workflow does not become persistence owner of participating aggregates.
 
+The two AccountOnboarding commands `RegisterAccount` and `AcceptInvitationForAccount` compose dependent owner Actions inside one bounded database transaction under [ADR-0019](adr/0019-atomic-account-onboarding-owner-composition.md). Failure rolls back registration, Player claiming and invitation acceptance together. Accounts supplies the current locked account snapshot; participating owners keep their business locks, validation and all writes. Verification mail waits for the outermost commit. The architecture verifier permits transactions only for these explicitly reviewed Workflow commands and continues to forbid direct persistence and model access.
+
+ExternalEventParticipation additionally composes current Operations scope, Integrations admission and the normal Participation action atomically under [ADR-0060](adr/0060-atomic-external-participation-scope-order.md). Owner APIs retain every lock and write; lower integration lock contention rolls back the complete operation and returns a retryable conflict.
+
 Where atomic multi-owner database mutation would create ownership leakage, prefer explicit process state and durable events/outbox coordination.
 
 ## Side effects
@@ -44,3 +48,7 @@ Where atomic multi-owner database mutation would create ownership leakage, prefe
 Remote/retryable effects execute after commit. Durable intent that must survive process failure is stored transactionally with the owner state when required.
 
 Consumers must tolerate at-least-once delivery through idempotency/deduplication.
+
+Kingdom administrator recovery is a named atomic Workflow exception: Platform holds the current operator grant, GameWorld holds current Kingdom/Player scope and owns assignments, and Operations provisions its permission meanings before the same commit. Late failure rolls all owners back. See [ADR-0063](adr/0063-atomic-bounded-kingdom-administrator-recovery.md).
+
+Trusted Kingdom administrator bootstrap and Governor-authorized system-policy reconciliation likewise compose their GameWorld and Operations owner calls atomically. Their existing scope and owner contracts remain authoritative until both owners commit; see [ADR-0065](adr/0065-atomic-kingdom-policy-provisioning.md).

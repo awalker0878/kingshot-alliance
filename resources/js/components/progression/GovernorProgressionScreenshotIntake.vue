@@ -313,8 +313,10 @@ function startReview(item: GovernorProgressionEvidenceSummary): void {
     item.detectedKind === 'governor_academy_research' ||
     item.detectedKind === 'governor_war_academy_research'
   ) {
-    const subjectField = item.detectedKind === 'governor_buildings' ? 'building_name' : 'technology_name';
-    const levelField = item.detectedKind === 'governor_buildings' ? 'building_level' : 'research_level';
+    const subjectField =
+      item.detectedKind === 'governor_buildings' ? 'building_name' : 'technology_name';
+    const levelField =
+      item.detectedKind === 'governor_buildings' ? 'building_level' : 'research_level';
     draft.states = ordinals(item, subjectField).map((ordinal) => ({
       subject_id: value(item, subjectField, ordinal),
       level: value(item, levelField, ordinal),
@@ -810,9 +812,18 @@ function evidenceStatus(item: GovernorProgressionEvidenceSummary): string {
         >
           <article
             v-for="group in [
-              { label: t('progression.governorBuildingsScreenshot'), facts: progressionState.current.buildings },
-              { label: t('progression.governorAcademyResearchScreenshot'), facts: progressionState.current.academyResearch },
-              { label: t('progression.governorWarAcademyResearchScreenshot'), facts: progressionState.current.warAcademyResearch },
+              {
+                label: t('progression.governorBuildingsScreenshot'),
+                facts: progressionState.current.buildings,
+              },
+              {
+                label: t('progression.governorAcademyResearchScreenshot'),
+                facts: progressionState.current.academyResearch,
+              },
+              {
+                label: t('progression.governorWarAcademyResearchScreenshot'),
+                facts: progressionState.current.warAcademyResearch,
+              },
             ]"
             :key="group.label"
             class="rounded border border-[var(--ks-border)] p-4"

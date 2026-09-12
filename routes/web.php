@@ -93,18 +93,19 @@ Route::middleware('guest')->group(function (): void {
     Route::get('/two-factor-challenge', [TwoFactorChallengeController::class, 'create'])
         ->name('two-factor.login');
     Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'store'])
+        ->block(10, 10)
         ->middleware('throttle:two-factor-challenge')
         ->name('two-factor.login.store');
 
     Route::get('/forgot-password', [ForgotPasswordController::class, 'create'])
         ->name('password.request');
     Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])
-        ->middleware('throttle:6,1')
+        ->middleware('throttle:6,1,account-reset-request:')
         ->name('password.email');
     Route::get('/reset-password/{token}', [ResetPasswordController::class, 'create'])
         ->name('password.reset');
     Route::post('/reset-password', [ResetPasswordController::class, 'store'])
-        ->middleware('throttle:6,1')
+        ->middleware('throttle:6,1,account-reset-complete:')
         ->name('password.update');
 });
 
@@ -115,22 +116,22 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
+        ->middleware('throttle:6,1,account-password-proof:')
         ->name('profile.password.update');
-    Route::delete('/profile/sessions/other', [ProfileController::class, 'destroyOtherSessions'])
-        ->name('profile.sessions.destroy-other');
 
     Route::get('/verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
     Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
-        ->middleware(['signed', 'throttle:6,1'])
+        ->middleware(['signed', 'throttle:6,1,account-email-verify:'])
         ->name('verification.verify');
     Route::post('/email/verification-notification', EmailVerificationNotificationController::class)
-        ->middleware('throttle:6,1')
+        ->middleware('throttle:6,1,account-email-resend:')
         ->name('verification.send');
 
     Route::get('/confirm-password', [ConfirmPasswordController::class, 'create'])
         ->name('password.confirm');
     Route::post('/confirm-password', [ConfirmPasswordController::class, 'store'])
+        ->middleware('throttle:6,1,account-password-proof:')
         ->name('password.confirm.store');
 
     Route::middleware('verified')->group(function (): void {
@@ -329,11 +330,20 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
             Route::get('/alliance/recruitment/{candidate}', RecruitmentCandidateReadController::class)
                 ->whereUlid('candidate')
                 ->name('alliance.recruitment.candidates.show');
+            Route::get('/alliance/recruitment/{candidate}/options/{kind}', [RecruitmentCandidateReadController::class, 'options'])
+                ->whereUlid('candidate')->whereIn('kind', ['members', 'roster', 'templates'])
+                ->name('alliance.recruitment.candidates.options');
 
             Route::get('/alliance/content', [MemberContentController::class, 'index'])
                 ->name('alliance.content.index');
             Route::get('/alliance/content/manage', AnnouncementBroadcastManagementController::class)
                 ->name('alliance.content.manage');
+            Route::get('/alliance/content/manage/options/{kind}', [AnnouncementBroadcastManagementController::class, 'options'])
+                ->whereIn('kind', ['categories', 'media'])->name('alliance.content.manage.options');
+            Route::get('/alliance/content/manage/{contentId}/runs', [AnnouncementBroadcastManagementController::class, 'runs'])
+                ->whereUlid('contentId')->name('alliance.content.manage.runs');
+            Route::get('/alliance/content/manage/{contentId}/revisions', [AnnouncementBroadcastManagementController::class, 'revisions'])
+                ->whereUlid('contentId')->name('alliance.content.manage.revisions');
             Route::get('/alliance/content/{contentSlug}', [MemberContentController::class, 'show'])
                 ->where('contentSlug', '[a-z0-9]+(?:-[a-z0-9]+)*')
                 ->name('alliance.content.show');
@@ -349,6 +359,8 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
                     ->name('alliance.recruitment.decision-templates.store');
                 Route::post('/alliance/recruitment/onboarding-items', [RecruitmentManagementController::class, 'storeOnboardingItem'])
                     ->name('alliance.recruitment.onboarding-items.store');
+                Route::patch('/alliance/recruitment/onboarding-items/{item}', [RecruitmentManagementController::class, 'setOnboardingItemActive'])
+                    ->whereUlid('item')->name('alliance.recruitment.onboarding-items.update');
                 Route::post('/alliance/recruitment/bulk-stage/preview', [RecruitmentManagementController::class, 'previewBulkStageChange'])
                     ->name('alliance.recruitment.bulk-stage.preview');
                 Route::post('/alliance/recruitment/bulk-stage', [RecruitmentManagementController::class, 'commitBulkStageChange'])

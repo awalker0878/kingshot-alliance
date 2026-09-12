@@ -1,7 +1,13 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': 'Пункт адаптации новобранцев обновлён.',
+  },
   common: {
+    yes: 'Да',
+    no: 'Нет',
+    historyItemsOnPage: 'На этой странице {count} записей (не более {pageSize}).',
     all: 'Все',
     language: 'Язык',
     signIn: 'Войти',
@@ -44,6 +50,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: 'Требуется дальнейшая оценка' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          'Как минимум {count} участников переноса требуют внимания; {unassessed} ещё не оценены в этом обзоре',
+      },
+
       title: 'Главная',
       eyebrow: 'Обзор Губернатора',
       welcome: 'Добро пожаловать, Губернатор {name}',

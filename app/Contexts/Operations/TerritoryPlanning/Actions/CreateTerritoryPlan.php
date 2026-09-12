@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\TerritoryPlanning\Actions;
 
-use App\Contexts\Alliance\Access\Queries\AllianceAuthorityFactsQuery;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
-use App\Contexts\GameWorld\Governance\Queries\KingdomAuthorityFactsQuery;
 use App\Contexts\GameWorld\KingdomMaps\Queries\KingdomMapDatasetQuery;
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Access\Services\AllianceOperationsAuthorization;
 use App\Contexts\Operations\Access\Services\KingdomOperationsAuthorization;
@@ -16,6 +13,7 @@ use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanStatus;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanAlliance;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanWriteState;
 use App\Contexts\Operations\TerritoryPlanning\ValueObjects\TerritoryPlanMutationReceipt;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -25,9 +23,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class CreateTerritoryPlan
 {
     public function __construct(
-        private PlayerReferenceQuery $players,
-        private AllianceAuthorityFactsQuery $allianceAuthority,
-        private KingdomAuthorityFactsQuery $kingdomAuthority,
+        private TerritoryPlanWriteState $writeState,
         private AllianceReferenceQuery $alliances,
         private AllianceOperationsAuthorization $allianceAuthorization,
         private KingdomOperationsAuthorization $kingdomAuthorization,
@@ -65,14 +61,11 @@ final readonly class CreateTerritoryPlan
             $name,
             $dataset,
         ): TerritoryPlanMutationReceipt {
-            $actor = $this->players->lockCurrent($actorPlayerId);
-            if ($actor->kingdomId !== $kingdomId) {
-                throw new AuthorizationException;
-            }
+            [$actor, $allianceFacts, $kingdomFacts] = $this->writeState->lockCreation($actorPlayerId, $scope, $kingdomId, $ownerAllianceId);
 
             $ownerAllianceName = null;
             if ($scope === TerritoryPlanScope::Alliance) {
-                $facts = $this->allianceAuthority->lockCurrent($actorPlayerId, (string) $ownerAllianceId);
+                $facts = $allianceFacts;
                 if ($facts === null || $facts->kingdomId !== $kingdomId) {
                     throw new AuthorizationException;
                 }
@@ -86,7 +79,7 @@ final readonly class CreateTerritoryPlan
                 }
                 $ownerAllianceName = $alliance->name;
             } else {
-                $facts = $this->kingdomAuthority->lockCurrent($actorPlayerId, $kingdomId);
+                $facts = $kingdomFacts;
                 if ($facts === null) {
                     throw new AuthorizationException;
                 }

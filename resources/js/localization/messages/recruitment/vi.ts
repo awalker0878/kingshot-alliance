@@ -2,6 +2,15 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    searchChoices: 'Tìm lựa chọn',
+    findChoices: 'Tìm kiếm',
+    noChoices: 'Không có lựa chọn phù hợp.',
+    choiceLookupFailed: 'Không tải được lựa chọn. Hãy thử lại.',
+    activeConfigurationLimit: 'Tối đa {limit} mục đang hoạt động. Tắt một mục để thêm mục khác.',
+    historyItemsOnPage: '{count} bản ghi trên trang này (tối đa {pageSize}).',
+    bulkOutcome: {
+      'permission-denied': 'Không có quyền',
+    },
     eyebrow: 'Tuyển thành viên liên minh',
     title: 'Tuyển thành viên',
     candidates: 'Ứng viên',

@@ -4,12 +4,13 @@ on:
   pull_request:
     paths:
       - 'app/Contexts/Operations/KingPerks/**'
+      - 'app/Contexts/GameWorld/Governance/Queries/KingdomAuthorityFactsQuery.php'
       - 'bootstrap/app.php'
       - 'config/operations.php'
       - 'database/migrations/*king_perk*'
       - 'resources/js/pages/Kingdom/PositionPerks/**'
       - 'routes/king-perks.php'
-      - 'tests/v3/Contexts/Operations/KingPerks/**'
+      - 'tests/Contexts/Operations/KingPerks/**'
       - 'tsconfig.king-perks.json'
       - 'vite.king-perks.config.ts'
       - '.github/workflows/king-perks-verification.yml'
@@ -29,7 +30,7 @@ jobs:
     timeout-minutes: 20
     services:
       postgres:
-        image: postgres:18
+        image: postgres:18-alpine
         env:
           POSTGRES_DB: kingshot_test
           POSTGRES_USER: kingshot
@@ -64,7 +65,7 @@ jobs:
           set -euo pipefail
           test ! -d app/Domain/KingPerks
           test ! -d tests/Feature/KingPerks
-          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\KingPerks\\' app routes bootstrap config database tests/v3/Contexts/Operations/KingPerks 2>/dev/null || true)
+          matches=$(grep -R -n -E --include='*.php' 'App\\Domain\\KingPerks\\' app routes bootstrap config database tests/Contexts/Operations/KingPerks 2>/dev/null || true)
           if [ -n "$matches" ]; then
             echo "$matches"
             exit 1
@@ -78,11 +79,11 @@ jobs:
           coverage: none
           tools: composer:v2
 
+      - name: Restore Composer package cache
+        uses: ./.github/actions/composer-package-cache
+
       - name: Install locked PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
-
-      - name: PostgreSQL schema and migration
-        run: php artisan migrate --force
 
       - name: Pint King Perks V3 contracts
         run: >-
@@ -92,7 +93,7 @@ jobs:
           config/operations.php
           database/migrations/2026_08_15_083000_create_king_perk_tables.php
           routes/king-perks.php
-          tests/v3/Contexts/Operations/KingPerks
+          tests/Contexts/Operations/KingPerks
 
       - name: Larastan King Perks V3
         run: >-
@@ -104,8 +105,8 @@ jobs:
 
       - name: King Perks V3 backend tests
         run: >-
-          vendor/bin/phpunit --configuration phpunit.xml
-          tests/v3/Contexts/Operations/KingPerks
+          vendor/bin/phpunit --configuration phpunit.xml --fail-on-empty-test-suite
+          tests/Contexts/Operations/KingPerks
 
   frontend:
     name: Position Perks frontend contracts

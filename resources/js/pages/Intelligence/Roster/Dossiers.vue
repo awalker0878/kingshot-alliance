@@ -126,12 +126,9 @@ function rosterStateTone(value: string): string {
       :subtitle="t('roster.intelligenceSubtitle')"
       image="/images/kingshot/intel-room.svg"
     >
-      <template #actions
-        ><Link href="/alliance/roster" class="ks-command-link">{{ t('roster.title') }}</Link
-        ><Link href="/alliance/roster/history" class="ks-command-link">{{
-          t('rosterHistory.title')
-        }}</Link></template
-      >
+      <template #actions>
+        <Link href="/alliance/roster" class="ks-command-link">{{ t('roster.title') }}</Link>
+      </template>
     </RoomBanner>
 
     <section

@@ -53,6 +53,29 @@ final class PlayerReferenceQuery
         return $this->snapshot($player);
     }
 
+    /** Revalidate a linked identity without waiting behind an inverse owner scope. */
+    public function lockCurrentNowait(string $playerId): PlayerReference
+    {
+        $player = Player::query()->whereKey($playerId)->whereNull('canonical_player_id')
+            ->lock('for update nowait')->firstOrFail();
+        $player->load('currentKingdom:id,number');
+
+        return $this->snapshot($player);
+    }
+
+    /** Stabilize identity for admission without locking another Alliance's rows. */
+    public function lockCurrentShared(string $playerId): PlayerReference
+    {
+        $player = Player::query()
+            ->whereKey($playerId)
+            ->whereNull('canonical_player_id')
+            ->sharedLock()
+            ->firstOrFail();
+        $player->load('currentKingdom:id,number');
+
+        return $this->snapshot($player);
+    }
+
     /** @return list<PlayerReference> */
     public function ownedByUser(int $userId): array
     {

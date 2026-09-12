@@ -11,6 +11,18 @@ use Illuminate\Http\Request;
 
 final class AuditRecorder
 {
+    /** The subject owner invokes this at its retention boundary inside its transaction. */
+    public function redactSubjectMetadata(string $event, Model $subject): int
+    {
+        return AuditEvent::query()
+            ->where('alliance_id', $subject->getAttribute('alliance_id'))
+            ->where('event', $event)
+            ->where('subject_type', $subject->getMorphClass())
+            ->where('subject_id', (string) $subject->getKey())
+            ->whereNotNull('metadata')
+            ->update(['metadata' => json_encode(['retention_redacted' => true], JSON_THROW_ON_ERROR)]);
+    }
+
     /** @param array<string, mixed> $metadata */
     public function record(
         string $event,

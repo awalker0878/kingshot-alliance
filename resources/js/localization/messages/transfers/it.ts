@@ -2,6 +2,27 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    searchChoices: 'Cerca opzioni',
+    choicePageSummary:
+      '{count} opzioni in questa pagina; {total} corrispondenze. Ordine per ID stabile.',
+    choiceUnavailable: 'L’opzione selezionata non è più disponibile.',
+    choicesFailed:
+      'Impossibile caricare le opzioni. Selezione e pagina visualizzata restano invariate.',
+    retryChoices: 'Riprova opzioni',
+
+    participantPagination: 'Pagine dei partecipanti',
+    participantPageSummary: '{count} partecipanti in questa pagina; {total} in questa vista.',
+    participantPageOrder:
+      'Ordinati per ID di registrazione stabile. I totali comprendono l’intera vista.',
+    participantPageUnavailable:
+      'Impossibile caricare la pagina dei partecipanti. La pagina visualizzata non è cambiata.',
+    retryParticipantPage: 'Riprova',
+    participantFilterPageOnly:
+      'Questo filtro di idoneità si applica alla pagina corrente. Scorri le pagine per esaminare tutti i partecipanti.',
+    workflowHistoryUnavailable: 'Impossibile caricare la cronologia del trasferimento.',
+    workflowHistoryTotal: '{count} voci in questa cronologia.',
+    observationHistoryUnavailable: 'Impossibile caricare la cronologia delle osservazioni.',
+    reloadHistory: 'Ricarica cronologia',
     eyebrow: 'Trasferimento Regno',
     title: 'Pianificazione trasferimento',
     readinessBoard: 'Preparazione',

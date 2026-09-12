@@ -2,6 +2,22 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    searchChoices: '搜尋選項',
+    choicePageSummary: '本頁 {count} 個選項，共 {total} 個相符項目。依固定記錄識別碼排序。',
+    choiceUnavailable: '所選項目已無法使用。',
+    choicesFailed: '無法載入選項。目前選擇與顯示頁面保持不變。',
+    retryChoices: '重新載入',
+
+    participantPagination: '參與者分頁',
+    participantPageSummary: '本頁 {count} 人；此檢視共 {total} 人。',
+    participantPageOrder: '依固定註冊 ID 排序。統計涵蓋整個檢視。',
+    participantPageUnavailable: '無法載入參與者頁面。目前顯示的頁面未變更。',
+    retryParticipantPage: '重試頁面',
+    participantFilterPageOnly: '此資格篩選僅適用於目前頁面。請繼續翻頁查看所有參與者。',
+    workflowHistoryUnavailable: '無法載入遷移流程歷史紀錄。',
+    workflowHistoryTotal: '此歷史紀錄共 {count} 筆。',
+    observationHistoryUnavailable: '無法載入觀測歷史。',
+    reloadHistory: '重新載入歷史',
     eyebrow: '王國轉移',
     title: '轉移計畫',
     readinessBoard: '準備情況',

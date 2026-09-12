@@ -27,6 +27,14 @@ final class AccountIdentityQuery
         return $this->snapshot(User::query()->whereKey($userId)->lockForUpdate()->firstOrFail());
     }
 
+    public function lockActive(int $userId, bool $wait = true): AccountIdentity
+    {
+        $user = User::query()->whereKey($userId)->lock($wait ? 'for update' : 'for update nowait')->firstOrFail();
+        $user->ensureActive();
+
+        return $this->snapshot($user);
+    }
+
     public function findIdByEmail(string $email): ?int
     {
         $id = User::query()
@@ -46,15 +54,6 @@ final class AccountIdentityQuery
         $user = User::query()->find($userId);
 
         return $user instanceof User && $user->supportsGoogleAuthentication();
-    }
-
-    public function requiresMultiFactor(int $userId): bool
-    {
-        $user = User::query()->find($userId);
-
-        return $user instanceof User
-            && $user->two_factor_confirmed_at !== null
-            && (string) $user->two_factor_secret !== '';
     }
 
     /** @param list<int> $userIds

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Profile\Http\Controllers;
 
-use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
 use App\Contexts\Accounts\Authentication\Models\AccountPasskey;
 use App\Contexts\Accounts\Authentication\Models\AccountSession;
 use App\Contexts\Accounts\Authentication\Services\AccountSignInMethodPolicy;
+use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Profile\Actions\ChangePassword;
 use App\Contexts\Accounts\Profile\Actions\UpdateProfile;
@@ -15,6 +15,7 @@ use App\Contexts\Accounts\Security\Queries\AccountSecurityActivityQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -54,13 +55,13 @@ final class ProfileController extends Controller
             ->where('user_id', $user->id)
             ->latest('created_at')
             ->get()
-            ->map(fn (AccountPasskey $passkey): array => [
+            ->map(static fn (AccountPasskey $passkey): array => [
                 'id' => (string) $passkey->public_id,
                 'name' => (string) $passkey->name,
                 'authenticator' => $passkey->authenticator,
                 'createdAt' => $passkey->created_at?->toIso8601String(),
                 'lastUsedAt' => $passkey->last_used_at?->toIso8601String(),
-                'canRemove' => $signInMethods->canRemovePasskey($user, (int) $passkey->id),
+                'canRemove' => $methodSummary['canRemoveOwnedPasskey'],
             ])
             ->values()
             ->all();
@@ -79,8 +80,8 @@ final class ProfileController extends Controller
                 'passkeyAuthentication' => $methodSummary['passkeys'] > 0,
                 'passkeyCount' => $methodSummary['passkeys'],
                 'signInMethodCount' => $methodSummary['count'],
-                'canRemovePassword' => $signInMethods->canRemovePassword($user),
-                'canDisconnectGoogle' => $signInMethods->canDisconnectGoogle($user),
+                'canRemovePassword' => $methodSummary['canRemovePassword'],
+                'canDisconnectGoogle' => $methodSummary['canDisconnectGoogle'],
                 'providerEmail' => $googleIdentity?->provider_email,
                 'twoFactorEnabled' => $user->two_factor_confirmed_at !== null,
                 'twoFactorPending' => $user->two_factor_secret !== null && $user->two_factor_confirmed_at === null,
@@ -92,8 +93,8 @@ final class ProfileController extends Controller
                 && filled(config('services.google.redirect')),
             'sessions' => $sessions,
             'securityActivity' => $securityActivity->forUser((int) $user->id),
-            'twoFactorSetup' => $request->session()->get('two_factor_setup'),
-            'twoFactorRecoveryCodes' => $request->session()->pull('two_factor_recovery_codes'),
+            'twoFactorSetup' => $request->session()->pull('twoFactorSetup'),
+            'twoFactorRecoveryCodes' => $request->session()->pull('twoFactorRecoveryCodes'),
         ]);
     }
 
@@ -119,7 +120,7 @@ final class ProfileController extends Controller
     public function updatePassword(
         Request $request,
         ChangePassword $changePassword,
-        RevokeOtherAccountSessions $revokeOtherSessions,
+        RecentAuthentication $recentAuthentication,
     ): RedirectResponse {
         $user = $request->user();
         abort_unless($user instanceof User, 401);
@@ -133,14 +134,11 @@ final class ProfileController extends Controller
             (int) $user->id,
             (string) $validated['current_password'],
             (string) $validated['password'],
+            $request->session()->getId(),
         );
-        $revokeOtherSessions->handle((int) $user->id, $request->session()->getId());
+        Auth::setUser($user->refresh());
+        $recentAuthentication->clear($request);
 
         return redirect()->route('profile.show')->with('actionReceipt', $this->receipt('password-updated'));
-    }
-
-    public function destroyOtherSessions(): never
-    {
-        abort(404);
     }
 }

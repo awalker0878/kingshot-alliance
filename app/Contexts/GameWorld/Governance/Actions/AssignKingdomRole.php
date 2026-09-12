@@ -8,12 +8,14 @@ use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\GameWorld\Governance\Enums\KingdomPermission;
 use App\Contexts\GameWorld\Governance\Models\KingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
+use App\Contexts\GameWorld\Governance\Queries\KingdomAdministratorAssignments;
 use App\Contexts\GameWorld\Governance\Services\KingdomAuthorization;
+use App\Contexts\GameWorld\Governance\Services\KingdomRoleDelegation;
+use App\Contexts\GameWorld\Governance\Services\KingdomRoleInput;
 use App\Contexts\GameWorld\Governance\Services\KingdomWriteState;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -22,6 +24,9 @@ final readonly class AssignKingdomRole
     public function __construct(
         private KingdomWriteState $kingdomWriteState,
         private KingdomAuthorization $authorization,
+        private KingdomRoleDelegation $delegation,
+        private KingdomRoleInput $input,
+        private KingdomAdministratorAssignments $administrators,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -35,18 +40,19 @@ final readonly class AssignKingdomRole
         ?string $expiresAt = null,
         ?string $reason = null,
     ): string {
-        $effective = $effectiveFrom === null ? null : Carbon::parse($effectiveFrom)->utc();
-        $expires = $expiresAt === null ? null : Carbon::parse($expiresAt)->utc();
+        $reason = $this->input->reason($reason);
+        $effective = $this->input->date($effectiveFrom, 'effective_from');
+        $expires = $this->input->date($expiresAt, 'expires_at');
         if ($expires !== null && $expires->lte($effective ?? now())) {
             throw ValidationException::withMessages(['expires_at' => 'Role expiry must be after its effective time.']);
         }
 
         return DB::transaction(function () use ($actorPlayerId, $kingdomId, $targetPlayerId, $roleId, $effective, $expires, $reason): string {
-            $authority = $this->kingdomWriteState->lockActiveScope($actorPlayerId, $kingdomId);
+            $authority = $this->kingdomWriteState->lockExclusiveScope($actorPlayerId, $kingdomId);
             $this->authorization->authorizeContext($authority, KingdomPermission::RoleManage);
 
             $target = Player::query()->whereKey($targetPlayerId)->lockForUpdate()->firstOrFail();
-            if ((string) $target->current_kingdom_id !== $kingdomId) {
+            if ((string) $target->current_kingdom_id !== $kingdomId || $target->canonical_player_id !== null) {
                 throw ValidationException::withMessages(['player_id' => 'The selected Player is not currently in this Kingdom.']);
             }
 
@@ -56,6 +62,8 @@ final readonly class AssignKingdomRole
                 ->whereNull('archived_at')
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            $this->delegation->authorizeRole($actorPlayerId, $kingdomId, $role);
 
             $existing = KingdomRoleAssignment::query()
                 ->where('kingdom_id', $kingdomId)
@@ -72,13 +80,8 @@ final readonly class AssignKingdomRole
             }
 
             if ($role->key === DefaultKingdomRole::Administrator->value && $expires !== null) {
-                $survivingAdmin = KingdomRoleAssignment::query()
-                    ->where('kingdom_id', $kingdomId)
-                    ->whereNull('revoked_at')
-                    ->whereHas('role', static fn ($query) => $query->where('key', DefaultKingdomRole::Administrator->value))
-                    ->where(function ($query) use ($expires): void {
-                        $query->whereNull('expires_at')->orWhere('expires_at', '>', $expires);
-                    })
+                $survivingAdmin = $this->administrators->effective($kingdomId, $expires)
+                    ->where('player_id', '!=', $targetPlayerId)
                     ->exists();
                 if (! $survivingAdmin) {
                     throw ValidationException::withMessages(['expires_at' => 'A temporary Kingdom Admin requires another administrator whose authority survives that expiry.']);

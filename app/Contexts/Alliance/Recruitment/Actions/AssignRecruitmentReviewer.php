@@ -34,7 +34,7 @@ final class AssignRecruitmentReviewer
         string $reviewerPlayerId,
     ): void {
         DB::transaction(function () use ($actorPlayerId, $allianceId, $candidateId, $reviewerPlayerId): void {
-            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
+            $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
             $currentCandidate = RecruitmentCandidate::query()
@@ -42,6 +42,8 @@ final class AssignRecruitmentReviewer
                 ->whereKey($candidateId)
                 ->sharedLock()
                 ->firstOrFail();
+
+            $currentCandidate->ensureNotAnonymized();
 
             if ($currentCandidate->merged_into_id !== null) {
                 throw ValidationException::withMessages([

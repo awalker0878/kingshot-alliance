@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    pageRecords: '{count} records on this page · {total} total',
+    collectionFailed: 'Could not load this collection. Retry from the first page.',
+    selectedUnavailable: 'Selected item unavailable',
+    reviewOnThisPage: 'This review list covers the current catalogue page.',
+    allStatuses: 'All statuses',
     eyebrow: 'Alliance content',
     hubTitle: 'Noticeboard',
     hubSubtitle: 'Published public and member-only information for {alliance}.',
@@ -64,8 +69,16 @@ const messages = {
     notifyMembers: 'Notify active members when published',
     notifyMembersHelp:
       'Each claimed active Governor receives one in-app notification plus any enabled external channels.',
-    broadcastComplete: 'Alliance Notice queued',
-    queuedBroadcasts: 'Awaiting delivery',
+    broadcastRecorded: 'Broadcast occurrence recorded',
+    broadcastState: {
+      pending: 'Preparing recipients — more work remains',
+      queued: 'Recipient processing complete',
+      empty: 'No eligible recipients',
+      cancelled: 'Stopped because source or scope changed',
+    },
+    broadcastProgress:
+      '{examined} examined · {skipped} no longer eligible · {suppressed} without enabled routes · {replayed} already queued',
+    queuedBroadcasts: 'Awaiting occurrence creation',
     deliveryAutomation: 'Scheduled delivery',
     recurringBroadcast: 'Recurring Alliance Notice',
     recurringDays: 'Delivery days',
@@ -88,6 +101,8 @@ const messages = {
     deliveryHistory: 'Delivery history',
     deliveryRunSummary:
       '{recipients} recipients · {sent} sent · {queued} queued · {failed} failed · {read} read',
+    retryCandidateSummary:
+      '{selected} shown for retry out of {total} failures below the attempt limit.',
     retryFailed: 'Retry {count} failed',
     retryingFailures: 'Queuing retries…',
     noDeliveryHistory: 'No Alliance Notice deliveries have been created yet.',

@@ -25,7 +25,7 @@ final readonly class EvidenceClassifierRouter implements EvidenceClassifier
 
     public function version(): string
     {
-        return '4.0.0';
+        return '4.1.0';
     }
 
     public function classify(EvidenceKind $expectedKind, OcrDocument $document): ClassificationDecision

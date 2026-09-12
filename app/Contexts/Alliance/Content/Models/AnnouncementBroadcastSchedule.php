@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $alliance_id
  * @property string $content_item_id
  * @property string $created_by_player_id
+ * @property int $generation
+ * @property CarbonImmutable|null $last_materialized_at
  * @property string $timezone
  * @property list<int> $weekdays
  * @property string $local_time
@@ -30,6 +32,8 @@ final class AnnouncementBroadcastSchedule extends Model
     public $incrementing = false;
 
     protected $keyType = 'string';
+
+    protected $dateFormat = 'Y-m-d H:i:s.u';
 
     protected $fillable = [
         'alliance_id',
@@ -48,6 +52,8 @@ final class AnnouncementBroadcastSchedule extends Model
     protected function casts(): array
     {
         return [
+            'generation' => 'integer',
+            'last_materialized_at' => 'immutable_datetime',
             'weekdays' => 'array',
             'status' => BroadcastScheduleStatus::class,
             'next_run_at' => 'immutable_datetime',

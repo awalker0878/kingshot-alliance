@@ -1,7 +1,13 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': 'อัปเดตรายการปฐมนิเทศผู้สมัครแล้ว',
+  },
   common: {
+    yes: 'ใช่',
+    no: 'ไม่ใช่',
+    historyItemsOnPage: '{count} รายการในหน้านี้ (สูงสุด {pageSize} รายการ)',
     all: 'ทั้งหมด',
     language: 'ภาษา',
     signIn: 'เข้าสู่ระบบ',
@@ -39,6 +45,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: 'ต้องประเมินเพิ่มเติม' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          'ผู้เข้าร่วมการย้ายอย่างน้อย {count} คนต้องได้รับการตรวจสอบ และอีก {unassessed} คนยังไม่ได้รับการประเมินในภาพรวมนี้',
+      },
+
       title: 'หน้าหลัก',
       eyebrow: 'ภาพรวมผู้ว่าการ',
       welcome: 'ยินดีต้อนรับ ผู้ว่าการ {name}',

@@ -114,6 +114,8 @@ Voluntary release requires the Player to be owned by the requesting account and 
 
 Platform Data Governance remains responsible for account-deletion orchestration. It coordinates foreign-owner cleanup first and then calls `ReleasePlayersFromAccount`, preserving durable Player identities while removing account ownership.
 
+Account finalization and Player ownership changes serialize through the current Accounts lifecycle lock before locking Player rows. A finalized account cannot claim, create or receive reconciled ownership. A claim that commits first is included in finalization's current ownership set; an assignment arriving after finalization is rejected. Reconciliation revalidates its discovered owners after acquiring locks and rejects a changed snapshot before writing identity or history.
+
 ## Reconciliation
 
 Reconciliation is never inferred from a similar name. `PlayerReconciliationCandidateQuery` can surface candidates and reason codes, but `ReconcilePlayers` requires an explicit canonical Player, duplicate Player and non-empty reason.

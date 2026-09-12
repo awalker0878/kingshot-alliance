@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\GiftCodes\Providers;
 
-use App\Contexts\GameWorld\GiftCodes\Actions\RebuildGiftCodeAcquisitionIntelligence;
 use App\Contexts\GameWorld\GiftCodes\Adapters\CenturyGamesKingshotNewsRssGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\DiscordChannelGiftCodeSourceAdapter;
 use App\Contexts\GameWorld\GiftCodes\Adapters\FacebookPageGiftCodeSourceAdapter;
@@ -19,12 +18,16 @@ use App\Contexts\GameWorld\GiftCodes\Console\Commands\BackfillGiftCodeSourcesCom
 use App\Contexts\GameWorld\GiftCodes\Console\Commands\GiftCodeDiscordGatewayCommand;
 use App\Contexts\GameWorld\GiftCodes\Console\Commands\IngestApprovedGiftCodeSourcesCommand;
 use App\Contexts\GameWorld\GiftCodes\Console\Commands\MaintainGiftCodesCommand;
+use App\Contexts\GameWorld\GiftCodes\Console\Commands\QueueGiftCodeRemindersCommand;
+use App\Contexts\GameWorld\GiftCodes\Console\Commands\QueueGiftCodeSourceOperationalAlertsCommand;
+use App\Contexts\GameWorld\GiftCodes\Console\Commands\QueueGiftCodeWorkspaceNotificationsCommand;
+use App\Contexts\GameWorld\GiftCodes\Console\Commands\RebuildGiftCodeAcquisitionIntelligenceCommand;
+use App\Contexts\GameWorld\GiftCodes\Console\Commands\RebuildGiftCodeContributorProjectionsCommand;
 use App\Contexts\GameWorld\GiftCodes\Console\Commands\ReconcileGiftCodeSourcePoliciesCommand;
 use App\Contexts\GameWorld\GiftCodes\Console\Commands\ReconcileGiftCodeSourcesCommand;
 use App\Contexts\GameWorld\GiftCodes\Contracts\GiftCodeRedemptionProvider;
 use App\Contexts\GameWorld\GiftCodes\Services\GiftCodeSourceAdapterRegistry;
 use App\Contexts\GameWorld\GiftCodes\Services\OfficialGiftCodeHandoff;
-use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 
 final class GiftCodesServiceProvider extends ServiceProvider
@@ -67,10 +70,15 @@ final class GiftCodesServiceProvider extends ServiceProvider
         );
     }
 
-    public function boot(Schedule $schedule): void
+    public function boot(): void
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
+                QueueGiftCodeRemindersCommand::class,
+                QueueGiftCodeWorkspaceNotificationsCommand::class,
+                QueueGiftCodeSourceOperationalAlertsCommand::class,
+                RebuildGiftCodeContributorProjectionsCommand::class,
+                RebuildGiftCodeAcquisitionIntelligenceCommand::class,
                 MaintainGiftCodesCommand::class,
                 IngestApprovedGiftCodeSourcesCommand::class,
                 ReconcileGiftCodeSourcesCommand::class,
@@ -80,14 +88,5 @@ final class GiftCodesServiceProvider extends ServiceProvider
             ]);
         }
 
-        $schedule->call(static function (): int {
-            $result = app(RebuildGiftCodeAcquisitionIntelligence::class)->cycle(500, 100);
-
-            return $result['clusters']['updated'] + $result['sources']['updated'];
-        })
-            ->name('gift-codes:rebuild-acquisition-intelligence')
-            ->hourly()
-            ->onOneServer()
-            ->withoutOverlapping(30);
     }
 }

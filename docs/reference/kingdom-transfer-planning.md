@@ -25,11 +25,14 @@ KingdomTransfers owns accepted transfer facts, planning commitments and eligibil
 | `GET` | `/alliance/transfers/manage` | Window, official facts, capacity, cohorts and participant management. |
 | `GET` | `/alliance/transfers/readiness` | Server-authoritative eligibility plus independent Alliance readiness. |
 | `GET` | `/alliance/transfers/completion` | Final outcome workflow. |
+| `GET` | `/alliance/transfers/{plan}/participants/{participant}/observations` | Complete sourced observation history in 25-record pages. |
+| `GET` | `/alliance/transfers/{plan}/participants/{participant}/blockers?state=active` | Active or resolved (`state=resolved`) planning blockers, independently paged. |
+| `GET` | `/alliance/transfers/{plan}/participants/{participant}/readiness-history` | Complete readiness-transition history in 25-record pages. |
 | `GET` | `/alliance/transfers/{plan}/participants/{participant}/evidence` | Lazy participant Transfer Evidence summary/schema registry. |
 | `GET` | `/alliance/transfers/{plan}/participants/{participant}/evidence/{evidence}/image` | Authorized private image stream. |
 | `GET` | `/alliance/transfers/{plan}/participants/{participant}/evidence/reviews/{review}/preview` | Current-versus-reviewed evaluator preview. |
 
-The readiness response is bounded by relation type, not participant count. Evidence history is loaded lazily only when its participant panel opens.
+The readiness response exposes `activeBlockerCount`, `resolvedBlockerCount` and `readinessTransitionCount` as complete current counts rather than embedding child histories. Workflow history responses use `items`, `nextCursor`, `hasMore`, `pageSize` and `isFirstPage`; `cursor` is an opaque string, limited to 4,096 characters. It is bound to Alliance, Plan, participant, history kind and blocker state. Invalid or mismatched tokens fail validation; every page requires current authority. Evidence and workflow histories load only when their panel is opened. Full participant-set bounding remains tracked in HARD-095 and is not implied by the per-history page size.
 
 ## Official-fact writes
 
@@ -98,7 +101,7 @@ Supported observation kinds:
 - `resource_protection_verified`;
 - `in_game_rules_verified`.
 
-Numeric/text/boolean storage is chosen by the enum contract. Target-specific observations must match the participant's current target. Mutable current-use facts require an explicit `valid_until` boundary.
+Numeric/text/boolean storage is chosen by the enum contract. Boolean observations and reviewed-evidence values use the shared localized Yes/No labels. Missing, unknown and unverified values remain distinct states; presentation does not infer a boolean from missing data. Target-specific observations must match the participant's current target. Mutable current-use facts require an explicit `valid_until` boundary.
 
 Manual forms do not expose `source_type=evidence`; reviewed Evidence commits own that provenance path.
 
@@ -254,3 +257,19 @@ Preview calls the same evaluator as live reads and persists nothing. Commit reva
 ## Release checks
 
 Final readiness requires clean database migration, Pint/PHPStan, frontend lint/format/type/build, KingdomTransfers/Evidence V3 tests, architecture/intelligence/visual workflows, CodeQL/Dependency Review, bounded-query and cross-Alliance isolation coverage, plus documentation/source-matrix reconciliation.
+
+Eligibility and screenshot preview load only bounded factual witnesses for the requested participants and source/target Kingdoms, preserving current conflicts and authoritative provenance. Capacity planning counts consuming commitments in SQL against the latest authoritative capacity observation. The Readiness page separately loads complete observation history in current-authorized 25-record pages, with scoped continuation and retry. Recruitment campaign evidence and active-blocker totals are SQL counts over all matching records.
+
+## Participant page response
+
+The four Transfer workspaces return `participants` as a PageSlice: `items`, `nextCursor`, `hasMore`, `pageSize` and `isFirstPage`. Requests supply the optional `participant_cursor`. `participantSummary` contains complete `total`, `incoming`, `outgoing`, `staying`, `completed`, `confirmed` and `withdrawn` workflow counts for the same view, or null without a selected plan. Overview excludes withdrawn participants; management, readiness and outcomes include them. The current actor and required permission are checked on every page and summary read.
+
+A cursor applies only to its actor, Alliance, Plan, withdrawal view and permission. Cross-view tokens or malformed positions fail validation rather than starting a different result set. Current membership/rank revocation still denies access even with a previously issued token. The request size bound is 4,096 characters; page size is 25, with one database look-ahead row. Stable ID ordering intentionally does not regroup pages after a label or workflow-state edit. No previous array response or compatibility endpoint is retained. See [query ownership](../architecture/contexts/game-world/kingdom-transfers.md).
+
+## Management choice response
+
+`GET /alliance/transfers/manage/choices/{kind}` accepts `windows`, `coordinators` or `roster`. Optional fields are `q` (160 characters), `cursor` (4,096 characters) and `selected` (ULID). Coordinators/roster require `plan` (ULID) for the exact mutable scoped plan; windows reject a plan parameter. Actor and Alliance are never supplied by the client as authorization.
+
+The JSON object has `page` (PageSlice of `{id,name}`), `total` (complete current match count), and `selected` (the separately authorized `{id,name}` or null). The selected row is not an extra page item and does not depend on search text. Page size is 25 and the SQL probe is 26; stable ID/high-water continuation remains valid without the boundary row. Current access is checked before data selection. Invalid cursor scope/shape returns validation failure, unavailable plans remain not-found, and revoked authority is forbidden. Responses send `Cache-Control: private, no-store`. All original mutation endpoints and their independent current checks remain authoritative.
+
+The management workspace exposes independent 25-record pages for Transfer Windows, plans, official groups, condition/capacity history and planning cohorts. Counts cover the complete authorized collection. Select a plan from its catalogue to inspect retained closed or cancelled history; current owner state determines whether editing is available. Official-group Kingdom membership loads separately in pages of 25. Participant cohort assignment choices use the existing searched choice endpoint and current Context-owned compatibility, including off-page selected values. Failed page loads preserve drafts and offer retry.

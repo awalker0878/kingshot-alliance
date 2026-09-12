@@ -36,13 +36,13 @@ Source: `app/Contexts/Platform/Integrations/Contracts/WebhookEventCatalog.php`
 
 Webhook selectors also accept `*`, meaning every current and future event in this public catalogue. A wildcard is stored as the only selector so subscription intent stays unambiguous.
 
-The envelope carries `schema_version`, `id`, `event`, `occurred_at`, `alliance_id`, and `data`. Version `1.0` is published as [JSON Schema](api/webhook-envelope.schema.json). Delivery bodies are capped at 256 KiB, signed with `X-Kingshot-Signature`, idempotent per subscription and source message, and retried with bounded backoff. Internal messages that are not listed above are never fanned out, including to wildcard subscriptions.
+The envelope carries `schema_version`, `id`, `event`, `occurred_at`, `alliance_id`, and `data`. Version `1.0` is published as [JSON Schema](api/webhook-envelope.schema.json). Delivery bodies are capped at 256 KiB, signed with `X-Kingshot-Signature`, idempotent per subscription and source message, and retried with bounded backoff across at most five automatic provider attempts. The signature covers the exact bytes transmitted. Destinations require current public HTTPS resolution with pinned transport, TLS verification, no redirects or proxies, and a 64 KiB provider-response limit. Internal messages that are not listed above are never fanned out, including to wildcard subscriptions.
 
-Alliance events require an Alliance-scoped source message. Global Gift Code events have no source Alliance and are independently delivered to each active matching subscription using that subscription's Alliance in the envelope. Runtime fanout fails closed when an allowlisted event is missing required fields or has the wrong scope.
+Alliance events require an Alliance-scoped source message. Global Gift Code events have no source Alliance and are independently delivered to each active matching subscription using that subscription's Alliance in the envelope. Fan-out persists a source checkpoint and advances through 25-subscription pages, rechecking active recipients; completed source replay does not admit later subscribers. Runtime fanout fails closed when an allowlisted event is missing required fields or has the wrong scope.
 
-Managers can send a targeted `integration.test` envelope to one active subscription. It uses the production signing and delivery path but is not a selectable catalogue event and is never fanned out to other subscriptions. An exhausted delivery may be manually re-queued only while its original payload remains available and its subscription is active; the original delivery identity and cumulative attempt count are preserved.
+Managers can send a targeted `integration.test` envelope to one active subscription. It uses the production signing and delivery path but is not a selectable catalogue event and is never fanned out to other subscriptions. An exhausted delivery may be manually re-queued only while its original payload remains available and its subscription is active; the original delivery identity and cumulative attempt count are preserved, with five further attempts granted by the authorized retry owner.
 
-Signing-secret rotation takes effect immediately, displays the replacement once, and invalidates the previous secret for future deliveries. Existing immutable delivery bodies and their historical signatures remain inspectable.
+Signing-secret rotation takes effect immediately, displays the replacement once, and invalidates the previous secret for future deliveries. Retained delivery bodies remain inspectable under current authorization; provider response bodies and raw exceptions are not retained.
 
 `alliance.created` is not a public selector because no Alliance subscription can exist before that transition. Membership contracts use the stable `member.updated` and `member.left` vocabulary rather than exposing owner-specific internal event names.
 
@@ -51,3 +51,9 @@ Signing-secret rotation takes effect immediately, displays the replacement once,
 King Perks planning uses transition concepts including plan creation/publication, appointment assignment/reassignment/confirmation/completion/no-show and skill planning/scheduling/activation. The owning persisted state remains Operations; messages represent transitions and do not become a second state store.
 
 When adding an externally supported webhook event, update the code catalogue, API/integration documentation, security/retry expectations and this reference together.
+
+## Announcement preparation receipt
+
+`broadcast.run.queued` records completed recipient preparation for an immutable occurrence. It is not a receipt of provider success; pending work has no completion event, and provider outcomes remain Communications-owned. See [ADR-0049](../architecture/adr/0049-bounded-announcement-occurrences.md).
+
+Platform webhook disablement and source Alliance/Kingdom lifecycle are rechecked at claim and immediately before provider handoff. Unavailable queued work fails safely. Re-enabling does not automatically replay it; use the authorized manual retry while the original payload remains retained. Already handed-off provider requests cannot be recalled.

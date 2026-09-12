@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\GameWorld\Kingdoms\Actions;
 
 use App\Contexts\GameWorld\Kingdoms\Enums\KingdomAllianceStatus;
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Kingdoms\Models\KingdomAlliance;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomAllianceReferenceQuery;
 use App\Contexts\GameWorld\Kingdoms\ValueObjects\KingdomAllianceReference;
@@ -22,7 +23,9 @@ final readonly class ArchiveKingdomAlliance
     public function handle(string $kingdomAllianceId, ?AuditActor $actor = null, ?string $reason = null): KingdomAllianceReference
     {
         DB::transaction(function () use ($kingdomAllianceId, $actor, $reason): void {
-            $alliance = KingdomAlliance::query()->whereKey($kingdomAllianceId)->lockForUpdate()->firstOrFail();
+            $candidate = KingdomAlliance::query()->whereKey($kingdomAllianceId)->firstOrFail(['id', 'kingdom_id']);
+            $kingdom = Kingdom::query()->whereKey($candidate->kingdom_id)->lockForUpdate()->firstOrFail();
+            $alliance = KingdomAlliance::query()->whereKey($kingdomAllianceId)->where('kingdom_id', $kingdom->id)->lockForUpdate()->firstOrFail();
             if ($alliance->status === KingdomAllianceStatus::Archived) {
                 return;
             }

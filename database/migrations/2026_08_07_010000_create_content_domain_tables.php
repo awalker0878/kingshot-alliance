@@ -29,6 +29,7 @@ return new class extends Migration
             $table->unique(['id', 'alliance_id']);
             $table->unique(['disk', 'path']);
             $table->index(['alliance_id', 'lifecycle_status', 'created_at']);
+            $table->index(['alliance_id', 'id'], 'content_media_keyset');
         });
 
         Schema::create('alliance_profiles', function (Blueprint $table): void {
@@ -66,6 +67,7 @@ return new class extends Migration
             $table->unique(['id', 'alliance_id']);
             $table->unique(['alliance_id', 'slug']);
             $table->index(['alliance_id', 'sort_order', 'name']);
+            $table->index(['alliance_id', 'id'], 'content_categories_keyset');
         });
 
         Schema::create('content_items', function (Blueprint $table): void {
@@ -105,8 +107,9 @@ return new class extends Migration
             $table->unique(['alliance_id', 'slug']);
             $table->index(['alliance_id', 'status', 'visibility', 'published_at']);
             $table->index(['alliance_id', 'type', 'sort_order']);
+            $table->index(['alliance_id', 'id'], 'content_catalogue_keyset');
             $table->index(
-                ['type', 'status', 'notify_members', 'broadcasted_at'],
+                ['type', 'status', 'notify_members', 'broadcasted_at', 'published_at', 'id'],
                 'content_broadcast_queue_index',
             );
         });
@@ -144,6 +147,7 @@ return new class extends Migration
                 ->restrictOnDelete();
             $table->unique(['content_item_id', 'revision_number']);
             $table->index(['alliance_id', 'content_item_id', 'revision_number']);
+            $table->index(['alliance_id', 'content_item_id', 'id'], 'content_revision_keyset');
         });
 
         Schema::create('announcement_broadcast_schedules', function (Blueprint $table): void {
@@ -151,12 +155,14 @@ return new class extends Migration
             $table->ulid('alliance_id');
             $table->ulid('content_item_id');
             $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
+            $table->unsignedBigInteger('generation')->default(1);
             $table->string('timezone', 64);
             $table->json('weekdays');
             $table->string('local_time', 5);
             $table->string('status', 16)->index();
             $table->timestampTz('next_run_at')->nullable()->index();
             $table->timestampTz('last_run_at')->nullable();
+            $table->timestampTz('last_materialized_at', 6)->nullable();
             $table->timestampTz('ends_at')->nullable();
             $table->timestampTz('cancelled_at')->nullable();
             $table->timestampsTz();
@@ -167,6 +173,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->unique(['content_item_id']);
             $table->index(['alliance_id', 'status', 'next_run_at']);
+            $table->index(['status', 'next_run_at', 'id'], 'announcement_due_schedule');
         });
 
         Schema::create('announcement_broadcast_runs', function (Blueprint $table): void {
@@ -175,7 +182,17 @@ return new class extends Migration
             $table->ulid('content_item_id');
             $table->foreignUlid('schedule_id')->nullable()->constrained('announcement_broadcast_schedules')->cascadeOnDelete();
             $table->timestampTz('scheduled_for');
+            $table->unsignedInteger('content_revision_number');
+            $table->unsignedBigInteger('schedule_generation')->nullable();
+            $table->ulid('recipient_cursor')->nullable();
+            $table->ulid('recipient_upper_bound')->nullable();
+            $table->timestampTz('last_visited_at', 6);
+            $table->string('cancellation_reason', 40)->nullable();
+            $table->unsignedInteger('skipped_count')->default(0);
+            $table->unsignedInteger('suppressed_count')->default(0);
+            $table->unsignedInteger('replayed_count')->default(0);
             $table->string('status', 24)->index();
+            $table->index(['status', 'last_visited_at', 'id'], 'announcement_pending_visit');
             $table->unsignedInteger('recipient_count')->default(0);
             $table->unsignedInteger('delivery_count')->default(0);
             $table->string('idempotency_key', 191)->unique();
@@ -189,6 +206,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->index(['alliance_id', 'scheduled_for']);
             $table->index(['content_item_id', 'scheduled_for']);
+            $table->index(['alliance_id', 'content_item_id', 'id'], 'content_broadcast_history_keyset');
         });
     }
 

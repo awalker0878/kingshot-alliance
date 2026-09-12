@@ -1,0 +1,1856 @@
+{
+  "source_commit": "5760d3e4c01ceb5ec6ddec46c170ca80e952f345",
+  "php_classes": 283,
+  "php_cases": 1482,
+  "browser_cases": 62,
+  "files": [
+    {
+      "old_path": "tests/v3/Acceptance/CapabilityReadModelBudgetAndTelemetryV3Test.php",
+      "new_path": "tests/Feature/Acceptance/CapabilityReadModelBudgetAndTelemetryV3Test.php",
+      "source_blob": "8ff552e330384e90dabe1829fec11a865f52b399",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Acceptance/CapabilitySurfaceHttpMatrixV3Test.php",
+      "new_path": "tests/Feature/Acceptance/CapabilitySurfaceHttpMatrixV3Test.php",
+      "source_blob": "a79e5a7ffcc7d9f370acc7d2e6f87d0518880064",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Architecture/AllianceAssistantArchitectureV3Test.php",
+      "new_path": "tests/Architecture/AllianceAssistantArchitectureV3Test.php",
+      "source_blob": "8f50ec5aae3ea044ede6b2d86ce92013bc4f48af",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/ArchitectureEnforcementV3Test.php",
+      "new_path": "tests/Architecture/ArchitectureEnforcementV3Test.php",
+      "source_blob": "3634824255cb0d052afcbd3e00b7d679a76dcc96",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/ArchitectureV3Test.php",
+      "new_path": "tests/Architecture/ArchitectureV3Test.php",
+      "source_blob": "75443c980c968d43331fc17f166de4118eeea91a",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/BehaviorContractsV3Test.php",
+      "new_path": "tests/Architecture/BehaviorContractsV3Test.php",
+      "source_blob": "95378b4566c29c4e8e38d869753640b0076f27ee",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/CapabilityFirstSourceLayoutV3Test.php",
+      "new_path": "tests/Architecture/CapabilityFirstSourceLayoutV3Test.php",
+      "source_blob": "9665894e60ee463b3aa2b473fb031f084fd6c5db",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/CommunicationsBoundaryV3Test.php",
+      "new_path": "tests/Architecture/CommunicationsBoundaryV3Test.php",
+      "source_blob": "ec27180021d2fe3e2217108afadce1c3dd1067f8",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/ConsoleCommandOwnershipV3Test.php",
+      "new_path": "tests/Architecture/ConsoleCommandOwnershipV3Test.php",
+      "source_blob": "e2c63c4de5c722fe8beaccd185a37501a2bb2dd2",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/CrossContextPersistenceV3Test.php",
+      "new_path": "tests/Architecture/CrossContextPersistenceV3Test.php",
+      "source_blob": "a271743887e3974148787a14ffecba62bd95f46a",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/EventCommandArchitectureV3Test.php",
+      "new_path": "tests/Architecture/EventCommandArchitectureV3Test.php",
+      "source_blob": "12b7df23a01317b9e887c31d334b0862073206ef",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/EventTypeOnboardingArchitectureV3Test.php",
+      "new_path": "tests/Architecture/EventTypeOnboardingArchitectureV3Test.php",
+      "source_blob": "0b06ba85310dd2a50cea9e53b8f9b44501a0af86",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/FinalSourceCertificationV3Test.php",
+      "new_path": "tests/Architecture/FinalSourceCertificationV3Test.php",
+      "source_blob": "b5d5749f807370b2f9ed30d1fcf54cc3546eb282",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/IntelligenceChangeDetectionArchitectureV3Test.php",
+      "new_path": "tests/Architecture/IntelligenceChangeDetectionArchitectureV3Test.php",
+      "source_blob": "3bd66812909cd36444c4bdf077137eb8b22a7781",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/KingdomOperationalReadBoundaryV3Test.php",
+      "new_path": "tests/Architecture/KingdomOperationalReadBoundaryV3Test.php",
+      "source_blob": "0054d07ea07214a84cc9e1b62c4965d943fb382a",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/NamespaceLocationV3Test.php",
+      "new_path": "tests/Architecture/NamespaceLocationV3Test.php",
+      "source_blob": "c38bccc87adec1cb4a7d29eed7c89238ee58d898",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/PersistenceV3Test.php",
+      "new_path": "tests/Architecture/PersistenceV3Test.php",
+      "source_blob": "6e71577c383c041e7e9a9c087a1819de773ea040",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/ProgressionDatasetAbsenceBoundaryV3Test.php",
+      "new_path": "tests/Architecture/ProgressionDatasetAbsenceBoundaryV3Test.php",
+      "source_blob": "1df5e9425bdfaa1c9521c3fc074ffa4a0cf88104",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/ProgressionPlannerArchitectureV3Test.php",
+      "new_path": "tests/Architecture/ProgressionPlannerArchitectureV3Test.php",
+      "source_blob": "7d3bf41dd55296f3999f82d85ef63ea467929f02",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/PwaContractV3Test.php",
+      "new_path": "tests/Architecture/PwaContractV3Test.php",
+      "source_blob": "b8324fde8054dd8819144aadca102919f2b3cf16",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/SchedulerOwnershipV3Test.php",
+      "new_path": "tests/Architecture/SchedulerOwnershipV3Test.php",
+      "source_blob": "0fefbef6e7b8b2d6990c1c43bfa31dc133aa2ad7",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/ThinHttpAdaptersV3Test.php",
+      "new_path": "tests/Architecture/ThinHttpAdaptersV3Test.php",
+      "source_blob": "080fd02216aaae14e662218e62033d7e810af520",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/TransferEvidenceBoundaryV3Test.php",
+      "new_path": "tests/Architecture/TransferEvidenceBoundaryV3Test.php",
+      "source_blob": "fd1f8bf2654fda06284d20086beb2564d06e9f0f",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/verify-behavior-contracts.php",
+      "new_path": "tests/Architecture/verify-behavior-contracts.php",
+      "source_blob": "c9806b8aa928288870641ccc5c66055f7b7f7aa7",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/verify-final-source.php",
+      "new_path": "tests/Architecture/verify-final-source.php",
+      "source_blob": "264d8184403a911ff2cc717e8a5b0ebac8ba0996",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/verify-persistence.php",
+      "new_path": "tests/Architecture/verify-persistence.php",
+      "source_blob": "72a2332e5406e58edfb1dbad45cd496572824253",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Architecture/verify.php",
+      "new_path": "tests/Architecture/verify.php",
+      "source_blob": "2fa1d9de537d4a2a705065b7cf2ab3a8bc40f9b8",
+      "reason": "Architecture support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/AccountLoginCompletionV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/AccountLoginCompletionV3Test.php",
+      "source_blob": "c69f7b24877a5f38c1aafba13a635dff0d9b43d8",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/AccountLogoutV3Test.php",
+      "new_path": "tests/Integration/Contexts/Accounts/Authentication/AccountLogoutV3Test.php",
+      "source_blob": "d5b47e73f615004e20d8061e925f6dcd076739b7",
+      "reason": "Committed-state, after-commit or lifecycle atomicity contract; no outer test transaction."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/AccountSessionRevocationV3Test.php",
+      "new_path": "tests/Integration/Contexts/Accounts/Authentication/AccountSessionRevocationV3Test.php",
+      "source_blob": "0313a9869b6d2d70f0beebbe94a949f97c941d42",
+      "reason": "Committed-state, after-commit or lifecycle atomicity contract; no outer test transaction."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/AccountSessionV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Authentication/AccountSessionV3Test.php",
+      "source_blob": "9347c2548099b8ec585dba9d11c17864236b7005",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/CredentialMutationV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Authentication/CredentialMutationV3Test.php",
+      "source_blob": "11f054b478e94e1575ea100882fa6497ad289bc6",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/CredentialSecurityIntentAtomicityV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Authentication/CredentialSecurityIntentAtomicityV3Test.php",
+      "source_blob": "e48eaa8ff679fe26a0127b845ce4b6fde585705d",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/CredentialSessionCommitV3Test.php",
+      "new_path": "tests/Integration/Contexts/Accounts/Authentication/CredentialSessionCommitV3Test.php",
+      "source_blob": "f289c918a9584089939a9a783edd28582b3ee887",
+      "reason": "Committed-state, after-commit or lifecycle atomicity contract; no outer test transaction."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/GoogleAuthenticationV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Authentication/GoogleAuthenticationV3Test.php",
+      "source_blob": "748bfef37a1ddc590298b72acddaa263336ede1a",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/GoogleConfirmationAtomicityV3Test.php",
+      "new_path": "tests/Integration/Contexts/Accounts/Authentication/GoogleConfirmationAtomicityV3Test.php",
+      "source_blob": "c349ff4ce5fbfdbdef1ce5cd2186f3ca580141d7",
+      "reason": "Committed-state, after-commit or lifecycle atomicity contract; no outer test transaction."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/GoogleCredentialAtomicityV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Authentication/GoogleCredentialAtomicityV3Test.php",
+      "source_blob": "384474ab7c5ffcddff8fc8517e4fb17b83e30f2d",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/PasskeyConfirmationAtomicityV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/PasskeyConfirmationAtomicityV3Test.php",
+      "source_blob": "5dd015646b1104605536924386233c5d754c604d",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/PasskeyLoginCompletionV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/PasskeyLoginCompletionV3Test.php",
+      "source_blob": "dfc777d8917013d713d5630808016baba4971924",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/PasskeyMutationSerializationV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/PasskeyMutationSerializationV3Test.php",
+      "source_blob": "bb35d1255b74da33c00c9cafcde7e2cea5a7fc0e",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/PasskeySecurityIntentAtomicityV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Authentication/PasskeySecurityIntentAtomicityV3Test.php",
+      "source_blob": "560f1f1c21c1a38a884f73530a8f6fe6de31fd64",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/PasskeySecurityV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Authentication/PasskeySecurityV3Test.php",
+      "source_blob": "a34fe49510cd688c81267d55457415f93fdf3e3a",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/PasswordConfirmationAtomicityV3Test.php",
+      "new_path": "tests/Integration/Contexts/Accounts/Authentication/PasswordConfirmationAtomicityV3Test.php",
+      "source_blob": "953c7d7a4e923935e106087ca150e656aa07b160",
+      "reason": "Committed-state, after-commit or lifecycle atomicity contract; no outer test transaction."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/PasswordProofThrottleV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Authentication/PasswordProofThrottleV3Test.php",
+      "source_blob": "2afcc4a59f47d345520691dadde2fe210281bf99",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/ProviderIdentitySerializationV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/ProviderIdentitySerializationV3Test.php",
+      "source_blob": "a143e7d53dd3564096710760397c86ed97573333",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/RecentAuthenticationV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Authentication/RecentAuthenticationV3Test.php",
+      "source_blob": "523f0d851f8ad4446ff2d1772f16d2e2f543dacf",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/RememberedAccountSessionV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Accounts/Authentication/RememberedAccountSessionV3Test.php",
+      "source_blob": "5e6ccbfd95d6260057e6291d241f7d28539ef53f",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Authentication/SignInMethodPolicyV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Authentication/SignInMethodPolicyV3Test.php",
+      "source_blob": "aff391e0f71f41331240312019714dab02b04a5d",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Credentials/DurablePasswordResetIssuanceV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Accounts/Credentials/DurablePasswordResetIssuanceV3Test.php",
+      "source_blob": "ab0490fb2a5641acb762726aaaa48925cc2ec684",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Credentials/PasswordAuthenticationBoundaryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Credentials/PasswordAuthenticationBoundaryV3Test.php",
+      "source_blob": "f43012f2b3f2ecc498e819aae14ed42b456dc34c",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Credentials/PasswordResetAtomicityV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Accounts/Credentials/PasswordResetAtomicityV3Test.php",
+      "source_blob": "7ae37302f27e23a22969e77896c3e19fc2fbf9e3",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/EmailVerification/AccountSecurityMailRenderingV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/EmailVerification/AccountSecurityMailRenderingV3Test.php",
+      "source_blob": "e686e3bea2c34d36fd2df04e6c799d9a4e280c75",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/EmailVerification/DurableEmailChangeV3Test.php",
+      "new_path": "tests/Integration/Contexts/Accounts/EmailVerification/DurableEmailChangeV3Test.php",
+      "source_blob": "10682e2474c49c158b2de31a6701f7859d13d5e2",
+      "reason": "Committed-state, after-commit or lifecycle atomicity contract; no outer test transaction."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/EmailVerification/DurableEmailVerificationV3Test.php",
+      "new_path": "tests/Integration/Contexts/Accounts/EmailVerification/DurableEmailVerificationV3Test.php",
+      "source_blob": "fb642485dee59cf0749eb2110ad10bab6d073f3a",
+      "reason": "Committed-state, after-commit or lifecycle atomicity contract; no outer test transaction."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/EmailVerification/EmailVerificationAtomicityV3Test.php",
+      "new_path": "tests/Integration/Contexts/Accounts/EmailVerification/EmailVerificationAtomicityV3Test.php",
+      "source_blob": "dd919dfdb87e785e11a5f027b6493e21616ed7a0",
+      "reason": "Committed-state, after-commit or lifecycle atomicity contract; no outer test transaction."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Identity/AccountAuditReferenceLockV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Accounts/Identity/AccountAuditReferenceLockV3Test.php",
+      "source_blob": "92133fa03eb3a4d62ffa6700b62dccb9803ec11a",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Identity/AccountFinalizationSessionCommitV3Test.php",
+      "new_path": "tests/Integration/Contexts/Accounts/Identity/AccountFinalizationSessionCommitV3Test.php",
+      "source_blob": "c5ca0ccc8590b84ecacadb88d357f3ddb02c2036",
+      "reason": "Committed-state, after-commit or lifecycle atomicity contract; no outer test transaction."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Identity/FinalizedAccountMutationV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Accounts/Identity/FinalizedAccountMutationV3Test.php",
+      "source_blob": "4b62758853fe29309e8a091074049aef5b1a706c",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/MultiFactorAuthentication/MfaEnrollmentV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/MultiFactorAuthentication/MfaEnrollmentV3Test.php",
+      "source_blob": "9fcedccb2bda202ab18637763a268a329c58ba0a",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/MultiFactorAuthentication/MfaLoginChallengeV3Test.php",
+      "new_path": "tests/Integration/Contexts/Accounts/MultiFactorAuthentication/MfaLoginChallengeV3Test.php",
+      "source_blob": "2fc26042699df02f43ed069cc04a7f86e3fae957",
+      "reason": "Committed-state, after-commit or lifecycle atomicity contract; no outer test transaction."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/MultiFactorAuthentication/MfaRememberedBrowserInvalidationV3Test.php",
+      "new_path": "tests/Integration/Contexts/Accounts/MultiFactorAuthentication/MfaRememberedBrowserInvalidationV3Test.php",
+      "source_blob": "75294a1a8f54c6eb6b65796dead4ecb61bdc2f8b",
+      "reason": "Committed-state, after-commit or lifecycle atomicity contract; no outer test transaction."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Profile/AccountsSecurityCloseoutV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Profile/AccountsSecurityCloseoutV3Test.php",
+      "source_blob": "b8c186d2e13264034c1022b17c7576f2b6b9c084",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Profile/EmailChangeThrottleV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Profile/EmailChangeThrottleV3Test.php",
+      "source_blob": "934b15c53b00770ef7c1c2227666965f53bf3276",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Profile/EmailSecurityIntentAtomicityV3Test.php",
+      "new_path": "tests/Integration/Contexts/Accounts/Profile/EmailSecurityIntentAtomicityV3Test.php",
+      "source_blob": "9cbb1acf4e9f5a4be82cc9a18a4a8abdaf470941",
+      "reason": "Committed-state, after-commit or lifecycle atomicity contract; no outer test transaction."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Profile/ProfileCredentialQueryBudgetV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Profile/ProfileCredentialQueryBudgetV3Test.php",
+      "source_blob": "6c26f358d2ffc2077b4e6061f8dc341f4374897a",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Accounts/Registration/AccountRegistrationBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Accounts/Registration/AccountRegistrationBehaviorV3Test.php",
+      "source_blob": "aad6ce82be44bc76ece3e63c75ce1a12d111dbad",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Access/AllianceAuthorityIsolationV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Access/AllianceAuthorityIsolationV3Test.php",
+      "source_blob": "573fcb524c86530eb9c210307abafc5909d57774",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Access/AllianceDelegationBoundaryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Access/AllianceDelegationBoundaryV3Test.php",
+      "source_blob": "6c40d0b37290f222f8da01cf066e32b5b0b9963f",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Access/AllianceRoleAdministrationBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Access/AllianceRoleAdministrationBehaviorV3Test.php",
+      "source_blob": "ad413121c7773f0c4451bb438efe713d2ce897e0",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Access/AllianceRoleArchivePayloadV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Access/AllianceRoleArchivePayloadV3Test.php",
+      "source_blob": "a7974008abb8829a3250787fe5929c636ec384de",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Access/AllianceRoleCatalogV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Access/AllianceRoleCatalogV3Test.php",
+      "source_blob": "9fc0517704d4e3b89302d080b762b845bbf27760",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Access/AllianceRoleCreationConcurrencyV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Alliance/Access/AllianceRoleCreationConcurrencyV3Test.php",
+      "source_blob": "bc82b9ac1cad4fbe7a5f163e104f7f219879a4af",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Access/AllianceRoleInputBoundaryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Access/AllianceRoleInputBoundaryV3Test.php",
+      "source_blob": "7216ce15936e392ce00e10aac09a946e9874326f",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Access/AllianceRoleRemovalRetryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Access/AllianceRoleRemovalRetryV3Test.php",
+      "source_blob": "0d2d7654053a8a9103a55e291459070e5282fa75",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Access/AllianceRoleRevocationConcurrencyV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Alliance/Access/AllianceRoleRevocationConcurrencyV3Test.php",
+      "source_blob": "1d3c419c6b64f4254b8e478bf547ece0be32875c",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Content/AllianceAnnouncementBroadcastBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Content/AllianceAnnouncementBroadcastBehaviorV3Test.php",
+      "source_blob": "96320bb9d0d4454c7ae1474853526492f37baa5e",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Content/AllianceContentGameParityBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Content/AllianceContentGameParityBehaviorV3Test.php",
+      "source_blob": "89e5bec515beeeacc620aa16b78981dd62e38ec9",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Content/AllianceContentGameParityHttpContractV3Test.php",
+      "new_path": "tests/Architecture/Contexts/Alliance/Content/AllianceContentGameParityHttpContractV3Test.php",
+      "source_blob": "6f0917178e800766b57afbf37c211e186703c7a4",
+      "reason": "Read source, routes or reflection/DI structure; no business mutation."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Content/AllianceNoticeReactionHttpBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Content/AllianceNoticeReactionHttpBehaviorV3Test.php",
+      "source_blob": "65caab33c4936947bd229541858275cdb211eb26",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Content/AllianceNoticeReactionTargetValidationV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Content/AllianceNoticeReactionTargetValidationV3Test.php",
+      "source_blob": "9554b1ceec61430dcd76cf31b2dccc8d56474a80",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Content/AllianceRulesHttpBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Content/AllianceRulesHttpBehaviorV3Test.php",
+      "source_blob": "62087b13d7b96ea1ef1edeb69fb983cc8ec9d272",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Content/AllianceRulesOwnerValidationV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Content/AllianceRulesOwnerValidationV3Test.php",
+      "source_blob": "b09bd905ba125f509a82238e289f5627ec7a2c88",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Content/AllianceRulesOwnershipBoundaryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Content/AllianceRulesOwnershipBoundaryV3Test.php",
+      "source_blob": "8c3e58d272b2a9ff1edd886c480cb0af6a79fce9",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Content/ContentProvenanceBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Content/ContentProvenanceBehaviorV3Test.php",
+      "source_blob": "8b96fcf2d72af7c2232e8499f54c978863a99c4b",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Content/NoticeReactionSummaryPerformanceV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Content/NoticeReactionSummaryPerformanceV3Test.php",
+      "source_blob": "84c5370303e3ffd1ef90a0807503bc3bae2353ec",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Lifecycle/AllianceCreationAuthorityV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Alliance/Lifecycle/AllianceCreationAuthorityV3Test.php",
+      "source_blob": "803b126dd2343987a6f3bc1b90748abfa22b86ae",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Lifecycle/AllianceLifecycleBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Lifecycle/AllianceLifecycleBehaviorV3Test.php",
+      "source_blob": "ae6f0033daa153bb7257e96ed21fb84fbf7ea2a3",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Lifecycle/AllianceSettingsBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Lifecycle/AllianceSettingsBehaviorV3Test.php",
+      "source_blob": "54b1ae963bd201d79232103a9107c93315fe297b",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Lifecycle/AllianceSettingsInputBoundaryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Lifecycle/AllianceSettingsInputBoundaryV3Test.php",
+      "source_blob": "92e21dc8a0e25474db18b42ff3b4057542670033",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Lifecycle/AllianceSlugConcurrencyV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Alliance/Lifecycle/AllianceSlugConcurrencyV3Test.php",
+      "source_blob": "23418fde8024f616641353b6f6caf28267fb59ab",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Membership/AllianceBulkAdministrationBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Membership/AllianceBulkAdministrationBehaviorV3Test.php",
+      "source_blob": "f6eaea70c3781c36a70305e086c38c9613627440",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Membership/InvitationIssuanceConcurrencyV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/InvitationIssuanceConcurrencyV3Test.php",
+      "source_blob": "7d177be8d059b38f5c5a766ab3b7107fd14f14b5",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Membership/MemberCapacityPolicyBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Membership/MemberCapacityPolicyBehaviorV3Test.php",
+      "source_blob": "b4390a9f8be967656221fdedbc9020fa2bb4a1da",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Membership/MembershipActivationConcurrencyV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/MembershipActivationConcurrencyV3Test.php",
+      "source_blob": "add39a92ec1d148c3a3c57cfe487f535ce1446b9",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Membership/MembershipBulkStatusBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Membership/MembershipBulkStatusBehaviorV3Test.php",
+      "source_blob": "1d32a8871914c04abbceed663b4d22f54cea3c12",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Membership/MembershipCleanupConcurrencyV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/MembershipCleanupConcurrencyV3Test.php",
+      "source_blob": "2b2dc9afaca81e8dc26b37eef283bb7c27b4dbba",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Membership/ProtectedMembershipTargetConcurrencyV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/ProtectedMembershipTargetConcurrencyV3Test.php",
+      "source_blob": "bfd2b2eb3b076208c1c66235f797c76654dcf986",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Membership/RosterWriteLockOrderV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Alliance/Membership/RosterWriteLockOrderV3Test.php",
+      "source_blob": "d2f41323456904c025cc06c9f431fefc366f8937",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Recruitment/RecruitmentApplicationAnswerBoundsV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Recruitment/RecruitmentApplicationAnswerBoundsV3Test.php",
+      "source_blob": "1d71a110c072d2c292cbe38ddcd806d5d81734ae",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Recruitment/RecruitmentBulkAuthorityRevocationV3Test.php",
+      "new_path": "tests/Integration/Contexts/Alliance/Recruitment/RecruitmentBulkAuthorityRevocationV3Test.php",
+      "source_blob": "f382e18ab17fb3ab051372d1f21782204e0207ea",
+      "reason": "Committed-state, after-commit or lifecycle atomicity contract; no outer test transaction."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Recruitment/RecruitmentBulkStageBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Recruitment/RecruitmentBulkStageBehaviorV3Test.php",
+      "source_blob": "e34c26c79f25e5de32f325c8d1c72242fb4dd7c4",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Recruitment/RecruitmentConfigurationCapacityV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentConfigurationCapacityV3Test.php",
+      "source_blob": "966ce080d8411c30c5b18be1fecd14370afd6b92",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Recruitment/RecruitmentConfigurationInputV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Recruitment/RecruitmentConfigurationInputV3Test.php",
+      "source_blob": "d6eaa4bc6a9bfae15db70bcfdb3bee0c46930787",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Recruitment/RecruitmentIntakeConcurrencyV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentIntakeConcurrencyV3Test.php",
+      "source_blob": "e42ce8cc645844b933abb805e2ed1423d940a236",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Recruitment/RecruitmentJoinedHandoffV3Test.php",
+      "new_path": "tests/Integration/Contexts/Alliance/Recruitment/RecruitmentJoinedHandoffV3Test.php",
+      "source_blob": "7b91b610a16dc0e71813fbc591b630a5846e0d06",
+      "reason": "Committed-state, after-commit or lifecycle atomicity contract; no outer test transaction."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Recruitment/RecruitmentMembershipLockOrderV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentMembershipLockOrderV3Test.php",
+      "source_blob": "5d5dc7b3db85c434ff0599508ce6d65209dabf4a",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Recruitment/RecruitmentPrivateRetentionV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentPrivateRetentionV3Test.php",
+      "source_blob": "c9f3a4b37551aadd25de1bf0317b62cee75319db",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Recruitment/RecruitmentReentryBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Recruitment/RecruitmentReentryBehaviorV3Test.php",
+      "source_blob": "6cdf0828f6d4925aa3838d071c5dc9c9aa3487ee",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Recruitment/RecruitmentRetentionAuthorityV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Alliance/Recruitment/RecruitmentRetentionAuthorityV3Test.php",
+      "source_blob": "bae2d8434295adfd584e6bd2daf5399c69f90078",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Alliance/Recruitment/RecruitmentTextBoundaryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Alliance/Recruitment/RecruitmentTextBoundaryV3Test.php",
+      "source_blob": "9305ba3eb04ec0c584a51b5ee9a42a90efc3167e",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Communications/Delivery/CommunicationsRecipientDeliveryAcceptanceV3Test.php",
+      "new_path": "tests/Feature/Contexts/Communications/Delivery/CommunicationsRecipientDeliveryAcceptanceV3Test.php",
+      "source_blob": "e0ac87e9614d66e448c32072c8f45f3a7ddccdb7",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Communications/Delivery/NotificationDeliveryBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Communications/Delivery/NotificationDeliveryBehaviorV3Test.php",
+      "source_blob": "857fc5051ac6f46c60cd08c4a5232af13401b3f5",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Communications/Delivery/NotificationRouteReplayV3Test.php",
+      "new_path": "tests/Feature/Contexts/Communications/Delivery/NotificationRouteReplayV3Test.php",
+      "source_blob": "0001b946a211bca38df1c4008be47ab791d3270e",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeAllianceCoverageV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeAllianceCoverageV3Test.php",
+      "source_blob": "0390310dce5aecbf9a8d94b0359af27f376199e7",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeBehaviorV3Test.php",
+      "source_blob": "b173362f95a666e745acc3d43a324e142fe12901",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeModerationHttpV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeModerationHttpV3Test.php",
+      "source_blob": "7f6a49e6af15fe211bb6ed3fea0abc5836080703",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeProviderFailureMatrixV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeProviderFailureMatrixV3Test.php",
+      "source_blob": "2e30ec3c1398ffbcc07cbfd468ce121ac0049892",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodePullAdapterConformanceV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodePullAdapterConformanceV3Test.php",
+      "source_blob": "3884901d04aca40d5d03c8c74af2c64dbfbf000a",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodePushTransportConformanceV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodePushTransportConformanceV3Test.php",
+      "source_blob": "bab1e168eba9e2ca41b0ad2f828651c2a2af5a10",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeRedemptionWorkspaceV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeRedemptionWorkspaceV3Test.php",
+      "source_blob": "b574bcca1b569059e94d68caaba1af775aac0cf8",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeReminderOccurrenceV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeReminderOccurrenceV3Test.php",
+      "source_blob": "2655ca974220696201fef8776da7ee82a857e2c4",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeResearchBackedAcquisitionV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeResearchBackedAcquisitionV3Test.php",
+      "source_blob": "56fe7ef1e705ef2852c0c3f365622f0d2bab1356",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeResearchedPlatformAdaptersV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeResearchedPlatformAdaptersV3Test.php",
+      "source_blob": "65ac2a70eba55b9a40e21cbf4033fd9600b306d9",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeResearchedSourceAdaptersV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeResearchedSourceAdaptersV3Test.php",
+      "source_blob": "f3c3be1938cf1406cf274cf1b611ed9edde63b78",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeSessionAcceptanceV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeSessionAcceptanceV3Test.php",
+      "source_blob": "e5c83b86a92d2273f6d8b991032a0ca81b031496",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeSourceAcquisitionHardeningV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeSourceAcquisitionHardeningV3Test.php",
+      "source_blob": "495c0dea19592daab43b0b19fc64a46989e44106",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeSourceAdaptersV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeSourceAdaptersV3Test.php",
+      "source_blob": "9a4a39cb87f669e1b0e4f3218930dd48442e6d3e",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/GiftCodes/GiftCodeWorkspaceV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/GiftCodes/GiftCodeWorkspaceV3Test.php",
+      "source_blob": "9fba99028c81e771252fcfa5fbe2b8cf4ef22c34",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Governance/KingdomAdministratorRecoveryV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Governance/KingdomAdministratorRecoveryV3Test.php",
+      "source_blob": "4250376a36d1a3ddc253a8bb83aafdcc7b6477cc",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Governance/KingdomGovernanceAdministrationV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Governance/KingdomGovernanceAdministrationV3Test.php",
+      "source_blob": "f7f6ceb266a91f4da06b242528240dcfa91ab553",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Governance/KingdomGovernanceBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Governance/KingdomGovernanceBehaviorV3Test.php",
+      "source_blob": "6bd099d1003fca0accee327b28113659aa018085",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Governance/KingdomPermissionReconciliationV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Governance/KingdomPermissionReconciliationV3Test.php",
+      "source_blob": "621f25ce98042e295b2300583926678dc4aa485f",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomMaps/KingdomMapDatasetV2Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/KingdomMaps/KingdomMapDatasetV2Test.php",
+      "source_blob": "d51090238efc732b0b4c882d96d127bf787db377",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomMaps/KingdomMapGeometryParityV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/KingdomMaps/KingdomMapGeometryParityV3Test.php",
+      "source_blob": "35cfa94fbb2ae33a8b92836ffeddc62b70636e1f",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomTransfers/TransferCapacityProjectionV3Test.php",
+      "new_path": "tests/Unit/Contexts/GameWorld/KingdomTransfers/TransferCapacityProjectionV3Test.php",
+      "source_blob": "f85784208f9dc8df8c55814f07c808bf0d47425d",
+      "reason": "Pure PHPUnit logic or inert fixture contract; no Laravel boot."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomTransfers/TransferCompletionCapacityReconciliationV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferCompletionCapacityReconciliationV3Test.php",
+      "source_blob": "ce4e6f5f51011fc848251a069d2b404dad2d0e39",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomTransfers/TransferCompletionLockOrderV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/GameWorld/KingdomTransfers/TransferCompletionLockOrderV3Test.php",
+      "source_blob": "80bad7690603b9c28d9f2fdd3b3882c524677972",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomTransfers/TransferEligibilityEvaluatorV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferEligibilityEvaluatorV3Test.php",
+      "source_blob": "53eae56ca7b969120a79096bbe3f45b7c185629c",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomTransfers/TransferEligibilityEvidenceBoundsV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferEligibilityEvidenceBoundsV3Test.php",
+      "source_blob": "3436d831c6126daea121ec84fc227af698d6218d",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomTransfers/TransferEvidenceBoundaryV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferEvidenceBoundaryV3Test.php",
+      "source_blob": "287fe2c912aa49a4129cf6d365f71e1924a22781",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomTransfers/TransferEvidenceDestinationV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferEvidenceDestinationV3Test.php",
+      "source_blob": "d7eaa72413cb13f7dd6d2a7dee7be629801a6948",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomTransfers/TransferManualEvidenceUxV3Test.php",
+      "new_path": "tests/Frontend/Contexts/GameWorld/KingdomTransfers/TransferManualEvidenceUxV3Test.php",
+      "source_blob": "5826455c82eea67c2ed3d22f9521302bcb4a14aa",
+      "reason": "Vue source and accessible input contract; no browser execution."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomTransfers/TransferObservationSelectorBooleanV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferObservationSelectorBooleanV3Test.php",
+      "source_blob": "7497d4ffa2d84fdd8f8d56ceae043cb2022f8326",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomTransfers/TransferPlanningBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferPlanningBehaviorV3Test.php",
+      "source_blob": "7ceb896a1bbebbb72f8a15af58ef5f293cd8ed25",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomTransfers/TransferPlanningCompletenessV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferPlanningCompletenessV3Test.php",
+      "source_blob": "6bc3c4044ea6796a103cb04ef64ff5e08edb58d8",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomTransfers/TransferPlanningContractV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferPlanningContractV3Test.php",
+      "source_blob": "3bec89bd9c80b2ee296164a3edabbb090944c9b2",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomTransfers/TransferPlanningIdentityConcurrencyV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/GameWorld/KingdomTransfers/TransferPlanningIdentityConcurrencyV3Test.php",
+      "source_blob": "cc1b2968282950dad5142f5f3ed72cf9d82eec5b",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/KingdomTransfers/TransferSelfEligibilityQueryV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/KingdomTransfers/TransferSelfEligibilityQueryV3Test.php",
+      "source_blob": "7558ef3dde222c18d170cc5faff084f817f779e3",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Kingdoms/KingdomAllianceLockOrderV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/GameWorld/Kingdoms/KingdomAllianceLockOrderV3Test.php",
+      "source_blob": "7a73e7356d9c2c4c0a587122d1944530ee1a1d58",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Kingdoms/KingdomAllianceReconciliationBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Kingdoms/KingdomAllianceReconciliationBehaviorV3Test.php",
+      "source_blob": "624f72a8b5486a27498aab51886f689571cbcea6",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Kingdoms/KingdomArchivalScalingV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Kingdoms/KingdomArchivalScalingV3Test.php",
+      "source_blob": "08e0adc20d290d3b58b9373294fc467d668b3700",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Kingdoms/KingdomDownstreamActiveBoundaryV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Kingdoms/KingdomDownstreamActiveBoundaryV3Test.php",
+      "source_blob": "1d09bf16472a647d4e6e9e1bc4cd1c1acd162337",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Kingdoms/KingdomIdentityLifecycleBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Kingdoms/KingdomIdentityLifecycleBehaviorV3Test.php",
+      "source_blob": "a0dd7a882f9e277433c9de685da61bc90fd419ea",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Players/GovernorManagementHttpV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Players/GovernorManagementHttpV3Test.php",
+      "source_blob": "59fab91b9b09a003594e6769f8e99e81e6f2dd70",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Players/OwnedPlayerMutationConcurrencyV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/GameWorld/Players/OwnedPlayerMutationConcurrencyV3Test.php",
+      "source_blob": "2242cbf5daaaab2a0602b86064f596e61ee1bc63",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Players/PlayerAuthorityContextPreconditionV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Players/PlayerAuthorityContextPreconditionV3Test.php",
+      "source_blob": "09b789793a5c1f3577486c4f4112702a88af5200",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Players/PlayerAuthorityContextVersionV3Test.php",
+      "new_path": "tests/Unit/Contexts/GameWorld/Players/PlayerAuthorityContextVersionV3Test.php",
+      "source_blob": "fc9f2d7d7945bcc0afd785b398543f5fd86f7b51",
+      "reason": "Pure PHPUnit logic or inert fixture contract; no Laravel boot."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Players/PlayerContextSelectionBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Players/PlayerContextSelectionBehaviorV3Test.php",
+      "source_blob": "fa91db17b7bf0f0f4d88bc78525382a7eb8d4eda",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Players/PlayerIdentityBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Players/PlayerIdentityBehaviorV3Test.php",
+      "source_blob": "92e159acd8b0579ac7c194c202c6f503cb168af3",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Players/PlayerIdentityLifecycleExpansionV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Players/PlayerIdentityLifecycleExpansionV3Test.php",
+      "source_blob": "e0dc15ef5780c6460627dad761bbaf4e3182ca09",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Players/PlayerOwnershipFinalizationV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/GameWorld/Players/PlayerOwnershipFinalizationV3Test.php",
+      "source_blob": "0b29d5bfea4cce0c5cabbf9cc641c0dfa46d5fda",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Players/PlayerReconciliationBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Players/PlayerReconciliationBehaviorV3Test.php",
+      "source_blob": "23c9e146e2314232c0f3a9e4c14fed63024e815f",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Players/PlayerReferenceQueryContractV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Players/PlayerReferenceQueryContractV3Test.php",
+      "source_blob": "74b99211273584c4343edf140243c1c115b33147",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Players/PlayerSwitchRouteResolverV3Test.php",
+      "new_path": "tests/Unit/Contexts/GameWorld/Players/PlayerSwitchRouteResolverV3Test.php",
+      "source_blob": "e6823a0d0cac1ee642fa9d1cd898ef1ca0c7c0c5",
+      "reason": "Pure PHPUnit logic or inert fixture contract; no Laravel boot."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Players/StablePlayerIdentityConcurrencyV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/GameWorld/Players/StablePlayerIdentityConcurrencyV3Test.php",
+      "source_blob": "b258ea2875e97601d78fdf11fbf304d2016dd8fc",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Progression/ProgressionCalculatorV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Progression/ProgressionCalculatorV3Test.php",
+      "source_blob": "53183efe2470518b8739a3a8e4bfc5150a424e8e",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Progression/ProgressionDatasetAvailabilityV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Progression/ProgressionDatasetAvailabilityV3Test.php",
+      "source_blob": "c9bc1792263e3c049d375305abb3353014f5c05d",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Progression/ProgressionDatasetV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Progression/ProgressionDatasetV3Test.php",
+      "source_blob": "b62b989c04ed1a7faface4adf89ad1d054a730c4",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Progression/ProgressionFactConflictV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Progression/ProgressionFactConflictV3Test.php",
+      "source_blob": "b17f662d7e2a8e0490724437df368a2f8c297b6e",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Progression/ProgressionFactQueryV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Progression/ProgressionFactQueryV3Test.php",
+      "source_blob": "527c84708689b1cc38b94a7c568775ee8b1cfe29",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Progression/ProgressionFamilyQueryV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Progression/ProgressionFamilyQueryV3Test.php",
+      "source_blob": "6213dae69897e5e7958dc824bb8eeba432082578",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/GameWorld/Progression/ProgressionTopologyV3Test.php",
+      "new_path": "tests/Feature/Contexts/GameWorld/Progression/ProgressionTopologyV3Test.php",
+      "source_blob": "98d31b1a1d1a500a6d4759756b6d46540e485b71",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Contributions/ContributionBulkApprovalBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Contributions/ContributionBulkApprovalBehaviorV3Test.php",
+      "source_blob": "8c50edc6e9efc7d6a8f19dab740f1027673884b2",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/AllianceRosterEvidenceBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/AllianceRosterEvidenceBehaviorV3Test.php",
+      "source_blob": "d11a41e9b979520a592a45af5ac133bb0f382d61",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/BearHuntBattleReportExtractorV3Test.php",
+      "new_path": "tests/Unit/Contexts/Intelligence/Evidence/BearHuntBattleReportExtractorV3Test.php",
+      "source_blob": "3c4320de34cd2a57c0ce355fef94a37f7d8f42c2",
+      "reason": "Pure PHPUnit logic or inert fixture contract; no Laravel boot."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/BearHuntUnmatchedGovernorExclusionV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/BearHuntUnmatchedGovernorExclusionV3Test.php",
+      "source_blob": "f0f88417573c7d48b732b4be8037e7dcc9f94f47",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/BearHuntUnmatchedGovernorQueryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/BearHuntUnmatchedGovernorQueryV3Test.php",
+      "source_blob": "3b5207362bf106e210919b9ad633b9813866807f",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/EvidenceAuthorizationV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceAuthorizationV3Test.php",
+      "source_blob": "c3690aec6cbf186359a7e530428c5fb0c3c0bc54",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/EvidenceCommitRecoveryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceCommitRecoveryV3Test.php",
+      "source_blob": "47d657b957604df32f78b8afb60efe00b29ac0fe",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/EvidenceDuplicateV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceDuplicateV3Test.php",
+      "source_blob": "7a5c62bcf1dec3905f659e9c23058de31ef2b002",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/EvidenceLifecycleV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceLifecycleV3Test.php",
+      "source_blob": "e9521fc1ff98ff57347a21e6ec947e6de950238e",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/EvidenceRetentionQueueV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceRetentionQueueV3Test.php",
+      "source_blob": "3efce0691a002e0c24294562d24430ceae505bff",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/EvidenceRetentionV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceRetentionV3Test.php",
+      "source_blob": "1a9e5bf626d1921716622532b25c8674cd814b58",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/EvidenceReviewV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceReviewV3Test.php",
+      "source_blob": "d309519880acafd7e9a7e11f06a73dd4090e9e7a",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/EvidenceUploadSecurityV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/EvidenceUploadSecurityV3Test.php",
+      "source_blob": "3ac199f16fa78327459f272ac3d0e5332bc7186e",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/GovernorProgressionDatasetPinRetryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/GovernorProgressionDatasetPinRetryV3Test.php",
+      "source_blob": "8e1426788fdd97faf3f8050b9226ce7cc1bdf45b",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceFixtureCorpusV3Test.php",
+      "new_path": "tests/Unit/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceFixtureCorpusV3Test.php",
+      "source_blob": "1e0a126808b6b5f12eb9f4c919495852b50676cf",
+      "reason": "Pure PHPUnit logic or inert fixture contract; no Laravel boot."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceReferenceBoundaryV3Test.php",
+      "new_path": "tests/Architecture/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceReferenceBoundaryV3Test.php",
+      "source_blob": "81fbf238d0fbcc0075b5b4fadf51ebeb039eb944",
+      "reason": "Read source, routes or reflection/DI structure; no business mutation."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceSchemasV3Test.php",
+      "new_path": "tests/Unit/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceSchemasV3Test.php",
+      "source_blob": "7a63e48ea4dbc38afd894b2d36b0e2d630b6a788",
+      "reason": "Pure PHPUnit logic or inert fixture contract; no Laravel boot."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceSummaryBudgetV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/GovernorProgressionEvidenceSummaryBudgetV3Test.php",
+      "source_blob": "98b22e8bea4643e0fa7d9f9a2c42ccdfcf8594a1",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/RoutedEvidenceExtractorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/RoutedEvidenceExtractorV3Test.php",
+      "source_blob": "007916de609e2afb374995083b391fb57caf688d",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/StructuredGovernorProgressionPipelineV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/StructuredGovernorProgressionPipelineV3Test.php",
+      "source_blob": "2cc7139dd5aa88c2fc887982e6160b08d3b60edb",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/TerritorySpatialEvidenceSchemasV3Test.php",
+      "new_path": "tests/Unit/Contexts/Intelligence/Evidence/TerritorySpatialEvidenceSchemasV3Test.php",
+      "source_blob": "46d1a083305c45e63162fad1b6efaa5a1dab6d79",
+      "reason": "Pure PHPUnit logic or inert fixture contract; no Laravel boot."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/TransferEvidenceFixtureCorpusV3Test.php",
+      "new_path": "tests/Unit/Contexts/Intelligence/Evidence/TransferEvidenceFixtureCorpusV3Test.php",
+      "source_blob": "5d08c2123c87b354f5bc3c6ced24e49ae099f94a",
+      "reason": "Pure PHPUnit logic or inert fixture contract; no Laravel boot."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/TransferEvidenceReviewV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Evidence/TransferEvidenceReviewV3Test.php",
+      "source_blob": "f178488b99d5540b2aed4b291c1bf627707d009b",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Evidence/TransferEvidenceSchemasV3Test.php",
+      "new_path": "tests/Unit/Contexts/Intelligence/Evidence/TransferEvidenceSchemasV3Test.php",
+      "source_blob": "ed5a4d7a725729f39165d0f5b01dca601da133a1",
+      "reason": "Pure PHPUnit logic or inert fixture contract; no Laravel boot."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Observations/KingdomAllianceCanonicalIdentityIntegrationV3Test.php",
+      "new_path": "tests/Integration/Contexts/Intelligence/Observations/KingdomAllianceCanonicalIdentityIntegrationV3Test.php",
+      "source_blob": "40b58851de8e53e852b1da1e2195581f2b4e779c",
+      "reason": "Real persistence, canonical adapter or shared infrastructure boundary."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Observations/SpatialObservationEvidenceV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Observations/SpatialObservationEvidenceV3Test.php",
+      "source_blob": "79ac9511e440efe3d52066d17013dbac9940ac62",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Roster/GovernorProgressionCharmIdentityBoundaryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Roster/GovernorProgressionCharmIdentityBoundaryV3Test.php",
+      "source_blob": "d78f80b959d76ad39e438b0948913da14fb34d92",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Roster/GovernorProgressionObservationQueryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Roster/GovernorProgressionObservationQueryV3Test.php",
+      "source_blob": "cf96ac9b492984157ea62d955d0fe940c02ed3b7",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Roster/GovernorProgressionObservationWriterV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Roster/GovernorProgressionObservationWriterV3Test.php",
+      "source_blob": "9addd456676efc6e9c45c5a2011baadb9e839a4c",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Roster/GovernorProgressionPinnedCatalogueValidationV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Roster/GovernorProgressionPinnedCatalogueValidationV3Test.php",
+      "source_blob": "36fa968c50e28e11f4a4caf0b1efd898c4dd3dc7",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Roster/PlayerSnapshotProgressionPinV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Roster/PlayerSnapshotProgressionPinV3Test.php",
+      "source_blob": "674946476b291a86774535629af5f419553880fa",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Intelligence/Roster/StructuredProgressionEvidenceContractV3Test.php",
+      "new_path": "tests/Feature/Contexts/Intelligence/Roster/StructuredProgressionEvidenceContractV3Test.php",
+      "source_blob": "de39f289c932bdf3adbfd0f49112800fa7385129",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/BattlePlans/PlayerBattlePlanQueryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/BattlePlans/PlayerBattlePlanQueryV3Test.php",
+      "source_blob": "b4298c3011a8216b33698e32abc0eb25d53c9776",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/Events/EventBulkCancellationBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/Events/EventBulkCancellationBehaviorV3Test.php",
+      "source_blob": "3da1fa2af1d70e82624c288d5d887e470429288a",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/Events/EventTypeProfileResolverV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/Events/EventTypeProfileResolverV3Test.php",
+      "source_blob": "09c76048911f006d677ec54c5e670dbc2df054fa",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/Events/RecurrencePolicyBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/Events/RecurrencePolicyBehaviorV3Test.php",
+      "source_blob": "f2a6b8c7bfffce0bd79e1ca67ad995581a832f74",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/KingPerks/KingPerkPolicyBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/KingPerks/KingPerkPolicyBehaviorV3Test.php",
+      "source_blob": "0523a083fccb9e9793312d5462c2010727d54b1d",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/Participation/BearHuntAttendanceSummaryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/Participation/BearHuntAttendanceSummaryV3Test.php",
+      "source_blob": "b9e1129caf4fe5b63225486d44cebebd0d1c5b3c",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/Participation/EventParticipationQueryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/Participation/EventParticipationQueryV3Test.php",
+      "source_blob": "a6b38dac58676ecb60ff0820339e8b66916d5f1e",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/Rallies/BearHuntRallyParticipationSummaryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/Rallies/BearHuntRallyParticipationSummaryV3Test.php",
+      "source_blob": "05c550f18eefa4408b373e00f2184c8a9fd6d8a4",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/Rallies/PlayerFormationProgressionPinV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/Rallies/PlayerFormationProgressionPinV3Test.php",
+      "source_blob": "b2a930436904ccb62c84623a11d06c20854980a7",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/Results/BearHuntBattleReportLedgerV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/Results/BearHuntBattleReportLedgerV3Test.php",
+      "source_blob": "7aa42463eb972f0b21cc90e8c683a171142920a4",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/TerritoryPlanning/KingdomTerritoryPlanningBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/TerritoryPlanning/KingdomTerritoryPlanningBehaviorV3Test.php",
+      "source_blob": "24fc06ef587987b0a8c85aaff2c4ee625af5d902",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/TerritoryPlanning/PublishedEventTerritoryRevisionQueryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/TerritoryPlanning/PublishedEventTerritoryRevisionQueryV3Test.php",
+      "source_blob": "8be9d55107744adf0aa798476d72603895bba9f0",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/TerritoryPlanning/TerritoryAnalysisTelemetryV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/TerritoryPlanning/TerritoryAnalysisTelemetryV3Test.php",
+      "source_blob": "3803ba190d83de2ea0addbd25d2222aa5d17772b",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/TerritoryPlanning/TerritoryEventRevisionIntegrationV3Test.php",
+      "new_path": "tests/Integration/Contexts/Operations/TerritoryPlanning/TerritoryEventRevisionIntegrationV3Test.php",
+      "source_blob": "051223341669a1f4f0ec09f90aee9cf73af34fc0",
+      "reason": "Real persistence, canonical adapter or shared infrastructure boundary."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/TerritoryPlanning/TerritoryImportBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/TerritoryPlanning/TerritoryImportBehaviorV3Test.php",
+      "source_blob": "feee2afcda355f14af798dcef158f5cfad01987e",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/TerritoryPlanning/TerritoryPlanLifecycleBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/TerritoryPlanning/TerritoryPlanLifecycleBehaviorV3Test.php",
+      "source_blob": "5592a3dc60230cf36b6c279481e06215bafdba79",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Operations/TerritoryPlanning/TerritoryStableKeyBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Operations/TerritoryPlanning/TerritoryStableKeyBehaviorV3Test.php",
+      "source_blob": "18bf8b40b9326db9094e8c779676107d9ba9043f",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Platform/Administration/PlatformAdministrationBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Platform/Administration/PlatformAdministrationBehaviorV3Test.php",
+      "source_blob": "aef72791e864625e13dce8b584016fce6d716656",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Platform/Administration/PlatformAdministratorIsolationV3Test.php",
+      "new_path": "tests/Feature/Contexts/Platform/Administration/PlatformAdministratorIsolationV3Test.php",
+      "source_blob": "02f1df1b113ca0ef8a2ac1f69ccdb4e7d723278d",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Platform/AllianceAdministration/AlliancePlatformInitializationConcurrencyV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Platform/AllianceAdministration/AlliancePlatformInitializationConcurrencyV3Test.php",
+      "source_blob": "81d09c40f8a33eb057619915f5de3ab4750bcad4",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Platform/AllianceAdministration/AlliancePlatformOwnershipV3Test.php",
+      "new_path": "tests/Feature/Contexts/Platform/AllianceAdministration/AlliancePlatformOwnershipV3Test.php",
+      "source_blob": "16e11560d5a22eb5fe82c5ed681a694d6b02c8b7",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Platform/DataGovernance/AccountDeletionLifecycleAtomicityV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Contexts/Platform/DataGovernance/AccountDeletionLifecycleAtomicityV3Test.php",
+      "source_blob": "fdd21d3476daae666e2501fdcade247b5e9e0971",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Platform/DataGovernance/AccountDeletionRetryFairnessV3Test.php",
+      "new_path": "tests/Feature/Contexts/Platform/DataGovernance/AccountDeletionRetryFairnessV3Test.php",
+      "source_blob": "ca5ab4606ca5072b514c5e551d2428e22bdc41f0",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Platform/DataGovernance/PlayerReleaseOnAccountDeletionV3Test.php",
+      "new_path": "tests/Feature/Contexts/Platform/DataGovernance/PlayerReleaseOnAccountDeletionV3Test.php",
+      "source_blob": "af40449751a3c5411871488ab9f04a7258b80425",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Platform/Integrations/ExternalActorParityBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Platform/Integrations/ExternalActorParityBehaviorV3Test.php",
+      "source_blob": "f2dbba55f6729ac531a5693fd0a5bf7342e7d8d3",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Platform/Integrations/PublishedIntegrationContractV3Test.php",
+      "new_path": "tests/Architecture/Contexts/Platform/Integrations/PublishedIntegrationContractV3Test.php",
+      "source_blob": "569d0c2316dfecd07cfa21332752a1e358cd17c0",
+      "reason": "Read source, routes or reflection/DI structure; no business mutation."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Platform/Integrations/WebhookContractBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Platform/Integrations/WebhookContractBehaviorV3Test.php",
+      "source_blob": "4582b940ed4fd7a189082cf8889f70b10cc74255",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Contexts/Platform/Integrations/WebhookDeliveryRecoveryBehaviorV3Test.php",
+      "new_path": "tests/Feature/Contexts/Platform/Integrations/WebhookDeliveryRecoveryBehaviorV3Test.php",
+      "source_blob": "d8bee7f9fb5d766046d85fca957e10ebbf7f76f6",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Fixtures/AllianceContentGameParityVisualFixture.php",
+      "new_path": "tests/Fixtures/AllianceContentGameParityVisualFixture.php",
+      "source_blob": "f8dcb41f93f3ced47a5285cd7925d70fc5995e61",
+      "reason": "Fixtures support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Fixtures/AllianceRoleVisualFixture.php",
+      "new_path": "tests/Fixtures/AllianceRoleVisualFixture.php",
+      "source_blob": "ba20eb74fb9a3af17d0c4ccf3350160932eae6fb",
+      "reason": "Fixtures support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Fixtures/BearHuntDebriefVisualFixture.php",
+      "new_path": "tests/Fixtures/BearHuntDebriefVisualFixture.php",
+      "source_blob": "052d16415bc64cf7e5129bbb2bfe04ed987ba294",
+      "reason": "Fixtures support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Fixtures/CapabilityAcceptanceVisualFixture.php",
+      "new_path": "tests/Fixtures/CapabilityAcceptanceVisualFixture.php",
+      "source_blob": "5e4042a73f1e4fce134d28a4730cf18ff7745df3",
+      "reason": "Fixtures support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Fixtures/EventCommandVisualFixture.php",
+      "new_path": "tests/Fixtures/EventCommandVisualFixture.php",
+      "source_blob": "3642374f440ac86d4cd6be279f363b577400b9ab",
+      "reason": "Fixtures support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Fixtures/GiftCodeVisualFixture.php",
+      "new_path": "tests/Fixtures/GiftCodeVisualFixture.php",
+      "source_blob": "cbfffdc9416ba0f732ee7890e978c3b156e53c71",
+      "reason": "Fixtures support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Fixtures/KingdomTransferCurrentRulesVisualFixture.php",
+      "new_path": "tests/Fixtures/KingdomTransferCurrentRulesVisualFixture.php",
+      "source_blob": "37511e4dd1934ac41008cf4078b5464da577791a",
+      "reason": "Fixtures support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Fixtures/KingdomTransferVisualFixture.php",
+      "new_path": "tests/Fixtures/KingdomTransferVisualFixture.php",
+      "source_blob": "0f7d691de89e6dbc59da7dc2f1f3dc1393236301",
+      "reason": "Fixtures support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Fixtures/RecruitmentHistoryVisualFixture.php",
+      "new_path": "tests/Fixtures/RecruitmentHistoryVisualFixture.php",
+      "source_blob": "0fbf6040280c3b8d83daf4c4edc8bd5684f2b411",
+      "reason": "Fixtures support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Fixtures/ScreenshotIntakeVisualFixture.php",
+      "new_path": "tests/Fixtures/ScreenshotIntakeVisualFixture.php",
+      "source_blob": "9ae1cce2defae38200ea28055635e42dcc6c5a3b",
+      "reason": "Fixtures support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Fixtures/TerritoryPlanningVisualFixture.php",
+      "new_path": "tests/Fixtures/TerritoryPlanningVisualFixture.php",
+      "source_blob": "5c93d664ba6668dc141d9f1655ed76c307afd06d",
+      "reason": "Fixtures support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Fixtures/TerritoryReconciliationVisualFixture.php",
+      "new_path": "tests/Fixtures/TerritoryReconciliationVisualFixture.php",
+      "source_blob": "64b83180c7af8b5de102ffba7167c60bcc353f5d",
+      "reason": "Fixtures support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Fixtures/territory-geometry.json",
+      "new_path": "tests/Fixtures/territory-geometry.json",
+      "source_blob": "71c025cb0b27d19806154de351fe102864312ffb",
+      "reason": "Fixtures support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Frontend/ActivePlayerUxContractV3Test.php",
+      "new_path": "tests/Frontend/ActivePlayerUxContractV3Test.php",
+      "source_blob": "49423ded9e5733f835a445baeb6c1deb3e6f0d1f",
+      "reason": "Frontend support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Frontend/AllianceContentGameParityFrontendContractV3Test.php",
+      "new_path": "tests/Frontend/AllianceContentGameParityFrontendContractV3Test.php",
+      "source_blob": "6e2e4001f06eb8708e1bd64fc1dd83b93834c89d",
+      "reason": "Frontend support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Frontend/verify-architecture.php",
+      "new_path": "tests/Frontend/verify-architecture.php",
+      "source_blob": "b8f901b970c6d26e8ba2049e4a53811dc88c4d23",
+      "reason": "Frontend support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Frontend/verify-copy.php",
+      "new_path": "tests/Frontend/verify-copy.php",
+      "source_blob": "7267c1c5e868c341491354816c340b7466e03cbe",
+      "reason": "Frontend support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Frontend/verify-source.php",
+      "new_path": "tests/Frontend/verify-source.php",
+      "source_blob": "bca58833b1285d166b92f1b70f6b0fd4c7877f04",
+      "reason": "Frontend support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Infrastructure/CacheNamespaceIsolationV3Test.php",
+      "new_path": "tests/Integration/Infrastructure/CacheNamespaceIsolationV3Test.php",
+      "source_blob": "504e27ed5f5b8d0cf61bd91f2250bb475f507c5d",
+      "reason": "Real persistence, canonical adapter or shared infrastructure boundary."
+    },
+    {
+      "old_path": "tests/v3/Infrastructure/RouteThrottleBoundaryV3Test.php",
+      "new_path": "tests/Feature/Infrastructure/RouteThrottleBoundaryV3Test.php",
+      "source_blob": "4da69396ef2a7c6087dac0b8b7e6b7ebc1d3e0e5",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceAssistant/AllianceAssistantBoundaryV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantBoundaryV3Test.php",
+      "source_blob": "456ef66c70df9cac36793e096b69462f83c8a4bc",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceAssistant/AllianceAssistantContentV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantContentV3Test.php",
+      "source_blob": "20372478df47a42c02e95498b7ece43ed7f29337",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceAssistant/AllianceAssistantEvidenceV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantEvidenceV3Test.php",
+      "source_blob": "2157b3ee53888ebd7183713496b79cff6afd669d",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceAssistant/AllianceAssistantGameWorldHttpV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantGameWorldHttpV3Test.php",
+      "source_blob": "76b54a0f5f7a8c192f1e009d46c8e505b3cfacae",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceAssistant/AllianceAssistantHttpV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantHttpV3Test.php",
+      "source_blob": "8543b218bc9a17cefab1a89107171bdf7bdfc21d",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceAssistant/AllianceAssistantObservationV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantObservationV3Test.php",
+      "source_blob": "575db0ddf5d4db04e9d1841d78d1c8e075911c4f",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceAssistant/AllianceAssistantPerformanceV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantPerformanceV3Test.php",
+      "source_blob": "b56910b2ac01cd3220692520cf22e4ae148bc685",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceAssistant/AllianceAssistantTelemetryV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceAssistantTelemetryV3Test.php",
+      "source_blob": "3d25ee8c1d797e6d074b2b7e25fad472e6741e41",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceAssistant/AllianceGovernanceAssistantV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceGovernanceAssistantV3Test.php",
+      "source_blob": "9e5c55cd839d4eebab7a6345848ee4ebe1242b26",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceAssistant/AllianceOperationalAssistantV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceAssistant/AllianceOperationalAssistantV3Test.php",
+      "source_blob": "e57592e44769e08ba59d5ed17a0859ef3f778b6f",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceAssistant/AssistantQuestionInterpreterV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceAssistant/AssistantQuestionInterpreterV3Test.php",
+      "source_blob": "3035e19ebb1c96fadcf51e5d8854d00e13f50072",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceAssistant/IntelligenceChangeAssistantQueryV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceAssistant/IntelligenceChangeAssistantQueryV3Test.php",
+      "source_blob": "737f845fbd0d2d09773768843b735b070ccb4350",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceDashboard/MembershipManagementQueryBehaviorV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceDashboard/MembershipManagementQueryBehaviorV3Test.php",
+      "source_blob": "4fb4f1d10620ae088e49e24319c8d7d70abfa9f7",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceGovernance/AllianceGovernanceReadModelsBehaviorV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceGovernance/AllianceGovernanceReadModelsBehaviorV3Test.php",
+      "source_blob": "48381d63b5c4bb063f93e55bcf75908c2e87ce57",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceGovernance/GovernanceRecruitmentPrivacyV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceGovernance/GovernanceRecruitmentPrivacyV3Test.php",
+      "source_blob": "be99b0309196c3512bb21e27abe7a4a7eb214193",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/AllianceGovernance/MembershipHistoryPaginationV3Test.php",
+      "new_path": "tests/Feature/ReadModels/AllianceGovernance/MembershipHistoryPaginationV3Test.php",
+      "source_blob": "ad7c5e1f4d07e41bdda4c7024ebe9b923d004442",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/BotCommands/BotCommandApiBehaviorV3Test.php",
+      "new_path": "tests/Feature/ReadModels/BotCommands/BotCommandApiBehaviorV3Test.php",
+      "source_blob": "fff22bb334140e8db63670ccc1584f7fd7c85b87",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/CommandOverview/AllianceCommandAndBriefV3Test.php",
+      "new_path": "tests/Feature/ReadModels/CommandOverview/AllianceCommandAndBriefV3Test.php",
+      "source_blob": "f412d2c62c38d507f4dae62fd3cdab40f81f322e",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/CommandOverview/CommandOverviewBehaviorV3Test.php",
+      "new_path": "tests/Feature/ReadModels/CommandOverview/CommandOverviewBehaviorV3Test.php",
+      "source_blob": "6f5939cc420896e1e3ee19b601f09e2577b5cfca",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/EventAnalysis/BearHuntDebriefComparisonV3Test.php",
+      "new_path": "tests/Feature/ReadModels/EventAnalysis/BearHuntDebriefComparisonV3Test.php",
+      "source_blob": "3e01a7714e499bc69bb90629e1a24adff4f3bf86",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/EventAnalysis/BearHuntDebriefHttpV3Test.php",
+      "new_path": "tests/Feature/ReadModels/EventAnalysis/BearHuntDebriefHttpV3Test.php",
+      "source_blob": "6b9ea64a8b18c8c016d2b34177db9d74e585c570",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/EventAnalysis/BearHuntDebriefReadModelV3Test.php",
+      "new_path": "tests/Feature/ReadModels/EventAnalysis/BearHuntDebriefReadModelV3Test.php",
+      "source_blob": "3c55ae997c1eef5714d751097fa3ab49d9ff4988",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/EventAnalysis/BearHuntDebriefReportRemovalV3Test.php",
+      "new_path": "tests/Feature/ReadModels/EventAnalysis/BearHuntDebriefReportRemovalV3Test.php",
+      "source_blob": "d708b77cdd5963c804c8cbb5d22346917bfe3aa5",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/EventAnalysis/BearHuntDebriefV3Test.php",
+      "new_path": "tests/Feature/ReadModels/EventAnalysis/BearHuntDebriefV3Test.php",
+      "source_blob": "6594ae88429408a52d145de9316c7bee3d6dbed8",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/EventManagement/EventCommandBehaviorV3Test.php",
+      "new_path": "tests/Feature/ReadModels/EventManagement/EventCommandBehaviorV3Test.php",
+      "source_blob": "cf185633cec793d2aa90d1a3b18a4f7e570fbdb2",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/EventManagement/EventCommandQueryBudgetV3Test.php",
+      "new_path": "tests/Feature/ReadModels/EventManagement/EventCommandQueryBudgetV3Test.php",
+      "source_blob": "d343c46e688ab3bd0a87a5a0f97482d54ba20908",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/EventManagement/EventManagementPageV3Test.php",
+      "new_path": "tests/Feature/ReadModels/EventManagement/EventManagementPageV3Test.php",
+      "source_blob": "60275a1de77be6f7706480c82a2c16008aeca4f2",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/EventManagement/RallyRosterBuilderV3Test.php",
+      "new_path": "tests/Feature/ReadModels/EventManagement/RallyRosterBuilderV3Test.php",
+      "source_blob": "513f9beed77554735cedf436e50aa48df1ba21d9",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/IntelligenceSignals/IntelligenceSignalFactoryV3Test.php",
+      "new_path": "tests/Feature/ReadModels/IntelligenceSignals/IntelligenceSignalFactoryV3Test.php",
+      "source_blob": "370ab6acf5ed266fd20635a0ba59f02373c3f863",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/KingdomIntelligence/KingdomIntelligenceTimelineV3Test.php",
+      "new_path": "tests/Feature/ReadModels/KingdomIntelligence/KingdomIntelligenceTimelineV3Test.php",
+      "source_blob": "cbbf7604833a743e7bf7188e078e95294fa519f6",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/Progression/ProgressionPlannerQueryV3Test.php",
+      "new_path": "tests/Feature/ReadModels/Progression/ProgressionPlannerQueryV3Test.php",
+      "source_blob": "098df32aad2b23e977952524318c4e2c3f30b853",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/Progression/ProgressionPrerequisiteEvaluatorV3Test.php",
+      "new_path": "tests/Feature/ReadModels/Progression/ProgressionPrerequisiteEvaluatorV3Test.php",
+      "source_blob": "2a15743cf8591e0d57e8a9b4eb84472d0e699075",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/RecruitmentDiscovery/PublicRecruitmentBoardQueryBehaviorV3Test.php",
+      "new_path": "tests/Feature/ReadModels/RecruitmentDiscovery/PublicRecruitmentBoardQueryBehaviorV3Test.php",
+      "source_blob": "5d7429b717b771595c7c0ab15617f3bb4515ef5e",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/RecruitmentManagement/RecruitmentCandidateCollectionsV3Test.php",
+      "new_path": "tests/Feature/ReadModels/RecruitmentManagement/RecruitmentCandidateCollectionsV3Test.php",
+      "source_blob": "363f38be1514db6e1f29317db959b56e5ccf5845",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/RecruitmentManagement/RecruitmentCandidateHistoryPaginationV3Test.php",
+      "new_path": "tests/Feature/ReadModels/RecruitmentManagement/RecruitmentCandidateHistoryPaginationV3Test.php",
+      "source_blob": "214bb45b465afdf7d9adf08967ebdfaed0f7e0d5",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/RecruitmentManagement/RecruitmentCataloguePaginationV3Test.php",
+      "new_path": "tests/Feature/ReadModels/RecruitmentManagement/RecruitmentCataloguePaginationV3Test.php",
+      "source_blob": "15a98167fb307ab7ac6f388ab4cb50acc2c36fcd",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/RecruitmentManagement/RecruitmentManagementQueryBehaviorV3Test.php",
+      "new_path": "tests/Feature/ReadModels/RecruitmentManagement/RecruitmentManagementQueryBehaviorV3Test.php",
+      "source_blob": "890457870631dfdc9a28092d6d9ed3517a7fd77b",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/RecruitmentManagement/TransferCampaignWorkspaceV3Test.php",
+      "new_path": "tests/Feature/ReadModels/RecruitmentManagement/TransferCampaignWorkspaceV3Test.php",
+      "source_blob": "ed75a918f64cc28c878fd7f4d9b56260e01de19a",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/Roster/MemberCapabilityProfileV3Test.php",
+      "new_path": "tests/Feature/ReadModels/Roster/MemberCapabilityProfileV3Test.php",
+      "source_blob": "9001abf7543a36cdf56bc33a562e6462b699fd79",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/Roster/PlayerProgressionTimelineBehaviorV3Test.php",
+      "new_path": "tests/Feature/ReadModels/Roster/PlayerProgressionTimelineBehaviorV3Test.php",
+      "source_blob": "6f1269c88274bac595d709e0098f417ed0f731ee",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/Roster/RosterPaginationBehaviorV3Test.php",
+      "new_path": "tests/Feature/ReadModels/Roster/RosterPaginationBehaviorV3Test.php",
+      "source_blob": "debe5283b0fd7f2a1374fa5fb178d0c8fdc339d0",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/TerritoryPlanning/TerritoryPlanObservedRealityV3Test.php",
+      "new_path": "tests/Feature/ReadModels/TerritoryPlanning/TerritoryPlanObservedRealityV3Test.php",
+      "source_blob": "7ae9ddbdcc9cfbf28e30094dabbe5c0c40456db2",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php",
+      "new_path": "tests/Feature/ReadModels/TerritoryPlanning/TerritoryReconciliationBoundariesV3Test.php",
+      "source_blob": "14fabd4d9b452b791b38b05c6def59a632628c6a",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Shared/Infrastructure/ActionReceiptBehaviorV3Test.php",
+      "new_path": "tests/Unit/Shared/Infrastructure/ActionReceiptBehaviorV3Test.php",
+      "source_blob": "f3c6656df207ca333090da93a8eac085c4e427b7",
+      "reason": "Pure PHPUnit logic or inert fixture contract; no Laravel boot."
+    },
+    {
+      "old_path": "tests/v3/Shared/Infrastructure/InfrastructureBehaviorV3Test.php",
+      "new_path": "tests/Integration/Shared/Infrastructure/InfrastructureBehaviorV3Test.php",
+      "source_blob": "295fb41e4b09593d066ce3600b9457cb5a7b1104",
+      "reason": "Real persistence, canonical adapter or shared infrastructure boundary."
+    },
+    {
+      "old_path": "tests/v3/Shared/Infrastructure/PaginationBehaviorV3Test.php",
+      "new_path": "tests/Feature/Shared/Infrastructure/PaginationBehaviorV3Test.php",
+      "source_blob": "0676982e75b9562e412c9b3037174ee4153df0ab",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Support/RecruitmentCollectionFactory.php",
+      "new_path": "tests/Support/RecruitmentCollectionFactory.php",
+      "source_blob": "3445bd4b59896f93de80d94e2af003d84a3871ab",
+      "reason": "Support support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Support/ScenarioFactory.php",
+      "new_path": "tests/Support/ScenarioFactory.php",
+      "source_blob": "1bc9dae99f8328fcc982e6f8537a7f3ae8d79650",
+      "reason": "Support support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Support/WebAuthnAssertionFixture.php",
+      "new_path": "tests/Support/WebAuthnAssertionFixture.php",
+      "source_blob": "01c461c78fcc67329dcc2e10c9d542f2c756c974",
+      "reason": "Support support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/Support/WebAuthnRegistrationFixture.php",
+      "new_path": "tests/Support/WebAuthnRegistrationFixture.php",
+      "source_blob": "d8b34309c3ed1295316dd70f2df61646124b0ac5",
+      "reason": "Support support or existing contract."
+    },
+    {
+      "old_path": "tests/v3/TestCase.php",
+      "new_path": "tests/TestCase.php",
+      "source_blob": "edbb04216ff614065b545fa85d32fd501eebf775",
+      "reason": "Shared Laravel base; cache and worker isolation unchanged."
+    },
+    {
+      "old_path": "tests/v3/Workflows/AccountOnboarding/AtomicAccountOnboardingV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Workflows/AccountOnboarding/AtomicAccountOnboardingV3Test.php",
+      "source_blob": "85eeb07e0ff4b7181b63ca77818bf7f231b8cdab",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Workflows/AccountOnboarding/InvitationAdmissionConcurrencyV3Test.php",
+      "new_path": "tests/Integration/Concurrency/Workflows/AccountOnboarding/InvitationAdmissionConcurrencyV3Test.php",
+      "source_blob": "b5deda3597f6f670daa3af7af66a264feca7d601",
+      "reason": "Competing real PostgreSQL connections and lock/commit semantics."
+    },
+    {
+      "old_path": "tests/v3/Workflows/NotificationDelivery/IntelligenceSignalNotificationPublisherV3Test.php",
+      "new_path": "tests/Feature/Workflows/NotificationDelivery/IntelligenceSignalNotificationPublisherV3Test.php",
+      "source_blob": "9e05ef417b235643b6cd4bf6e9af5b2e89350127",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Workflows/NotificationDelivery/NotificationQueueDeliveryV3Test.php",
+      "new_path": "tests/Feature/Workflows/NotificationDelivery/NotificationQueueDeliveryV3Test.php",
+      "source_blob": "202a0ed6ff32ff9cab331d78fd11f7ecc9b45f82",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    },
+    {
+      "old_path": "tests/v3/Workflows/NotificationDelivery/OfficerBriefNotificationPublisherV3Test.php",
+      "new_path": "tests/Feature/Workflows/NotificationDelivery/OfficerBriefNotificationPublisherV3Test.php",
+      "source_blob": "1a80065e12cdc84101a00e807da8cabdf9fa754e",
+      "reason": "Booted Laravel application/HTTP/read-model behavior; existing isolation retained."
+    }
+  ]
+}

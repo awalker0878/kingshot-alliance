@@ -9,10 +9,11 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentQuestionType;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentQuestion;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentConfigurationCapacity;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentInput;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
-use InvalidArgumentException;
 
 final class CreateRecruitmentQuestion
 {
@@ -21,9 +22,10 @@ final class CreateRecruitmentQuestion
         private AllianceAuthorization $authority,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
+        private RecruitmentConfigurationCapacity $capacity,
     ) {}
 
-    /** @param list<string> $options */
+    /** @param array<array-key,mixed> $options */
     public function handle(
         string $actorPlayerId,
         string $allianceId,
@@ -35,23 +37,10 @@ final class CreateRecruitmentQuestion
         array $options = [],
         bool $isActive = true,
     ): string {
-        $cleanPrompt = trim($prompt);
-        if ($cleanPrompt === '') {
-            throw new InvalidArgumentException('Recruitment question prompt is required.');
-        }
-
-        if ($position < 0 || $position > 65535) {
-            throw new InvalidArgumentException('Recruitment question position is invalid.');
-        }
-
-        $cleanOptions = array_values(array_unique(array_filter(array_map(
-            static fn (string $option): string => trim($option),
-            $options,
-        ), static fn (string $option): bool => $option !== '')));
-
-        if (in_array($type, [RecruitmentQuestionType::Select, RecruitmentQuestionType::MultiSelect], true) && $cleanOptions === []) {
-            throw new InvalidArgumentException('Select recruitment questions require at least one option.');
-        }
+        $cleanPrompt = RecruitmentInput::requiredText($prompt, 'prompt', RecruitmentInput::LIMITS['prompt']);
+        $helpText = RecruitmentInput::optionalText($helpText, 'help_text', RecruitmentInput::LIMITS['helpText']);
+        RecruitmentInput::position($position);
+        $cleanOptions = RecruitmentInput::options($options, $type);
 
         return DB::transaction(function () use (
             $actorPlayerId,
@@ -64,13 +53,17 @@ final class CreateRecruitmentQuestion
             $cleanOptions,
             $isActive,
         ): string {
-            $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
+            $context = $this->allianceWriteState->lockExclusiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
+
+            if ($isActive) {
+                $this->capacity->question((string) $context->alliance->id);
+            }
 
             $question = RecruitmentQuestion::query()->create([
                 'alliance_id' => $context->alliance->id,
                 'prompt' => $cleanPrompt,
-                'help_text' => $helpText === null ? null : trim($helpText),
+                'help_text' => $helpText,
                 'question_type' => $type,
                 'options' => $cleanOptions === [] ? null : $cleanOptions,
                 'is_required' => $isRequired,

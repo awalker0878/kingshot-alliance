@@ -167,22 +167,6 @@ final class RosterEntryQuery
             ->all());
     }
 
-    /** @return list<string> */
-    public function lockActiveAllianceIdsForPlayerInKingdom(string $playerId, string $kingdomId): array
-    {
-        return array_values(AllianceRosterEntry::query()
-            ->where('player_id', $playerId)
-            ->where('state', RosterState::Active->value)
-            ->whereHas('alliance', static fn ($query) => $query->where('kingdom_id', $kingdomId))
-            ->orderBy('alliance_id')
-            ->lockForUpdate()
-            ->pluck('alliance_id')
-            ->map(static fn ($id): string => (string) $id)
-            ->unique()
-            ->values()
-            ->all());
-    }
-
     public function hasActiveOrTrackedOutsideAlliance(string $playerId, string $allianceId): bool
     {
         return AllianceRosterEntry::query()

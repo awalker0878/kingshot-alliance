@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   integrationExperience: {
+    recordCount: '{count} Einträge',
+    historyUnavailable: 'Diese Seite konnte nicht geladen werden.',
+    retryPage: 'Seite erneut laden',
+    expired: 'Abgelaufen',
+    deliveryQueued: 'Eingereiht',
+    deliveryHistory: 'Zustellverlauf',
+
     eyebrow: 'Allianz-Integrationen',
     title: 'API-Zugangsdaten & Webhooks',
     activeCredentials: 'Aktive Zugangsdaten',

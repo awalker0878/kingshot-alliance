@@ -10,8 +10,7 @@ on:
       - 'bootstrap/providers.php'
       - 'resources/data/kingdom-maps/**'
       - 'resources/js/features/territory-planner/engine/**'
-      - 'tests/v3/Contexts/GameWorld/KingdomMaps/**'
-      - 'tests/v3/Fixtures/territory-geometry.json'
+      - 'tests/Contexts/GameWorld/KingdomMaps/**'
       - 'scripts/check-territory-geometry-parity.mjs'
       - '.github/workflows/kingdom-maps-assurance.yml'
   push:
@@ -21,8 +20,7 @@ on:
       - 'app/Contexts/GameWorld/KingdomMaps/**'
       - 'resources/data/kingdom-maps/**'
       - 'resources/js/features/territory-planner/engine/**'
-      - 'tests/v3/Contexts/GameWorld/KingdomMaps/**'
-      - 'tests/v3/Fixtures/territory-geometry.json'
+      - 'tests/Contexts/GameWorld/KingdomMaps/**'
       - 'scripts/check-territory-geometry-parity.mjs'
       - '.github/workflows/kingdom-maps-assurance.yml'
   workflow_dispatch:
@@ -63,6 +61,9 @@ jobs:
           coverage: none
           tools: composer:v2
 
+      - name: Restore Composer package cache
+        uses: ./.github/actions/composer-package-cache
+
       - name: Install locked PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
@@ -76,7 +77,7 @@ jobs:
         run: php artisan kingdom-maps:list
 
       - name: Run KingdomMaps PHP tests
-        run: php artisan test tests/v3/Contexts/GameWorld/KingdomMaps
+        run: php artisan test --fail-on-empty-test-suite tests/Contexts/GameWorld/KingdomMaps
 
       - name: Configure Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0

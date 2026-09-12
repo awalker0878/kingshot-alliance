@@ -7,7 +7,7 @@ import {
   validatePlacement,
 } from '../resources/js/features/territory-planner/engine/geometry.ts';
 
-const fixtureUrl = new URL('../tests/v3/Fixtures/territory-geometry.json', import.meta.url);
+const fixtureUrl = new URL('../tests/Contexts/GameWorld/KingdomMaps/Fixtures/territory-geometry.json', import.meta.url);
 const fixture = JSON.parse(await readFile(fileURLToPath(fixtureUrl), 'utf8'));
 const map = fixture.dataset.data;
 

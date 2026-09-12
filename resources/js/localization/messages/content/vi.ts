@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    pageRecords: '{count} bản ghi trên trang này · tổng {total}',
+    collectionFailed: 'Không thể tải danh sách. Hãy thử lại từ trang đầu.',
+    selectedUnavailable: 'Mục đã chọn không khả dụng',
+    reviewOnThisPage: 'Danh sách rà soát này bao gồm trang danh mục hiện tại.',
+    allStatuses: 'Tất cả trạng thái',
+    retryCandidateSummary:
+      'Hiển thị {selected} trong số {total} lần thất bại chưa đạt giới hạn để thử lại.',
     eyebrow: 'Nội dung liên minh',
     hubTitle: 'Trung tâm nội dung',
     manageContent: 'Quản lý nội dung',

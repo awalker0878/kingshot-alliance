@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Recruitment\Actions;
 
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Http\BulkActionResult;
 use App\Shared\Infrastructure\Http\BulkItemResult;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
@@ -22,7 +24,7 @@ final readonly class BulkChangeRecruitmentStage
         private AuditRecorder $audit,
     ) {}
 
-    /** @param non-empty-list<string> $candidateIds */
+    /** @param list<string> $candidateIds */
     public function handle(
         string $actorPlayerId,
         string $allianceId,
@@ -31,6 +33,7 @@ final readonly class BulkChangeRecruitmentStage
         ?string $reason = null,
         ?CarbonImmutable $nextActionAt = null,
     ): BulkActionResult {
+        $reason = RecruitmentTextInput::reason($reason);
         $preview = $this->preview->handle($actorPlayerId, $allianceId, $candidateIds, $target);
         $items = [];
 
@@ -62,6 +65,8 @@ final readonly class BulkChangeRecruitmentStage
                     $item['label'],
                     'candidate-unavailable',
                 );
+            } catch (AuthorizationException) {
+                $items[] = BulkItemResult::failed($item['itemId'], $item['label'], 'permission-denied');
             } catch (ValidationException $exception) {
                 $items[] = BulkItemResult::failed(
                     $item['itemId'],
@@ -83,7 +88,7 @@ final readonly class BulkChangeRecruitmentStage
             $allianceId,
             [
                 'target_stage' => $target->value,
-                'candidate_ids' => $candidateIds,
+                'candidate_ids' => array_column($preview['items'], 'itemId'),
                 'succeeded' => $payload['succeeded'],
                 'failed' => $payload['failed'],
                 'skipped' => $payload['skipped'],

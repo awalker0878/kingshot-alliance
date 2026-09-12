@@ -9,6 +9,7 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Access\Services\AllianceWriteState;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentDecisionTemplate;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentInput;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Illuminate\Support\Facades\DB;
@@ -36,12 +37,9 @@ final class CreateRecruitmentDecisionTemplate
             throw ValidationException::withMessages(['decision_stage' => 'Decision templates must be for accepted or declined candidates.']);
         }
 
-        $cleanName = trim($name);
-        $cleanSubject = trim($subject);
-        $cleanBody = trim($body);
-        if ($cleanName === '' || $cleanSubject === '' || $cleanBody === '') {
-            throw ValidationException::withMessages(['template' => 'Template name, subject, and body are required.']);
-        }
+        $cleanName = RecruitmentInput::requiredText($name, 'name', RecruitmentInput::LIMITS['templateName']);
+        $cleanSubject = RecruitmentInput::requiredText($subject, 'subject', RecruitmentInput::LIMITS['subject']);
+        $cleanBody = RecruitmentInput::requiredText($body, 'body', RecruitmentInput::LIMITS['body']);
 
         return DB::transaction(function () use ($actorPlayerId, $allianceId, $cleanName, $decisionStage, $cleanSubject, $cleanBody, $isActive): string {
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);

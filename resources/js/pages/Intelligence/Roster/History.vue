@@ -535,8 +535,13 @@ function recordSnapshot(): void {
             {{ t('rosterHistory.capability.unavailable') }}
           </p>
           <template v-else>
-            <p class="ks-display mt-3 text-3xl font-semibold">
-              {{ capabilityProfile.membershipGovernance.history.length }}
+            <p class="mt-3 text-sm text-[var(--ks-text-muted)]">
+              {{
+                t('common.historyItemsOnPage', {
+                  count: capabilityProfile.membershipGovernance.history.length,
+                  pageSize: 12,
+                })
+              }}
             </p>
             <ul
               v-if="capabilityProfile.membershipGovernance.history.length"

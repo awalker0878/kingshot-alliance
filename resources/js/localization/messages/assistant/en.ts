@@ -87,6 +87,9 @@ const messages = {
       openOwnerWorkflow: 'Open owner workflow',
     },
     answers: {
+      transferVerificationIncomplete:
+        'This overview assessed {assessed} of {total} Transfer participants. At least {count} need attention; {unassessed} are not assessed here. Open Transfer readiness for current checks.',
+
       help: 'I can answer from authorized Events, your roster and RSVPs, your assignments, Alliance guides and observations, published territory plans, source-backed Game data, and your transfer readiness when you are in scope. I do not use unsourced KingShot knowledge.',
       unsupported:
         'I can only answer from the supported authorized sources. I do not use general KingShot knowledge or make changes from the Assistant.',

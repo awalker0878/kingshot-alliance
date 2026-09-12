@@ -8,13 +8,14 @@ use App\Contexts\Alliance\Access\Enums\AlliancePermission;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
+use Illuminate\Validation\ValidationException;
 
 final readonly class PreviewRecruitmentStageBulkChange
 {
     public function __construct(private AllianceAuthorization $authority) {}
 
     /**
-     * @param  non-empty-list<string>  $candidateIds
+     * @param  list<string>  $candidateIds
      * @return array{
      *   targetStage: string,
      *   items: non-empty-list<array{itemId: string, label: string, fromStage: string|null, outcome: string, code: string}>,
@@ -29,6 +30,10 @@ final readonly class PreviewRecruitmentStageBulkChange
         array $candidateIds,
         RecruitmentStage $target,
     ): array {
+        $candidateIds = array_values(array_unique($candidateIds));
+        if ($candidateIds === [] || count($candidateIds) > 50) {
+            throw ValidationException::withMessages(['candidate_ids' => 'Select between 1 and 50 recruitment candidates.']);
+        }
         $this->authority->authorize($actorPlayerId, $allianceId, AlliancePermission::RecruitmentManage);
 
         $candidates = RecruitmentCandidate::query()
@@ -51,6 +56,8 @@ final readonly class PreviewRecruitmentStageBulkChange
             $from = $candidate->recruitmentStage();
             if ($candidate->merged_into_id !== null || $candidate->anonymized_at !== null) {
                 $items[] = $this->item($candidateId, $label, $from, 'blocked', 'candidate-unavailable');
+            } elseif ($target === RecruitmentStage::Joined) {
+                $items[] = $this->item($candidateId, $label, $from, 'blocked', 'transition-not-allowed');
             } elseif ($from === $target) {
                 $items[] = $this->item($candidateId, $label, $from, 'skipped', 'already-in-target-stage');
             } elseif (! $from->canTransitionTo($target)) {

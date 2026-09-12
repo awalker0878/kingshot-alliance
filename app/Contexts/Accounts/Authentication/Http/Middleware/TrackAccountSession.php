@@ -4,29 +4,29 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Authentication\Http\Middleware;
 
-use App\Contexts\Accounts\Authentication\Actions\RecordAccountSession;
-use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Accounts\Authentication\Actions\RestoreAccountSession;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 final readonly class TrackAccountSession
 {
-    public function __construct(private RecordAccountSession $recordAccountSession) {}
+    public function __construct(private RestoreAccountSession $restoreAccountSession) {}
 
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
-        $sessionId = $request->hasSession() ? $request->session()->getId() : '';
+        // Priority places this boundary immediately after StartSession, before
+        // authentication, throttling and binding middleware can resolve a user.
+        $initialUserId = $this->restoreAccountSession->handle($request);
+        $initialSessionId = $request->hasSession() ? $request->session()->getId() : '';
 
-        if ($user instanceof User && $sessionId !== '') {
-            $this->recordAccountSession->handle(
-                userId: (int) $user->id,
-                sessionId: $sessionId,
-                userAgent: (string) $request->userAgent(),
-            );
+        $response = $next($request);
+
+        if ($request->hasSession() && ($request->session()->getId() !== $initialSessionId
+            || $request->user()?->getAuthIdentifier() !== $initialUserId)) {
+            $this->restoreAccountSession->handle($request);
         }
 
-        return $next($request);
+        return $response;
     }
 }

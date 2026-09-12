@@ -2,6 +2,16 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    searchChoices: '선택 항목 검색',
+    findChoices: '검색',
+    noChoices: '일치하는 항목이 없습니다.',
+    choiceLookupFailed: '선택 항목을 불러오지 못했습니다. 다시 시도하세요.',
+    activeConfigurationLimit:
+      '활성 항목은 최대 {limit}개입니다. 새 항목을 추가하려면 기존 항목을 비활성화하세요.',
+    historyItemsOnPage: '이 페이지에 {count}개 기록(최대 {pageSize}개).',
+    bulkOutcome: {
+      'permission-denied': '권한이 없습니다',
+    },
     eyebrow: '연맹 모집',
     title: '모집',
     candidates: '지원자',

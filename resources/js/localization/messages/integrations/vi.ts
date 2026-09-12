@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   integrationExperience: {
+    recordCount: '{count} bản ghi',
+    historyUnavailable: 'Không thể tải trang này.',
+    retryPage: 'Thử tải lại trang',
+    expired: 'Đã hết hạn',
+    deliveryQueued: 'Đã xếp hàng',
+    deliveryHistory: 'Lịch sử gửi',
+
     eyebrow: 'Tích hợp liên minh',
     title: 'Thông tin API và webhook',
     activeCredentials: 'Thông tin xác thực đang hoạt động',

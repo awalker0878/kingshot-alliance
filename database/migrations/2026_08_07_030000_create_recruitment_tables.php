@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -39,7 +40,7 @@ return new class extends Migration
             $table->string('question_type', 24)->default('short_text');
             $table->json('options')->nullable();
             $table->boolean('is_required')->default(false);
-            $table->unsignedSmallInteger('position')->default(0);
+            $table->unsignedInteger('position')->default(0);
             $table->boolean('is_active')->default(true)->index();
             $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
             $table->foreignUlid('updated_by_player_id')->constrained('players')->restrictOnDelete();
@@ -48,6 +49,7 @@ return new class extends Migration
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
             $table->unique(['id', 'alliance_id']);
             $table->index(['alliance_id', 'is_active', 'position']);
+            $table->index(['alliance_id', 'position', 'id'], 'recruitment_questions_catalogue_idx');
         });
 
         Schema::create('recruitment_application_invites', function (Blueprint $table): void {
@@ -113,6 +115,9 @@ return new class extends Migration
             $table->index(['alliance_id', 'next_action_at']);
         });
 
+        DB::statement('CREATE INDEX recruitment_candidates_current_email_idx ON recruitment_candidates (alliance_id, LOWER(email), submitted_at, id) WHERE merged_into_id IS NULL AND anonymized_at IS NULL');
+        DB::statement('CREATE INDEX recruitment_candidates_current_contact_idx ON recruitment_candidates (alliance_id, LOWER(contact_handle), submitted_at, id) WHERE merged_into_id IS NULL AND anonymized_at IS NULL');
+
         Schema::table('recruitment_candidates', function (Blueprint $table): void {
             $table->foreign(['merged_into_id', 'alliance_id'])
                 ->references(['id', 'alliance_id'])
@@ -173,7 +178,7 @@ return new class extends Migration
                 ->references(['id', 'alliance_id'])
                 ->on('recruitment_candidates')
                 ->cascadeOnDelete();
-            $table->index(['alliance_id', 'candidate_id', 'created_at']);
+            $table->index(['alliance_id', 'candidate_id', 'created_at', 'id'], 'recruitment_notes_candidate_history_idx');
         });
 
         Schema::create('recruitment_tags', function (Blueprint $table): void {
@@ -222,7 +227,7 @@ return new class extends Migration
                 ->references(['id', 'alliance_id'])
                 ->on('recruitment_candidates')
                 ->cascadeOnDelete();
-            $table->index(['alliance_id', 'candidate_id', 'changed_at']);
+            $table->index(['alliance_id', 'candidate_id', 'changed_at', 'id'], 'recruitment_stage_history_candidate_cursor_idx');
         });
 
         Schema::create('recruitment_decision_templates', function (Blueprint $table): void {
@@ -240,6 +245,7 @@ return new class extends Migration
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
             $table->unique(['id', 'alliance_id']);
             $table->unique(['alliance_id', 'name']);
+            $table->index(['alliance_id', 'name', 'id'], 'recruitment_templates_catalogue_idx');
         });
 
         Schema::create('recruitment_communications', function (Blueprint $table): void {
@@ -267,7 +273,7 @@ return new class extends Migration
                 ->on('recruitment_decision_templates')
                 ->restrictOnDelete();
             $table->unique(['id', 'alliance_id']);
-            $table->index(['alliance_id', 'candidate_id', 'created_at']);
+            $table->index(['alliance_id', 'candidate_id', 'created_at', 'id'], 'recruitment_communications_candidate_history_idx');
         });
 
         Schema::create('recruitment_onboarding_items', function (Blueprint $table): void {
@@ -275,7 +281,7 @@ return new class extends Migration
             $table->ulid('alliance_id');
             $table->string('name', 160);
             $table->text('description')->nullable();
-            $table->unsignedSmallInteger('position')->default(0);
+            $table->unsignedInteger('position')->default(0);
             $table->boolean('is_required')->default(true);
             $table->boolean('is_active')->default(true)->index();
             $table->foreignUlid('created_by_player_id')->constrained('players')->restrictOnDelete();
@@ -285,6 +291,8 @@ return new class extends Migration
             $table->foreign('alliance_id')->references('id')->on('alliances')->cascadeOnDelete();
             $table->unique(['id', 'alliance_id']);
             $table->unique(['alliance_id', 'name']);
+            $table->index(['alliance_id', 'is_active', 'position', 'id'], 'recruitment_onboarding_active_idx');
+            $table->index(['alliance_id', 'position', 'id'], 'recruitment_onboarding_catalogue_idx');
         });
 
         Schema::create('recruitment_candidate_onboarding', function (Blueprint $table): void {

@@ -49,6 +49,12 @@ final class KingdomReferenceQuery
         return $this->snapshot(Kingdom::query()->whereKey($kingdomId)->lockForUpdate()->firstOrFail());
     }
 
+    /** Stabilize current lifecycle state before an idempotent owner decision. */
+    public function lockCurrentShared(string $kingdomId): KingdomReference
+    {
+        return $this->snapshot(Kingdom::query()->whereKey($kingdomId)->sharedLock()->firstOrFail());
+    }
+
     /** Exclusive active lock for authoritative Kingdom operations. */
     public function lockActive(string $kingdomId): KingdomReference
     {

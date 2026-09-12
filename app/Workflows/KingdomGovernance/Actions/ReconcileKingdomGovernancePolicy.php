@@ -6,6 +6,7 @@ namespace App\Workflows\KingdomGovernance\Actions;
 
 use App\Contexts\GameWorld\Governance\Actions\ReconcileKingdomSystemRoles;
 use App\Contexts\Operations\Access\Services\KingdomOperationsRoleProvisioner;
+use Illuminate\Support\Facades\DB;
 
 final readonly class ReconcileKingdomGovernancePolicy
 {
@@ -16,7 +17,9 @@ final readonly class ReconcileKingdomGovernancePolicy
 
     public function handle(string $actorPlayerId, string $kingdomId): void
     {
-        $roles = $this->governanceRoles->handle($actorPlayerId, $kingdomId);
-        $this->operationsPolicy->provision($kingdomId, $roles['administrator'], $roles['eventCoordinator'], $roles['viewer']);
+        DB::transaction(function () use ($actorPlayerId, $kingdomId): void {
+            $roles = $this->governanceRoles->handle($actorPlayerId, $kingdomId);
+            $this->operationsPolicy->provision($kingdomId, $roles['administrator'], $roles['eventCoordinator'], $roles['viewer']);
+        });
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Workflows\ExternalEventParticipation\Actions;
 
 use App\Contexts\Operations\Participation\Actions\CancelEventRegistration;
+use App\Contexts\Operations\Participation\Actions\LockEventParticipationScope;
 use App\Contexts\Operations\Participation\Actions\RegisterForEvent;
 use App\Contexts\Operations\Participation\Actions\RespondToEvent;
 use App\Contexts\Operations\Participation\Enums\EventResponseChoice;
@@ -13,12 +14,15 @@ use App\Contexts\Platform\Integrations\Actions\ExecuteExternalActorAction;
 use App\Contexts\Platform\Integrations\Enums\ExternalActorProvider;
 use App\Contexts\Platform\Integrations\Queries\ExternalActorLinkQuery;
 use App\Contexts\Platform\Integrations\ValueObjects\ExternalActionResult;
+use App\Contexts\Platform\Integrations\ValueObjects\ExternalActorLinkReference;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 
 final readonly class ExecuteExternalEventParticipation
 {
     public function __construct(
         private ExternalActorLinkQuery $actors,
+        private LockEventParticipationScope $scope,
         private ExecuteExternalActorAction $externalActions,
         private RespondToEvent $respond,
         private RegisterForEvent $register,
@@ -50,12 +54,14 @@ final readonly class ExecuteExternalEventParticipation
             'note' => $note,
         ];
 
-        return $this->externalActions->handle(
+        return $this->execute(
             $actor,
             $apiCredentialId,
             $idempotencyKey,
             'event.response.update',
-            $this->requestHash($payload),
+            $payload,
+            $occurrenceId,
+            false,
             function () use ($actor, $occurrenceId, $response, $preferredRole, $preferredTeam, $availableFrom, $availableUntil, $note): array {
                 $this->respond->handle(
                     actorPlayerId: $actor->playerId,
@@ -89,12 +95,14 @@ final readonly class ExecuteExternalEventParticipation
         $actor = $this->actors->requireActive($allianceId, $provider, $externalSubject);
         $payload = ['occurrence_id' => $occurrenceId, 'registered' => $registered];
 
-        return $this->externalActions->handle(
+        return $this->execute(
             $actor,
             $apiCredentialId,
             $idempotencyKey,
             'event.registration.update',
-            $this->requestHash($payload),
+            $payload,
+            $occurrenceId,
+            true,
             function () use ($actor, $occurrenceId, $registered): array {
                 if ($registered) {
                     $this->register->handle($actor->playerId, $occurrenceId);
@@ -108,6 +116,19 @@ final readonly class ExecuteExternalEventParticipation
                 ];
             },
         );
+    }
+
+    /**
+     * @param  array<string,mixed>  $payload
+     * @param  callable():array<string,mixed>  $operation
+     */
+    private function execute(ExternalActorLinkReference $actor, string $credentialId, string $key, string $action, array $payload, string $occurrenceId, bool $exclusiveOccurrence, callable $operation): ExternalActionResult
+    {
+        return DB::transaction(function () use ($actor, $credentialId, $key, $action, $payload, $occurrenceId, $exclusiveOccurrence, $operation): ExternalActionResult {
+            $this->scope->handle($actor->playerId, $occurrenceId, $exclusiveOccurrence);
+
+            return $this->externalActions->handle($actor, $credentialId, $key, $action, $this->requestHash($payload), $operation);
+        });
     }
 
     /** @param array<string, mixed> $payload */

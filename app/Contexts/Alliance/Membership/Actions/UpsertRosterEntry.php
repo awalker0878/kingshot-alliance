@@ -72,12 +72,14 @@ final readonly class UpsertRosterEntry
                 $entry = new AllianceRosterEntry(['alliance_id' => $allianceId, 'player_id' => $player->playerId]);
                 $event = 'membership.roster_entry_created';
             } else {
+                $routing = AllianceRosterEntry::query()->where('alliance_id', $allianceId)->whereKey($rosterEntryId)->firstOrFail();
+                $player = $this->players->lockCurrent((string) $routing->player_id);
                 $entry = AllianceRosterEntry::query()
                     ->where('alliance_id', $allianceId)
                     ->whereKey($rosterEntryId)
+                    ->where('player_id', $player->playerId)
                     ->lockForUpdate()
                     ->firstOrFail();
-                $player = $this->players->lockCurrent((string) $entry->player_id);
                 if ($expectedPlayerId !== null && $player->playerId !== $expectedPlayerId) {
                     throw ValidationException::withMessages(['player_id' => 'The roster entry no longer identifies the expected Player.']);
                 }

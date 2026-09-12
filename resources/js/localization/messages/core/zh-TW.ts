@@ -1,7 +1,13 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': '已更新招募入盟引導項目。',
+  },
   common: {
+    yes: '是',
+    no: '否',
+    historyItemsOnPage: '此頁有 {count} 筆記錄（最多 {pageSize} 筆）。',
     all: '全部',
     language: '語言',
     signIn: '登入',
@@ -39,6 +45,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: '需要進一步評估' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          '至少有 {count} 名遷移參與者需要關注；此概覽尚未評估 {unassessed} 名參與者',
+      },
+
       title: '首頁',
       eyebrow: '總督概覽',
       welcome: '歡迎，總督 {name}',

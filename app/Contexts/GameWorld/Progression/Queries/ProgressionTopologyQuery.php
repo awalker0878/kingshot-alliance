@@ -376,7 +376,7 @@ final class ProgressionTopologyQuery
     }
 
     /**
-     * @param list<string> $sourceIds
+     * @param  list<string>  $sourceIds
      * @return list<array{id:string,label:string,ordinal:int,sourceIds:list<string>,evidenceStatus:string,prerequisites:list<string>,attributes:array<string,mixed>}>
      */
     private function levelStatesWithZero(int $maxLevel, array $sourceIds): array

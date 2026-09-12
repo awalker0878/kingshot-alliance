@@ -58,6 +58,6 @@ Source contexts request generic delivery with `NotificationIntent`, containing s
 
 Communications does not import Operations, Alliance or GameWorld Models to inspect source aggregates. A provider acknowledgement changes only Communications delivery state and never proves that a source-domain action was completed.
 
-Immediate and digest workers reacquire current Communications/Accounts/Player-owned routing facts immediately before send. Source contexts do not select provider endpoints, quiet-hour behavior, digest windows, provider retry timing or credentials.
+Immediate and digest workers independently recheck the original source account/Governor and current source access through `NotificationSourceAuthorization`, then current recipient routing. The existing NotificationDelivery Workflow binds that port to explicit source-owner queries; Communications never imports those source Models or borrows permission from a destination. Unknown types or revoked sources fail closed. See [ADR-0046](../../adr/0046-current-notification-source-authorization.md). Source contexts do not select provider endpoints, quiet-hour behavior, digest windows, provider retry timing or credentials.
 
 The detailed flow and security contract is documented in [Delivery](delivery.md). `Communications/Reminders` is not a V3 capability.

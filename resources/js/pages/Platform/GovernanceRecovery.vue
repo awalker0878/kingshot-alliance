@@ -1,30 +1,51 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { ref, watch } from 'vue';
+import RecoveryChoicePicker from '@/components/platform/RecoveryChoicePicker.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import { useLocale } from '@/localization';
-type Kingdom = { id: string; number: number };
-type Player = { id: string; kingdomId: string; name: string; gamePlayerId: string | null };
 const props = defineProps<{
   user: { name: string; email: string };
-  kingdoms: Kingdom[];
-  players: Player[];
+  actorId: number;
 }>();
 const { t } = useLocale();
 const form = useForm({
-  kingdom_id: props.kingdoms[0]?.id ?? '',
+  kingdom_id: '',
   player_id: '',
   reason: '',
   replace_existing: false,
 });
-const eligiblePlayers = computed(() =>
-  props.players.filter((player) => player.kingdomId === form.kingdom_id),
+const failed = ref(false);
+watch(
+  () => props.actorId,
+  () => {
+    form.reset();
+    form.clearErrors();
+    failed.value = false;
+  },
+);
+watch(
+  () => form.kingdom_id,
+  () => {
+    form.reset('player_id', 'reason', 'replace_existing');
+    form.clearErrors();
+    failed.value = false;
+  },
 );
 function recover(): void {
+  failed.value = false;
   form.post('/platform/kingdom-governance-recovery', {
     preserveScroll: true,
     onSuccess: () => form.reset('reason', 'replace_existing'),
+    onHttpException: () => {
+      failed.value = true;
+      return false;
+    },
+    onNetworkError: () => {
+      failed.value = true;
+      return false;
+    },
   });
 }
 </script>
@@ -48,24 +69,30 @@ function recover(): void {
         {{ t('governanceExpansion.recoveryWarning') }}
       </div>
       <form class="mt-5 space-y-4" @submit.prevent="recover">
+        <RecoveryChoicePicker
+          id="recovery-kingdom"
+          v-model="form.kingdom_id"
+          kind="kingdoms"
+          :scope="String(actorId)"
+          :label="t('governanceExpansion.kingdom')"
+          empty-label="—"
+          required
+        />
+        <RecoveryChoicePicker
+          id="recovery-player"
+          v-model="form.player_id"
+          kind="players"
+          :kingdom-id="form.kingdom_id"
+          :scope="`${actorId}:${form.kingdom_id}`"
+          :label="t('governanceExpansion.replacementGovernor')"
+          empty-label="—"
+          :disabled="!form.kingdom_id"
+          required
+        />
         <label class="block text-sm font-semibold"
-          >{{ t('governanceExpansion.kingdom')
-          }}<select v-model="form.kingdom_id" class="ks-input mt-2" @change="form.player_id = ''">
-            <option v-for="kingdom in kingdoms" :key="kingdom.id" :value="kingdom.id">
-              #{{ kingdom.number }}
-            </option>
-          </select></label
-        ><label class="block text-sm font-semibold"
-          >{{ t('governanceExpansion.replacementGovernor')
-          }}<select v-model="form.player_id" class="ks-input mt-2">
-            <option value="">—</option>
-            <option v-for="player in eligiblePlayers" :key="player.id" :value="player.id">
-              {{ player.name }}{{ player.gamePlayerId ? ` · ${player.gamePlayerId}` : '' }}
-            </option>
-          </select></label
-        ><label class="block text-sm font-semibold"
           >{{ t('governanceExpansion.recoveryReason')
           }}<textarea
+            id="recovery-reason"
             v-model="form.reason"
             class="ks-input mt-2 min-h-28"
             minlength="10"
@@ -82,6 +109,14 @@ function recover(): void {
         >
           {{ t('governanceExpansion.recover') }}
         </button>
+        <div
+          v-if="Object.keys(form.errors).length || failed"
+          role="alert"
+          class="text-sm text-rose-300"
+        >
+          <p v-for="(error, key) in form.errors" :key="key">{{ error }}</p>
+          <p v-if="failed">{{ t('platformAdmin.recoveryFailed') }}</p>
+        </div>
       </form>
     </section>
   </AppLayout>

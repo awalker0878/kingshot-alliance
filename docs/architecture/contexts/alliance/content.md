@@ -16,7 +16,7 @@ Content owns Alliance-authored content, member Notice reactions and media lifecy
 - lightweight Like/Dislike state for published Alliance Notices;
 - provenance and review-date requirements for knowledge content;
 - revisioned contextual links and policy-derived freshness state for knowledge content;
-- opt-in one-off and recurring announcement intent, schedule lifecycle and immutable run receipts;
+- opt-in one-off and recurring announcement intent, schedule lifecycle, immutable occurrence identity and bounded durable preparation;
 - Alliance public-profile content;
 - media upload/archive lifecycle.
 
@@ -48,13 +48,25 @@ Content stores contextual references as allowlisted type/key values. Event refer
 
 ## Delivery boundary
 
-Content decides whether an Announcement should notify active members. It owns one-off publication intent, timezone-aware recurring rules and one immutable run record for each materialized occurrence. A rule stores ISO weekdays, wall-clock time and an IANA time zone so daylight-saving changes do not silently move the intended local time. Revising or archiving content deactivates its active recurring rule.
+Content owns one-off publication intent, timezone-aware recurring rules and immutable occurrence identity. [ADR-0049](../../adr/0049-bounded-announcement-occurrences.md) defines bounded materialization and recipient work. One-off identity includes revision; recurring identity includes schedule generation and scheduled time. Saving or cancelling recurrence advances its generation. A changed revision or archived source cannot continue an old pending audience.
 
-Content resolves the active Alliance membership snapshot and submits render-ready delivery intent through the Communications scalar/value-object contract. Recipient preferences, endpoints, provider attempts and retry state remain Communications-owned. The management screen is a cross-context projection in `ReadModels/AnnouncementBroadcastManagement`; the Alliance write controller never imports that projection.
+Materialization creates Pending progress without loading all recipients. Membership provides finite keyset pages with a captured upper bound, not preauthorized recipients. Each recipient is reauthorized against current owner facts in its own transaction; Communications intent and cursor/counters commit atomically. A stale worker cannot advance a moved cursor twice. No enabled route means suppression, not replay. Queued/Empty means recipient preparation completed, not provider success; cancellation preserves earlier delivery history. Natural recurrence exhaustion does not revoke the last valid occurrence.
 
-The fanout worker is idempotent per run, Governor and channel. Test delivery targets only the requesting manager. Failed external deliveries can be selected for a bounded retry after Content reauthorizes the run and Communications revalidates the concrete delivery state. Alliance tables never store provider credentials or provider-specific error state.
+`broadcasted_at` records durable one-off creation; run `queued_at` means preparation completion. Source visits and recipient work have separate budgets. Persisted visitation priority prevents old sources and large runs from monopolizing low budgets. Indexed queries limit candidates before hydration; no transaction spans the audience or network IO.
+
+The shared occurrence policy applies during enqueue and later external source authorization. Preferences, endpoints, provider attempts and retries remain Communications-owned, with current account/Governor, source, attempt, member and endpoint-generation fences. `ReadModels/AnnouncementBroadcastManagement` composes management presentation; write controllers do not import it. Communications supplies complete retained per-run read/status outcomes through [ADR-0050](../../adr/0050-scoped-announcement-outcome-projections.md), independently from Content preparation counters. Retry selections are bounded and display selected versus total candidates. Catalogue, categories, media and per-item revision/run histories now use the current-manager pages in [ADR-0052](../../adr/0052-bounded-current-manager-content-workspaces.md). Related schedules are loaded only for the visible catalogue subjects; complete preparation/outcome totals are independent of those page sizes.
+
+Test delivery stays limited to the requesting current manager. Failed external deliveries can be selected for bounded retry only after Content reauthorizes source/run scope and Communications revalidates concrete state. Alliance, actual Content and run metadata must all match; a guessed delivery ID cannot bypass the projection scope. Alliance tables never store provider credentials or provider-specific errors.
 
 Notice reactions do not cross this delivery boundary. Like/Dislike never creates a notification, broadcast run or Communications delivery intent.
+
+## Manager collections
+
+`ContentManagementQuery` requires current ContentManage authority and an active Kingdom on every public read. Catalogue pages contain twenty rows, categories/media twenty-five, revisions ten and broadcast histories five. SQL limits precede hydration; only visible subjects contribute related schedule rows and grouped revision/run counts. Canonical Alliance Rules remain excluded from generic management and restoration.
+
+Encrypted keyset cursors bind the current Governor, Alliance, collection, subject and normalized filters. An immutable ID frontier excludes newer inserts until first-page refresh and survives boundary-row deletion. Totals describe current retained matches, not an atomic snapshot or all-time audience; global status/preparation totals remain separate from a visible filtered page. Each continuation reauthorizes current owner state. The old unbounded managerList and Alliance-wide forAlliance composition have no compatibility alias.
+
+Independent catalogue/option/history controls preserve intentional unsaved edits and off-page selections without accumulating every clean visited row. Histories are loaded on demand and expose recoverable failures. The [HARD-106 ledger](../../../product/codebase-hardening-delivery-ledger.md) owns implementation verification and the containing milestone; this architecture document defines the intended current contract.
 
 ## Media boundary
 

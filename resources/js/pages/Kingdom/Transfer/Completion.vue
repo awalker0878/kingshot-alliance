@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
+import TransferParticipantPager from '@/components/transfers/TransferParticipantPager.vue';
+import type { ParticipantPage, ParticipantSummary } from '@/components/transfers/participantPages';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
+import type { SharedPlayerContext } from '@/types/player-context';
 
 type Direction = 'staying' | 'outgoing' | 'incoming';
 type Readiness = 'not_started' | 'preparing' | 'ready' | 'blocked' | 'confirmed' | 'withdrawn';
@@ -41,22 +44,22 @@ const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string; kingdom: string | null };
   plan: Plan | null;
-  participants: Participant[];
+  participants: ParticipantPage<Participant>;
+  participantSummary: ParticipantSummary | null;
 }>();
 
+const page = usePage();
+const transferScope = computed(
+  () =>
+    `${(page.props.playerContext as SharedPlayerContext).activePlayerId ?? ''}|${props.alliance.id}|${props.plan?.id ?? ''}`,
+);
+const participants = computed(() => props.participants.items);
 const { t, formatDate } = useLocale();
 const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 
-const completionCounts = computed(() => ({
-  completed: props.participants.filter((participant) => participant.completion !== null).length,
-  confirmed: props.participants.filter(
-    (participant) =>
-      participant.readiness === 'confirmed' &&
-      participant.completion === null &&
-      participant.withdrawnAt === null,
-  ).length,
-  withdrawn: props.participants.filter((participant) => participant.withdrawnAt !== null).length,
-}));
+const completionCounts = computed(
+  () => props.participantSummary ?? { completed: 0, confirmed: 0, withdrawn: 0 },
+);
 
 function stateLabel(state: string): string {
   const key: Record<string, string> = {
@@ -178,7 +181,7 @@ function timestamp(value: string): string {
       <StatSeal :label="t('kingdomP7D.cycle')" :value="plan.label" icon="◇" />
       <StatSeal
         :label="t('kingdomP7D.participants')"
-        :value="participants.length"
+        :value="participantSummary?.total ?? 0"
         icon="♟"
         tone="stone"
       />
@@ -207,10 +210,18 @@ function timestamp(value: string): string {
       </p>
     </section>
 
+    <TransferParticipantPager
+      v-if="plan"
+      :page="props.participants"
+      :total="participantSummary?.total ?? 0"
+      href="/alliance/transfers/completion"
+      :scope="transferScope"
+    />
     <section v-if="plan && participants.length" class="mt-6 grid gap-5">
       <article
         v-for="participant in participants"
         :key="participant.id"
+        :data-transfer-participant="participant.id"
         class="ks-surface p-5 sm:p-6"
       >
         <div class="flex flex-wrap items-start justify-between gap-4">

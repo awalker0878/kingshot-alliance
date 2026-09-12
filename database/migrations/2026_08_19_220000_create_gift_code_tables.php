@@ -13,6 +13,7 @@ use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeSource;
 use App\Contexts\GameWorld\GiftCodes\Enums\GiftCodeStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -70,6 +71,22 @@ return new class extends Migration
             $table->timestampTz('revoked_at')->nullable()->index();
             $table->foreignId('created_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestampsTz();
+            $table->index(['is_active', 'ingestion_enabled', 'revoked_at', 'id'], 'gift_code_alert_source_page');
+        });
+
+        Schema::create('gift_code_source_alert_sweep', function (Blueprint $table): void {
+            $table->string('id', 20)->primary();
+            $table->ulid('last_source_id')->nullable();
+            $table->ulid('source_through_id')->nullable();
+            $table->timestampTz('last_batch_at')->nullable();
+        });
+        DB::table('gift_code_source_alert_sweep')->insert(['id' => 'scheduled']);
+        Schema::create('gift_code_source_alert_progress', function (Blueprint $table): void {
+            $table->foreignUlid('gift_code_source_id')->primary()->constrained('gift_code_sources')->cascadeOnDelete();
+            $table->ulid('subscription_after_id')->nullable();
+            $table->ulid('subscription_through_id')->nullable();
+            $table->unsignedBigInteger('recipient_after_id')->default(0);
+            $table->unsignedBigInteger('recipient_through_id')->nullable();
         });
 
         Schema::create('gift_code_source_sync_states', function (Blueprint $table): void {
@@ -117,6 +134,7 @@ return new class extends Migration
 
             $table->unique(['gift_code_source_id', 'provider', 'transport'], 'gift_code_source_subscription_unique');
             $table->index(['status', 'expires_at']);
+            $table->index(['gift_code_source_id', 'id'], 'gift_code_alert_subscription_page');
         });
 
         Schema::create('gift_code_source_deliveries', function (Blueprint $table): void {
@@ -393,6 +411,8 @@ return new class extends Migration
         Schema::dropIfExists('gift_code_source_deliveries');
         Schema::dropIfExists('gift_code_source_subscriptions');
         Schema::dropIfExists('gift_code_source_sync_states');
+        Schema::dropIfExists('gift_code_source_alert_progress');
+        Schema::dropIfExists('gift_code_source_alert_sweep');
         Schema::dropIfExists('gift_code_sources');
     }
 };

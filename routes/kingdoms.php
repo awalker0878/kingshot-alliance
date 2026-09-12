@@ -10,6 +10,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferParticipant
 use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferPlanController;
 use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferPlanningController;
 use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferReadinessController;
+use App\Contexts\GameWorld\KingdomTransfers\Http\Controllers\TransferWorkflowHistoryController;
 use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyContactController;
 use App\Contexts\Intelligence\Diplomacy\Http\Controllers\KingdomAllianceDiplomacyController;
 use App\Contexts\Intelligence\Evidence\Http\Controllers\TransferEvidenceController;
@@ -20,6 +21,7 @@ use App\Contexts\Intelligence\Roster\Http\Controllers\PlayerSnapshotController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\RosterController;
 use App\Contexts\Intelligence\Roster\Http\Controllers\RosterCsvController;
 use App\Contexts\Intelligence\Sharing\Http\Controllers\KingdomIntelligenceSharingController;
+use App\ReadModels\KingdomGovernance\Http\Controllers\KingdomRoleManagementController;
 use App\ReadModels\KingdomIntelligence\Http\Controllers\KingdomAllianceIntelligenceController;
 use App\ReadModels\KingdomIntelligence\Http\Controllers\KingdomAllianceObservationReadController;
 use App\ReadModels\KingdomSettings\Http\Controllers\KingdomSettingsController;
@@ -28,11 +30,14 @@ use App\ReadModels\Roster\Http\Controllers\RosterImportReadController;
 use App\ReadModels\Roster\Http\Controllers\RosterIntelligenceController;
 use App\ReadModels\Roster\Http\Controllers\RosterReadController;
 use App\ReadModels\SharedKingdomIntelligence\Http\Controllers\KingdomIntelligenceSharingReadController;
+use App\ReadModels\TransferManagement\Http\Controllers\TransferGroupKingdomPageController;
+use App\ReadModels\TransferManagement\Http\Controllers\TransferManagementChoiceController;
+use App\ReadModels\TransferManagement\Http\Controllers\TransferManagementPageController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->group(function (): void {
     Route::get('/alliance/settings/kingdom', [KingdomSettingsController::class, 'index'])->name('alliance.kingdom.edit');
-    Route::get('/alliance/settings/kingdom/roles', [KingdomRoleController::class, 'index'])->name('alliance.kingdom.roles.index');
+    Route::get('/alliance/settings/kingdom/roles', KingdomRoleManagementController::class)->name('alliance.kingdom.roles.index');
     Route::get('/alliance/roster', [RosterReadController::class, 'index'])->name('alliance.roster.index');
     Route::get('/alliance/roster/manage', [RosterReadController::class, 'manage'])->name('alliance.roster.manage');
     Route::get('/alliance/roster/intelligence', [RosterIntelligenceController::class, 'index'])->name('alliance.roster.intelligence');
@@ -49,9 +54,14 @@ Route::middleware(['auth', 'auth.session', 'verified', 'alliance.context'])->gro
     Route::get('/alliance/kingdom-ingestion/manage', [KingdomIngestionController::class, 'manage'])->name('alliance.kingdom-ingestion.manage');
     Route::get('/alliance/kingdom-sharing', [KingdomIntelligenceSharingReadController::class, 'index'])->name('alliance.kingdom-sharing.index');
     Route::get('/alliance/kingdom-sharing/manage', [KingdomIntelligenceSharingReadController::class, 'manage'])->name('alliance.kingdom-sharing.manage');
-    Route::get('/alliance/transfers', [TransferPlanController::class, 'index'])->name('alliance.transfers.index');
-    Route::get('/alliance/transfers/manage', [TransferPlanController::class, 'manage'])->name('alliance.transfers.manage');
+    Route::get('/alliance/transfers', [TransferManagementPageController::class, 'index'])->name('alliance.transfers.index');
+    Route::get('/alliance/transfers/manage', [TransferManagementPageController::class, 'manage'])->name('alliance.transfers.manage');
+    Route::get('/alliance/transfers/manage/choices/{kind}', TransferManagementChoiceController::class)->name('alliance.transfers.manage.choices');
+    Route::get('/alliance/transfers/manage/plans/{plan}/groups/{group}/kingdoms', TransferGroupKingdomPageController::class)->whereUlid(['plan', 'group'])->name('alliance.transfers.manage.group-kingdoms');
     Route::get('/alliance/transfers/readiness', [TransferReadinessController::class, 'index'])->name('alliance.transfers.readiness');
+    Route::get('/alliance/transfers/{plan}/participants/{participant}/observations', [TransferReadinessController::class, 'history'])->name('alliance.transfers.participants.observations.index');
+    Route::get('/alliance/transfers/{plan}/participants/{participant}/blockers', [TransferWorkflowHistoryController::class, 'blockers'])->name('alliance.transfers.participants.blockers.index');
+    Route::get('/alliance/transfers/{plan}/participants/{participant}/readiness-history', [TransferWorkflowHistoryController::class, 'transitions'])->name('alliance.transfers.participants.readiness-history');
     Route::get('/alliance/transfers/completion', [TransferCompletionController::class, 'index'])->name('alliance.transfers.completion');
     Route::get('/alliance/transfers/{plan}/participants/{participant}/evidence', [TransferEvidenceController::class, 'index'])->name('alliance.transfers.participants.evidence.index');
     Route::get('/alliance/transfers/{plan}/participants/{participant}/evidence/{evidence}/image', [TransferEvidenceController::class, 'image'])->name('alliance.transfers.participants.evidence.image');

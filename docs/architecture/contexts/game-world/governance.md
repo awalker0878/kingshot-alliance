@@ -43,3 +43,9 @@ Initial bootstrap, normal handoff and break-glass recovery are separate processe
 `ReadModels/KingdomGovernance` composes effective-authority visibility, "who has this authority?", governance audit history and health/drift projections. These are read projections and do not own Governance persistence.
 
 `Workflows/KingdomGovernance` coordinates processes spanning Governance plus another owner, such as Operations permission policy provisioning or Platform-authorized administrator recovery. Governance remains owner of Kingdom governance state.
+
+## Bounded audience discovery
+
+`KingdomAuthorityFactsQuery::playerIdsWithPermissionAfter` projects distinct effective permission holders within one concrete Kingdom, using a Player-ID keyset and a database limit before hydration. Unclaimed, noncanonical, moved, revoked, not-yet-effective, expired and archived-role candidates are excluded. Duplicate effective role grants do not consume multiple page entries. The boundary need not still have an assignment. Returned IDs are candidates, not an authorization grant; cross-context consumers must use current locked owner facts at the mutation boundary. There is no alternate unbounded audience method. Operations owns reminder continuation, not Governance: see [ADR-0048](../../adr/0048-bounded-king-perk-reminder-traversal.md).
+
+Platform recovery requires a current active Kingdom and direct current Governor identity. Replacement includes scheduled grants and changes at most 500 other assignments atomically; a larger history rejects without partial recovery. Recover without replacement, remove assignments through ordinary GameWorld Actions, and retry. Reasons are 10–500 Unicode characters and replay does not duplicate recovery audit/outbox. The operator grant remains a Platform-owned barrier around the full Workflow composition; see [ADR-0063](../../adr/0063-atomic-bounded-kingdom-administrator-recovery.md).

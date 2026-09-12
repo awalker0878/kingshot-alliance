@@ -10,7 +10,7 @@ use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Platform\AllianceAdministration\Models\AlliancePlatformSetting;
-use App\Contexts\Platform\AllianceAdministration\Services\PlanEntitlementService;
+use App\Contexts\Platform\AllianceAdministration\Queries\PlanEntitlementQuery;
 use App\Contexts\Platform\Integrations\Actions\CreateApiCredential;
 use App\Contexts\Platform\Integrations\Actions\CreateWebhookSubscription;
 use App\Contexts\Platform\Integrations\Actions\QueueWebhookTestDelivery;
@@ -19,9 +19,9 @@ use App\Contexts\Platform\Integrations\Actions\RevokeApiCredential;
 use App\Contexts\Platform\Integrations\Actions\RevokeWebhookSubscription;
 use App\Contexts\Platform\Integrations\Actions\RotateWebhookSigningSecret;
 use App\Contexts\Platform\Integrations\Contracts\WebhookEventCatalog;
-use App\Contexts\Platform\Integrations\Models\ApiCredential;
-use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
-use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
+use App\Contexts\Platform\Integrations\Enums\IntegrationCatalogueKind;
+use App\Contexts\Platform\Integrations\Queries\IntegrationManagementQuery;
+use App\Contexts\Platform\Integrations\Queries\IntegrationUsageQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -40,7 +40,9 @@ final class IntegrationManagementController extends Controller
         Request $request,
         AllianceContext $context,
         AllianceAuthorization $authorization,
-        PlanEntitlementService $entitlements,
+        PlanEntitlementQuery $entitlements,
+        IntegrationManagementQuery $catalogues,
+        IntegrationUsageQuery $usage,
     ): Response {
         $identifier = $request->user()?->getAuthIdentifier();
         abort_unless(is_numeric($identifier), 401);
@@ -56,11 +58,24 @@ final class IntegrationManagementController extends Controller
             ? (bool) $settings->webhooks_enabled
             : true;
 
+        $rules = [];
+        foreach (IntegrationCatalogueKind::cases() as $kind) {
+            $rules[$kind->value.'_cursor'] = ['nullable', 'string', 'max:4096'];
+        }
+        $validated = $request->validate($rules);
+        $pages = [];
+        $pagination = [];
+        foreach (IntegrationCatalogueKind::cases() as $kind) {
+            $pages[$kind->value] = $catalogues->page($context->scope()->playerId, $allianceId, $kind, $validated[$kind->value.'_cursor'] ?? null);
+            $pagination[$kind->value] = array_diff_key($pages[$kind->value], ['items' => true]);
+        }
+
         return Inertia::render('Alliance/Connections/Manage', [
             'user' => [
                 'name' => $account->name,
                 'email' => $account->email,
             ],
+            'actorId' => $context->scope()->playerId,
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name],
             'settings' => [
                 'apiAccessEnabled' => $apiAccessEnabled,
@@ -69,48 +84,11 @@ final class IntegrationManagementController extends Controller
             'limits' => $entitlements->limits($allianceId),
             'allowedScopes' => CreateApiCredential::allowedScopes(),
             'publicWebhookEvents' => WebhookEventCatalog::publicEvents(),
-            'credentials' => ApiCredential::query()
-                ->where('alliance_id', $allianceId)
-                ->latest()
-                ->get()
-                ->map(static fn (ApiCredential $credential): array => [
-                    'id' => (string) $credential->id,
-                    'name' => (string) $credential->name,
-                    'prefix' => (string) $credential->prefix,
-                    'scopes' => $credential->scopes,
-                    'expiresAt' => $credential->expires_at?->toIso8601String(),
-                    'lastUsedAt' => $credential->last_used_at?->toIso8601String(),
-                    'revokedAt' => $credential->revoked_at?->toIso8601String(),
-                ])->all(),
-            'webhooks' => WebhookSubscription::query()
-                ->where('alliance_id', $allianceId)
-                ->latest()
-                ->get()
-                ->map(static fn (WebhookSubscription $subscription): array => [
-                    'id' => (string) $subscription->id,
-                    'name' => (string) $subscription->name,
-                    'url' => (string) $subscription->url,
-                    'events' => $subscription->events,
-                    'active' => (bool) $subscription->is_active,
-                    'secretRotatedAt' => $subscription->secret_rotated_at?->toIso8601String(),
-                    'revokedAt' => $subscription->revoked_at?->toIso8601String(),
-                ])->all(),
-            'recentDeliveries' => WebhookDelivery::query()
-                ->where('alliance_id', $allianceId)
-                ->latest()
-                ->limit(50)
-                ->get()
-                ->map(static fn (WebhookDelivery $delivery): array => [
-                    'id' => (string) $delivery->id,
-                    'subscriptionId' => (string) $delivery->webhook_subscription_id,
-                    'event' => (string) $delivery->event_type,
-                    'status' => $delivery->status->value,
-                    'attempts' => (int) $delivery->attempts,
-                    'responseCode' => $delivery->response_code,
-                    'lastError' => $delivery->last_error,
-                    'lastAttemptAt' => $delivery->last_attempt_at?->toIso8601String(),
-                    'deliveredAt' => $delivery->delivered_at?->toIso8601String(),
-                ])->all(),
+            'credentials' => $pages['credentials']['items'],
+            'webhooks' => $pages['webhooks']['items'],
+            'recentDeliveries' => $pages['deliveries']['items'],
+            'pagination' => $pagination,
+            'activeCounts' => ['credentials' => $usage->activeCredentials($allianceId), 'webhooks' => $usage->activeWebhooks($allianceId)],
             'issuedCredential' => $request->session()->get('issued_api_credential'),
             'issuedWebhookSecret' => $request->session()->get('issued_webhook_secret'),
         ]);

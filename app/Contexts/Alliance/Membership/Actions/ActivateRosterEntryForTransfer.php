@@ -33,7 +33,7 @@ final readonly class ActivateRosterEntryForTransfer
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $targetPlayerId, $observedName): RosterEntryReference {
             $context = $this->writeState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authorization->authorizeContext($context, AlliancePermission::MembershipManage);
-            $player = $this->players->require($targetPlayerId);
+            $player = $this->players->lockCurrent($targetPlayerId);
             if ($player->kingdomId !== (string) $context->alliance->kingdom_id) {
                 throw ValidationException::withMessages(['completion' => 'The incoming Player must belong to the Alliance Kingdom before activating its roster entry.']);
             }

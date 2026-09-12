@@ -5,32 +5,22 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Access\Services;
 
 use App\Contexts\GameWorld\Governance\Actions\ReconcileKingdomRolePermissions;
+use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
+use App\Contexts\Operations\Access\Queries\KingdomOperationsRolePolicy;
 use App\Shared\Infrastructure\Access\Models\Permission;
 use Illuminate\Support\Str;
 
 final readonly class KingdomOperationsRoleProvisioner
 {
-    public function __construct(private ReconcileKingdomRolePermissions $reconcileRolePermissions) {}
+    public function __construct(private ReconcileKingdomRolePermissions $reconcileRolePermissions, private KingdomOperationsRolePolicy $policy) {}
 
     public function provision(string $kingdomId, string $administratorRoleId, string $eventCoordinatorRoleId, string $viewerRoleId): void
     {
         $grants = [
-            $administratorRoleId => [
-                OperationsPermission::EventKingdomView,
-                OperationsPermission::EventKingdomCreate,
-                OperationsPermission::EventKingdomManage,
-                OperationsPermission::TerritoryKingdomView,
-                OperationsPermission::TerritoryKingdomManage,
-            ],
-            $eventCoordinatorRoleId => [
-                OperationsPermission::EventKingdomView,
-                OperationsPermission::EventKingdomCreate,
-                OperationsPermission::EventKingdomManage,
-                OperationsPermission::TerritoryKingdomView,
-                OperationsPermission::TerritoryKingdomManage,
-            ],
-            $viewerRoleId => [OperationsPermission::EventKingdomView, OperationsPermission::TerritoryKingdomView],
+            $administratorRoleId => $this->policy->permissions(DefaultKingdomRole::Administrator),
+            $eventCoordinatorRoleId => $this->policy->permissions(DefaultKingdomRole::EventCoordinator),
+            $viewerRoleId => $this->policy->permissions(DefaultKingdomRole::Viewer),
         ];
 
         $requiredPermissions = [];

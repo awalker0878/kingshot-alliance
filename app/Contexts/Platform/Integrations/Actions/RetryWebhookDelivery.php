@@ -9,13 +9,16 @@ use App\Contexts\Platform\Integrations\Enums\WebhookDeliveryStatus;
 use App\Contexts\Platform\Integrations\Jobs\DeliverWebhookJob;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
 use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
+use App\Contexts\Platform\Integrations\Policies\IntegrationRuntimePolicy;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class RetryWebhookDelivery
 {
     public function __construct(
+        private IntegrationRuntimePolicy $availability,
         private AllianceWriteAuthorization $allianceAuthority,
         private AuditRecorder $audit,
     ) {}
@@ -23,7 +26,12 @@ final readonly class RetryWebhookDelivery
     public function handle(string $allianceId, string $actorPlayerId, string $deliveryId): string
     {
         $deliveryId = DB::transaction(function () use ($allianceId, $actorPlayerId, $deliveryId): string {
+
             [$currentAlliance, $currentActor] = $this->allianceAuthority->authorizeManagerActive($actorPlayerId, $allianceId);
+            if (! $this->availability->allowsWebhooks($allianceId)) {
+                throw new AuthorizationException;
+            }
+
             $delivery = WebhookDelivery::query()
                 ->where('alliance_id', $currentAlliance->allianceId)
                 ->lockForUpdate()
@@ -47,6 +55,8 @@ final readonly class RetryWebhookDelivery
             $delivery->forceFill([
                 'status' => WebhookDeliveryStatus::Pending,
                 'available_at' => now(),
+                'attempt_token' => null,
+                'max_attempts' => $delivery->attempts + 5,
                 'last_error' => 'Manual retry requested.',
             ])->save();
 

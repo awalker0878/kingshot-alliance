@@ -24,6 +24,8 @@ return new class extends Migration
             $table->unique(['kingdom_id', 'key']);
             $table->unique(['id', 'kingdom_id']);
             $table->index(['kingdom_id', 'archived_at', 'name']);
+            $table->index(['kingdom_id', 'id'], 'kingdom_role_catalogue_page');
+            $table->index(['kingdom_id', 'archived_at', 'id'], 'kingdom_role_choice_page');
         });
 
         Schema::create('kingdom_role_permissions', function (Blueprint $table): void {
@@ -49,7 +51,10 @@ return new class extends Migration
             $table->index(['kingdom_id', 'player_id', 'kingdom_role_id', 'revoked_at'], 'kingdom_role_assignment_lookup');
             $table->index(['player_id', 'kingdom_id']);
             $table->index(['kingdom_id', 'kingdom_role_id']);
+            $table->index(['kingdom_id', 'kingdom_role_id', 'revoked_at', 'id'], 'kingdom_recovery_assignment_page');
             $table->index(['kingdom_id', 'expires_at', 'revoked_at']);
+            $table->index(['kingdom_id', 'revoked_at', 'id'], 'kingdom_assignment_catalogue_page');
+            $table->index(['kingdom_id', 'player_id', 'revoked_at', 'id'], 'kingdom_player_assignment_page');
 
             $table->foreign('kingdom_id')->references('id')->on('kingdoms')->cascadeOnDelete();
             $table->foreign(['kingdom_role_id', 'kingdom_id'])

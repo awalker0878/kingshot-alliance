@@ -78,7 +78,9 @@ return new class extends Migration
         Schema::create('password_reset_tokens', function (Blueprint $table): void {
             $table->string('email')->primary();
             $table->string('token');
-            $table->timestamp('created_at')->nullable();
+            $table->uuid('delivery_id')->nullable()->unique();
+            $table->text('encrypted_delivery_token')->nullable();
+            $table->timestamp('created_at')->nullable()->index();
         });
     }
 

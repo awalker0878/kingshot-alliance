@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { reactive } from 'vue';
+import { computed, reactive, watch } from 'vue';
 
+import AllianceRoleEditor from '@/components/alliance/AllianceRoleEditor.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import CursorPagination from '@/components/ui/CursorPagination.vue';
 import FormError from '@/components/ui/FormError.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -23,31 +25,51 @@ type Role = {
 const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string };
-  roles: Role[];
+  rolePage: {
+    items: Role[];
+    nextCursor: string | null;
+    hasMore: boolean;
+    isFirstPage: boolean;
+    pageSize: number;
+  };
+  filters: { status: 'active' | 'archived'; q: string };
   permissions: string[];
 }>();
 
 const { t, formatNumber } = useLocale();
 const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const createForm = useForm({ name: '', permissions: [] as string[] });
-const drafts = reactive(
-  Object.fromEntries(
-    props.roles.map((role) => [
-      role.id,
-      { name: role.name, permissions: [...role.permissions] as string[] },
-    ]),
-  ) as Record<string, { name: string; permissions: string[] }>,
+const roles = computed(() => props.rolePage.items);
+const filters = reactive({ ...props.filters });
+watch(
+  () => props.filters,
+  (current) => Object.assign(filters, current),
 );
+const firstPageHref = computed(
+  () => '/alliance/roles?' + new URLSearchParams(props.filters).toString(),
+);
+
+function filterRoles(): void {
+  router.get('/alliance/roles', filters, { preserveState: true, preserveScroll: true });
+}
+
+function nextPage(): void {
+  if (!props.rolePage.nextCursor) return;
+  router.get(
+    '/alliance/roles',
+    { ...props.filters, cursor: props.rolePage.nextCursor },
+    {
+      preserveState: true,
+      preserveScroll: true,
+    },
+  );
+}
 
 function createRole(): void {
   createForm.post('/alliance/roles', {
     preserveScroll: true,
     onSuccess: () => createForm.reset(),
   });
-}
-
-function saveRole(role: Role): void {
-  router.patch(`/alliance/roles/${role.id}`, drafts[role.id], { preserveScroll: true });
 }
 
 function archiveRole(role: Role): void {
@@ -93,6 +115,33 @@ function archiveRole(role: Role): void {
           {{ t('allianceExpansion.rolesTitle') }}
         </h2>
 
+        <form class="mt-4 flex flex-wrap items-end gap-3" @submit.prevent="filterRoles">
+          <div class="min-w-0 flex-1">
+            <label for="role-search" class="block text-sm font-semibold">{{
+              t('allianceExpansion.roleSearch')
+            }}</label>
+            <input
+              id="role-search"
+              v-model="filters.q"
+              type="search"
+              maxlength="100"
+              class="ks-input mt-2 w-full"
+            />
+          </div>
+          <div>
+            <label for="role-status" class="block text-sm font-semibold">{{
+              t('allianceExpansion.roleStatus')
+            }}</label>
+            <select id="role-status" v-model="filters.status" class="ks-input mt-2">
+              <option value="active">{{ t('allianceExpansion.activeRole') }}</option>
+              <option value="archived">{{ t('allianceExpansion.archivedRole') }}</option>
+            </select>
+          </div>
+          <AppButton type="submit" variant="secondary">{{
+            t('allianceExpansion.findRoles')
+          }}</AppButton>
+        </form>
+
         <div v-if="roles.length" class="mt-4 space-y-4">
           <article v-for="role in roles" :key="role.id" class="ks-surface p-5">
             <div class="flex flex-wrap items-start justify-between gap-3">
@@ -123,61 +172,28 @@ function archiveRole(role: Role): void {
               <code class="text-xs text-[var(--ks-muted)]">{{ role.key }}</code>
             </div>
 
-            <div v-if="!role.system && !role.archivedAt" class="mt-5 grid gap-4">
-              <div>
-                <label class="text-sm font-semibold" :for="`role-name-${role.id}`">
-                  {{ t('allianceExpansion.roleName') }}
-                </label>
-                <input
-                  :id="`role-name-${role.id}`"
-                  v-model="drafts[role.id]!.name"
-                  class="ks-input mt-2"
-                  maxlength="100"
-                />
-              </div>
-
-              <fieldset>
-                <legend class="text-sm font-semibold">
-                  {{ t('allianceExpansion.permissions') }}
-                </legend>
-                <div class="mt-2 grid gap-2 sm:grid-cols-2">
-                  <label
-                    v-for="permission in permissions"
-                    :key="permission"
-                    class="flex items-center gap-2 rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] px-3 py-2 text-sm"
-                  >
-                    <input
-                      v-model="drafts[role.id]!.permissions"
-                      type="checkbox"
-                      :value="permission"
-                    />
-                    <span>{{ permission }}</span>
-                  </label>
-                </div>
-              </fieldset>
-
-              <div class="flex flex-wrap gap-2">
-                <AppButton variant="secondary" @click="saveRole(role)">
-                  {{ t('allianceExpansion.updateRole') }}
-                </AppButton>
-                <button
-                  type="button"
-                  class="rounded-[var(--ks-radius-sm)] border border-red-400/20 px-4 py-2 text-sm font-semibold text-red-300 transition hover:border-red-400/40"
-                  @click="archiveRole(role)"
-                >
-                  {{ t('allianceExpansion.archiveRole') }}
-                </button>
-              </div>
-            </div>
+            <AllianceRoleEditor
+              v-if="!role.system && !role.archivedAt"
+              :role="role"
+              :permissions="permissions"
+              @archive="archiveRole(role)"
+            />
 
             <div v-else class="mt-4 flex flex-wrap gap-2">
               <span v-for="permission in role.permissions" :key="permission" class="ks-chip">
-                {{ permission }}
+                {{ t('allianceExpansion.permissionLabels.' + permission) }}
               </span>
             </div>
           </article>
         </div>
         <div v-else class="ks-fantasy-empty mt-4">{{ t('allianceExpansion.noRoles') }}</div>
+        <CursorPagination
+          :summary="t('allianceExpansion.rolesOnPage', { count: formatNumber(roles.length) })"
+          :is-first-page="rolePage.isFirstPage"
+          :first-page-href="firstPageHref"
+          :has-more="rolePage.hasMore"
+          @next="nextPage"
+        />
       </section>
 
       <aside class="ks-surface h-fit p-5" aria-labelledby="create-role-title">
@@ -207,7 +223,7 @@ function archiveRole(role: Role): void {
                 class="flex items-center gap-2 text-sm"
               >
                 <input v-model="createForm.permissions" type="checkbox" :value="permission" />
-                <span>{{ permission }}</span>
+                <span>{{ t('allianceExpansion.permissionLabels.' + permission) }}</span>
               </label>
             </div>
             <FormError :message="createForm.errors.permissions" />

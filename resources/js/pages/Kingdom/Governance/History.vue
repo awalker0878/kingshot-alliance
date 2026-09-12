@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import GovernanceCataloguePager from '@/components/governance/GovernanceCataloguePager.vue';
+import type { GovernancePage } from '@/components/governance/governancePages';
 import AppLayout from '@/layouts/AppLayout.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import { useLocale } from '@/localization';
@@ -7,7 +9,7 @@ type Item = {
   id: string;
   type: string;
   occurredAt: string;
-  actor: { playerId: string | null; userId: string | null; name: string };
+  actor: { playerId: string | null; name: string };
   metadata: Record<string, unknown>;
 };
 defineProps<{
@@ -15,7 +17,8 @@ defineProps<{
   alliance: { id: string; name: string };
   kingdom: { id: string; number: number };
   items: Item[];
-  nextCursor: string | null;
+  page: GovernancePage;
+  catalogueScope: string;
 }>();
 const { t, formatDate } = useLocale();
 </script>
@@ -66,11 +69,11 @@ const { t, formatDate } = useLocale();
         {{ t('common.none') }}
       </p>
     </section>
-    <Link
-      v-if="nextCursor"
-      :href="`/alliance/settings/kingdom/governance/history?before=${nextCursor}`"
-      class="ks-command-link mt-4 inline-flex"
-      >{{ t('governanceExpansion.loadMore') }}</Link
-    >
+    <GovernanceCataloguePager
+      :page="page"
+      kind="history"
+      :scope="catalogueScope"
+      :label="t('governanceExpansion.historyTitle')"
+    />
   </AppLayout>
 </template>

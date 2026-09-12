@@ -202,3 +202,7 @@ Recognized Event, Roster, Rally, Transfer, Evidence and Territory writes remain 
 - `alliance_command_attention`, `event_readiness`, `rally_gaps`, `progression_freshness`, `transfer_verification` and `territory_comparison` reuse the authorized Alliance Command projection and do not persist a task or score.
 - `bear_hunt_history` requires Alliance Event view authority, the canonical verified `bear-hunt` identity and a bounded existing Debrief history.
 - `intelligence_changes` uses only authorized typed change signals and retains their owner/source citations.
+
+## Incomplete Transfer assessment
+
+A Transfer verification answer can state that only part of the active plan was assessed. Its count is then the known lower bound, with assessed/total/unassessed values retained in evidence metadata. It must not be interpreted as a complete eligible or blocked count. Open readiness and continue through participant pages for current individual checks. [ADR-0051](../architecture/adr/0051-bounded-transfer-verification-overviews.md) defines the shared owner contract.

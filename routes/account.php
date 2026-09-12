@@ -17,7 +17,7 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
         ->name('profile.security.')
         ->group(function (): void {
             Route::get('/email/verify/{id}/{hash}', [EmailChangeController::class, 'verify'])
-                ->middleware(['signed', 'throttle:6,1'])
+                ->middleware(['signed', 'throttle:6,1,account-email-verify:'])
                 ->whereNumber('id')
                 ->name('email.verify');
         });
@@ -33,12 +33,13 @@ Route::middleware(['auth', 'auth.session', 'verified', 'password.confirm'])->gro
         ->name('profile.security.')
         ->group(function (): void {
             Route::patch('/email', [EmailChangeController::class, 'update'])
+                ->middleware('throttle:account-email-change')
                 ->name('email.update');
             Route::post('/password', [PasswordSignInMethodController::class, 'store'])
-                ->middleware('throttle:6,1')
+                ->middleware('throttle:6,1,account-password-method:')
                 ->name('password.store');
             Route::delete('/password', [PasswordSignInMethodController::class, 'destroy'])
-                ->middleware('throttle:6,1')
+                ->middleware('throttle:6,1,account-password-method:')
                 ->name('password.destroy');
             Route::patch('/passkeys/{passkey}', [PasskeySignInMethodController::class, 'update'])
                 ->middleware('throttle:passkeys')

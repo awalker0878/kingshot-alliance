@@ -2,6 +2,22 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    searchChoices: '搜索选项',
+    choicePageSummary: '本页 {count} 个选项，共 {total} 个匹配项。按固定记录标识排序。',
+    choiceUnavailable: '所选选项已不可用。',
+    choicesFailed: '无法加载选项。当前选择和显示的页面保持不变。',
+    retryChoices: '重试加载',
+
+    participantPagination: '参与者分页',
+    participantPageSummary: '本页 {count} 人；此视图共 {total} 人。',
+    participantPageOrder: '按固定注册 ID 排序。统计覆盖整个视图。',
+    participantPageUnavailable: '无法加载参与者页面。当前显示的页面未更改。',
+    retryParticipantPage: '重试页面',
+    participantFilterPageOnly: '此资格筛选仅适用于当前页。请继续翻页查看所有参与者。',
+    workflowHistoryUnavailable: '无法加载迁移流程历史记录。',
+    workflowHistoryTotal: '此历史记录共 {count} 条。',
+    observationHistoryUnavailable: '无法加载观测历史。',
+    reloadHistory: '重新加载历史',
     eyebrow: '王国转移',
     title: '转移计划',
     readinessBoard: '准备情况',

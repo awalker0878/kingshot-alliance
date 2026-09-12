@@ -34,23 +34,32 @@ final class UpdateRecruitmentOnboardingStatus
             $context = $this->allianceWriteState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::RecruitmentManage);
 
-            $onboarding = RecruitmentCandidateOnboarding::query()
+            $routing = RecruitmentCandidateOnboarding::query()
+                ->select(['candidate_id'])
                 ->where('alliance_id', $context->alliance->id)
                 ->whereKey($onboardingId)
-                ->lockForUpdate()
                 ->firstOrFail();
 
             $candidate = RecruitmentCandidate::query()
-                ->whereKey($onboarding->candidate_id)
+                ->whereKey($routing->candidate_id)
                 ->where('alliance_id', $context->alliance->id)
                 ->sharedLock()
                 ->firstOrFail();
+
+            $candidate->ensureNotAnonymized();
 
             if ($candidate->merged_into_id !== null) {
                 throw ValidationException::withMessages([
                     'candidate' => 'Update onboarding on the current merged candidate record.',
                 ]);
             }
+
+            $onboarding = RecruitmentCandidateOnboarding::query()
+                ->where('alliance_id', $context->alliance->id)
+                ->where('candidate_id', $candidate->id)
+                ->whereKey($onboardingId)
+                ->lockForUpdate()
+                ->firstOrFail();
 
             $onboarding->forceFill([
                 'status' => $status,

@@ -75,7 +75,7 @@ Visible text should describe what a Kingshot Governor or Alliance officer is doi
 - Alliance Connections
 - Citadel
 
-Software architecture vocabulary is prohibited from ordinary player-facing copy. `tests/v3/Frontend/verify-copy.php` enforces this rule.
+Software architecture vocabulary is prohibited from ordinary player-facing copy. `tests/System/Frontend/verify-copy.php` enforces this rule.
 
 ## Capability truth
 
@@ -123,9 +123,9 @@ New mutation forms must expose server validation beside the affected control, pr
 Dependency-free gates:
 
 ```bash
-php tests/v3/Frontend/verify-architecture.php
-php tests/v3/Frontend/verify-copy.php
-php tests/v3/Frontend/verify-source.php
+php tests/System/Frontend/verify-architecture.php
+php tests/System/Frontend/verify-copy.php
+php tests/System/Frontend/verify-source.php
 ```
 
 With the declared Node/npm toolchain installed:
@@ -136,4 +136,4 @@ npm run check
 npm run build
 ```
 
-The Playwright suite under `tests/v3/Visual` must include Territory Command desktop/mobile/reduced-motion coverage once the capability routes are enabled.
+The Playwright suite under `tests/Browser` must include Territory Command desktop/mobile/reduced-motion coverage once the capability routes are enabled.

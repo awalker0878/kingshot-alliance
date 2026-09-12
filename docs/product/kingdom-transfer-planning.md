@@ -1,6 +1,6 @@
 # Kingdom Transfer Planning
 
-Status: Current — Complete 2026-09-07
+Status: Current implementation contract
 
 Owner: `GameWorld/KingdomTransfers`
 
@@ -17,6 +17,10 @@ The capability separates three kinds of truth:
 3. **Derived eligibility** — a recomputable assessment over current authoritative facts. It is never persisted as a boolean.
 
 Missing, stale, conflicting or non-authoritative information cannot silently become `eligible_now`.
+
+## Workflow history navigation
+
+Readiness keeps active and resolved manual blockers independently reachable, with complete totals and 25-record forward/first-page navigation. Readiness transitions have their own history. Opening or paging a history does not discard an unsaved readiness or blocker draft. Loading and retry states are explicit, and each request rechecks the current active Governor and Alliance scope. Historical navigation does not change eligibility, readiness or completed-transfer facts. The remaining workspace scalability work is tracked in the [hardening ledger](codebase-hardening-delivery-ledger.md); this contract is not a claim that the overall program is complete.
 
 ## Current authoritative rule boundary
 
@@ -300,3 +304,21 @@ The capability is complete only when the final implementation candidate is green
 - documentation/source-matrix reconciliation.
 
 No compatibility shims, legacy aliases or dual-read/write paths are part of this fresh deployment.
+
+The member capability profile evaluates only that Governor's active participant in the current authorized Alliance Plan. Missing or withdrawn participation remains unavailable as an assessment rather than selecting another Governor. A large plan does not enlarge the participant records or relationship graph read for that single profile.
+
+A Governor’s self-transfer answer uses the same current eligibility assessment as management, including conflicting evidence, unknown facts, group/condition provenance and current capacity. Requests cannot select another Governor’s assessment or a different destination. Complete observation counts remain accurate even when evaluation needs only bounded factual witnesses; historical records for a previous destination do not influence the current destination.
+
+## Participant navigation and totals
+
+Overview, management, readiness and outcomes display 25 participants at a time, in stable registration-ID order. The page summary gives the number currently displayed and the complete total for that view. Direction and outcome totals remain complete even when the corresponding participants appear on another page. Use Next page to continue and First page to refresh from the beginning; deleting or renaming a participant does not invalidate the continuation boundary.
+
+Readiness's eligibility filter applies to the currently displayed page, as labelled beside the filter. An empty filtered page is not a statement that no participant in the plan matches; continue paging to review the rest. Game eligibility still comes from the canonical server evaluator, independently of Alliance readiness.
+
+Participant/cohort edits are retained during page navigation and failed loads. The displayed page does not silently become empty on failure: a retry control appears. Switching Alliance or Plan discards old-scope drafts. Loading further pages is not a write and does not change readiness, evidence or completion. History navigation remains separate for each visible participant. See the [authoritative query boundary](../architecture/contexts/game-world/kingdom-transfers.md) for current authorization and cursor rules.
+
+## Management choices
+
+Window, coordinator and roster selection uses searchable 25-record pages rather than loading the complete audience with the workspace. Next continues through matching choices, and First page refreshes the result set. The count includes all current matches; ordering is by stable record ID, not alphabetic or priority ranking. An existing selected value remains visible when it is outside the current page or search.
+
+Failed loads expose retry and keep the previously displayed choices, selection and form draft. A superseded response cannot overwrite a newer search or another Alliance/plan. Changing the active actor, Alliance or plan discards old-scope creation drafts. A choice that is no longer currently available is labelled as such; selecting or displaying it does not bypass server-side write authorization. Archived Kingdoms and revoked management permission deny choice reads, including with previously issued cursors. These selectors do not change game eligibility or cohort compatibility rules.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\GameWorld\Players\Actions;
 
+use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\GameWorld\Players\Enums\PlayerIdentitySource;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 final readonly class ReleasePlayerAccount
 {
     public function __construct(
+        private AccountIdentityQuery $accounts,
         private PlayerLifecyclePolicy $lifecycle,
         private PlayerIdentityHistoryRecorder $history,
         private PlayerReferenceQuery $references,
@@ -26,6 +28,7 @@ final readonly class ReleasePlayerAccount
     public function handle(int $userId, string $playerId): PlayerReference
     {
         DB::transaction(function () use ($userId, $playerId): void {
+            $this->accounts->lockActive($userId);
             $player = Player::query()
                 ->whereKey($playerId)
                 ->where('user_id', $userId)

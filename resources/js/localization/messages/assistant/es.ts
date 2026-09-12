@@ -41,6 +41,9 @@ const messages = {
       observation: '¿Qué hemos observado sobre nuestro oponente?',
     },
     answers: {
+      transferVerificationIncomplete:
+        'Este resumen evaluó a {assessed} de {total} participantes del traslado. Al menos {count} necesitan atención; {unassessed} no se han evaluado aquí. Abre la preparación del traslado para las comprobaciones actuales.',
+
       help: 'Puedo responder usando Eventos, tu roster, las guías de la Alianza y observaciones autorizadas. No uso conocimiento de KingShot sin fuente.',
       unsupported:
         'Solo puedo responder usando Eventos autorizados, tu roster, guías de la Alianza y observaciones. No puedo realizar cambios desde aquí.',

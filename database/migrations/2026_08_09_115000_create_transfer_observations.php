@@ -32,6 +32,7 @@ return new class extends Migration
             $table->timestamps();
             $table->index(['alliance_id', 'transfer_window_id', 'transfer_participant_id', 'kind']);
             $table->index(['transfer_participant_id', 'target_kingdom_id', 'kind', 'observed_at']);
+            $table->index(['alliance_id', 'transfer_plan_id', 'transfer_participant_id', 'observed_at', 'id'], 'transfer_observation_history_idx');
         });
     }
 

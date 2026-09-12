@@ -2,6 +2,12 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   contentExperience: {
+    pageRecords: '本页 {count} 条记录 · 共 {total} 条',
+    collectionFailed: '无法加载列表。请从第一页重试。',
+    selectedUnavailable: '所选项目不可用',
+    reviewOnThisPage: '此审核列表仅涵盖当前目录页。',
+    allStatuses: '所有状态',
+    retryCandidateSummary: '共 {total} 次失败尚未达到尝试上限，显示其中 {selected} 次供重试。',
     eyebrow: '联盟内容',
     hubTitle: '内容中心',
     manageContent: '管理内容',

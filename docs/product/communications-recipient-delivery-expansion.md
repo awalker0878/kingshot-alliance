@@ -76,6 +76,12 @@ Communications digests recipient-selected external delivery timing; it does not 
 
 External endpoints support save, test, pause, resume, reverify and delete. Health states are generic and may include never-tested, healthy, degraded and paused. Transient provider failures do not silently disable an endpoint. Credential material remains encrypted and is never returned after save.
 
+## Current attempt and recovery contract
+
+Immediate and digest claims repeat one due/status/retry/lease rule under their current row lock and enforce the existing attempt budget. Monotonic attempt fencing prevents a late result from overwriting a newer delivery, digest membership, broadcast receipt or endpoint-health update. Delivery state, current endpoint health and applicable outbox effects commit together; network IO is outside that transaction. A pause is not undone by an old acknowledgement.
+
+Exhausted expired work becomes a terminal failure with an explicit potentially unknown provider outcome, without another send or an invented health observation. Retries remain at-least-once across acknowledgement loss. This owner rule is recorded in [ADR-0045](../architecture/adr/0045-fenced-notification-attempts.md); source execution-time authority and endpoint-credential generation findings remain open in the [hardening ledger](codebase-hardening-delivery-ledger.md).
+
 ## Diagnostics
 
 Recipients can see safe routing and delivery state for their messages. Platform Administration may consume bounded privacy-safe aggregate diagnostics such as queue age, failure rate, retry exhaustion and degraded endpoint counts. Raw provider secrets and unnecessary message content are excluded.
@@ -106,3 +112,7 @@ Recipients can see safe routing and delivery state for their messages. Platform 
 11. Source integration normalization, security hardening, full acceptance evidence and documentation reconciliation.
 
 Completion evidence is recorded in `communications-recipient-delivery-acceptance.md` and `communications-recipient-delivery-ledger.md`.
+
+## Current endpoint verification boundary
+
+Endpoint edits and pause/resume reset verification and advance an internal generation. Provider outcomes may update current health only for the generation actually used for the request. A result for older credentials remains truthful delivery history but cannot verify or degrade replacement settings. This does not recall an external request already sent. [Communications delivery architecture](../architecture/contexts/communications/delivery.md) and [ADR-0047](../architecture/adr/0047-endpoint-verification-generations.md) own the implementation and concurrency contract.

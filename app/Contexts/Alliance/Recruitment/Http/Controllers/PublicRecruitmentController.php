@@ -13,6 +13,8 @@ use App\Contexts\Alliance\Recruitment\Models\RecruitmentApplicationInvite;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentQuestion;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentSetting;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentApplicationTokenService;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentConfigurationCapacity;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentInput;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
@@ -87,6 +89,7 @@ final class PublicRecruitmentController extends Controller
                 'token' => $tokenValid ? $applicationToken : null,
             ],
             'questions' => $questionData,
+            'inputLimits' => RecruitmentInput::LIMITS,
             'attribution' => [
                 'source' => $attributionSource,
             ],
@@ -108,12 +111,12 @@ final class PublicRecruitmentController extends Controller
         $alliance = $this->alliance($slug);
         $kingdoms->requireActive((string) $alliance->kingdom_id);
         $validated = $request->validate([
-            'full_name' => ['required', 'string', 'max:160'],
-            'email' => ['required', 'email:rfc', 'max:320'],
-            'contact_handle' => ['nullable', 'string', 'max:160'],
-            'source' => ['nullable', 'string', 'max:120'],
+            'full_name' => ['required', 'string', 'max:'.RecruitmentInput::LIMITS['fullName']],
+            'email' => ['required', 'email:rfc', 'max:'.RecruitmentInput::LIMITS['email']],
+            'contact_handle' => ['nullable', 'string', 'max:'.RecruitmentInput::LIMITS['contactHandle']],
+            'source' => ['nullable', 'string', 'max:'.RecruitmentInput::LIMITS['source']],
             'application_token' => ['nullable', 'string', 'size:64'],
-            'answers' => ['array'],
+            'answers' => ['array', 'max:'.RecruitmentConfigurationCapacity::ACTIVE_QUESTIONS],
         ]);
         $user = $request->user();
         $attributionSource = $this->attributionSource($request);

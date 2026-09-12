@@ -1,0 +1,21 @@
+name: Composer package cache
+description: Cache Composer download archives without caching the installed vendor tree.
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve Composer package cache
+      id: composer-cache
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+        echo "lock=$(sha256sum composer.lock | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+    - name: Restore Composer package cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: composer-packages-${{ runner.os }}-${{ steps.composer-cache.outputs.lock }}
+        restore-keys: |
+          composer-packages-${{ runner.os }}-

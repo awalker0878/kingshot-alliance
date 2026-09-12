@@ -7,11 +7,11 @@ namespace App\Contexts\GameWorld\KingdomTransfers\Actions;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferCohortState;
-use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferDirection;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferCohort;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferPlan;
+use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferCohortAssignmentQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Services\TransferWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -20,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class AssignTransferParticipantCohort
 {
-    public function __construct(private TransferWriteState $writeState, private TransferAuthorization $authority, private AuditRecorder $audit, private OutboxRecorder $outbox) {}
+    public function __construct(private TransferCohortAssignmentQuery $assignments, private TransferWriteState $writeState, private TransferAuthorization $authority, private AuditRecorder $audit, private OutboxRecorder $outbox) {}
 
     public function handle(string $allianceId, string $actorPlayerId, string $planId, string $participantId, ?string $cohortId): void
     {
@@ -38,12 +38,8 @@ final readonly class AssignTransferParticipantCohort
             }$participant = TransferParticipant::query()->where('alliance_id', $allianceId)->where('transfer_plan_id', $planId)->whereKey($participantId)->lockForUpdate()->firstOrFail();
             if ($participant->withdrawn_at !== null) {
                 throw ValidationException::withMessages(['participant' => 'Withdrawn Governors cannot be moved between cohorts.']);
-            }if ($cohort instanceof TransferCohort) {
-                if ($participant->direction === TransferDirection::Staying || $participant->direction !== $cohort->direction) {
-                    throw ValidationException::withMessages(['transfer_cohort_id' => 'The cohort direction is incompatible with this Governor.']);
-                }if ($cohort->direction === TransferDirection::Outgoing && $cohort->destination_kingdom_id !== null && $participant->destination_kingdom_id !== $cohort->destination_kingdom_id) {
-                    throw ValidationException::withMessages(['transfer_cohort_id' => 'The cohort destination is incompatible with this Governor.']);
-                }
+            }if ($cohort instanceof TransferCohort && ! $this->assignments->compatible($participant)->whereKey($cohort->id)->exists()) {
+                throw ValidationException::withMessages(['transfer_cohort_id' => 'The cohort is not compatible with this Governor.']);
             }$old = $participant->transfer_cohort_id;
             $new = $cohort?->id === null ? null : (string) $cohort->id;
             if ($old === $new) {

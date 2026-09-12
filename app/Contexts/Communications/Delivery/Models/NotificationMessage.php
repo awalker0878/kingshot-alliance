@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Communications\Delivery\Models;
 
 use App\Contexts\Communications\Delivery\Enums\NotificationUrgency;
+use App\Contexts\Communications\Delivery\ValueObjects\NotificationSource;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
@@ -53,6 +54,18 @@ final class NotificationMessage extends Model
         'archived_at',
         'metadata',
     ];
+
+    public function source(): NotificationSource
+    {
+        return new NotificationSource(
+            notificationType: $this->notification_type,
+            recipientUserId: (int) $this->recipient_user_id,
+            playerId: $this->player_id,
+            subjectType: $this->subject_type,
+            subjectId: $this->subject_id,
+            metadata: is_array($this->metadata) ? $this->metadata : [],
+        );
+    }
 
     protected function casts(): array
     {

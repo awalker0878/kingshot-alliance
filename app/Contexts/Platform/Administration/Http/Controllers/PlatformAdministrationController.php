@@ -8,18 +8,18 @@ use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
 use App\Contexts\Platform\Administration\Actions\RetryOutboxMessage;
+use App\Contexts\Platform\AllianceAdministration\Actions\CaptureAllianceUsage;
 use App\Contexts\Platform\AllianceAdministration\Actions\ConfigureAlliancePlatform;
 use App\Contexts\Platform\AllianceAdministration\Actions\ManageAllianceLifecycle;
-use App\Contexts\Platform\AllianceAdministration\Services\PlatformUsageService;
 use App\Contexts\Platform\DataGovernance\Services\AllianceDataExportService;
 use App\Contexts\Platform\DataGovernance\Services\LegalHoldService;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class PlatformAdministrationController extends Controller
 {
@@ -35,7 +35,11 @@ final class PlatformAdministrationController extends Controller
             throw ValidationException::withMessages(['email' => 'No account exists for that email address.']);
         }
 
-        $manage->grant($targetUserId, $actor);
+        try {
+            $manage->grant($targetUserId, $actor);
+        } catch (InvalidArgumentException $exception) {
+            throw ValidationException::withMessages(['email' => $exception->getMessage()]);
+        }
 
         return back()->with('actionReceipt', $this->receipt('platform-administrator-granted'));
     }
@@ -168,10 +172,9 @@ final class PlatformAdministrationController extends Controller
         return back()->with('actionReceipt', $this->receipt('legal-hold-released'));
     }
 
-    public function captureUsage(Request $request, string $alliance, PlatformUsageService $usage): RedirectResponse
+    public function captureUsage(Request $request, string $alliance, CaptureAllianceUsage $usage): RedirectResponse
     {
-        $this->account($request);
-        $usage->capture($alliance);
+        $usage->handle($this->account($request), $alliance);
 
         return back()->with('actionReceipt', $this->receipt('alliance-usage-captured'));
     }
@@ -186,14 +189,13 @@ final class PlatformAdministrationController extends Controller
         return back()->with('actionReceipt', $this->receipt('platform-outbox-retry-released'));
     }
 
-    public function export(Request $request, string $alliance, AllianceDataExportService $exports): HttpResponse
+    public function export(Request $request, string $alliance, AllianceDataExportService $exports): StreamedResponse
     {
         $actor = $this->account($request);
         $export = $exports->generate($actor, $alliance);
 
-        return response($export['contents'], 200, [
+        return response()->streamDownload(static fn () => $export['buffer']->send(), $export['filename'], [
             'Content-Type' => 'application/json; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="'.$export['filename'].'"',
             'X-Export-SHA256' => $export['sha256'],
             'X-Export-Rows' => (string) $export['rowCount'],
         ]);

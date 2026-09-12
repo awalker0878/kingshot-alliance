@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\ReadModels\Roster\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
@@ -19,6 +17,7 @@ use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Intelligence\Roster\Models\PlayerSnapshot;
 use App\ReadModels\AllianceGovernance\Queries\MembershipGovernanceHistoryQuery;
+use App\ReadModels\AllianceGovernance\Services\GovernanceHistoryAccess;
 use App\ReadModels\Roster\Queries\MemberCapabilityProfileQuery;
 use App\ReadModels\Roster\Queries\PlayerSnapshotQuery;
 use App\ReadModels\Roster\Services\PlayerProgressionTimeline;
@@ -34,7 +33,7 @@ final class PlayerSnapshotHistoryController extends Controller
         Request $request,
         AllianceContext $context,
         AllianceIntelligenceAuthorization $authorization,
-        AllianceAuthorization $allianceAuthorization,
+        GovernanceHistoryAccess $governanceAccess,
         AllianceReferenceQuery $alliances,
         KingdomReferenceQuery $kingdoms,
         AccountIdentityQuery $accounts,
@@ -61,19 +60,7 @@ final class PlayerSnapshotHistoryController extends Controller
             ->where('status', MembershipStatus::Active->value)
             ->first();
         $canManage = $authorization->allows($scope->playerId, $scope->allianceId, IntelligencePermission::KingdomManage);
-        $canViewMembershipGovernance = $allianceAuthorization->allows(
-            $scope->playerId,
-            $scope->allianceId,
-            AlliancePermission::MembershipManage,
-        ) || $allianceAuthorization->allows(
-            $scope->playerId,
-            $scope->allianceId,
-            AlliancePermission::RoleManage,
-        ) || $allianceAuthorization->allows(
-            $scope->playerId,
-            $scope->allianceId,
-            AlliancePermission::Manage,
-        );
+        $canViewMembershipGovernance = $governanceAccess->allows($scope->playerId, $scope->allianceId);
         $history = $snapshots->historyForEntry($alliance->allianceId, $rosterEntry, 251);
         $visibleHistory = $history->take(250)->values();
         $changes = $timeline->changes($history);
@@ -89,7 +76,7 @@ final class PlayerSnapshotHistoryController extends Controller
         $profile['membershipGovernance'] = [
             'access' => $canViewMembershipGovernance ? 'available' : 'unavailable',
             'history' => $canViewMembershipGovernance
-                ? $membershipGovernance->forPlayer($alliance->allianceId, $player->playerId, 12)
+                ? $membershipGovernance->forPlayer($scope->playerId, $alliance->allianceId, $player->playerId, limit: 12)->items
                 : [],
             'href' => '/alliance/members/'.$player->playerId.'/history',
         ];

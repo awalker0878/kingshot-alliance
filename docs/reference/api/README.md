@@ -6,6 +6,8 @@ Machine-readable contracts: [OpenAPI 3.1](openapi.json) and [webhook envelope JS
 
 The versioned API is available under `/api/v1`. Every endpoint uses `throttle:api` and an Alliance-scoped, revocable access key. The shared API limiter permits 120 requests per minute per client IP; adapters should apply their own provider- and command-specific limits as well.
 
+Actor-link claims additionally allow ten requests per minute per client IP. Gift Code provider webhook ingress has its own shared 120-request client budget across providers/source IDs; internal observations also have a 60-request sublimit. These counters are separate from v1 and browser account recovery. Exceeded limits return 429 with Retry-After. See [HTTP workload budgets](../../architecture/adr/0024-explicit-http-rate-limit-budgets.md).
+
 ## Authentication
 
 Send the one-time access key as a bearer token:
@@ -66,3 +68,5 @@ Event writes require `event-participation:write`, an active provider link, and a
 API access does not grant Platform Administrator or Alliance-manager authority. Write scopes expose only the documented linked-Governor self-service actions. A missing, expired, revoked, malformed, or under-scoped key receives an authentication error.
 
 For public webhook event selectors, scope rules, signing and recovery behavior see [Events](../events.md).
+
+Platform API disablement applies to existing access keys and direct external-actor operations. Access requires an active source Alliance and Kingdom; re-enabling restores otherwise valid keys. The switch does not replace credential revocation.

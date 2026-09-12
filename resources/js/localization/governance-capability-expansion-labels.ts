@@ -1,3 +1,4 @@
+import { governanceCatalogueLabels } from './governance-catalogue-labels';
 import type { LocaleCode } from './locales';
 import type { MessageCatalogue } from './types';
 
@@ -311,6 +312,7 @@ export function governanceCapabilityExpansionLabels(locale: LocaleCode): Message
     },
     governanceExpansion: {
       ...english,
+      ...governanceCatalogueLabels[locale],
       title: h.governance,
       rolesTitle: h.roles,
       authorityTitle: h.authority,

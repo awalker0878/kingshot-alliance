@@ -1,14 +1,14 @@
 KINGSHOT ALLIANCE
 
-{{ $heading }}
+{!! $heading !!}
 
-{{ $intro }}
+{!! $intro !!}
 
-{{ $actionText }}:
-{{ $actionUrl }}
+{!! $actionText !!}:
+{!! $actionUrl !!}
 
-{{ $expiry }}
+{!! $expiry !!}
 
-{{ $notice }}
+{!! $notice !!}
 
-{{ __('accounts.mail.footer') }}
+{!! __('accounts.mail.footer') !!}

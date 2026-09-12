@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Content\Queries;
 
 use App\Contexts\Alliance\Content\Enums\ContentStatus;
+use App\Contexts\Alliance\Content\Enums\ContentType;
 use App\Contexts\Alliance\Content\Enums\ContentVisibility;
 use App\Contexts\Alliance\Content\Models\ContentItem;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,6 +13,12 @@ use Illuminate\Database\Eloquent\Collection;
 
 final class ContentQuery
 {
+    public function publishedAnnouncementExists(string $allianceId, string $contentItemId): bool
+    {
+        return $this->memberPublishedBase($allianceId)->whereKey($contentItemId)
+            ->where('type', ContentType::Announcement->value)->exists();
+    }
+
     /** @return Collection<int, ContentItem> */
     public function publicList(
         string $allianceId,
@@ -76,19 +83,6 @@ final class ContentQuery
             ->orderBy('sort_order')
             ->orderByDesc('published_at')
             ->limit(12)
-            ->get();
-    }
-
-    /** @return Collection<int, ContentItem> */
-    public function managerList(string $allianceId): Collection
-    {
-        return ContentItem::query()
-            ->where('alliance_id', $allianceId)
-            ->where('slug', '!=', ContentItem::ALLIANCE_RULES_SLUG)
-            ->with('category:id,alliance_id,name,slug')
-            ->orderByRaw("CASE status WHEN 'draft' THEN 0 WHEN 'scheduled' THEN 1 WHEN 'published' THEN 2 ELSE 3 END")
-            ->orderBy('sort_order')
-            ->orderByDesc('updated_at')
             ->get();
     }
 

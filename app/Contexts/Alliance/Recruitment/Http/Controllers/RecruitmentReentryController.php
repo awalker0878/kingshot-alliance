@@ -13,6 +13,7 @@ use App\Contexts\Alliance\Recruitment\Actions\SetRecruitmentReentryControl;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentReentryControl;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Contexts\Alliance\Recruitment\Services\RecruitmentReentryPolicy;
+use App\Contexts\Alliance\Recruitment\Services\RecruitmentTextInput;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,6 +40,7 @@ final class RecruitmentReentryController extends Controller
             ->whereKey($candidate)
             ->where('alliance_id', $scope->allianceId)
             ->whereNull('merged_into_id')
+            ->whereNull('anonymized_at')
             ->firstOrFail();
 
         return Inertia::render('Alliance/Recruitment/Reentry', [
@@ -55,6 +57,7 @@ final class RecruitmentReentryController extends Controller
                 'setAt' => $record->reentry_set_at?->toIso8601String(),
                 'blocking' => $policy->isBlocking($record),
             ],
+            'reasonMaxLength' => RecruitmentTextInput::REASON_MAX_LENGTH,
             'controls' => array_map(
                 static fn (RecruitmentReentryControl $control): string => $control->value,
                 RecruitmentReentryControl::cases(),
@@ -70,7 +73,7 @@ final class RecruitmentReentryController extends Controller
     ): RedirectResponse {
         $validated = $request->validate([
             'control' => ['required', Rule::enum(RecruitmentReentryControl::class)],
-            'reason' => ['nullable', 'string', 'max:5000'],
+            'reason' => ['nullable', 'string', 'max:'.RecruitmentTextInput::REASON_MAX_LENGTH],
             'review_at' => ['nullable', 'date'],
         ]);
         $scope = $context->scope();

@@ -9,7 +9,9 @@ use App\Contexts\Platform\Integrations\Enums\WebhookDeliveryStatus;
 use App\Contexts\Platform\Integrations\Jobs\DeliverWebhookJob;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
 use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
+use App\Contexts\Platform\Integrations\Policies\IntegrationRuntimePolicy;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -17,6 +19,7 @@ use Illuminate\Validation\ValidationException;
 final readonly class QueueWebhookTestDelivery
 {
     public function __construct(
+        private IntegrationRuntimePolicy $availability,
         private AllianceWriteAuthorization $allianceAuthority,
         private AuditRecorder $audit,
     ) {}
@@ -24,7 +27,12 @@ final readonly class QueueWebhookTestDelivery
     public function handle(string $allianceId, string $actorPlayerId, string $subscriptionId): string
     {
         $deliveryId = DB::transaction(function () use ($allianceId, $actorPlayerId, $subscriptionId): string {
+
             [$currentAlliance, $currentActor] = $this->allianceAuthority->authorizeManagerActive($actorPlayerId, $allianceId);
+            if (! $this->availability->allowsWebhooks($allianceId)) {
+                throw new AuthorizationException;
+            }
+
             $subscription = WebhookSubscription::query()
                 ->where('alliance_id', $currentAlliance->allianceId)
                 ->lockForUpdate()

@@ -1,13 +1,25 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 
+import RecruitmentOptionPicker from '@/components/alliance/RecruitmentOptionPicker.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import CursorPagination from '@/components/ui/CursorPagination.vue';
+import FormError from '@/components/ui/FormError.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
+
+type DetailPage<T> = {
+  items: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  pageSize: number;
+  isFirstPage: boolean;
+};
+type HistorySection = 'notes' | 'history' | 'communications' | 'duplicates' | 'tags' | 'reviewers';
 
 const props = defineProps<{
   user: { name: string; email: string };
@@ -30,18 +42,19 @@ const props = defineProps<{
     playerId: string | null;
     membershipInvitationId: string | null;
   };
+  inputLimits: { note: number; reason: number };
   answers: Array<{ id: string; prompt: string; type: string; answer: Record<string, unknown> }>;
-  reviewers: Array<{ id: string; name: string }>;
-  notes: Array<{ id: string; body: string; author: string; createdAt: string | null }>;
-  tags: Array<{ id: string; name: string }>;
-  history: Array<{
+  reviewersPage: DetailPage<{ id: string; name: string }>;
+  notesPage: DetailPage<{ id: string; body: string; author: string; createdAt: string | null }>;
+  tagsPage: DetailPage<{ id: string; name: string }>;
+  historyPage: DetailPage<{
     id: string;
     from: string | null;
     to: string;
     reason: string | null;
     changedAt: string;
   }>;
-  communications: Array<{
+  communicationsPage: DetailPage<{
     id: string;
     subject: string;
     body: string;
@@ -57,7 +70,7 @@ const props = defineProps<{
     status: string;
     completedAt: string | null;
   }>;
-  duplicates: Array<{
+  duplicatesPage: DetailPage<{
     id: string;
     name: string;
     email: string;
@@ -65,9 +78,7 @@ const props = defineProps<{
     stage: string;
     submittedAt: string;
   }>;
-  members: Array<{ id: string; name: string; rank: string }>;
-  conversionPlayers: Array<{ id: string; name: string; claimed: boolean }>;
-  decisionTemplates: Array<{ id: string; name: string; decisionStage: string; subject: string }>;
+  selectionBaseUrl: string;
   stageOptions: string[];
   onboardingStatusOptions: string[];
   issuedMembershipInvitationLink: string | null;
@@ -116,22 +127,29 @@ const props = defineProps<{
           validUntil: string | null;
         }>;
       } | null;
-      evidence: Array<{
-        id: string;
-        kind: string;
-        sourceType: string;
-        sourceReference: string;
-        observedAt: string;
-        validUntil: string | null;
-        evidenceId: string | null;
-      }>;
-      activeBlockers: Array<{ id: string; summary: string }>;
+      evidenceCount: number;
+      activeBlockerCount: number;
       completion: { completedAt: string; rosterEntryId: string | null } | null;
       withdrawnAt: string | null;
     } | null;
     ownerHrefs: { recruitment: string; transfer: string; roster: string };
   };
 }>();
+
+const page = usePage();
+
+function historyUrl(section: HistorySection, cursor: string | null): string {
+  const url = new URL(page.url, 'https://app.invalid');
+  if (cursor) url.searchParams.set(`${section}_cursor`, cursor);
+  else url.searchParams.delete(`${section}_cursor`);
+  return `${url.pathname}${url.search}#${section}-heading`;
+}
+
+function nextHistoryPage(section: HistorySection): void {
+  const cursor = props[`${section}Page`].nextCursor;
+  if (!cursor) return;
+  router.get(historyUrl(section, cursor), {}, { preserveState: true, preserveScroll: true });
+}
 
 const { t, formatDate, formatNumber } = useLocale();
 const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
@@ -339,14 +357,15 @@ function humanize(value: string): string {
             </div>
             <div>
               <label class="text-xs font-semibold" for="candidate-stage-reason">{{
-                t('recruitment.reason')
+                t('recruitment.internalReason')
               }}</label>
               <textarea
                 id="candidate-stage-reason"
                 v-model="stageForm.reason"
                 class="ks-input mt-1.5 min-h-20"
-                maxlength="5000"
+                :maxlength="inputLimits.reason"
               />
+              <FormError :message="stageForm.errors.reason" />
             </div>
             <AppButton class="w-full" type="submit" :disabled="stageForm.processing">{{
               t('recruitment.updateStage')
@@ -356,44 +375,60 @@ function humanize(value: string): string {
           <div class="ks-divider my-5" />
 
           <form class="space-y-3" @submit.prevent="assignReviewer">
-            <p class="ks-kicker">{{ t('recruitment.reviewers') }}</p>
-            <select v-model="reviewerForm.player_id" class="ks-input">
-              <option value="">{{ t('recruitment.selectReviewer') }}</option>
-              <option v-for="member in members" :key="member.id" :value="member.id">
-                {{ member.name }} · {{ member.rank.toUpperCase() }}
-              </option>
-            </select>
+            <p id="reviewers-heading" class="ks-kicker">{{ t('recruitment.reviewersTags') }}</p>
+            <RecruitmentOptionPicker
+              id="reviewer-picker"
+              :key="candidate.id + candidate.stage + 'members'"
+              v-model="reviewerForm.player_id"
+              :endpoint="selectionBaseUrl + '/members'"
+              :label="t('recruitment.chooseReviewer')"
+            />
             <AppButton
               class="w-full"
               variant="ghost"
               type="submit"
               :disabled="reviewerForm.processing || !reviewerForm.player_id"
             >
-              {{ t('recruitment.assignReviewer') }}
+              {{ t('recruitment.assign') }}
             </AppButton>
-            <div v-if="reviewers.length" class="flex flex-wrap gap-2">
-              <span v-for="reviewer in reviewers" :key="reviewer.id" class="ks-chip">{{
+            <div v-if="reviewersPage.items.length" class="flex flex-wrap gap-2">
+              <span v-for="reviewer in reviewersPage.items" :key="reviewer.id" class="ks-chip">{{
                 reviewer.name
               }}</span>
             </div>
+            <CursorPagination
+              :summary="
+                t('recruitment.historyItemsOnPage', {
+                  count: formatNumber(reviewersPage.items.length),
+                  pageSize: formatNumber(reviewersPage.pageSize),
+                })
+              "
+              :is-first-page="reviewersPage.isFirstPage"
+              :first-page-href="historyUrl('reviewers', null)"
+              :has-more="reviewersPage.hasMore"
+              preserve-state
+              preserve-scroll
+              @next="nextHistoryPage('reviewers')"
+            />
           </form>
 
-          <template v-if="conversionPlayers.length">
+          <template v-if="candidate.stage === 'accepted' && !candidate.membershipInvitationId">
             <div class="ks-divider my-5" />
             <form class="space-y-3" @submit.prevent="convertCandidate">
-              <p class="ks-kicker">{{ t('recruitment.convertCandidate') }}</p>
-              <select v-model="conversionForm.player_id" class="ks-input">
-                <option value="">{{ t('recruitment.selectPlayer') }}</option>
-                <option v-for="player in conversionPlayers" :key="player.id" :value="player.id">
-                  {{ player.name }}{{ player.claimed ? ` · ${t('recruitment.claimed')}` : '' }}
-                </option>
-              </select>
+              <p class="ks-kicker">{{ t('recruitment.createMembershipInvitation') }}</p>
+              <RecruitmentOptionPicker
+                id="conversion-player-picker"
+                :key="candidate.id + candidate.stage + 'roster'"
+                v-model="conversionForm.player_id"
+                :endpoint="selectionBaseUrl + '/roster'"
+                :label="t('recruitment.choosePlayer')"
+              />
               <AppButton
                 class="w-full"
                 type="submit"
                 :disabled="conversionForm.processing || !conversionForm.player_id"
               >
-                {{ t('recruitment.convertCandidate') }}
+                {{ t('recruitment.createMembershipInvitation') }}
               </AppButton>
             </form>
           </template>
@@ -514,14 +549,14 @@ function humanize(value: string): string {
                 <li>
                   {{
                     t('recruitment.transferCampaign.evidenceCount', {
-                      count: formatNumber(transferCampaign.transfer.evidence.length),
+                      count: formatNumber(transferCampaign.transfer.evidenceCount),
                     })
                   }}
                 </li>
                 <li>
                   {{
                     t('recruitment.transferCampaign.blockerCount', {
-                      count: formatNumber(transferCampaign.transfer.activeBlockers.length),
+                      count: formatNumber(transferCampaign.transfer.activeBlockerCount),
                     })
                   }}
                 </li>
@@ -558,7 +593,7 @@ function humanize(value: string): string {
             <div>
               <p class="ks-kicker">{{ t('recruitment.answers') }}</p>
               <h2 id="answers-heading" class="ks-display mt-1 text-2xl font-semibold">
-                {{ t('recruitment.application') }}
+                {{ t('recruitment.answers') }}
               </h2>
             </div>
             <span class="ks-chip" data-active="true">{{ formatNumber(answers.length) }}</span>
@@ -582,24 +617,28 @@ function humanize(value: string): string {
 
         <div class="grid gap-5 xl:grid-cols-2">
           <section class="ks-surface p-5" aria-labelledby="notes-heading">
-            <p class="ks-kicker">{{ t('recruitment.notes') }}</p>
+            <p class="ks-kicker">{{ t('recruitment.privateNotes') }}</p>
             <h2 id="notes-heading" class="ks-display mt-1 text-xl font-semibold">
-              {{ t('recruitment.internalNotes') }}
+              {{ t('recruitment.newPrivateNote') }}
             </h2>
             <form class="mt-4 space-y-3" @submit.prevent="addNote">
               <textarea
                 v-model="noteForm.body"
                 class="ks-input min-h-24"
-                maxlength="5000"
+                :maxlength="inputLimits.note"
                 required
               />
+              <FormError :message="noteForm.errors.body" />
               <AppButton type="submit" variant="ghost" :disabled="noteForm.processing">{{
                 t('recruitment.addNote')
               }}</AppButton>
             </form>
-            <div v-if="notes.length" class="mt-5 space-y-2 border-t border-[var(--ks-border)] pt-4">
+            <div
+              v-if="notesPage.items.length"
+              class="mt-5 space-y-2 border-t border-[var(--ks-border)] pt-4"
+            >
               <article
-                v-for="note in notes"
+                v-for="note in notesPage.items"
                 :key="note.id"
                 class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3"
               >
@@ -609,12 +648,27 @@ function humanize(value: string): string {
                 </p>
               </article>
             </div>
+            <CursorPagination
+              v-if="notesPage.items.length || !notesPage.isFirstPage"
+              :summary="
+                t('recruitment.historyItemsOnPage', {
+                  count: formatNumber(notesPage.items.length),
+                  pageSize: formatNumber(notesPage.pageSize),
+                })
+              "
+              :is-first-page="notesPage.isFirstPage"
+              :first-page-href="historyUrl('notes', null)"
+              preserve-state
+              preserve-scroll
+              :has-more="notesPage.hasMore"
+              @next="nextHistoryPage('notes')"
+            />
           </section>
 
           <section class="ks-surface p-5" aria-labelledby="tags-heading">
-            <p class="ks-kicker">{{ t('recruitment.tags') }}</p>
+            <p class="ks-kicker">{{ t('recruitment.tag') }}</p>
             <h2 id="tags-heading" class="ks-display mt-1 text-xl font-semibold">
-              {{ t('recruitment.tags') }}
+              {{ t('recruitment.tag') }}
             </h2>
             <form class="mt-4 grid grid-cols-[1fr_auto] gap-2" @submit.prevent="addTag">
               <input v-model="tagForm.name" class="ks-input" maxlength="80" required />
@@ -622,10 +676,26 @@ function humanize(value: string): string {
                 t('recruitment.addTag')
               }}</AppButton>
             </form>
-            <div v-if="tags.length" class="mt-4 flex flex-wrap gap-2">
-              <span v-for="tag in tags" :key="tag.id" class="ks-chip">{{ tag.name }}</span>
+            <div v-if="tagsPage.items.length" class="mt-4 flex flex-wrap gap-2">
+              <span v-for="tag in tagsPage.items" :key="tag.id" class="ks-chip">{{
+                tag.name
+              }}</span>
             </div>
-            <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noTags') }}</div>
+            <div v-else class="ks-fantasy-empty mt-4">{{ t('common.none') }}</div>
+            <CursorPagination
+              :summary="
+                t('recruitment.historyItemsOnPage', {
+                  count: formatNumber(tagsPage.items.length),
+                  pageSize: formatNumber(tagsPage.pageSize),
+                })
+              "
+              :is-first-page="tagsPage.isFirstPage"
+              :first-page-href="historyUrl('tags', null)"
+              :has-more="tagsPage.hasMore"
+              preserve-state
+              preserve-scroll
+              @next="nextHistoryPage('tags')"
+            />
           </section>
         </div>
 
@@ -637,28 +707,28 @@ function humanize(value: string): string {
                 {{ t('recruitment.decisionTemplates') }}
               </h2>
             </div>
-            <span class="ks-chip">{{ communications.length }}</span>
+            <span class="ks-chip">{{ communicationsPage.items.length }}</span>
           </div>
           <form
-            v-if="decisionTemplates.length"
             class="mt-4 grid gap-2 sm:grid-cols-[1fr_auto]"
             @submit.prevent="prepareCommunication"
           >
-            <select v-model="communicationForm.template_id" class="ks-input">
-              <option value="">{{ t('recruitment.selectTemplate') }}</option>
-              <option v-for="template in decisionTemplates" :key="template.id" :value="template.id">
-                {{ template.name }} · {{ humanize(template.decisionStage) }}
-              </option>
-            </select>
+            <RecruitmentOptionPicker
+              id="decision-template-picker"
+              :key="candidate.id + candidate.stage + 'templates'"
+              v-model="communicationForm.template_id"
+              :endpoint="selectionBaseUrl + '/templates'"
+              :label="t('recruitment.chooseTemplate')"
+            />
             <AppButton
               type="submit"
               :disabled="communicationForm.processing || !communicationForm.template_id"
               >{{ t('recruitment.prepareCommunication') }}</AppButton
             >
           </form>
-          <div v-if="communications.length" class="mt-5 grid gap-3 md:grid-cols-2">
+          <div v-if="communicationsPage.items.length" class="mt-5 grid gap-3 md:grid-cols-2">
             <article
-              v-for="communication in communications"
+              v-for="communication in communicationsPage.items"
               :key="communication.id"
               class="rounded-[var(--ks-radius-md)] border border-[var(--ks-border)] bg-black/15 p-4"
             >
@@ -692,6 +762,21 @@ function humanize(value: string): string {
             </article>
           </div>
           <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noCommunications') }}</div>
+          <CursorPagination
+            v-if="communicationsPage.items.length || !communicationsPage.isFirstPage"
+            :summary="
+              t('recruitment.historyItemsOnPage', {
+                count: formatNumber(communicationsPage.items.length),
+                pageSize: formatNumber(communicationsPage.pageSize),
+              })
+            "
+            :is-first-page="communicationsPage.isFirstPage"
+            :first-page-href="historyUrl('communications', null)"
+            preserve-state
+            preserve-scroll
+            :has-more="communicationsPage.hasMore"
+            @next="nextHistoryPage('communications')"
+          />
         </section>
 
         <section class="ks-surface p-5 sm:p-6" aria-labelledby="onboarding-heading">
@@ -739,9 +824,9 @@ function humanize(value: string): string {
           <section class="ks-surface p-5" aria-labelledby="history-heading">
             <p class="ks-kicker">{{ t('recruitment.stageHistory') }}</p>
             <h2 id="history-heading" class="sr-only">{{ t('recruitment.stageHistory') }}</h2>
-            <ol v-if="history.length" class="mt-4 space-y-4">
+            <ol v-if="historyPage.items.length" class="mt-4 space-y-4">
               <li
-                v-for="entry in history"
+                v-for="entry in historyPage.items"
                 :key="entry.id"
                 class="relative border-s border-[var(--ks-border-strong)] ps-5"
               >
@@ -762,6 +847,21 @@ function humanize(value: string): string {
               </li>
             </ol>
             <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noHistory') }}</div>
+            <CursorPagination
+              v-if="historyPage.items.length || !historyPage.isFirstPage"
+              :summary="
+                t('recruitment.historyItemsOnPage', {
+                  count: formatNumber(historyPage.items.length),
+                  pageSize: formatNumber(historyPage.pageSize),
+                })
+              "
+              :is-first-page="historyPage.isFirstPage"
+              :first-page-href="historyUrl('history', null)"
+              preserve-state
+              preserve-scroll
+              :has-more="historyPage.hasMore"
+              @next="nextHistoryPage('history')"
+            />
           </section>
 
           <section class="ks-surface p-5" aria-labelledby="duplicates-heading">
@@ -772,16 +872,17 @@ function humanize(value: string): string {
             <p class="mt-2 text-xs leading-5 text-[var(--ks-muted)]">
               {{ t('recruitment.duplicateHelp') }}
             </p>
-            <template v-if="duplicates.length">
+            <template v-if="duplicatesPage.items.length">
               <textarea
                 v-model="mergeReason.reason"
                 class="ks-input mt-4 min-h-20"
-                maxlength="5000"
+                :maxlength="inputLimits.reason"
                 :placeholder="t('recruitment.mergeReason')"
               />
+              <FormError :message="mergeReason.errors.reason" />
               <div class="mt-4 space-y-2">
                 <article
-                  v-for="duplicate in duplicates"
+                  v-for="duplicate in duplicatesPage.items"
                   :key="duplicate.id"
                   class="rounded-[var(--ks-radius-sm)] border border-[var(--ks-border)] bg-black/15 p-3"
                 >
@@ -807,6 +908,21 @@ function humanize(value: string): string {
               </div>
             </template>
             <div v-else class="ks-fantasy-empty mt-4">{{ t('recruitment.noDuplicates') }}</div>
+            <CursorPagination
+              v-if="duplicatesPage.items.length || !duplicatesPage.isFirstPage"
+              :summary="
+                t('recruitment.historyItemsOnPage', {
+                  count: formatNumber(duplicatesPage.items.length),
+                  pageSize: formatNumber(duplicatesPage.pageSize),
+                })
+              "
+              :is-first-page="duplicatesPage.isFirstPage"
+              :first-page-href="historyUrl('duplicates', null)"
+              preserve-state
+              preserve-scroll
+              :has-more="duplicatesPage.hasMore"
+              @next="nextHistoryPage('duplicates')"
+            />
           </section>
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 Status: Current for Bear Hunt and Transfer participant Screenshot Intake.
 
-This runbook covers private screenshot evidence, OCR/extraction workers, commit recovery, duplicate handling, retention, and privacy-safe diagnostics for both supported Evidence families. Product behavior is defined by `docs/product/screenshot-intake.md` and `docs/product/screenshot-intake-transfer-evidence.md`; ownership is defined by ADR-0010 and `docs/architecture/contexts/intelligence/evidence.md`.
+This runbook covers private screenshot evidence, OCR/extraction workers, commit recovery, duplicate handling, retention, and privacy-safe diagnostics for Bear Hunt and Transfer, plus shared retention across all four GameEvidence families. Product behavior is defined by `docs/product/screenshot-intake.md` and `docs/product/screenshot-intake-transfer-evidence.md`; ownership is defined by ADR-0010 and `docs/architecture/contexts/intelligence/evidence.md`.
 
 ## Runtime dependencies
 
@@ -33,13 +33,15 @@ The production image installs GD, Tesseract and the English Tesseract language d
 
 There is deliberately no Evidence-wide freshness TTL for Transfer facts. `valid_until` is reviewed per mutable Transfer observation and interpreted by `GameWorld/KingdomTransfers`.
 
-Changing retention values affects future Evidence enforcement; it never rewrites accepted `Operations/Results` or `GameWorld/KingdomTransfers` state.
+Changing retention values affects future Evidence enforcement; it never rewrites accepted Results, KingdomTransfers, Roster or spatial Observations state.
+
+The shared GameEvidence retention worker checks successful commit ledgers for Bear Hunt, Transfer, Governor Progression and Territory spatial Evidence. Committed handoff tombstones survive binary retention and user deletion. Due-time and active-status filters run before the bounded batch limit; commit status and policy deadline are rechecked under the Evidence lock. Indexes on global Evidence age/order and each family commit `(evidence_id, status)` support those queries. Alliance roster intake has separate persistence and is not part of this worker.
 
 ## Upload scopes and security
 
 Upload authorization is checked before expensive processing and reacquired inside persistence transactions. The application validates configured size/MIME, verifies actual image MIME/dimensions, runs the shared security scanner, computes SHA-256, computes perceptual similarity when GD is available, and writes to a generated Alliance-scoped private path.
 
-Evidence supports only two persistence scope shapes:
+The Bear Hunt and Transfer persistence scopes covered in this runbook are:
 
 - Bear Hunt: one `occurrence_id`, no Transfer references;
 - Transfer participant: `transfer_plan_id` + `transfer_participant_id`, no occurrence.

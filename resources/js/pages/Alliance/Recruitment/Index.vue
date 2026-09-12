@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, reactive, ref, watch } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
@@ -7,8 +7,18 @@ import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import CursorPagination from '@/components/ui/CursorPagination.vue';
+import FormError from '@/components/ui/FormError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
+import type { RecruitmentInputLimits } from '@/types/recruitment';
+
+type PageSlice<T> = {
+  items: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  pageSize: number;
+  isFirstPage: boolean;
+};
 
 type Candidate = {
   id: string;
@@ -81,6 +91,9 @@ type BulkResult = {
 };
 
 const props = defineProps<{
+  inputLimits: RecruitmentInputLimits;
+  configurationLimits: { questions: number; onboardingItems: number };
+  reasonMaxLength: number;
   user: { name: string; email: string };
   alliance: { id: string; name: string; slug: string };
   settings: {
@@ -94,7 +107,7 @@ const props = defineProps<{
   applicationModes: string[];
   questionTypes: string[];
   candidateStages: string[];
-  questions: Array<{
+  questionPage: PageSlice<{
     id: string;
     prompt: string;
     helpText: string | null;
@@ -112,8 +125,8 @@ const props = defineProps<{
     isFirstPage: boolean;
   };
   candidateFilters: { q: string; stage: string; source: string };
-  members: Array<{ id: string; name: string; rank: string }>;
-  decisionTemplates: Array<{
+  nextPositions: { questions: number; onboarding: number };
+  templatePage: PageSlice<{
     id: string;
     name: string;
     decisionStage: string;
@@ -121,7 +134,7 @@ const props = defineProps<{
     body: string;
     active: boolean;
   }>;
-  onboardingItems: Array<{
+  onboardingPage: PageSlice<{
     id: string;
     name: string;
     description: string | null;
@@ -137,14 +150,13 @@ const props = defineProps<{
 }>();
 
 const { t, formatDate, formatNumber } = useLocale();
+const page = usePage();
+const questions = computed(() => props.questionPage.items);
+const decisionTemplates = computed(() => props.templatePage.items);
+const onboardingItems = computed(() => props.onboardingPage.items);
 const candidates = computed(() => props.candidatePage.items);
 const candidateFilters = reactive({ ...props.candidateFilters });
-const firstCandidatePageUrl = computed(() => {
-  const query = new URLSearchParams(
-    Object.fromEntries(Object.entries(candidateFilters).filter(([, value]) => value !== '')),
-  ).toString();
-  return query === '' ? '/alliance/recruitment' : `/alliance/recruitment?${query}`;
-});
+const firstCandidatePageUrl = computed(() => workspaceUrl({ ...candidateFilters, cursor: null }));
 const selectedCandidateIds = ref<string[]>(props.bulkResult?.failedItemIds ?? []);
 const bulkStageOptions = computed(() =>
   props.candidateStages.filter((stage) => stage !== 'joined'),
@@ -191,23 +203,31 @@ const questionForm = useForm({
   type: 'short_text',
   options: [] as string[],
   required: false,
-  position: props.questions.length,
+  position: props.nextPositions.questions,
   active: true,
 });
 const questionOptions = ref('');
 const applicationLinkCopied = ref(false);
 const questionEdits = reactive<Record<string, QuestionEdit>>({});
-for (const question of props.questions) {
-  questionEdits[question.id] = {
-    prompt: question.prompt,
-    helpText: question.helpText ?? '',
-    type: question.type,
-    optionsText: question.options.join('\n'),
-    required: question.required,
-    position: question.position,
-    active: question.active,
-  };
-}
+const questionErrors = reactive<Record<string, string | undefined>>({});
+watch(
+  () => props.questionPage.items,
+  (questions) => {
+    for (const question of questions) {
+      if (questionEdits[question.id]) continue;
+      questionEdits[question.id] = {
+        prompt: question.prompt,
+        helpText: question.helpText ?? '',
+        type: question.type,
+        optionsText: question.options.join('\n'),
+        required: question.required,
+        position: question.position,
+        active: question.active,
+      };
+    }
+  },
+  { immediate: true },
+);
 
 const candidatePlaceholder = '{{candidate_name}}';
 const alliancePlaceholder = '{{alliance_name}}';
@@ -222,7 +242,7 @@ const decisionForm = useForm({
 const onboardingForm = useForm({
   name: '',
   description: '',
-  position: props.onboardingItems.length,
+  position: props.nextPositions.onboarding,
   required: true,
   active: true,
 });
@@ -257,15 +277,37 @@ function createQuestion(): void {
     onSuccess: () => {
       questionForm.reset();
       questionForm.type = 'short_text';
-      questionForm.position = props.questions.length + 1;
+      questionForm.position = props.nextPositions.questions;
       questionForm.active = true;
       questionOptions.value = '';
     },
   });
 }
 
+const onboardingUpdates = reactive<Record<string, { busy: boolean; error?: string }>>({});
+function setOnboardingItemActive(id: string, event: Event): void {
+  const checkbox = event.target as HTMLInputElement;
+  const active = checkbox.checked;
+  checkbox.checked = !active;
+  onboardingUpdates[id] = { busy: true };
+  router.patch(
+    `/alliance/recruitment/onboarding-items/${id}`,
+    { active },
+    {
+      preserveScroll: true,
+      onError: (errors) => {
+        onboardingUpdates[id] = { busy: false, error: Object.values(errors)[0] ?? '' };
+      },
+      onFinish: () => {
+        if (onboardingUpdates[id]) onboardingUpdates[id].busy = false;
+      },
+    },
+  );
+}
+
 function saveQuestion(id: string): void {
   const edit = questionEdit(id);
+  delete questionErrors[id];
   router.post(
     '/alliance/recruitment/questions',
     {
@@ -281,7 +323,12 @@ function saveQuestion(id: string): void {
       position: edit.position,
       active: edit.active,
     },
-    { preserveScroll: true },
+    {
+      preserveScroll: true,
+      onError: (errors) => {
+        questionErrors[id] = Object.values(errors)[0];
+      },
+    },
   );
 }
 
@@ -308,17 +355,41 @@ function createOnboardingItem(): void {
     preserveScroll: true,
     onSuccess: () => {
       onboardingForm.reset();
-      onboardingForm.position = props.onboardingItems.length + 1;
+      onboardingForm.position = props.nextPositions.onboarding;
       onboardingForm.required = true;
       onboardingForm.active = true;
     },
   });
 }
 
+function workspaceUrl(changes: Record<string, string | null>): string {
+  const url = new URL(page.url, 'https://workspace.invalid');
+  for (const [key, value] of Object.entries(changes)) {
+    if (value) url.searchParams.set(key, value);
+    else url.searchParams.delete(key);
+  }
+  return `${url.pathname}${url.search}`;
+}
+
+function catalogueUrl(
+  kind: 'questions' | 'templates' | 'onboarding',
+  cursor: string | null,
+): string {
+  return workspaceUrl({ [`${kind}_cursor`]: cursor });
+}
+
+function nextCataloguePage(
+  kind: 'questions' | 'templates' | 'onboarding',
+  cursor: string | null,
+): void {
+  if (!cursor) return;
+  router.get(catalogueUrl(kind, cursor), {}, { preserveScroll: true, preserveState: true });
+}
+
 function applyCandidateFilters(): void {
   router.get(
-    '/alliance/recruitment',
-    Object.fromEntries(Object.entries(candidateFilters).filter(([, value]) => value !== '')),
+    workspaceUrl({ ...candidateFilters, cursor: null }),
+    {},
     { preserveScroll: true, preserveState: true, replace: true },
   );
 }
@@ -404,13 +475,9 @@ function bulkOutcomeLabel(code: string): string {
 
 function nextCandidatePage(): void {
   if (!props.candidatePage.nextCursor) return;
-
   router.get(
-    '/alliance/recruitment',
-    {
-      ...Object.fromEntries(Object.entries(candidateFilters).filter(([, value]) => value !== '')),
-      cursor: props.candidatePage.nextCursor,
-    },
+    workspaceUrl({ ...candidateFilters, cursor: props.candidatePage.nextCursor }),
+    {},
     { preserveScroll: true, preserveState: true },
   );
 }
@@ -655,7 +722,7 @@ function humanize(value: string): string {
               id="recruitment-bulk-reason"
               v-model="bulkReason"
               class="ks-input mt-1.5"
-              maxlength="5000"
+              :maxlength="reasonMaxLength"
             />
           </div>
           <div>
@@ -908,6 +975,8 @@ function humanize(value: string): string {
         :is-first-page="candidatePage.isFirstPage"
         :first-page-href="firstCandidatePageUrl"
         :has-more="candidatePage.hasMore"
+        preserve-state
+        preserve-scroll
         @next="nextCandidatePage"
       />
     </section>
@@ -946,6 +1015,7 @@ function humanize(value: string): string {
         </div>
 
         <form class="mt-5 space-y-4" @submit.prevent="saveSettings">
+          <FormError class="sm:col-span-2" :message="Object.values(settingsForm.errors)[0]" />
           <div>
             <label
               class="text-xs font-semibold text-[var(--ks-text-secondary)]"
@@ -970,8 +1040,8 @@ function humanize(value: string): string {
               id="recruitment-title"
               v-model="settingsForm.title"
               class="ks-input mt-1.5"
-              maxlength="160"
               required
+              :maxlength="inputLimits.title"
             />
           </div>
           <div>
@@ -985,7 +1055,7 @@ function humanize(value: string): string {
               id="recruitment-introduction"
               v-model="settingsForm.introduction"
               class="ks-input mt-1.5 min-h-28"
-              maxlength="5000"
+              :maxlength="inputLimits.introduction"
             />
           </div>
           <div class="grid gap-4 sm:grid-cols-2">
@@ -1002,7 +1072,7 @@ function humanize(value: string): string {
                 class="ks-input mt-1.5"
                 type="number"
                 min="1"
-                max="3650"
+                :max="inputLimits.retentionDays"
                 required
               />
             </div>
@@ -1056,6 +1126,7 @@ function humanize(value: string): string {
         <div class="ks-divider my-6" />
 
         <form @submit.prevent="issueInvite">
+          <FormError class="sm:col-span-2" :message="Object.values(inviteForm.errors)[0]" />
           <p class="ks-kicker">{{ t('recruitment.inviteLink') }}</p>
           <h3 class="ks-display mt-1 text-lg font-semibold">{{ t('recruitment.issue') }}</h3>
           <p class="mt-2 text-sm leading-6 text-[var(--ks-muted)]">
@@ -1067,13 +1138,14 @@ function humanize(value: string): string {
               class="ks-input"
               type="email"
               :placeholder="t('recruitment.optionalEmail')"
+              :maxlength="inputLimits.email"
             />
             <input
               v-model.number="inviteForm.ttl_hours"
               class="ks-input"
               type="number"
               min="1"
-              max="720"
+              :max="inputLimits.inviteHours"
               :aria-label="t('recruitment.lifetimeHours')"
             />
             <AppButton type="submit" variant="ghost" :disabled="inviteForm.processing">
@@ -1104,7 +1176,15 @@ function humanize(value: string): string {
           {{ t('recruitment.addQuestion') }}
         </h2>
 
+        <p class="mt-2 text-sm text-[var(--ks-muted)]">
+          {{
+            t('recruitment.activeConfigurationLimit', {
+              limit: formatNumber(configurationLimits.questions),
+            })
+          }}
+        </p>
         <form class="mt-5 grid gap-3 sm:grid-cols-2" @submit.prevent="createQuestion">
+          <FormError class="sm:col-span-2" :message="Object.values(questionForm.errors)[0]" />
           <div class="sm:col-span-2">
             <label
               class="text-xs font-semibold text-[var(--ks-text-secondary)]"
@@ -1115,8 +1195,8 @@ function humanize(value: string): string {
               id="question-prompt"
               v-model="questionForm.prompt"
               class="ks-input mt-1.5"
-              maxlength="240"
               required
+              :maxlength="inputLimits.prompt"
             />
           </div>
           <div>
@@ -1143,7 +1223,7 @@ function humanize(value: string): string {
               class="ks-input mt-1.5"
               type="number"
               min="0"
-              max="65535"
+              :max="inputLimits.position"
             />
           </div>
           <div class="sm:col-span-2">
@@ -1156,7 +1236,7 @@ function humanize(value: string): string {
               id="question-help"
               v-model="questionForm.help_text"
               class="ks-input mt-1.5 min-h-20"
-              maxlength="2000"
+              :maxlength="inputLimits.helpText"
             />
           </div>
           <div class="sm:col-span-2">
@@ -1201,7 +1281,11 @@ function humanize(value: string): string {
               </div>
             </summary>
             <div class="mt-4 grid gap-3 sm:grid-cols-2">
-              <input v-model="questionEdit(question.id).prompt" class="ks-input sm:col-span-2" />
+              <input
+                v-model="questionEdit(question.id).prompt"
+                class="ks-input sm:col-span-2"
+                :maxlength="inputLimits.prompt"
+              />
               <select v-model="questionEdit(question.id).type" class="ks-input">
                 <option v-for="type in questionTypes" :key="type" :value="type">
                   {{ humanize(type) }}
@@ -1212,11 +1296,12 @@ function humanize(value: string): string {
                 class="ks-input"
                 type="number"
                 min="0"
-                max="65535"
+                :max="inputLimits.position"
               />
               <textarea
                 v-model="questionEdit(question.id).helpText"
                 class="ks-input min-h-16 sm:col-span-2"
+                :maxlength="inputLimits.helpText"
               />
               <textarea
                 v-model="questionEdit(question.id).optionsText"
@@ -1233,11 +1318,26 @@ function humanize(value: string): string {
                 }}</label
               >
             </div>
+            <FormError :message="questionErrors[question.id]" />
             <AppButton class="mt-3" variant="secondary" @click="saveQuestion(question.id)">
               {{ t('recruitment.saveQuestion') }}
             </AppButton>
           </details>
         </div>
+        <CursorPagination
+          :summary="
+            t('recruitment.historyItemsOnPage', {
+              count: formatNumber(questionPage.items.length),
+              pageSize: formatNumber(questionPage.pageSize),
+            })
+          "
+          :is-first-page="questionPage.isFirstPage"
+          :first-page-href="catalogueUrl('questions', null)"
+          :has-more="questionPage.hasMore"
+          preserve-state
+          preserve-scroll
+          @next="nextCataloguePage('questions', questionPage.nextCursor)"
+        />
       </section>
 
       <section class="ks-surface p-5 sm:p-6" aria-labelledby="templates-heading">
@@ -1254,12 +1354,13 @@ function humanize(value: string): string {
           }}
         </p>
         <form class="mt-5 space-y-3" @submit.prevent="createDecisionTemplate">
+          <FormError class="sm:col-span-2" :message="Object.values(decisionForm.errors)[0]" />
           <input
             v-model="decisionForm.name"
             class="ks-input"
             :placeholder="t('recruitment.templateName')"
-            maxlength="120"
             required
+            :maxlength="inputLimits.templateName"
           />
           <select v-model="decisionForm.decision_stage" class="ks-input">
             <option value="accepted">{{ t('recruitment.accepted') }}</option>
@@ -1269,15 +1370,15 @@ function humanize(value: string): string {
             v-model="decisionForm.subject"
             class="ks-input"
             :placeholder="t('recruitment.subject')"
-            maxlength="200"
             required
+            :maxlength="inputLimits.subject"
           />
           <textarea
             v-model="decisionForm.body"
             class="ks-input min-h-28"
             :placeholder="t('recruitment.body')"
-            maxlength="10000"
             required
+            :maxlength="inputLimits.body"
           />
           <label class="flex items-center gap-2 text-sm"
             ><input v-model="decisionForm.active" type="checkbox" />{{
@@ -1306,6 +1407,20 @@ function humanize(value: string): string {
             <p class="mt-1 text-[var(--ks-text-secondary)]">{{ template.subject }}</p>
           </article>
         </div>
+        <CursorPagination
+          :summary="
+            t('recruitment.historyItemsOnPage', {
+              count: formatNumber(templatePage.items.length),
+              pageSize: formatNumber(templatePage.pageSize),
+            })
+          "
+          :is-first-page="templatePage.isFirstPage"
+          :first-page-href="catalogueUrl('templates', null)"
+          :has-more="templatePage.hasMore"
+          preserve-state
+          preserve-scroll
+          @next="nextCataloguePage('templates', templatePage.nextCursor)"
+        />
       </section>
 
       <section class="ks-surface p-5 sm:p-6" aria-labelledby="onboarding-heading">
@@ -1313,26 +1428,34 @@ function humanize(value: string): string {
         <h2 id="onboarding-heading" class="ks-display mt-1 text-xl font-semibold">
           {{ t('recruitment.onboardingProgress') }}
         </h2>
+        <p class="mt-2 text-sm text-[var(--ks-muted)]">
+          {{
+            t('recruitment.activeConfigurationLimit', {
+              limit: formatNumber(configurationLimits.onboardingItems),
+            })
+          }}
+        </p>
         <form class="mt-5 space-y-3" @submit.prevent="createOnboardingItem">
+          <FormError class="sm:col-span-2" :message="Object.values(onboardingForm.errors)[0]" />
           <input
             v-model="onboardingForm.name"
             class="ks-input"
             :placeholder="t('recruitment.itemName')"
-            maxlength="160"
             required
+            :maxlength="inputLimits.onboardingName"
           />
           <textarea
             v-model="onboardingForm.description"
             class="ks-input min-h-24"
             :placeholder="t('recruitment.description')"
-            maxlength="5000"
+            :maxlength="inputLimits.description"
           />
           <input
             v-model.number="onboardingForm.position"
             class="ks-input"
             type="number"
             min="0"
-            max="65535"
+            :max="inputLimits.position"
             :aria-label="t('recruitment.position')"
           />
           <div class="flex flex-wrap gap-5">
@@ -1367,8 +1490,32 @@ function humanize(value: string): string {
             <p v-if="item.description" class="mt-1 text-[var(--ks-text-secondary)]">
               {{ item.description }}
             </p>
+            <label class="mt-3 flex items-center gap-2">
+              <input
+                type="checkbox"
+                :checked="item.active"
+                :disabled="onboardingUpdates[item.id]?.busy"
+                @change="setOnboardingItemActive(item.id, $event)"
+              />
+              {{ t('recruitment.active') }}
+            </label>
+            <FormError :message="onboardingUpdates[item.id]?.error" />
           </article>
         </div>
+        <CursorPagination
+          :summary="
+            t('recruitment.historyItemsOnPage', {
+              count: formatNumber(onboardingPage.items.length),
+              pageSize: formatNumber(onboardingPage.pageSize),
+            })
+          "
+          :is-first-page="onboardingPage.isFirstPage"
+          :first-page-href="catalogueUrl('onboarding', null)"
+          :has-more="onboardingPage.hasMore"
+          preserve-state
+          preserve-scroll
+          @next="nextCataloguePage('onboarding', onboardingPage.nextCursor)"
+        />
       </section>
     </div>
   </AppLayout>

@@ -16,6 +16,8 @@ The canonical extension requirements, ownership/provenance rules and acceptance 
 
 Do not use `planned`, `MVP`, `partial`, or `future enhancement` to obscure these states.
 
+Recruitment hardening adds complete 30-item active forms/onboarding, independent 25-record catalogues and candidate attachments, and searchable scoped selectors with current-selection validation. HARD-088 remains open until its containing PHP/browser verification passes; this does not establish completion of the repository-wide hardening audit.
+
 ## Discovery sources
 
 Community/open-source projects remain discovery evidence only. They can reveal useful product workflows but do not become authoritative game truth by being implemented elsewhere.
@@ -42,13 +44,13 @@ Google attachment is explicit, recent-authenticated and keyed by stable provider
 
 Account merging, email-based identity consolidation, official Kingshot game authentication and game credentials remain unsupported.
 
-### Communications recipient delivery — current complete
+### Communications recipient delivery — delivered capability, hardening in progress
 
 The Communications capability uses one logical `NotificationMessage` plus zero or more concrete `NotificationDelivery` routes. Recipient policy resolves account defaults and Governor overrides across In App, Discord, Telegram, Web Push and Accounts-owned verified email, with quiet hours, recipient-controlled urgent bypass, temporary mute and immediate/hourly/daily digest timing.
 
 Multiple named stored endpoints are independently testable, pausable and health-tracked. Provider workers recheck current endpoint state, preferences, Governor ownership and verified email before send; immediate and digest processing are both bounded, idempotent and scheduled every minute with overlap protection. Web Push destination/key/VAPID handling, email transport readiness, safe relative action URLs, cursor inbox reads, message-owned read/archive state, bounded bulk operations and privacy-safe platform diagnostics are covered by the Communications acceptance suite.
 
-Immutable implementation candidate `f880cb40014b2ef5236facaf65ac2b68f90fd5ae` passed CI, Architecture V3 Verification, Intelligence Verification, King Perks Verification, Visual Regression, CodeQL and Dependency Review. The [Communications delivery ledger](communications-recipient-delivery-ledger.md) is closed and the capability is current complete.
+Immutable implementation candidate `f880cb40014b2ef5236facaf65ac2b68f90fd5ae` passed CI, Architecture V3 Verification, Intelligence Verification, King Perks Verification, Visual Regression, CodeQL and Dependency Review. The original [Communications delivery ledger](communications-recipient-delivery-ledger.md) records that delivered baseline. The current hardening implementation adds shared current claim predicates and attempt fences (HARD-098), original-source authorization for all thirteen notification types (HARD-099), and current recipient/destination binding for digest members at claim, completion and exhaustion (HARD-102). These passed the normal containing milestone at `20bf34c96532b56a091cd344eb47574c46220b46`, including all nine workflows, 1,640 PHP cases and 62 browser cases. HARD-100 now binds endpoint health to the monotonic configuration generation actually sent, with real success/failure, rotation and pause/resume regressions; its containing normal gates also passed at that revision. HARD-103 bounded King Perk traversal passed all nine normal workflows at `28727fb2`, including 1,658 PHP cases / 84,680 assertions. HARD-104 implements bounded announcement occurrence and recipient progress with real regressions but still requires its containing milestone. HARD-106 separately tracks truncated outcome/history projections in the [hardening ledger](codebase-hardening-delivery-ledger.md). The baseline milestone is not certification of these later findings or the repository-wide program.
 
 ### Alliance Capability Expansion — current complete
 
@@ -237,3 +239,8 @@ Communications receives GiftCode-owned logical notification intent and retains e
 
 Canonical contract: [Gift Code Redemption Workspace & Personalization](gift-code-redemption-workspace.md), [acceptance matrix](gift-code-redemption-workspace-acceptance.md), and [delivery ledger](gift-code-redemption-workspace-delivery-ledger.md).
 
+## Announcement management completeness — HARD-106
+
+Per-run read and delivery-status totals now come from Communications-owned exact aggregates instead of sampled message/route rows. The retry control distinguishes the bounded selected IDs from the complete candidate count. [ADR-0050](../architecture/adr/0050-scoped-announcement-outcome-projections.md) defines the owner contract.
+
+The recovered catalogue/history slice now replaces unbounded manager collections with current-authorized keyset pages: twenty Content items, twenty-five categories/media, ten revisions and five runs per item. Related schedules and counts are limited to the visible catalogue subjects. Existing exact Communications outcomes and preparation counters are preserved; retained history beyond the former hundred-run window is reachable. Cursor scope, off-page drafts/selections, failure recovery and concrete retry metadata are covered by new source/behavioral checks. The recovered candidate is not treated as complete merely because it existed: it is reconciled against current contracts, with actual browser and normal containing gates still required. The [hardening ledger](codebase-hardening-delivery-ledger.md) owns the current verification state and remaining work. The underlying bounded announcement preparation from HARD-104 has passed its complete normal milestone; later HARD-106 changes require their own containing verification.

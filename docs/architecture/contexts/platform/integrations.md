@@ -29,3 +29,11 @@ Gift Code create/provenance/trust/expiry events are global contracts. Their payl
 ## Ownership
 
 The source context owns the business fact. Platform/Integrations owns the external credential/subscription/delivery contract and does not mutate the source aggregate to provide integration behavior.
+
+## Management history
+
+Connections uses three independently authorized 25-record catalogues for credentials, webhook subscriptions and delivery history. Signed actor/Alliance/kind cursors preserve continuation; current SQL totals and shared active-usage predicates remain independent of the visible page. Delivery pages carry their own scoped subscription names and current retry availability without exposing payloads or signing secrets. Existing owner actions recheck submission authority. See [ADR-0059](../../adr/0059-bounded-integration-management-history.md).
+
+## External participation consistency
+
+The Workflow acquires current Operations participation scope before Integrations credential/link authority, then composes the normal owner action and idempotency receipt atomically. Lower integration lock contention returns HTTP 409 with Retry-After: 1; clients retain the same request and idempotency key. Current authority is checked even for receipt replay. See [ADR-0060](../../adr/0060-atomic-external-participation-scope-order.md).

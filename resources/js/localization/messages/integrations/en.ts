@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   integrationExperience: {
+    recordCount: '{count} records',
+    historyUnavailable: 'This page could not be loaded.',
+    retryPage: 'Retry page',
+    expired: 'Expired',
+    deliveryQueued: 'Queued',
+    deliveryHistory: 'Delivery history',
+
     eyebrow: 'Connections',
     title: 'Connections',
     subtitle:

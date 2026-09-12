@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Intelligence\Evidence\Providers;
 
+use App\Contexts\Intelligence\Evidence\Console\Commands\EnforceEvidenceRetentionCommand;
 use App\Contexts\Intelligence\Evidence\Console\Commands\EvidenceDiagnosticsCommand;
 use App\Contexts\Intelligence\Evidence\Contracts\EvidenceClassifier;
 use App\Contexts\Intelligence\Evidence\Contracts\EvidenceExtractor;
@@ -34,7 +35,7 @@ final class EvidenceServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(base_path('routes/territory-observations.php'));
         $this->loadRoutesFrom(base_path('routes/alliance-roster-evidence.php'));
         if ($this->app->runningInConsole()) {
-            $this->commands([EvidenceDiagnosticsCommand::class]);
+            $this->commands([EvidenceDiagnosticsCommand::class, EnforceEvidenceRetentionCommand::class]);
         }
     }
 }

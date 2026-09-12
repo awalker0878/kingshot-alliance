@@ -10,22 +10,28 @@ on:
       - 'app/ReadModels/KingdomIntelligence/**'
       - 'app/ReadModels/SharedKingdomIntelligence/**'
       - 'database/migrations/**event**'
-      - 'resources/js/pages/Operations/Events/History.vue'
-      - 'resources/js/pages/Intelligence/Contributions/History.vue'
       - 'routes/event-history.php'
       - 'routes/contributions.php'
-      - 'tests/v3/**'
+      - 'tests/Contexts/Intelligence/**'
+      - 'tests/ReadModels/EventAnalysis/Feature/**'
+      - 'tests/ReadModels/KingdomIntelligence/Feature/**'
+      - 'tests/ReadModels/IntelligenceSignals/Feature/**'
       - '.github/workflows/intelligence-verification.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: intelligence-verification-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   backend:
     name: Intelligence backend contracts
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    # The complete suite remains mandatory in CI; this gate owns Intelligence contracts.
+    timeout-minutes: 90
     services:
       postgres:
         image: postgres:18-alpine
@@ -67,11 +73,11 @@ jobs:
           coverage: none
           tools: composer:v2
 
+      - name: Restore Composer package cache
+        uses: ./.github/actions/composer-package-cache
+
       - name: Install locked PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
-
-      - name: Fresh PostgreSQL schema
-        run: php artisan migrate:fresh --force
 
       - name: Verify Contributions V1 hard cut
         shell: bash
@@ -112,56 +118,32 @@ jobs:
         shell: bash
         run: |
           set +e
-          vendor/bin/phpunit --configuration phpunit.xml --testsuite "Architecture V3" 2>&1 | tee "${RUNNER_TEMP}/intelligence-v3-behavior.log"
-          status=${PIPESTATUS[0]}
+          # Database-using selected tests own schema initialization through their
+          # reset traits; source/pure contracts require no database schema.
+          vendor/bin/phpunit --configuration phpunit.xml \
+            --fail-on-empty-test-suite \
+            --log-junit "${RUNNER_TEMP}/intelligence-v3-junit.xml" \
+            tests/Contexts/Intelligence \
+            tests/ReadModels/EventAnalysis/Feature \
+            tests/ReadModels/KingdomIntelligence/Feature \
+            tests/ReadModels/IntelligenceSignals/Feature \
+            2>&1 | tee "${RUNNER_TEMP}/intelligence-v3-behavior.log"
+          # Capture both statuses before another command replaces PIPESTATUS.
+          statuses=("${PIPESTATUS[@]}")
           set -e
-          exit "$status"
+          if [ "${statuses[0]}" -ne 0 ]; then
+            exit "${statuses[0]}"
+          fi
+          # A passing runner must not hide a failed diagnostic write.
+          exit "${statuses[1]}"
 
       - name: Upload behavior-contract diagnostics
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: intelligence-v3-behavior
-          path: ${{ runner.temp }}/intelligence-v3-behavior.log
+          path: |
+            ${{ runner.temp }}/intelligence-v3-behavior.log
+            ${{ runner.temp }}/intelligence-v3-junit.xml
           if-no-files-found: ignore
           retention-days: 7
-
-  frontend:
-    name: Intelligence history frontend contracts
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-
-      - name: Configure Node.js
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: '24'
-          cache: npm
-
-      - name: Install locked frontend dependencies
-        run: npm ci --no-audit --no-fund
-
-      - name: Intelligence history frontend lint
-        run: npx eslint resources/js/pages/Operations/Events/History.vue resources/js/pages/Intelligence/Contributions/History.vue
-
-      - name: Intelligence history frontend format
-        run: npx prettier --check resources/js/pages/Operations/Events/History.vue resources/js/pages/Intelligence/Contributions/History.vue
-
-      - name: Intelligence history frontend types
-        shell: bash
-        run: |
-          cat > tsconfig.intelligence-history.json <<'EOF'
-          {
-            "extends": "./tsconfig.json",
-            "include": [
-              "resources/js/pages/Operations/Events/History.vue",
-              "resources/js/pages/Intelligence/Contributions/History.vue",
-              "resources/js/**/*.d.ts"
-            ]
-          }
-          EOF
-          npx vue-tsc --noEmit -p tsconfig.intelligence-history.json
-          rm tsconfig.intelligence-history.json

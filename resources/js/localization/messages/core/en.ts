@@ -2,6 +2,9 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   common: {
+    yes: 'Yes',
+    no: 'No',
+    historyItemsOnPage: '{count} records on this page (up to {pageSize}).',
     previous: 'Previous',
     next: 'Next',
     none: 'None',
@@ -205,6 +208,7 @@ const messages = {
     'recruitment-decision-template-created': 'Recruitment decision template created.',
     'recruitment-membership-invite-prepared': 'Alliance invitation prepared for the candidate.',
     'recruitment-note-added': 'Officer recruitment note added.',
+    'recruitment-onboarding-item-updated': 'Recruitment onboarding item updated.',
     'recruitment-onboarding-item-created': 'Recruitment onboarding item created.',
     'recruitment-onboarding-updated': 'Candidate onboarding progress updated.',
     'recruitment-question-created': 'Recruitment question created.',
@@ -457,6 +461,9 @@ const messages = {
         post_event_closeout: 'Post-Event Closeout Brief',
       },
       commandReasons: {
+        transferAssessmentIncomplete:
+          'At least {count} Transfer participants need attention; {unassessed} remain unassessed in this overview',
+
         eventBlockers: '{count} blockers remain for the next verified Event',
         nextEvent: 'The next verified Event has no blocking readiness gaps',
         rosterStaleOrMissing: '{count} Governor observations are stale or missing',
@@ -490,6 +497,8 @@ const messages = {
         },
       },
       commandStates: {
+        assessment_incomplete: 'Further assessment needed',
+
         planning: 'Planning',
         ready: 'Ready',
         active: 'Active',

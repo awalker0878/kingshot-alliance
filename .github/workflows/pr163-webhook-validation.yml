@@ -1,0 +1,114 @@
+name: PR 163 webhook validation
+
+on:
+  pull_request:
+    paths:
+      - 'app/Contexts/Platform/**'
+      - 'tests/Contexts/Platform/**'
+      - 'app/ReadModels/PlatformAdministration/**'
+      - 'tests/ReadModels/PlatformAdministration/**'
+      - 'app/ReadModels/TransferManagement/**'
+      - 'tests/ReadModels/TransferManagement/**'
+      - 'app/Contexts/GameWorld/KingdomTransfers/**'
+      - 'tests/Contexts/Platform/Integrations/**'
+      - 'database/migrations/2026_08_07_050000_create_platform_administration_tables.php'
+      - '.github/workflows/pr163-webhook-validation.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr163-webhooks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  webhooks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: kingshot_test
+          POSTGRES_USER: kingshot
+          POSTGRES_PASSWORD: kingshot
+          POSTGRES_INITDB_ARGS: --set=max_locks_per_transaction=256
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kingshot -d kingshot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8.8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0=
+      APP_DEBUG: false
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: kingshot_test
+      DB_USERNAME: kingshot
+      DB_PASSWORD: kingshot
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: array
+      REDIS_HOST: 127.0.0.1
+      PULSE_ENABLED: false
+
+    steps:
+      - name: Check out candidate head
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Configure PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          extensions: curl, dom, gd, intl, mbstring, pcntl, pdo_pgsql, posix, redis, simplexml, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+      - name: Restore Composer package cache
+        uses: ./.github/actions/composer-package-cache
+      - name: Install locked dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Run Integrations behavior
+        run: php vendor/bin/phpunit tests/Contexts/Platform/Integrations --log-junit storage/logs/webhooks-junit.xml
+      - name: Run Platform maintenance behavior
+        run: php vendor/bin/phpunit tests/Contexts/Platform/DataGovernance tests/Contexts/Platform/AllianceAdministration tests/Contexts/Platform/Administration tests/ReadModels/PlatformAdministration --log-junit storage/logs/platform-maintenance-junit.xml
+      - name: Run Kingdom Governance recovery behavior
+        run: php vendor/bin/phpunit tests/Contexts/GameWorld/Governance tests/Workflows/KingdomGovernance tests/ReadModels/KingdomGovernance tests/Contexts/GameWorld/Kingdoms/Feature/KingdomDownstreamActiveBoundaryV3Test.php --log-junit storage/logs/kingdom-recovery-junit.xml
+      - name: Run Operations scope and Territory behavior
+        run: php vendor/bin/phpunit tests/Contexts/Operations/Events tests/Contexts/Operations/TerritoryPlanning tests/Contexts/Operations/KingPerks --log-junit storage/logs/operations-scopes-junit.xml
+      - name: Run Gift Code operational alert progress
+        run: php vendor/bin/phpunit tests/Contexts/GameWorld/GiftCodes/Feature/OperationalAlertProgressTest.php tests/Workflows/NotificationDelivery/Feature/NotificationSourceEligibilityTest.php tests/Shared/Testing/Integration/MigrationReferenceDataIsolationTest.php --log-junit storage/logs/operational-alerts-junit.xml
+      - name: Run Participation owner behavior
+        run: php vendor/bin/phpunit tests/Contexts/Operations/Participation --log-junit storage/logs/participation-junit.xml
+      - name: Run TransferManagement behavior
+        run: php vendor/bin/phpunit tests/ReadModels/TransferManagement --log-junit storage/logs/transfer-management-junit.xml
+      - name: Upload behavior result
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: webhooks-junit
+          path: |
+            storage/logs/webhooks-junit.xml
+            storage/logs/transfer-management-junit.xml
+            storage/logs/platform-maintenance-junit.xml
+            storage/logs/participation-junit.xml
+            storage/logs/kingdom-recovery-junit.xml
+            storage/logs/operational-alerts-junit.xml
+            storage/logs/operations-scopes-junit.xml
+          if-no-files-found: ignore
+          retention-days: 7

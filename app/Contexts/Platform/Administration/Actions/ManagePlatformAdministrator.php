@@ -7,17 +7,19 @@ namespace App\Contexts\Platform\Administration\Actions;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\ValueObjects\AccountIdentity;
 use App\Contexts\Platform\Administration\Models\PlatformAdministrator;
-use App\Contexts\Platform\Administration\Services\PlatformAdministratorBootstrapCoordinator;
+use App\Contexts\Platform\Administration\Services\PlatformAdministratorMutationCoordinator;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
 final readonly class ManagePlatformAdministrator
 {
     public function __construct(
         private AuditRecorder $audit,
-        private PlatformAdministratorBootstrapCoordinator $bootstrap,
+        private PlatformAdministratorMutationCoordinator $coordinator,
         private AccountIdentityQuery $accounts,
     ) {}
 
@@ -28,6 +30,7 @@ final readonly class ManagePlatformAdministrator
         }
 
         return DB::transaction(function () use ($targetUserId, $actor): string {
+            $this->coordinator->acquire();
             if ($actor instanceof AccountIdentity) {
                 $actorGrant = PlatformAdministrator::query()
                     ->where('user_id', $actor->userId)
@@ -39,13 +42,24 @@ final readonly class ManagePlatformAdministrator
                     throw new AuthorizationException('Platform administrator access is required.');
                 }
             } else {
-                $this->bootstrap->acquire();
-
                 if (PlatformAdministrator::query()->whereNull('revoked_at')->exists()) {
                     throw new InvalidArgumentException(
                         'Bootstrap grants are allowed only when no active Platform Administrator exists.',
                     );
                 }
+            }
+
+            try {
+                // Legal holds can hold a grant before the same account. Do not
+                // wait while holding grant authority; retry the complete command.
+                $this->accounts->lockActive($targetUserId, wait: false);
+            } catch (QueryException $exception) {
+                if (($exception->errorInfo[0] ?? null) === '55P03') {
+                    throw new InvalidArgumentException('The target account is busy. Retry the grant shortly.', previous: $exception);
+                }
+                throw $exception;
+            } catch (ValidationException $exception) {
+                throw new InvalidArgumentException('The target account is no longer active.', previous: $exception);
             }
 
             $grant = PlatformAdministrator::query()
@@ -82,6 +96,7 @@ final readonly class ManagePlatformAdministrator
     public function revoke(AccountIdentity $actor, string $grantId): string
     {
         return DB::transaction(function () use ($actor, $grantId): string {
+            $this->coordinator->acquire();
             $actorGrantId = PlatformAdministrator::query()
                 ->where('user_id', $actor->userId)
                 ->whereNull('revoked_at')

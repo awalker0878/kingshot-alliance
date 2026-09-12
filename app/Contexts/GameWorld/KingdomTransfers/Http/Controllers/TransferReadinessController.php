@@ -18,13 +18,12 @@ use App\Contexts\GameWorld\KingdomTransfers\Actions\ResolveTransferBlocker;
 use App\Contexts\GameWorld\KingdomTransfers\Actions\TransitionTransferReadiness;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferPlanState;
 use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferReadinessState;
-use App\Contexts\GameWorld\KingdomTransfers\Models\TransferBlocker;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferGroup;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferKingdomConditionObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferObservation;
 use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
-use App\Contexts\GameWorld\KingdomTransfers\Models\TransferReadinessTransition;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferEligibilityQuery;
+use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferObservationHistoryQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferParticipantQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferPlanQuery;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEligibilityAssessment;
@@ -32,7 +31,9 @@ use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferKingdomCapacity
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferObservedValue;
 use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferRequirement;
 use App\Shared\Infrastructure\Http\Controller;
+use App\Shared\Infrastructure\Pagination\PageSlice;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -71,10 +72,12 @@ final class TransferReadinessController extends Controller
             $scope->allianceId,
             TransferPermission::Manage,
         );
+        /** @var array{participant_cursor?:string|null} $input */
+        $input = $request->validate(['participant_cursor' => ['nullable', 'string', 'max:4096']]);
         $plan = $plans->currentForAlliance($scope->allianceId);
-        $rows = $plan === null
-            ? collect()
-            : $participants->forPlan($scope->allianceId, (string) $plan->id, true);
+        $participantPage = $plan === null ? new PageSlice([], null, TransferParticipantQuery::PAGE_SIZE)
+            : $participants->page($scope->playerId, $scope->allianceId, (string) $plan->id, true, $input['participant_cursor'] ?? null);
+        $rows = collect($participantPage->items);
         $planning = $plan === null
             ? []
             : $eligibility->forPlan($scope->allianceId, $plan, $rows);
@@ -108,12 +111,26 @@ final class TransferReadinessController extends Controller
                     'observedAt' => $plan->window->observed_at->toIso8601String(),
                 ],
             ],
-            'participants' => $rows
-                ->map(fn (TransferParticipant $participant): array => $this->participant(
-                    $participant,
-                    $planning[(string) $participant->id] ?? null,
-                ))
-                ->all(),
+            'participantSummary' => $plan === null ? null : $participants->summary($scope->playerId, $scope->allianceId, (string) $plan->id, true),
+            'participants' => [
+                ...$participantPage->toArray(),
+                'items' => $rows->map(fn (TransferParticipant $participant): array => $this->participant(
+                    $participant, $planning[(string) $participant->id] ?? null,
+                ))->all(),
+            ],
+        ]);
+    }
+
+    public function history(Request $request, AllianceContext $context, TransferObservationHistoryQuery $history, string $plan, string $participant): JsonResponse
+    {
+        /** @var array{cursor?:string|null} $validated */
+        $validated = $request->validate(['cursor' => ['nullable', 'string', 'max:4096']]);
+        $scope = $context->scope();
+        $page = $history->forParticipant($scope->playerId, $scope->allianceId, $plan, $participant, $validated['cursor'] ?? null);
+
+        return response()->json([
+            ...$page->toArray(),
+            'items' => array_map(fn (TransferObservation $row): array => $this->observation($row), $page->items),
         ]);
     }
 
@@ -306,36 +323,9 @@ final class TransferReadinessController extends Controller
             'observations' => $observations
                 ->map(fn (TransferObservation $observation): array => $this->observation($observation))
                 ->all(),
-            'blockers' => $participant->blockers
-                ->sortByDesc(static fn (TransferBlocker $blocker): string => $blocker->created_at?->toIso8601String() ?? '')
-                ->values()
-                ->map(static fn (TransferBlocker $blocker): array => [
-                    'id' => (string) $blocker->id,
-                    'state' => $blocker->state->value,
-                    'summary' => $blocker->summary,
-                    'details' => $blocker->details,
-                    'createdAt' => $blocker->created_at?->toIso8601String(),
-                    'resolvedAt' => $blocker->resolved_at?->toIso8601String(),
-                    'createdBy' => $blocker->createdBy === null
-                        ? null
-                        : ['name' => $blocker->createdBy->current_name],
-                    'resolvedBy' => $blocker->resolvedBy === null
-                        ? null
-                        : ['name' => $blocker->resolvedBy->current_name],
-                ])
-                ->all(),
-            'readinessHistory' => $participant->readinessTransitions
-                ->sortByDesc(static fn (TransferReadinessTransition $transition): string => $transition->created_at->toIso8601String())
-                ->values()
-                ->map(static fn (TransferReadinessTransition $transition): array => [
-                    'from' => $transition->from_state?->value,
-                    'to' => $transition->to_state->value,
-                    'changedAt' => $transition->created_at->toIso8601String(),
-                    'actor' => $transition->actor === null
-                        ? null
-                        : ['name' => $transition->actor->current_name],
-                ])
-                ->all(),
+            'activeBlockerCount' => (int) $participant->getAttribute('active_blocker_count'),
+            'resolvedBlockerCount' => (int) $participant->getAttribute('resolved_blocker_count'),
+            'readinessTransitionCount' => (int) $participant->getAttribute('readiness_transition_count'),
         ];
     }
 

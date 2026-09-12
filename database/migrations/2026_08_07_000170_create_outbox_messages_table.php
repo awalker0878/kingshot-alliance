@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -29,6 +30,7 @@ return new class extends Migration
             $table->index(['alliance_id', 'event_type']);
             $table->index(['partition_key', 'event_type']);
         });
+        DB::statement('CREATE INDEX platform_outbox_failure_catalogue_index ON outbox_messages (id) WHERE published_at IS NULL AND last_error IS NOT NULL');
     }
 
     public function down(): void

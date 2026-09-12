@@ -14,14 +14,7 @@ use App\Contexts\Communications\Delivery\Models\NotificationDelivery;
 use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
-use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferEligibilityOutcome;
-use App\Contexts\GameWorld\KingdomTransfers\Enums\TransferReadinessState;
-use App\Contexts\GameWorld\KingdomTransfers\Models\TransferParticipant;
-use App\Contexts\GameWorld\KingdomTransfers\Models\TransferWindow;
-use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferEligibilityQuery;
-use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferParticipantQuery;
-use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferPlanQuery;
-use App\Contexts\GameWorld\KingdomTransfers\ValueObjects\TransferEligibilityAssessment;
+use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferVerificationPreviewQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Intelligence\Access\Enums\IntelligencePermission;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
@@ -58,9 +51,7 @@ final readonly class AllianceCommandQuery
         private EventTypeProfileResolver $profiles,
         private EventCommandQuery $eventCommand,
         private RosterIntelligence $roster,
-        private TransferPlanQuery $transferPlans,
-        private TransferParticipantQuery $transferParticipants,
-        private TransferEligibilityQuery $transferEligibility,
+        private TransferVerificationPreviewQuery $transferPreview,
         private TerritoryPlanQuery $territoryPlans,
         private TerritoryReconciliationQuery $territoryReconciliation,
         private AllianceRosterReconciliationQuery $rosterReconciliation,
@@ -144,7 +135,7 @@ final readonly class AllianceCommandQuery
             $allianceId,
             TransferPermission::View,
         )) {
-            $transfer = $this->transfer($allianceId);
+            $transfer = $this->transfer($actor, $allianceId);
             if ($transfer !== null) {
                 $items[] = $transfer;
             }
@@ -341,59 +332,36 @@ final readonly class AllianceCommandQuery
     }
 
     /** @return array<string,mixed>|null */
-    private function transfer(string $allianceId): ?array
+    private function transfer(PlayerReference $actor, string $allianceId): ?array
     {
-        $plan = $this->transferPlans->currentForAlliance($allianceId);
-        if ($plan === null) {
+        $preview = $this->transferPreview->current($actor->playerId, $allianceId);
+        if ($preview === null) {
             return null;
         }
-
-        $participants = $this->transferParticipants->forPlan($allianceId, (string) $plan->id);
-        if (! $plan->window instanceof TransferWindow) {
-            return $this->item(
-                code: 'transfer_verification',
-                owner: 'game_world.kingdom_transfers',
-                state: 'missing_window',
-                reasonKey: 'application.dashboard.commandReasons.transferWindowMissing',
-                count: max(1, $participants->count()),
-                href: '/alliance/transfers/manage',
-                observedAt: $plan->updated_at?->toIso8601String(),
-                actionable: true,
-                metadata: ['planId' => (string) $plan->id],
-            );
-        }
-
-        $assessments = $this->transferEligibility->forPlan($allianceId, $plan, $participants);
-        $affected = [];
-        foreach ($participants as $participant) {
-            if (! $participant instanceof TransferParticipant) {
-                continue;
-            }
-
-            $assessment = $assessments[(string) $participant->id]['assessment'] ?? null;
-            $requiresAttention = $participant->readiness_state === TransferReadinessState::Blocked
-                || ($assessment instanceof TransferEligibilityAssessment && in_array($assessment->outcome, [
-                    TransferEligibilityOutcome::Blocked,
-                    TransferEligibilityOutcome::NeedsVerification,
-                ], true));
-            if ($requiresAttention) {
-                $affected[] = (string) $participant->id;
-            }
-        }
+        $coverage = $preview->coverage();
+        $state = match (true) {
+            ! $preview->windowAvailable => 'missing_window',
+            ! $coverage['complete'] => 'assessment_incomplete',
+            $preview->knownAffected > 0 => 'needs_attention',
+            default => 'verified',
+        };
 
         return $this->item(
             code: 'transfer_verification',
             owner: 'game_world.kingdom_transfers',
-            state: $affected === [] ? 'verified' : 'needs_attention',
-            reasonKey: $affected === []
-                ? 'application.dashboard.commandReasons.transferVerified'
-                : 'application.dashboard.commandReasons.transferNeedsVerification',
-            count: count($affected),
-            href: '/alliance/transfers/readiness',
-            observedAt: $plan->updated_at?->toIso8601String(),
-            actionable: $affected !== [],
-            affectedIds: $affected,
-            metadata: ['planId' => (string) $plan->id],
+            state: $state,
+            reasonKey: match ($state) {
+                'missing_window' => 'application.dashboard.commandReasons.transferWindowMissing',
+                'assessment_incomplete' => 'application.dashboard.commandReasons.transferAssessmentIncomplete',
+                'needs_attention' => 'application.dashboard.commandReasons.transferNeedsVerification',
+                default => 'application.dashboard.commandReasons.transferVerified',
+            },
+            count: $preview->windowAvailable ? $preview->knownAffected : max(1, $preview->total),
+            href: $preview->windowAvailable ? '/alliance/transfers/readiness' : '/alliance/transfers/manage',
+            observedAt: $preview->updatedAt,
+            actionable: $state !== 'verified',
+            affectedIds: $preview->affectedIds,
+            metadata: ['planId' => $preview->planId, 'coverage' => $coverage],
         );
     }
 

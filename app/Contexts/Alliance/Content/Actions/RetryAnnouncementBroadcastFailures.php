@@ -50,7 +50,7 @@ final readonly class RetryAnnouncementBroadcastFailures
                 'alliance.announcement',
                 'content_item',
                 (string) $run->content_item_id,
-                ['broadcast_run_id' => (string) $run->id],
+                ['alliance_id' => $allianceId, 'content_item_id' => (string) $run->content_item_id, 'broadcast_run_id' => (string) $run->id],
             );
             if ($retried === []) {
                 throw ValidationException::withMessages([

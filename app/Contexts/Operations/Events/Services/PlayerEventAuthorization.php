@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Events\Services;
 
 use App\Contexts\Alliance\Access\ValueObjects\AllianceAuthorityFacts;
+use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
@@ -16,6 +18,8 @@ final readonly class PlayerEventAuthorization
     public function __construct(
         private AllianceOperationsAuthorization $allianceAuthorization,
         private RosterEntryQuery $roster,
+        private PlayerMembershipQuery $memberships,
+        private KingdomReferenceQuery $kingdoms,
         private PlayerReferenceQuery $players,
     ) {}
 
@@ -23,7 +27,9 @@ final readonly class PlayerEventAuthorization
     {
         $actor = $this->players->find($actorPlayerId);
         $target = $this->players->find($targetPlayerId);
-        if (! $actor instanceof PlayerReference || ! $target instanceof PlayerReference) {
+        if (! $actor instanceof PlayerReference || ! $target instanceof PlayerReference
+            || ! $actor->directIdentity() || ! $target->directIdentity() || $actor->kingdomId !== $target->kingdomId
+            || $this->kingdoms->findActive($target->kingdomId) === null) {
             return false;
         }
 
@@ -35,8 +41,9 @@ final readonly class PlayerEventAuthorization
             return false;
         }
 
-        foreach ($this->roster->activeAllianceIdsForPlayerInKingdom($target->playerId, $target->kingdomId) as $allianceId) {
-            if ($this->allianceAuthorization->allows($actor->playerId, $allianceId, OperationsPermission::EventPlayerManage)) {
+        foreach ($this->memberships->activeAllianceIdsForPlayerInKingdom($actor->playerId, $target->kingdomId) as $allianceId) {
+            if ($this->roster->hasActiveRosterPresence($allianceId, $target->playerId)
+                && $this->allianceAuthorization->allows($actor->playerId, $allianceId, OperationsPermission::EventPlayerManage)) {
                 return true;
             }
         }

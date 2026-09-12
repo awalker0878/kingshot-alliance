@@ -5,6 +5,8 @@ Only orchestration that genuinely spans bounded contexts belongs here.
 Current workflows:
 - `AccountOnboarding`
 - `KingdomGovernance`
+- `ExternalEventParticipation`
+- `NotificationDelivery` — bounded Officer Brief and Intelligence change orchestration over authorized ReadModels and Communications-owned delivery.
 
 Rules:
 - workflows own no business persistence or transactions;

@@ -9,11 +9,12 @@ use App\Contexts\Alliance\Access\Actions\ArchiveAllianceRole;
 use App\Contexts\Alliance\Access\Actions\CreateAllianceRole;
 use App\Contexts\Alliance\Access\Actions\UpdateAllianceRole;
 use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Models\Role;
+use App\Contexts\Alliance\Access\Queries\AllianceRoleCatalogQuery;
 use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Shared\Infrastructure\Http\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -27,6 +28,7 @@ final class AllianceRoleController extends Controller
         AllianceContext $context,
         AllianceAuthorization $authorization,
         AllianceReferenceQuery $alliances,
+        AllianceRoleCatalogQuery $catalog,
     ): Response {
         $user = $request->user();
         abort_unless($user instanceof AuthenticatedAccount, 401);
@@ -34,31 +36,38 @@ final class AllianceRoleController extends Controller
         $authorization->authorize($scope->playerId, $scope->allianceId, AlliancePermission::RoleManage);
         $alliance = $alliances->require($scope->allianceId);
 
-        $roles = Role::query()
-            ->where('alliance_id', $scope->allianceId)
-            ->with('permissions:id,key')
-            ->orderByRaw('archived_at IS NOT NULL')
-            ->orderByDesc('is_system')
-            ->orderBy('name')
-            ->get()
-            ->map(static fn (Role $role): array => [
-                'id' => (string) $role->id,
-                'key' => (string) $role->key,
-                'name' => (string) $role->name,
-                'system' => (bool) $role->is_system,
-                'archivedAt' => $role->archived_at?->toIso8601String(),
-                'permissions' => $role->permissions->pluck('key')->map(static fn ($key): string => (string) $key)->sort()->values()->all(),
-                'memberCount' => $role->memberships()->count(),
-            ])
-            ->values()
-            ->all();
+        $validated = $request->validate([
+            'status' => ['nullable', Rule::in(['active', 'archived'])],
+            'q' => ['nullable', 'string', 'max:100'],
+            'cursor' => ['nullable', 'string', 'max:4096'],
+        ]);
+        $status = (string) ($validated['status'] ?? 'active');
+        $search = trim((string) ($validated['q'] ?? ''));
+        $page = $catalog->management($scope->allianceId, $status === 'archived', $search, $validated['cursor'] ?? null);
 
         return Inertia::render('Alliance/Roles/Index', [
             'user' => ['name' => $user->accountName(), 'email' => $user->accountEmail()],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name],
-            'roles' => $roles,
+            'rolePage' => $page->toArray(),
+            'filters' => ['status' => $status, 'q' => $search],
             'permissions' => array_map(static fn (AlliancePermission $permission): string => $permission->value, AlliancePermission::cases()),
         ]);
+    }
+
+    public function options(
+        Request $request,
+        AllianceContext $context,
+        AllianceAuthorization $authorization,
+        AllianceRoleCatalogQuery $catalog,
+    ): JsonResponse {
+        $scope = $context->scope();
+        $authorization->authorize($scope->playerId, $scope->allianceId, AlliancePermission::RoleManage);
+        $validated = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'cursor' => ['nullable', 'string', 'max:4096'],
+        ]);
+
+        return response()->json($catalog->options($scope->allianceId, (string) ($validated['q'] ?? ''), $validated['cursor'] ?? null)->toArray());
     }
 
     public function store(Request $request, AllianceContext $context, CreateAllianceRole $create): RedirectResponse
@@ -92,8 +101,8 @@ final class AllianceRoleController extends Controller
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:100'],
-            'permissions' => ['array', 'max:32'],
-            'permissions.*' => ['string', Rule::in(array_map(static fn (AlliancePermission $permission): string => $permission->value, AlliancePermission::cases()))],
+            'permissions' => ['present', 'array', 'list', 'max:'.count(AlliancePermission::cases())],
+            'permissions.*' => ['string', 'distinct', Rule::in(array_map(static fn (AlliancePermission $permission): string => $permission->value, AlliancePermission::cases()))],
         ]);
     }
 

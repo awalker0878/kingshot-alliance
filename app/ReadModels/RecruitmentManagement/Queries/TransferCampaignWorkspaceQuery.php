@@ -108,9 +108,11 @@ final readonly class TransferCampaignWorkspaceQuery
                 'plan.window',
                 'sourceKingdom:id,number',
                 'destinationKingdom:id,number',
-                'observations' => static fn ($query) => $query->orderByDesc('observed_at')->limit(20),
-                'blockers' => static fn ($query) => $query->orderByDesc('created_at')->limit(20),
                 'completion',
+            ])
+            ->withCount([
+                'observations',
+                'blockers as active_blocker_count' => static fn ($query) => $query->where('state', TransferBlockerState::Active),
             ])
             ->orderByRaw('withdrawn_at IS NULL desc')
             ->orderByDesc('created_at')
@@ -164,21 +166,8 @@ final readonly class TransferCampaignWorkspaceQuery
                     ),
                 ]
                 : null,
-            'evidence' => $participant->observations->map(static fn ($observation): array => [
-                'id' => (string) $observation->id,
-                'kind' => $observation->kind->value,
-                'sourceType' => $observation->source_type->value,
-                'sourceReference' => (string) $observation->source_reference,
-                'observedAt' => $observation->observed_at->toIso8601String(),
-                'validUntil' => $observation->valid_until?->toIso8601String(),
-                'evidenceId' => $observation->evidence_id,
-            ])->values()->all(),
-            'activeBlockers' => $participant->blockers
-                ->filter(static fn ($blocker): bool => $blocker->state === TransferBlockerState::Active)
-                ->map(static fn ($blocker): array => [
-                    'id' => (string) $blocker->id,
-                    'summary' => (string) $blocker->summary,
-                ])->values()->all(),
+            'evidenceCount' => (int) $participant->getAttribute('observations_count'),
+            'activeBlockerCount' => (int) $participant->getAttribute('active_blocker_count'),
             'completion' => $participant->completion === null
                 ? null
                 : [
@@ -212,12 +201,8 @@ final readonly class TransferCampaignWorkspaceQuery
             'participant_id' => is_string($transfer['participantId'] ?? null) ? $transfer['participantId'] : null,
         ], [
             'communication_count' => (int) ($communications['total'] ?? 0),
-            'blocker_count' => is_array($transfer['activeBlockers'] ?? null)
-                ? count($transfer['activeBlockers'])
-                : 0,
-            'evidence_count' => is_array($transfer['evidence'] ?? null)
-                ? count($transfer['evidence'])
-                : 0,
+            'blocker_count' => (int) ($transfer['activeBlockerCount'] ?? 0),
+            'evidence_count' => (int) ($transfer['evidenceCount'] ?? 0),
         ], array_values(array_filter([
             (string) ($projection['playerLink'] ?? ''),
             ($projection['available'] ?? false) === true ? 'available' : 'unavailable',
@@ -231,16 +216,14 @@ final readonly class TransferCampaignWorkspaceQuery
     /** @return array{total:int,latestStatus:?string,latestAt:?string} */
     private function communications(string $allianceId, string $candidateId): array
     {
-        $rows = RecruitmentCommunication::query()
+        $query = RecruitmentCommunication::query()
             ->where('alliance_id', $allianceId)
-            ->where('candidate_id', $candidateId)
-            ->orderByDesc('created_at')
-            ->limit(50)
-            ->get();
-        $latest = $rows->first();
+            ->where('candidate_id', $candidateId);
+        $total = (clone $query)->count();
+        $latest = $query->orderByDesc('created_at')->orderByDesc('id')->first();
 
         return [
-            'total' => $rows->count(),
+            'total' => $total,
             'latestStatus' => $latest instanceof RecruitmentCommunication
                 ? $latest->communicationStatus()->value
                 : null,

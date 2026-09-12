@@ -1,7 +1,13 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': '募集の受け入れ項目を更新しました。',
+  },
   common: {
+    yes: 'はい',
+    no: 'いいえ',
+    historyItemsOnPage: 'このページに{count}件（最大{pageSize}件）。',
     all: 'すべて',
     language: '言語',
     signIn: 'サインイン',
@@ -44,6 +50,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: '追加の評価が必要' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          '移転参加者のうち少なくとも {count} 人に確認が必要です。この概要では {unassessed} 人が未評価です',
+      },
+
       title: 'ホーム',
       eyebrow: '総督概要',
       welcome: 'ようこそ、総督 {name}',

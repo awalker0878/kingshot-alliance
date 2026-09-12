@@ -2,6 +2,7 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
+import AllianceRolePicker from '@/components/alliance/AllianceRolePicker.vue';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -12,13 +13,6 @@ type Member = {
   playerId: string;
   name: string;
   rank: string;
-};
-
-type Role = {
-  id: string;
-  key: string;
-  name: string;
-  system: boolean;
 };
 
 type BulkItem = {
@@ -45,7 +39,6 @@ const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string };
   members: Member[];
-  roles: Role[];
   rankOptions: string[];
   bulkRankPreview: BulkSummary | null;
   bulkRankResult: BulkSummary | null;
@@ -61,7 +54,7 @@ const rankForm = useForm({
 });
 const roleForm = useForm({
   membership_ids: [] as string[],
-  role_id: props.roles[0]?.id ?? '',
+  role_id: '',
   operation: 'assign',
 });
 
@@ -199,12 +192,13 @@ function memberName(item: BulkItem): string {
           <h2 id="bulk-role-title" class="ks-display text-xl font-semibold">
             {{ t('allianceExpansion.roleChange') }}
           </h2>
-          <label class="mt-4 block text-sm font-semibold" for="bulk-role">
-            {{ t('allianceExpansion.targetRole') }}
-          </label>
-          <select id="bulk-role" v-model="roleForm.role_id" class="ks-input mt-2">
-            <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
-          </select>
+          <AllianceRolePicker
+            id="bulk-role"
+            :key="alliance.id"
+            v-model="roleForm.role_id"
+            class="mt-4"
+            :label="t('allianceExpansion.targetRole')"
+          />
           <div class="mt-4 grid grid-cols-2 gap-2">
             <label class="flex items-center gap-2 text-sm">
               <input v-model="roleForm.operation" type="radio" value="assign" />

@@ -86,6 +86,7 @@ return new class extends Migration
             $table->timestamps();
             $table->index(['spatial_review_id', 'idempotency_key', 'status'], 'evidence_spatial_commit_review_idx');
             $table->index(['alliance_id', 'kingdom_id', 'status', 'created_at'], 'evidence_spatial_commit_scope_idx');
+            $table->index(['evidence_id', 'status'], 'evidence_spatial_commit_retention_idx');
         });
 
         Schema::create('spatial_observations', function (Blueprint $table): void {

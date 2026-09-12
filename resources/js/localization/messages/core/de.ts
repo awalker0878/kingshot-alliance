@@ -1,7 +1,13 @@
 import type { MessageCatalogue } from '../../types';
 
 const messages = {
+  receipts: {
+    'recruitment-onboarding-item-updated': 'Rekrutierungs-Onboarding-Eintrag aktualisiert.',
+  },
   common: {
+    yes: 'Ja',
+    no: 'Nein',
+    historyItemsOnPage: '{count} Einträge auf dieser Seite (bis zu {pageSize}).',
     all: 'Alle',
     language: 'Sprache',
     signIn: 'Anmelden',
@@ -44,6 +50,13 @@ const messages = {
   },
   application: {
     dashboard: {
+      commandStates: { assessment_incomplete: 'Weitere Bewertung erforderlich' },
+
+      commandReasons: {
+        transferAssessmentIncomplete:
+          'Mindestens {count} Transferteilnehmer benötigen Aufmerksamkeit; {unassessed} sind in dieser Übersicht noch nicht bewertet',
+      },
+
       title: 'Startseite',
       eyebrow: 'Gouverneursübersicht',
       welcome: 'Willkommen, Gouverneur {name}',

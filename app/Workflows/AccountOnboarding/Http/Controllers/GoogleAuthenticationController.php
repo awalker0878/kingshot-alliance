@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace App\Workflows\AccountOnboarding\Http\Controllers;
 
-use App\Contexts\Accounts\Authentication\Actions\RecordAuthenticationAuditEvent;
-use App\Contexts\Accounts\Authentication\Actions\RevokeOtherAccountSessions;
+use App\Contexts\Accounts\Authentication\Actions\AuthenticateWithGoogle;
+use App\Contexts\Accounts\Authentication\Actions\ConfirmGoogleAccount;
+use App\Contexts\Accounts\Authentication\Actions\ConnectGoogleAccount;
 use App\Contexts\Accounts\Authentication\Enums\GoogleAuthenticationIntent;
 use App\Contexts\Accounts\Authentication\Services\AccountSignInMethodPolicy;
 use App\Contexts\Accounts\Authentication\Services\GoogleAuthenticationOperation;
 use App\Contexts\Accounts\Authentication\Services\RecentAuthentication;
-use App\Contexts\Accounts\Identity\Actions\CreateAccountIdentity;
-use App\Contexts\Accounts\Identity\Actions\RecordAccountIdentityUse;
 use App\Contexts\Accounts\Identity\Actions\RemoveAccountIdentity;
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Accounts\Identity\Queries\ProviderIdentityQuery;
 use App\Contexts\Accounts\Registration\Data\RegistrationProviderIdentity;
-use App\Contexts\Accounts\Security\Services\SecurityNotificationService;
 use App\Contexts\Alliance\Membership\Queries\FindPendingInvitation;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Http\Controller;
@@ -25,7 +23,6 @@ use App\Workflows\AccountOnboarding\Actions\RegisterAccount;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\AbstractUser;
@@ -100,24 +97,14 @@ final class GoogleAuthenticationController extends Controller
     public function disconnect(
         Request $request,
         RemoveAccountIdentity $removeIdentity,
-        RevokeOtherAccountSessions $revokeOtherSessions,
         RecentAuthentication $recentAuthentication,
-        SecurityNotificationService $securityNotifications,
     ): RedirectResponse {
         $user = $request->user();
         abort_unless($user instanceof AuthenticatedAccount, 401);
         $userId = (int) $user->getAuthIdentifier();
 
-        $removeIdentity->handle($userId, 'google');
-        $revokeOtherSessions->handle($userId, $request->session()->getId());
+        $removeIdentity->handle($userId, 'google', $request->session()->getId());
         $recentAuthentication->clear($request);
-        $securityNotifications->publish(
-            userId: $userId,
-            event: 'account.google.disconnected',
-            title: (string) __('accounts.security.google_disconnected.title'),
-            body: (string) __('accounts.security.google_disconnected.body'),
-            idempotencyKey: 'account.google.disconnected:'.$userId.':'.now()->format('Uu'),
-        );
 
         return redirect()->route('profile.show')->with(
             'actionReceipt',
@@ -131,14 +118,11 @@ final class GoogleAuthenticationController extends Controller
         RegisterAccount $registerAccount,
         AccountIdentityQuery $accounts,
         ProviderIdentityQuery $providerIdentities,
-        CreateAccountIdentity $createIdentity,
-        RecordAccountIdentityUse $recordIdentityUse,
+        ConnectGoogleAccount $connectGoogle,
+        ConfirmGoogleAccount $confirmGoogle,
+        AuthenticateWithGoogle $authenticateGoogle,
         GoogleAuthenticationOperation $operations,
-        RecentAuthentication $recentAuthentication,
-        AccountSignInMethodPolicy $methods,
-        SecurityNotificationService $securityNotifications,
         AuditRecorder $audit,
-        RecordAuthenticationAuditEvent $authenticationAudit,
     ): RedirectResponse {
         $this->ensureConfigured();
         $operation = $operations->consume($request);
@@ -160,13 +144,8 @@ final class GoogleAuthenticationController extends Controller
                 expectedUserId: $operation['user_id'],
                 subject: $subject,
                 email: $email,
-                providerIdentities: $providerIdentities,
-                createIdentity: $createIdentity,
-                recordIdentityUse: $recordIdentityUse,
-                recentAuthentication: $recentAuthentication,
-                methods: $methods,
-                securityNotifications: $securityNotifications,
-                authenticationAudit: $authenticationAudit,
+                connectGoogle: $connectGoogle,
+                confirmGoogle: $confirmGoogle,
             );
         }
 
@@ -176,10 +155,7 @@ final class GoogleAuthenticationController extends Controller
                 expectedUserId: $operation['user_id'],
                 subject: $subject,
                 email: $email,
-                providerIdentities: $providerIdentities,
-                recordIdentityUse: $recordIdentityUse,
-                recentAuthentication: $recentAuthentication,
-                authenticationAudit: $authenticationAudit,
+                confirmGoogle: $confirmGoogle,
             );
         }
 
@@ -194,18 +170,14 @@ final class GoogleAuthenticationController extends Controller
         $providerIdentity = $providerIdentities->findByProviderSubject('google', $subject);
 
         if ($providerIdentity !== null) {
-            $account = $accounts->require($providerIdentity->userId);
-            abort_unless(! $account->anonymized, 403);
-            $recordIdentityUse->handle($providerIdentity->identityId, $email, true);
+            if ($authenticateGoogle->handle($request, $providerIdentity->userId, $providerIdentity->identityId,
+                $subject, $email, $invitationToken)) {
+                return redirect()->route('two-factor.login');
+            }
 
-            return $this->completeLogin(
-                request: $request,
-                userId: $account->userId,
-                invitationToken: $invitationToken,
-                accounts: $accounts,
-                recentAuthentication: $recentAuthentication,
-                authenticationAudit: $authenticationAudit,
-            );
+            return $invitationToken === null
+                ? redirect()->intended(route('dashboard'))
+                : redirect()->route('invitations.show', ['token' => $invitationToken]);
         }
 
         if ($accounts->findIdByEmail($email) !== null) {
@@ -264,20 +236,11 @@ final class GoogleAuthenticationController extends Controller
             ]);
         }
 
-        abort_unless(Auth::loginUsingId($result->userId) instanceof Authenticatable, 401);
-        $request->session()->regenerate();
-
         $identity = $providerIdentities->findForUser($result->userId, 'google');
-        $recentAuthentication->mark(
-            $request,
-            'google',
-            $identity === null ? null : (string) $identity->identityId,
-        );
-        $authenticationAudit->handle(
-            userId: $result->userId,
-            event: 'auth.login',
-            metadata: ['provider' => 'google', 'mfa_method' => null],
-        );
+        abort_unless($identity !== null, 403);
+        if ($authenticateGoogle->handle($request, $result->userId, $identity->identityId, $subject, $email, null)) {
+            return redirect()->route('two-factor.login');
+        }
 
         if ($result->joinedAlliance() && $result->playerId !== null) {
             $request->session()->put(
@@ -296,79 +259,16 @@ final class GoogleAuthenticationController extends Controller
         ?int $expectedUserId,
         string $subject,
         string $email,
-        ProviderIdentityQuery $providerIdentities,
-        CreateAccountIdentity $createIdentity,
-        RecordAccountIdentityUse $recordIdentityUse,
-        RecentAuthentication $recentAuthentication,
-        AccountSignInMethodPolicy $methods,
-        SecurityNotificationService $securityNotifications,
-        RecordAuthenticationAuditEvent $authenticationAudit,
+        ConnectGoogleAccount $connectGoogle,
+        ConfirmGoogleAccount $confirmGoogle,
     ): RedirectResponse {
         $user = $request->user();
         abort_unless($user instanceof AuthenticatedAccount, 403);
         $userId = (int) $user->getAuthIdentifier();
         abort_unless($expectedUserId === $userId, 403);
 
-        $ownedElsewhere = $providerIdentities->findByProviderSubject('google', $subject);
-        if ($ownedElsewhere !== null && $ownedElsewhere->userId !== $userId) {
-            $authenticationAudit->handle(
-                userId: $userId,
-                event: 'account.google.connection_rejected',
-                metadata: ['reason' => 'subject_owned_elsewhere'],
-            );
-
-            throw ValidationException::withMessages([
-                'google' => 'This Google account is already connected to another Kingshot Alliance account.',
-            ]);
-        }
-
-        $existing = $providerIdentities->findForUser($userId, 'google');
-        if ($existing !== null) {
-            if (! hash_equals($existing->providerSubject, $subject)) {
-                throw ValidationException::withMessages([
-                    'google' => 'A different Google account is already connected. Disconnect it before connecting another one.',
-                ]);
-            }
-
-            $recordIdentityUse->handle($existing->identityId, $email, true);
-            $recentAuthentication->mark($request, 'google', (string) $existing->identityId);
-
-            return redirect()->route('profile.show')->with(
-                'actionReceipt',
-                $this->receipt('google-connected'),
-            );
-        }
-
-        try {
-            $createIdentity->handle(
-                userId: $userId,
-                provider: 'google',
-                providerSubject: $subject,
-                providerEmail: $email,
-                providerEmailVerified: true,
-            );
-        } catch (QueryException) {
-            throw ValidationException::withMessages([
-                'google' => 'This Google account could not be connected safely because it is already in use.',
-            ]);
-        }
-
-        abort_unless($methods->hasGoogle($userId), 500);
-        $identity = $providerIdentities->findForUser($userId, 'google');
-        $recentAuthentication->mark(
-            $request,
-            'google',
-            $identity === null ? null : (string) $identity->identityId,
-        );
-
-        $authenticationAudit->handle(userId: $userId, event: 'account.google.connected');
-        $securityNotifications->publish(
-            userId: $userId,
-            event: 'account.google.connected',
-            title: (string) __('accounts.security.google_connected.title'),
-            body: (string) __('accounts.security.google_connected.body'),
-            idempotencyKey: 'account.google.connected:'.$userId.':'.now()->format('Uu'),
-        );
+        $connectGoogle->handle($userId, $subject, $email);
+        $confirmGoogle->handle($request, $userId, $subject, $email);
 
         return redirect()->route('profile.show')->with(
             'actionReceipt',
@@ -381,73 +281,9 @@ final class GoogleAuthenticationController extends Controller
         ?int $expectedUserId,
         string $subject,
         string $email,
-        ProviderIdentityQuery $providerIdentities,
-        RecordAccountIdentityUse $recordIdentityUse,
-        RecentAuthentication $recentAuthentication,
-        RecordAuthenticationAuditEvent $authenticationAudit,
+        ConfirmGoogleAccount $confirmGoogle,
     ): RedirectResponse {
-        $user = $request->user();
-        abort_unless($user instanceof AuthenticatedAccount, 403);
-        $userId = (int) $user->getAuthIdentifier();
-        abort_unless($expectedUserId === $userId, 403);
-
-        $identity = $providerIdentities->findForUser($userId, 'google');
-        abort_unless($identity !== null, 403);
-
-        if (! hash_equals($identity->providerSubject, $subject)) {
-            $authenticationAudit->handle(
-                userId: $userId,
-                event: 'auth.google.identity_failed',
-                metadata: ['reason' => 'reauthentication_subject_mismatch'],
-            );
-
-            abort(403, 'Google reauthentication did not match this Kingshot Alliance account.');
-        }
-
-        $recordIdentityUse->handle($identity->identityId, $email, true);
-        $recentAuthentication->mark($request, 'google', (string) $identity->identityId);
-
-        $authenticationAudit->handle(
-            userId: $userId,
-            event: 'auth.reauthenticated',
-            metadata: ['provider' => 'google'],
-        );
-
-        return redirect()->intended(route('dashboard'));
-    }
-
-    private function completeLogin(
-        Request $request,
-        int $userId,
-        ?string $invitationToken,
-        AccountIdentityQuery $accounts,
-        RecentAuthentication $recentAuthentication,
-        RecordAuthenticationAuditEvent $authenticationAudit,
-    ): RedirectResponse {
-        if ($accounts->requiresMultiFactor($userId)) {
-            $request->session()->put([
-                'accounts.two_factor_challenge_user_id' => $userId,
-                'accounts.two_factor_remember' => false,
-                'accounts.two_factor_invitation_token' => $invitationToken ?? '',
-                'accounts.two_factor_primary_method' => 'google',
-            ]);
-
-            return redirect()->route('two-factor.login');
-        }
-
-        abort_unless(Auth::loginUsingId($userId) instanceof Authenticatable, 401);
-        $request->session()->regenerate();
-        $recentAuthentication->mark($request, 'google');
-
-        $authenticationAudit->handle(
-            userId: $userId,
-            event: 'auth.login',
-            metadata: ['provider' => 'google', 'mfa_method' => null],
-        );
-
-        if ($invitationToken !== null) {
-            return redirect()->route('invitations.show', ['token' => $invitationToken]);
-        }
+        $confirmGoogle->handle($request, $expectedUserId, $subject, $email);
 
         return redirect()->intended(route('dashboard'));
     }

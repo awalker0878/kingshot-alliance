@@ -60,7 +60,7 @@ Platform owns SaaS/platform administration. Platform Administrator is User-scope
 
 ## Composition
 
-Cross-context commands use `app/Workflows` only when more than one owner participates. V3 workflow packages are `AccountOnboarding`, `ExternalEventParticipation`, and `KingdomGovernance`.
+Cross-context commands use `app/Workflows` only when more than one owner participates. V3 workflow packages are `AccountOnboarding`, `ExternalEventParticipation`, `KingdomGovernance`, and `NotificationDelivery`.
 
 Cross-context read composition uses `app/ReadModels`.
 

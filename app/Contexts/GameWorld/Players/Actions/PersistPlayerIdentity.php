@@ -15,6 +15,7 @@ use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -39,6 +40,7 @@ final readonly class PersistPlayerIdentity
         ?int $confidenceBasisPoints = null,
         ?AuditActor $actor = null,
         ?string $reason = null,
+        ?int $expectedExistingOwnerUserId = null,
     ): PlayerReference {
         $name = trim($observedName);
         if ($name === '') {
@@ -47,98 +49,122 @@ final readonly class PersistPlayerIdentity
         $stableId = $gamePlayerId === null ? null : trim($gamePlayerId);
         $stableId = $stableId === '' ? null : $stableId;
 
-        $playerId = DB::transaction(function () use (
-            $kingdomId,
-            $name,
-            $stableId,
-            $expectedPlayerId,
-            $source,
-            $sourceReference,
-            $observedAt,
-            $confidenceBasisPoints,
-            $actor,
-            $reason,
-        ): string {
-            try {
-                $this->kingdoms->lockActiveShared($kingdomId);
-            } catch (ModelNotFoundException) {
-                throw ValidationException::withMessages(['kingdom' => 'The selected Kingdom is archived or unavailable.']);
-            }
+        try {
+            $playerId = DB::transaction(function () use (
+                $kingdomId,
+                $name,
+                $stableId,
+                $expectedPlayerId,
+                $source,
+                $sourceReference,
+                $observedAt,
+                $confidenceBasisPoints,
+                $actor,
+                $reason,
+                $expectedExistingOwnerUserId,
+            ): string {
+                try {
+                    $this->kingdoms->lockActiveShared($kingdomId);
+                } catch (ModelNotFoundException) {
+                    throw ValidationException::withMessages(['kingdom' => 'The selected Kingdom is archived or unavailable.']);
+                }
 
-            if ($expectedPlayerId !== null) {
-                $player = Player::query()
-                    ->whereKey($expectedPlayerId)
-                    ->whereNull('canonical_player_id')
-                    ->lockForUpdate()
-                    ->firstOrFail();
-                $this->lifecycle->assertKingdomMoveAllowed($player, $kingdomId);
-                if ($stableId !== null) {
-                    $owner = Player::query()
-                        ->where('game_player_id', $stableId)
+                if ($expectedPlayerId !== null) {
+                    $player = Player::query()
+                        ->whereKey($expectedPlayerId)
                         ->whereNull('canonical_player_id')
                         ->lockForUpdate()
-                        ->first();
-                    if ($owner instanceof Player && (string) $owner->id !== (string) $player->id) {
-                        throw ValidationException::withMessages(['game_player_id' => 'That game Player ID belongs to a different Player.']);
-                    }
-                    if ($player->game_player_id !== null && $player->game_player_id !== $stableId) {
-                        throw ValidationException::withMessages(['game_player_id' => 'The selected Player has a different stable game-player identifier.']);
-                    }
-                }
-
-                $nextStableId = $player->game_player_id === null ? $stableId : (string) $player->game_player_id;
-                $this->recordTransition($player, $kingdomId, $name, $nextStableId, $source, $sourceReference, $observedAt, $confidenceBasisPoints, $reason);
-                $previousKingdomId = (string) $player->current_kingdom_id;
-                $previousName = (string) $player->current_name;
-                $previousStableId = $player->game_player_id === null ? null : (string) $player->game_player_id;
-
-                $attributes = ['current_kingdom_id' => $kingdomId, 'current_name' => $name];
-                if ($stableId !== null && $player->game_player_id === null) {
-                    $attributes['game_player_id'] = $stableId;
-                }
-                $player->forceFill($attributes)->save();
-                $this->auditChanges($player, $actor, $previousKingdomId, $previousName, $previousStableId, $source, $sourceReference, $reason);
-
-                return (string) $player->id;
-            }
-
-            if ($stableId !== null) {
-                $player = Player::query()
-                    ->where('game_player_id', $stableId)
-                    ->whereNull('canonical_player_id')
-                    ->lockForUpdate()
-                    ->first();
-                if ($player instanceof Player) {
+                        ->firstOrFail();
+                    $this->assertExpectedExistingOwner($player, $expectedExistingOwnerUserId);
                     $this->lifecycle->assertKingdomMoveAllowed($player, $kingdomId);
+                    if ($stableId !== null) {
+                        if ($player->game_player_id !== null && $player->game_player_id !== $stableId) {
+                            throw ValidationException::withMessages(['game_player_id' => 'The selected Player has a different stable game-player identifier.']);
+                        }
+                        $conflict = Player::query()
+                            ->where('game_player_id', $stableId)
+                            ->whereNull('canonical_player_id')
+                            ->where('id', '<>', $player->id)
+                            ->exists();
+                        if ($conflict) {
+                            throw ValidationException::withMessages(['game_player_id' => 'That game Player ID belongs to a different Player.']);
+                        }
+                    }
+
+                    $nextStableId = $player->game_player_id === null ? $stableId : (string) $player->game_player_id;
+                    $this->recordTransition($player, $kingdomId, $name, $nextStableId, $source, $sourceReference, $observedAt, $confidenceBasisPoints, $reason);
                     $previousKingdomId = (string) $player->current_kingdom_id;
                     $previousName = (string) $player->current_name;
-                    $previousStableId = (string) $player->game_player_id;
-                    $this->recordTransition($player, $kingdomId, $name, $previousStableId, $source, $sourceReference, $observedAt, $confidenceBasisPoints, $reason);
-                    $player->forceFill(['current_kingdom_id' => $kingdomId, 'current_name' => $name])->save();
+                    $previousStableId = $player->game_player_id === null ? null : (string) $player->game_player_id;
+
+                    $attributes = ['current_kingdom_id' => $kingdomId, 'current_name' => $name];
+                    if ($stableId !== null && $player->game_player_id === null) {
+                        $attributes['game_player_id'] = $stableId;
+                    }
+                    $player->forceFill($attributes)->save();
                     $this->auditChanges($player, $actor, $previousKingdomId, $previousName, $previousStableId, $source, $sourceReference, $reason);
 
                     return (string) $player->id;
                 }
+
+                if ($stableId !== null) {
+                    $player = Player::query()
+                        ->where('game_player_id', $stableId)
+                        ->whereNull('canonical_player_id')
+                        ->lockForUpdate()
+                        ->first();
+                    if ($player instanceof Player) {
+                        $this->assertExpectedExistingOwner($player, $expectedExistingOwnerUserId);
+                        $this->lifecycle->assertKingdomMoveAllowed($player, $kingdomId);
+                        $previousKingdomId = (string) $player->current_kingdom_id;
+                        $previousName = (string) $player->current_name;
+                        $previousStableId = (string) $player->game_player_id;
+                        $this->recordTransition($player, $kingdomId, $name, $previousStableId, $source, $sourceReference, $observedAt, $confidenceBasisPoints, $reason);
+                        $player->forceFill(['current_kingdom_id' => $kingdomId, 'current_name' => $name])->save();
+                        $this->auditChanges($player, $actor, $previousKingdomId, $previousName, $previousStableId, $source, $sourceReference, $reason);
+
+                        return (string) $player->id;
+                    }
+                }
+
+                $player = Player::query()->create([
+                    'current_kingdom_id' => $kingdomId,
+                    'game_player_id' => $stableId,
+                    'current_name' => $name,
+                    'canonical_player_id' => null,
+                ]);
+                $this->history->recordInitial($player, $source, $sourceReference, $observedAt, $confidenceBasisPoints, $reason);
+                $this->audit->record('player.created', $actor, $player, null, [
+                    'kingdom_id' => $kingdomId,
+                    'game_player_id' => $stableId,
+                    'source_type' => $source->value,
+                    'source_reference' => $sourceReference,
+                ]);
+
+                return (string) $player->id;
+            });
+        } catch (UniqueConstraintViolationException $exception) {
+            // The owner transaction/savepoint has rolled back before validation
+            // reaches an enclosing caller. Preserve unrelated integrity errors.
+            $diagnostic = explode("\n", (string) ($exception->errorInfo[2] ?? ''), 2)[0];
+            if ($stableId === null || ! str_contains($diagnostic, '"players_game_player_id_unique"')) {
+                throw $exception;
             }
-
-            $player = Player::query()->create([
-                'current_kingdom_id' => $kingdomId,
-                'game_player_id' => $stableId,
-                'current_name' => $name,
-                'canonical_player_id' => null,
+            throw ValidationException::withMessages([
+                'game_player_id' => 'That game Player ID was assigned concurrently. Reload the current identity before retrying.',
             ]);
-            $this->history->recordInitial($player, $source, $sourceReference, $observedAt, $confidenceBasisPoints, $reason);
-            $this->audit->record('player.created', $actor, $player, null, [
-                'kingdom_id' => $kingdomId,
-                'game_player_id' => $stableId,
-                'source_type' => $source->value,
-                'source_reference' => $sourceReference,
-            ]);
-
-            return (string) $player->id;
-        });
+        }
 
         return $this->references->require($playerId);
+    }
+
+    private function assertExpectedExistingOwner(Player $player, ?int $expectedUserId): void
+    {
+        if ($expectedUserId !== null && ($player->user_id === null || (int) $player->user_id !== $expectedUserId)) {
+            throw ValidationException::withMessages([
+                'game_player_id' => 'That game Player ID already exists. Use an evidence-backed claim or recovery workflow instead of silently taking ownership.',
+            ]);
+        }
     }
 
     private function recordTransition(

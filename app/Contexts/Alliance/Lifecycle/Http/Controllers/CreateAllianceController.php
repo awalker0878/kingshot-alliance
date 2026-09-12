@@ -6,6 +6,7 @@ namespace App\Contexts\Alliance\Lifecycle\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\Alliance\Lifecycle\Actions\CreateAlliance;
+use App\Contexts\Alliance\Lifecycle\Enums\SupportedAllianceLocale;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
@@ -23,10 +24,10 @@ final class CreateAllianceController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'slug' => ['required', 'string', 'max:120', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('alliances', 'slug')],
-            'language' => ['required', 'string', 'max:16'],
+            'language' => ['required', Rule::enum(SupportedAllianceLocale::class)],
             'timezone' => ['required', 'string', 'timezone'],
         ]);
-        $createAlliance->handle($player->playerId, $validated['name'], $validated['slug'], $validated['language'], $validated['timezone']);
+        $createAlliance->handle((int) $user->getAuthIdentifier(), $player->playerId, $validated['name'], $validated['slug'], $validated['language'], $validated['timezone']);
 
         return redirect()->route('alliance.overview');
     }

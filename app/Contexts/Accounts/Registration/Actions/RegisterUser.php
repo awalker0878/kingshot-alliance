@@ -104,12 +104,12 @@ final readonly class RegisterUser
                 'attempts' => 0,
             ]);
 
+            if (! $emailVerified) {
+                $user->sendEmailVerificationNotification();
+            }
+
             return $user;
         });
-
-        if (! $emailVerified) {
-            $user->sendEmailVerificationNotification();
-        }
 
         return new RegisteredAccount(
             userId: (int) $user->id,

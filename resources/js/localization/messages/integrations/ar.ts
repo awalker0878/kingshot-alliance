@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   integrationExperience: {
+    recordCount: '{count} سجل',
+    historyUnavailable: 'تعذر تحميل هذه الصفحة.',
+    retryPage: 'إعادة تحميل الصفحة',
+    expired: 'منتهي الصلاحية',
+    deliveryQueued: 'في قائمة الانتظار',
+    deliveryHistory: 'سجل التسليم',
+
     eyebrow: 'تكاملات التحالف',
     title: 'بيانات API وخطافات الويب',
     activeCredentials: 'بيانات الاعتماد النشطة',

@@ -8,7 +8,7 @@ Screenshot Intake has four explicit families:
 
 1. Bear Hunt battle reports, committed to `Operations/Results`;
 2. Transfer participant evidence, committed to `GameWorld/KingdomTransfers` through five versioned screenshot schemas;
-3. Governor Progression evidence, normalized against immutable `GameWorld/Progression` releases and committed to `Intelligence/Roster` through six versioned screenshot schemas;
+3. Governor Progression evidence, normalized against immutable `GameWorld/Progression` releases and committed to `Intelligence/Roster` through nine versioned screenshot schemas;
 4. Territory map observations, pinned to immutable `GameWorld/KingdomMaps` releases and committed to `Intelligence/Observations` through the closed `territory-map-observation/1` schema.
 
 There is no Transfer OCR, Governor OCR, Territory OCR or `TerritoryReality` bounded context, generic OCR schema, generic ingestion framework, unconstrained field-bag destination or polymorphic evidence-target abstraction.
@@ -46,7 +46,7 @@ Application and database constraints enforce these mutually exclusive combinatio
 
 Transfer v1 kinds are `transfer_governor_status`, `transfer_score_passes`, `transfer_invitation`, `transfer_target_kingdom_rules` and `transfer_official_group`.
 
-Governor Progression v1 kinds are `governor_profile`, `governor_hero_roster`, `governor_hero_detail`, `governor_hero_gear`, `governor_gear` and `governor_charms`. Pets and Masters are not accepted by implication.
+Governor Progression v1 kinds are `governor_profile`, `governor_hero_roster`, `governor_hero_detail`, `governor_hero_gear`, `governor_gear`, `governor_charms`, `governor_buildings`, `governor_academy_research` and `governor_war_academy_research`. The three structured kinds have narrow explicit English heading/label OCR contracts; HARD-010 tracks their integration verification. Pets and Masters are not accepted by implication.
 
 Territory spatial v1 has one closed kind, `territory_map_observation`, with schema version `territory-map-observation/1`. Its extractor may emit only fixture-proven supported coordinate candidates for HQ, Bear Trap, Banner and Governor City plus explicitly supported label/bounds/timestamp candidates. It may not infer Player identity, hidden/off-screen objects, plan correspondence, coverage completeness or missing state.
 
@@ -73,6 +73,7 @@ Destination validation uses the pinned release to the extent it exposes canonica
 - Charm level is bounded by the pinned Governor Charm ladder.
 - Gear/Charm `slot_id` values are closed screen-local structure, not invented Progression identities.
 - OCR-visible Charm names remain Evidence provenance in v1; synthetic `charm_id` input is rejected.
+- Structured building/research subjects resolve from reviewed exact IDs/labels within the pinned family; levels and optional state IDs must identify a published state. Missing levels, unknown or duplicate subjects and mismatched states fail closed. Machine normalization retains name candidates until reviewed resolution.
 
 Missing screenshot content means unknown/not observed. Partial Hero/Gear/Charm captures cannot erase state not shown. Only Hero Roster may carry explicit complete-roster meaning when fixture/reviewer semantics establish it.
 
@@ -107,7 +108,7 @@ For Territory spatial Evidence, semantic identity includes Alliance/Kingdom scop
 
 Transfer commits through `RecordGovernorStatusEvidence`, `RecordTransferScorePassEvidence`, `RecordTransferInvitationEvidence`, `RecordTransferKingdomRulesEvidence` and `RecordOfficialTransferGroupEvidence`.
 
-Governor Progression commits through `RecordGovernorProfileEvidence`, `RecordHeroRosterEvidence`, `RecordHeroDetailEvidence`, `RecordHeroGearEvidence`, `RecordGovernorGearEvidence` and `RecordGovernorCharmsEvidence`.
+Governor Progression commits through `RecordGovernorProfileEvidence`, `RecordHeroRosterEvidence`, `RecordHeroDetailEvidence`, `RecordHeroGearEvidence`, `RecordGovernorGearEvidence`, `RecordGovernorCharmsEvidence` and the closed `RecordStructuredProgressionEvidence` destination for building/Academy/War Academy states.
 
 Territory spatial Evidence commits through `RecordSpatialObservationEvidence` owned by `Intelligence/Observations`.
 
@@ -122,6 +123,8 @@ The original upload is never rewritten. Derived representations have independent
 A commit attempt has one stable destination idempotency key. If the destination transaction succeeds but Evidence acknowledgement fails, replay of the same key returns the existing authorized receipt without duplicate owner history; Evidence then records recovered acknowledgement.
 
 Deleting Evidence does not cascade into committed owner state. Owner correction/removal is a separate audited capability. For Territory spatial facts, correction appends a replacement observation and invalidates/supersedes the prior accepted observation; explicit invalidation records actor/time/reason. Evidence retention may remove binary/OCR/raw sensitive data while retaining minimum handoff provenance/tombstone/review/commit/receipt data.
+
+Redaction removes classification OCR, extracted raw and normalized candidates, bounds/warnings, and Governor normalization payload copies. Dataset/attempt identity, immutable reviewed handoff and destination receipts remain. The summary therefore exposes redacted machine candidates while preserving accepted review meaning. A failed private-storage deletion fails the operation before provenance/path cleanup so an authorized retry can complete deletion.
 
 ## Shared infrastructure
 

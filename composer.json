@@ -64,19 +64,54 @@
             "pint --parallel"
         ],
         "lint:check": [
-            "pint --parallel --test"
+            "pint --parallel --test -v"
         ],
         "types:check": [
             "phpstan analyse --memory-limit=1G"
         ],
         "test": [
-            "@php artisan config:clear --ansi",
-            "@php artisan test"
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@php artisan test --fail-on-empty-test-suite"
+        ],
+        "test:unit": [
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Unit"
+        ],
+        "test:architecture": [
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Architecture"
+        ],
+        "test:frontend-contracts": [
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Frontend"
+        ],
+        "test:fast": [
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Unit,Architecture,Frontend"
+        ],
+        "test:feature": [
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Feature"
+        ],
+        "test:integration": [
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@php vendor/bin/phpunit --fail-on-empty-test-suite --testsuite Integration"
         ],
         "check": [
+            "@php scripts/verify-test-layout.php",
             "@lint:check",
             "@types:check",
             "@test:parallel"
+        ],
+        "check:ci": [
+            "@php scripts/verify-test-layout.php",
+            "@lint:check",
+            "@types:check",
+            "@test:ci"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
@@ -92,8 +127,14 @@
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
         ],
         "test:parallel": [
-            "@php artisan config:clear --ansi",
-            "@php artisan test --parallel"
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@php artisan test --parallel --fail-on-empty-test-suite"
+        ],
+        "test:ci": [
+            "@php scripts/sync-test-suites.php --check @no_additional_args",
+            "@php artisan config:clear --ansi @no_additional_args",
+            "@php artisan test --parallel --processes=2 --fail-on-empty-test-suite --log-junit storage/logs/phpunit-junit.xml"
         ]
     },
     "extra": {

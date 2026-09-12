@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Alliance\Recruitment\Actions;
 
 use App\Contexts\Alliance\Lifecycle\Models\Alliance;
+use App\Contexts\Alliance\Recruitment\Enums\RecruitmentReentryControl;
 use App\Contexts\Alliance\Recruitment\Enums\RecruitmentStage;
 use App\Contexts\Alliance\Recruitment\Models\RecruitmentCandidate;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -83,14 +84,24 @@ final class PurgeExpiredRecruitmentCandidates
                 DB::table('recruitment_candidate_tags')->where('candidate_id', $candidate->id)->delete();
                 DB::table('recruitment_candidate_onboarding')->where('candidate_id', $candidate->id)->delete();
                 DB::table('recruitment_stage_history')->where('candidate_id', $candidate->id)->update(['reason' => null]);
+                foreach (['recruitment.application.submitted', 'recruitment.candidate.tagged', 'recruitment.reentry_control_changed'] as $event) {
+                    $this->audit->redactSubjectMetadata($event, $candidate);
+                }
 
                 $candidate->forceFill([
                     'applicant_user_id' => null,
                     'application_invite_id' => null,
                     'membership_invitation_id' => null,
+                    'player_id' => null,
                     'full_name' => 'Deleted candidate',
                     'email' => 'deleted+'.strtolower((string) $candidate->id).'@invalid.local',
                     'contact_handle' => null,
+                    'source' => null,
+                    'reentry_control' => RecruitmentReentryControl::Normal,
+                    'reentry_reason' => null,
+                    'reentry_review_at' => null,
+                    'reentry_set_by_player_id' => null,
+                    'reentry_set_at' => null,
                     'next_action_at' => null,
                     'retention_due_at' => null,
                     'anonymized_at' => now(),

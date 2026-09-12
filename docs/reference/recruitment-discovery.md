@@ -45,3 +45,7 @@ The private Recruitment Hall groups each source by:
 - joined applicants and joined rate.
 
 Merged candidate records are excluded, matching the existing recruitment summary. “Accepted” includes joined candidates because joining follows acceptance.
+
+## Application question capacity
+
+A published application contains every active question, up to 30. Every current required question must be answered. If a question is deactivated while a form is open, submitting its stale answer asks the applicant to refresh; no answers are silently discarded. Officers can deactivate a question to free a slot while retaining prior candidates' answer snapshots.

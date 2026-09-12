@@ -105,6 +105,26 @@ return new class extends Migration
             $table->index(['plan_id', 'planned_activation_at', 'planned_ends_at']);
         });
 
+        Schema::create('king_perk_reminder_cursors', function (Blueprint $table): void {
+            $table->ulid('id')->primary();
+            $table->string('kind', 48);
+            // Operational checkpoints deliberately do not cascade-lock source or Player rows.
+            // Deleted boundaries remain usable; inactive/orphan checkpoints expire in bounded batches.
+            $table->ulid('source_id');
+            $table->ulid('after_player_id')->nullable();
+            $table->unsignedBigInteger('version')->default(0);
+            $table->timestampTz('visited_at', 6);
+            $table->timestampTz('expires_at', 6)->index();
+            $table->unique(['kind', 'source_id'], 'king_perk_reminder_cursor_source_unique');
+        });
+
+        Schema::table('king_perk_appointments', static function (Blueprint $table): void {
+            $table->index(['status', 'starts_at', 'id'], 'king_perk_reminder_due_idx');
+        });
+        Schema::table('king_skill_plans', static function (Blueprint $table): void {
+            $table->index(['status', 'planned_activation_at', 'id'], 'king_skill_reminder_due_idx');
+        });
+
         $this->createTemporalGuards();
     }
 
@@ -137,6 +157,7 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::dropIfExists('king_perk_reminder_cursors');
         Schema::dropIfExists('king_skill_plans');
         Schema::dropIfExists('king_perk_requests');
         Schema::dropIfExists('king_perk_position_blocks');

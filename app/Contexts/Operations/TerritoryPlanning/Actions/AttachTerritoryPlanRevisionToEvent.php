@@ -46,15 +46,14 @@ final readonly class AttachTerritoryPlanRevisionToEvent
             $revisionId,
             $purpose,
         ): string {
-            $occurrence = EventOccurrence::query()
-                ->whereKey($occurrenceId)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $route = EventOccurrence::query()->whereKey($occurrenceId)->firstOrFail(['id', 'event_id']);
             $eventContext = $this->eventWriteState->lockEventScope(
                 $actorPlayerId,
-                (string) $occurrence->event_id,
+                (string) $route->event_id,
             );
             $this->eventAuthorization->authorizeManager($eventContext);
+            $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->where('event_id', $eventContext->event->id)
+                ->lockForUpdate()->firstOrFail();
             if ($eventContext->target->scope === EventScope::Player) {
                 throw ValidationException::withMessages([
                     'territory_plan_revision_id' => 'Player-scoped Events cannot attach an Alliance or Kingdom territory plan.',
@@ -65,9 +64,12 @@ final readonly class AttachTerritoryPlanRevisionToEvent
                 ->select(['id', 'territory_plan_id'])
                 ->whereKey($revisionId)
                 ->firstOrFail();
-            $territoryContext = $this->territoryWriteState->lock(
+            $territoryContext = $this->territoryWriteState->lockForEvent(
                 $actorPlayerId,
                 (string) $revisionRoute->territory_plan_id,
+                $eventContext->target->scope === EventScope::Alliance ? TerritoryPlanScope::Alliance : TerritoryPlanScope::Kingdom,
+                $eventContext->target->kingdomId ?? throw new AuthorizationException,
+                $eventContext->target->allianceId,
             );
             $this->territoryAuthorization->authorizeView($territoryContext);
             $plan = $territoryContext->plan;

@@ -1,0 +1,22 @@
+export type RecruitmentInputLimits = {
+  title: number;
+  introduction: number;
+  prompt: number;
+  helpText: number;
+  options: number;
+  option: number;
+  position: number;
+  retentionDays: number;
+  templateName: number;
+  subject: number;
+  body: number;
+  onboardingName: number;
+  description: number;
+  fullName: number;
+  email: number;
+  contactHandle: number;
+  source: number;
+  shortAnswer: number;
+  longAnswer: number;
+  inviteHours: number;
+};

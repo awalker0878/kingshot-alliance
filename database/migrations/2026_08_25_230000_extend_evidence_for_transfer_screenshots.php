@@ -98,6 +98,7 @@ return new class extends Migration
             $table->timestamps();
             $table->index(['transfer_review_id', 'idempotency_key', 'status'], 'evidence_transfer_commit_review_key_idx');
             $table->index(['alliance_id', 'status', 'created_at'], 'evidence_transfer_commit_status_idx');
+            $table->index(['evidence_id', 'status'], 'evidence_transfer_commit_retention_idx');
         });
 
         Schema::create('transfer_evidence_receipts', function (Blueprint $table): void {

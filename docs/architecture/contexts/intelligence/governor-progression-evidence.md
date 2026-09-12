@@ -1,6 +1,6 @@
 # Intelligence / Evidence — Governor Progression Screenshots
 
-Status: Current complete capability — verified 2026-08-30
+Status: Current structured intake contracts — pipeline verified 2026-09-08; retention hardening remains In progress under HARD-014–015.
 
 ## Responsibility
 
@@ -49,7 +49,10 @@ The only supported classes are:
 - `governor_hero_detail` — `governor-hero-detail/1`;
 - `governor_hero_gear` — `governor-hero-gear/1`;
 - `governor_gear` — `governor-gear/1`;
-- `governor_charms` — `governor-charms/1`.
+- `governor_charms` — `governor-charms/1`;
+- `governor_buildings` — `governor-buildings/1`;
+- `governor_academy_research` — `governor-academy-research/1`;
+- `governor_war_academy_research` — `governor-war-academy-research/1`.
 
 Pets, Masters and other panels require future explicit schemas/fixtures.
 
@@ -57,11 +60,15 @@ The user-selected expected class is a hint. `GovernorProgressionEvidenceClassifi
 
 `GovernorProgressionEvidenceExtractor` is schema-bound and fixture-proven. Adjacent Gear quality/level/mastery/star and Charm name/level values are split into separate candidates while the complete raw OCR line remains provenance.
 
+The structured extension uses explicit English headings and `Building:`/`Technology:` rows with independently captured name and integer level candidates. Name-only rows retain unknown levels. Conflicting Academy/War Academy headings are ambiguous. Synthetic OCR corpora establish this narrow contract; they do not prove arbitrary game image layouts or languages.
+
 ## Progression normalization and retry pinning
 
 Each normalization attempt records Progression dataset ID/checksum, normalizer key/version, normalized candidates, canonical identity candidate/confidence and warnings.
 
 The first normalization attempt establishes the automatic-processing dataset pin even when it fails. Subsequent processing retry, queue redelivery or process restart reuses the earliest attempt's dataset ID/checksum and must load that exact immutable release. Automatic retry never falls forward to `latest()` after normalization history exists.
+
+Normalization redelivery cannot reopen approved, committed, deleted or redacted Evidence. Active normalization uses the existing `extracting` lifecycle; retries from `failed` reacquire that state under lock, and the deletion guard blocks active processing. Review requests are rejected while processing/committing and after commit or redaction. Corrections to accepted observations use the Roster owner's correction workflow.
 
 Moving Evidence to a newer dataset would be a distinct explicit re-normalization action; v1 does not provide one. Existing attempts and accepted Roster observations remain pinned to their original release.
 
@@ -78,23 +85,25 @@ Destination validation uses the pinned Progression release only where that relea
 - Charm level is bounded by the pinned Governor Charm ladder.
 - Hero Gear, Governor Gear and Charm `slot_id` values are closed screen-local structural keys, not invented Progression entity identities.
 - OCR-visible Charm names remain Evidence provenance in v1; a synthetic `charm_id` cannot cross into Roster.
+- Building/Academy/War Academy reviews contain only closed `states` rows. Exact reviewed subject IDs/labels resolve within the pinned family and level/state identity must agree with a published state. Unknown subjects, missing levels and duplicate subjects fail closed. Normalization retains name candidates; Roster validation owns canonical resolution of reviewed meaning.
 
 Screenshot Intake cannot create, rename, merge, correct or infer canonical Progression entities/facts.
 
 ## Review and handoff
 
-All six v1 classes require human review. The review surface exposes expected/detected class/confidence, schema/fixture version, raw OCR, normalized candidates, field confidence/warnings, canonical Hero match, pinned dataset, captured time, completeness semantics, duplicate state and destination preview.
+All nine v1 classes require human review. The review surface exposes expected/detected class/confidence, schema/fixture version, raw OCR, normalized candidates, field confidence/warnings, canonical Hero match, pinned dataset, captured time, completeness semantics, duplicate state and destination preview.
 
 Approved meaning is a closed typed union. Unknown keys are rejected. Missing fields remain unobserved.
 
-The six destination Actions are:
+The destination Actions are:
 
 - `RecordGovernorProfileEvidence`;
 - `RecordHeroRosterEvidence`;
 - `RecordHeroDetailEvidence`;
 - `RecordHeroGearEvidence`;
 - `RecordGovernorGearEvidence`;
-- `RecordGovernorCharmsEvidence`.
+- `RecordGovernorCharmsEvidence`;
+- `RecordStructuredProgressionEvidence` for the three structured kinds.
 
 Each action reacquires current Roster authority, validates exact Evidence/review provenance and pinned dataset, and delegates owner persistence/idempotency to the Roster writer.
 
@@ -108,6 +117,8 @@ Four controls stay distinct:
 4. destination idempotency — one immutable approved review maps to one Roster receipt and safely replays.
 
 A genuinely newer observation remains importable. Destination success followed by Evidence acknowledgement failure recovers by replaying the same destination key and recording the already-created receipt.
+
+The authorized screenshot workspace retains a 30-item limit and orders equal creation times by Evidence ID. PostgreSQL DISTINCT ON batches select only the latest classification, extraction, normalization and commit (creation time, then ID), and the latest review (revision number, then ID), within that list's Evidence IDs. Only fields from selected extractions are loaded. Database round trips remain constant as the list grows; historical attempts are not materialized into application memory. HARD-017 verifies the query budget and current-history semantics.
 
 ## Deletion, retention and consumers
 

@@ -12,8 +12,8 @@ The supported families are:
 
 The complete extension contracts are:
 
-- [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md);
-- [Screenshot Intake: Governor Progression](./screenshot-intake-governor-progression.md).
+- [Screenshot Intake: Transfer Evidence](screenshot-intake-transfer-evidence.md);
+- [Screenshot Intake: Governor Progression](screenshot-intake-governor-progression.md).
 
 Those extension documents are the implementation sources of truth for their schema-specific fields, normalization, confidence thresholds, fixture corpora, review rules, duplicate semantics, destination Actions, preview behavior and delivery ledgers.
 
@@ -107,7 +107,7 @@ The five explicit v1 classes are:
 - `transfer_target_kingdom_rules`;
 - `transfer_official_group`.
 
-Their complete independent contract lives in [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md). Required Transfer Passes remain observed facts, generic Transfer screenshots never prove `in_game_rules_verified=true`, official-group membership is schema-bound, and freshness/eligibility remain KingdomTransfers-owned.
+Their complete independent contract lives in [Screenshot Intake: Transfer Evidence](screenshot-intake-transfer-evidence.md). Required Transfer Passes remain observed facts, generic Transfer screenshots never prove `in_game_rules_verified=true`, official-group membership is schema-bound, and freshness/eligibility remain KingdomTransfers-owned.
 
 ### Governor Progression family
 
@@ -208,6 +208,8 @@ Evidence deletion/redaction and destination correction are separate capabilities
 - failed/unsupported/inactive uncommitted Evidence can be redacted/purged under Evidence retention policy;
 - retention policy belongs to Evidence configuration/operations, not Vue/controllers or destination owners.
 
+The GameEvidence retention worker recognizes successful Bear Hunt, Transfer, Governor Progression and Territory spatial commit ledgers. A successful handoff retains Evidence/review/commit/receipt tombstones even after user deletion. Only the private binary and disposable machine provenance expire. Candidate selection applies policy age and excludes active processing before its batch limit; the worker reacquires the Evidence lock and rechecks commit status and deadline before mutation.
+
 ## Security and privacy
 
 Uploads use private storage only. The pipeline validates allowlisted MIME/size/dimensions, verifies actual MIME, performs the shared upload scan, computes source identity, generates non-user-controlled storage names and removes staged bytes when persistence fails. Diagnostics must not leak screenshot content, raw hashes, Player/Alliance identity or cross-tenant duplicate information.
@@ -235,8 +237,8 @@ A family is `Complete` only when its behavior, authorization, persistence, UX, a
 | Family | Status | Source of truth |
 | --- | --- | --- |
 | Bear Hunt battle report | Complete | This document plus Operations/Results architecture/reference/runbooks |
-| Transfer Evidence | Complete | [Screenshot Intake: Transfer Evidence](./screenshot-intake-transfer-evidence.md) |
-| Governor Progression Evidence | Complete | [Screenshot Intake: Governor Progression](./screenshot-intake-governor-progression.md) |
+| Transfer Evidence | Complete | [Screenshot Intake: Transfer Evidence](screenshot-intake-transfer-evidence.md) |
+| Governor Progression Evidence | Complete | [Screenshot Intake: Governor Progression](screenshot-intake-governor-progression.md) |
 
 The umbrella Screenshot Intake capability is complete. A future family-level regression or failed required gate reopens the affected family and umbrella row.
 

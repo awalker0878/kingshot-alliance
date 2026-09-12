@@ -25,6 +25,7 @@ return new class extends Migration
             $table->timestamps();
             $table->index(['review_id', 'status', 'created_at'], 'evidence_commit_review_status_idx');
             $table->index(['idempotency_key', 'status'], 'evidence_commit_idempotency_idx');
+            $table->index(['evidence_id', 'status'], 'evidence_commit_retention_idx');
         });
     }
 

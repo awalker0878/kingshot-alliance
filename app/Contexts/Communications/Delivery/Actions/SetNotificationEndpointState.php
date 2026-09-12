@@ -38,6 +38,8 @@ final readonly class SetNotificationEndpointState
                 ->firstOrFail();
 
             $endpoint->forceFill([
+                'verification_generation' => $endpoint->verification_generation + 1,
+                'last_verified_at' => null,
                 'enabled' => $enabled,
                 'health_status' => $enabled
                     ? EndpointHealthStatus::NeverTested

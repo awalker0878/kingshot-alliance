@@ -69,7 +69,7 @@ Cancellation remains `Operations/Events` truth and is displayed separately. For 
 
 1. active schedule window -> `active`;
 2. ended + blocking/unknown closeout item -> `closeout_required`;
-3. ended + no blocking closeout item -> `complete`;
+3. ended + no blocking/unknown closeout item -> `complete`;
 4. upcoming + blocking/unknown readiness item -> `needs_attention`;
 5. upcoming inside seven-day presentation horizon + no blockers -> `ready`;
 6. otherwise -> `planning`.
@@ -86,7 +86,7 @@ No schema/model may persist:
 - Event Command blocker/warning counts;
 - copied owner completion state.
 
-`tests/v3/Architecture/EventCommandArchitectureV3Test.php` guards the read-only boundary, dependency direction and prohibited derived persistence tokens.
+`tests/ReadModels/EventManagement/Architecture/EventCommandBoundaryTest.php` guards the read-only boundary, dependency direction and prohibited derived persistence tokens.
 
 ## Performance rule
 

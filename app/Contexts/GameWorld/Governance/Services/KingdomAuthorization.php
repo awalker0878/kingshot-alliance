@@ -6,6 +6,8 @@ namespace App\Contexts\GameWorld\Governance\Services;
 
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Governance\ValueObjects\KingdomMutationContext;
+use App\Contexts\GameWorld\Kingdoms\Enums\KingdomStatus;
+use App\Contexts\GameWorld\Kingdoms\Models\Kingdom;
 use App\Contexts\GameWorld\Players\Models\Player;
 use App\Shared\Infrastructure\Access\Contracts\Permission;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -16,11 +18,12 @@ final class KingdomAuthorization
     public function allows(string $playerId, string $kingdomId, Permission $permission): bool
     {
         $player = Player::query()->find($playerId);
-        if (! $player instanceof Player || (string) $player->current_kingdom_id !== $kingdomId) {
+        if (! $player instanceof Player || (string) $player->current_kingdom_id !== $kingdomId || $player->canonical_player_id !== null) {
             return false;
         }
 
-        return $this->hasPermission($playerId, $kingdomId, $permission);
+        return Kingdom::query()->whereKey($kingdomId)->where('status', KingdomStatus::Active)->exists()
+            && $this->hasPermission($playerId, $kingdomId, $permission);
     }
 
     public function allowsContext(KingdomMutationContext $context, Permission $permission): bool

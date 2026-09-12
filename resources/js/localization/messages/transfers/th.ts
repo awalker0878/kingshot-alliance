@@ -2,6 +2,24 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    searchChoices: 'ค้นหาตัวเลือก',
+    choicePageSummary:
+      'หน้านี้มี {count} ตัวเลือก ตรงกันทั้งหมด {total} รายการ เรียงตามรหัสระเบียนคงที่',
+    choiceUnavailable: 'ตัวเลือกที่เลือกไม่พร้อมใช้งานแล้ว',
+    choicesFailed: 'โหลดตัวเลือกไม่สำเร็จ ตัวเลือกที่เลือกและหน้าที่แสดงยังคงเดิม',
+    retryChoices: 'ลองโหลดอีกครั้ง',
+
+    participantPagination: 'หน้าผู้เข้าร่วม',
+    participantPageSummary: 'หน้านี้มีผู้เข้าร่วม {count} คน; มุมมองนี้มีทั้งหมด {total} คน',
+    participantPageOrder: 'เรียงตามรหัสลงทะเบียนที่คงที่ ยอดรวมครอบคลุมทั้งมุมมอง',
+    participantPageUnavailable: 'ไม่สามารถโหลดหน้าผู้เข้าร่วมได้ หน้าที่แสดงอยู่ยังไม่เปลี่ยนแปลง',
+    retryParticipantPage: 'ลองโหลดหน้าอีกครั้ง',
+    participantFilterPageOnly:
+      'ตัวกรองคุณสมบัตินี้ใช้กับหน้าปัจจุบัน โปรดเลื่อนผ่านหน้าต่าง ๆ เพื่อตรวจสอบผู้เข้าร่วมทั้งหมด',
+    workflowHistoryUnavailable: 'ไม่สามารถโหลดประวัติกระบวนการย้ายได้',
+    workflowHistoryTotal: 'มี {count} รายการในประวัตินี้',
+    observationHistoryUnavailable: 'ไม่สามารถโหลดประวัติการสังเกตได้',
+    reloadHistory: 'โหลดประวัติใหม่',
     eyebrow: 'การย้ายอาณาจักร',
     title: 'การวางแผนย้าย',
     readinessBoard: 'ความพร้อม',

@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Contexts\Accounts\Identity\Models;
 
-use App\Contexts\Accounts\Credentials\Notifications\ResetKingshotAlliancePassword;
-use App\Contexts\Accounts\EmailVerification\Notifications\VerifyKingshotAllianceEmail;
+use App\Contexts\Accounts\Credentials\Actions\QueuePasswordResetDelivery;
+use App\Contexts\Accounts\EmailVerification\Actions\RequestEmailVerification;
+use App\Contexts\Accounts\EmailVerification\Enums\EmailVerificationTarget;
 use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Shared\Infrastructure\AuditTrail\Contracts\AuditActor;
 use Database\Factories\UserFactory;
@@ -15,9 +16,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Laravel\Passkeys\Contracts\PasskeyUser;
 use Laravel\Passkeys\PasskeyAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
+use SensitiveParameter;
 
 /**
  * Global Kingshot Alliance account identity. Game authority belongs to the active Player, not User.
@@ -84,9 +87,29 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
         return $this->hasMany(AccountIdentity::class);
     }
 
+    public function isActive(): bool
+    {
+        return $this->anonymized_at === null;
+    }
+
+    /** Call on the current account after acquiring its row lock, before ordinary writes. */
+    public function ensureActive(): void
+    {
+        if (! $this->isActive()) {
+            throw ValidationException::withMessages(['account' => 'This account has already been deleted.']);
+        }
+    }
+
     public function supportsPasswordAuthentication(): bool
     {
         return filled($this->getRawOriginal('password'));
+    }
+
+    public function getAuthPassword(): string
+    {
+        // The maintained guard hashes this string into remembered cookies even
+        // for passkey/provider-only accounts; password eligibility stays explicit.
+        return (string) $this->password;
     }
 
     public function supportsGoogleAuthentication(): bool
@@ -96,16 +119,12 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
 
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new VerifyKingshotAllianceEmail);
+        app(RequestEmailVerification::class)->handle((int) $this->id, EmailVerificationTarget::Account);
     }
 
-    public function sendPasswordResetNotification($token): void
+    public function sendPasswordResetNotification(#[SensitiveParameter] $token): void
     {
-        if (! $this->supportsPasswordAuthentication()) {
-            return;
-        }
-
-        $this->notify(new ResetKingshotAlliancePassword((string) $token));
+        app(QueuePasswordResetDelivery::class)->handle((int) $this->id, (string) $token);
     }
 
     public function accountName(): string

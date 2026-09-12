@@ -2,6 +2,16 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    searchChoices: 'Cari pilihan',
+    findChoices: 'Cari',
+    noChoices: 'Tidak ada pilihan yang cocok.',
+    choiceLookupFailed: 'Pilihan tidak dapat dimuat. Coba lagi.',
+    activeConfigurationLimit:
+      'Maksimal {limit} item aktif. Nonaktifkan satu item untuk menambahkan item lain.',
+    historyItemsOnPage: '{count} catatan di halaman ini (maksimal {pageSize}).',
+    bulkOutcome: {
+      'permission-denied': 'Izin ditolak',
+    },
     eyebrow: 'Rekrutmen aliansi',
     title: 'Rekrutmen',
     candidates: 'Kandidat',

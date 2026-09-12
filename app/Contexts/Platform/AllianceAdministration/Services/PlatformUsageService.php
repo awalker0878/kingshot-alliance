@@ -8,9 +8,9 @@ use App\Contexts\Alliance\Content\Queries\ContentStorageUsageQuery;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Membership\Queries\MembershipStatisticsQuery;
 use App\Contexts\Platform\AllianceAdministration\Models\AllianceUsageSnapshot;
-use App\Contexts\Platform\Integrations\Models\ApiCredential;
-use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
+use App\Contexts\Platform\Integrations\Queries\IntegrationUsageQuery;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
+use Illuminate\Support\Facades\DB;
 
 final readonly class PlatformUsageService
 {
@@ -18,6 +18,7 @@ final readonly class PlatformUsageService
         private AllianceReferenceQuery $alliances,
         private MembershipStatisticsQuery $memberships,
         private ContentStorageUsageQuery $storage,
+        private IntegrationUsageQuery $integrations,
     ) {}
 
     /** @return array{activeMembers:int,storageBytes:int,activeApiCredentials:int,activeWebhookSubscriptions:int,pendingOutboxMessages:int} */
@@ -28,18 +29,8 @@ final readonly class PlatformUsageService
         return [
             'activeMembers' => $this->memberships->activeCount($allianceId),
             'storageBytes' => $this->storage->bytes($allianceId),
-            'activeApiCredentials' => ApiCredential::query()
-                ->where('alliance_id', $allianceId)
-                ->whereNull('revoked_at')
-                ->where(static function ($query): void {
-                    $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
-                })
-                ->count(),
-            'activeWebhookSubscriptions' => WebhookSubscription::query()
-                ->where('alliance_id', $allianceId)
-                ->where('is_active', true)
-                ->whereNull('revoked_at')
-                ->count(),
+            'activeApiCredentials' => $this->integrations->activeCredentials($allianceId),
+            'activeWebhookSubscriptions' => $this->integrations->activeWebhooks($allianceId),
             'pendingOutboxMessages' => OutboxMessage::query()
                 ->where('alliance_id', $allianceId)
                 ->whereNull('published_at')
@@ -47,10 +38,11 @@ final readonly class PlatformUsageService
         ];
     }
 
-    public function capture(string $allianceId): void
+    /** Trusted scheduled capture; interactive adapters must use CaptureAllianceUsage. */
+    public function capture(string $allianceId): string
     {
         $usage = $this->current($allianceId);
-        AllianceUsageSnapshot::query()->create([
+        $snapshot = AllianceUsageSnapshot::query()->create([
             'alliance_id' => $allianceId,
             'active_members' => $usage['activeMembers'],
             'storage_bytes' => $usage['storageBytes'],
@@ -59,16 +51,34 @@ final readonly class PlatformUsageService
             'pending_outbox_messages' => $usage['pendingOutboxMessages'],
             'captured_at' => now(),
         ]);
+
+        return (string) $snapshot->id;
     }
 
     public function captureAll(int $limit = 500): int
     {
-        $count = 0;
-        foreach ($this->alliances->all($limit) as $alliance) {
-            $this->capture($alliance->allianceId);
-            $count++;
-        }
+        return DB::transaction(function () use ($limit): int {
+            DB::table('alliance_usage_capture_state')->insertOrIgnore(['id' => 'scheduled']);
+            $state = DB::table('alliance_usage_capture_state')->where('id', 'scheduled')
+                ->lock('for update skip locked')->first();
+            if ($state === null) {
+                return 0;
+            }
 
-        return $count;
+            $batch = $this->alliances->after($state->last_alliance_id, max(1, min(500, $limit)));
+            if ($batch === [] && $state->last_alliance_id !== null) {
+                $batch = $this->alliances->after(null, max(1, min(500, $limit)));
+            }
+            $lastId = null;
+            foreach ($batch as $alliance) {
+                $this->capture($alliance->allianceId);
+                $lastId = $alliance->allianceId;
+            }
+            DB::table('alliance_usage_capture_state')->where('id', 'scheduled')->update([
+                'last_alliance_id' => $lastId, 'last_batch_at' => now(),
+            ]);
+
+            return count($batch);
+        });
     }
 }

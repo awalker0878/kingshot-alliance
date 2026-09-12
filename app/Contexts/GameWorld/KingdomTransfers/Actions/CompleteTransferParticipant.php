@@ -56,7 +56,16 @@ final readonly class CompleteTransferParticipant
         string $participantId,
     ): void {
         DB::transaction(function () use ($allianceId, $actorPlayerId, $planId, $participantId): void {
-            $context = $this->writeState->lockAuthority($actorPlayerId, $allianceId);
+            $routing = TransferParticipant::query()
+                ->select(['player_id', 'direction', 'destination_kingdom_id'])
+                ->where('alliance_id', $allianceId)
+                ->where('transfer_plan_id', $planId)
+                ->whereKey($participantId)
+                ->first();
+            $completionKingdomId = $routing?->direction === TransferDirection::Outgoing && $routing->destination_kingdom_id !== null
+                ? (string) $routing->destination_kingdom_id
+                : null;
+            $context = $this->writeState->lockAuthority($actorPlayerId, $allianceId, $completionKingdomId);
             $this->authority->authorizeContext($context, TransferPermission::Manage);
 
             $plan = TransferPlan::query()
@@ -92,11 +101,19 @@ final readonly class CompleteTransferParticipant
                 return;
             }
 
+            if ($routing === null
+                || (string) $routing->player_id !== (string) $participant->player_id
+                || $routing->direction !== $participant->direction
+                || $routing->destination_kingdom_id !== $participant->destination_kingdom_id) {
+                throw ValidationException::withMessages(['completion' => 'The participant routing changed. Reload before completing this transfer.']);
+            }
+
             $this->assertCompletable($participant);
 
             $player = Player::query()
                 ->whereKey($participant->player_id)
-                ->lockForUpdate()
+                ->whereNull('canonical_player_id')
+                ->lock($participant->direction === TransferDirection::Staying ? 'for share' : 'for update')
                 ->firstOrFail();
 
             $this->assertPlayerCanMoveKingdom(

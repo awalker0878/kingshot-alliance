@@ -27,6 +27,7 @@ return new class extends Migration
             $table->timestamps();
             $table->index(['alliance_id', 'pre_transfer_starts_at', 'ends_at']);
             $table->unique(['alliance_id', 'label']);
+            $table->index(['alliance_id', 'id'], 'transfer_window_choice_cursor');
         });
 
         Schema::create('transfer_groups', function (Blueprint $table): void {
@@ -43,6 +44,7 @@ return new class extends Migration
             $table->foreignUlid('recorded_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamps();
             $table->index(['alliance_id', 'transfer_window_id', 'superseded_at']);
+            $table->index(['alliance_id', 'transfer_window_id', 'id'], 'transfer_group_catalogue_cursor');
         });
 
         DB::statement('CREATE UNIQUE INDEX transfer_groups_one_current_label_per_window ON transfer_groups (transfer_window_id, lower(official_label)) WHERE superseded_at IS NULL');
@@ -72,7 +74,8 @@ return new class extends Migration
             $table->char('fingerprint', 64)->unique();
             $table->foreignUlid('recorded_by_player_id')->nullable()->constrained('players')->nullOnDelete();
             $table->timestamps();
-            $table->index(['alliance_id', 'transfer_window_id', 'kingdom_id', 'observed_at']);
+            $table->index(['alliance_id', 'transfer_window_id', 'kingdom_id', 'observed_at', 'id'], 'transfer_condition_current_fact_idx');
+            $table->index(['alliance_id', 'transfer_window_id', 'id'], 'transfer_condition_catalogue_cursor');
         });
     }
 

@@ -5,15 +5,22 @@ declare(strict_types=1);
 namespace App\Contexts\Accounts\Identity\Actions;
 
 use App\Contexts\Accounts\Authentication\Models\AccountSession;
+use App\Contexts\Accounts\EmailVerification\Services\EmailChangedNoticeOutbox;
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Throwable;
 
 final readonly class AnonymizeAccount
 {
-    public function __construct(private AuditRecorder $audit, private SessionManager $sessions) {}
+    public function __construct(
+        private AuditRecorder $audit,
+        private SessionManager $sessions,
+        private EmailChangedNoticeOutbox $emailNotices,
+    ) {}
 
     public function handle(int $userId, string $requestId): void
     {
@@ -23,17 +30,14 @@ final readonly class AnonymizeAccount
                 return;
             }
 
-            $originalEmail = (string) $user->email;
-            $registeredSessions = AccountSession::query()->where('user_id', $userId)->lockForUpdate()->get();
-            foreach ($registeredSessions as $session) {
-                $this->sessions->driver()->getHandler()->destroy((string) $session->session_id);
-            }
+            $sessionIds = AccountSession::query()->where('user_id', $userId)->lockForUpdate()->pluck('session_id')->all();
 
             AccountSession::query()->where('user_id', $userId)->delete();
             $user->tokens()->delete();
+            $this->emailNotices->forgetAccount($userId);
             $user->accountIdentities()->delete();
             DB::table('passkeys')->where('user_id', $userId)->delete();
-            DB::table('password_reset_tokens')->where('email', $originalEmail)->delete();
+            Password::deleteToken($user);
 
             $user->forceFill([
                 'name' => 'Deleted User',
@@ -57,6 +61,17 @@ final readonly class AnonymizeAccount
                 subject: $user,
                 metadata: ['deletion_request_id' => $requestId],
             );
+
+            DB::afterCommit(function () use ($sessionIds): void {
+                foreach ($sessionIds as $sessionId) {
+                    try {
+                        $this->sessions->driver()->getHandler()->destroy((string) $sessionId);
+                    } catch (Throwable $exception) {
+                        // Terminal account state denies access even if raw storage fails.
+                        report($exception);
+                    }
+                }
+            });
         });
     }
 }

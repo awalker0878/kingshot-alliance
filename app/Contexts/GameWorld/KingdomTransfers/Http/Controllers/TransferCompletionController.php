@@ -24,6 +24,7 @@ use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferPlanQuery;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Shared\Infrastructure\Http\Controller;
+use App\Shared\Infrastructure\Pagination\PageSlice;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,10 +59,12 @@ final class TransferCompletionController extends Controller
             $scope->allianceId,
             TransferPermission::Manage,
         );
+        /** @var array{participant_cursor?:string|null} $input */
+        $input = $request->validate(['participant_cursor' => ['nullable', 'string', 'max:4096']]);
         $plan = $plans->currentForAlliance($scope->allianceId);
-        $participantRows = $plan === null
-            ? collect()
-            : $participants->forPlan($scope->allianceId, (string) $plan->id, true);
+        $participantPage = $plan === null ? new PageSlice([], null, TransferParticipantQuery::PAGE_SIZE)
+            : $participants->page($scope->playerId, $scope->allianceId, (string) $plan->id, true, $input['participant_cursor'] ?? null);
+        $participantRows = collect($participantPage->items);
         $rosterIds = $participantRows
             ->map(static fn (TransferParticipant $participant): ?string => $participant->completion?->roster_entry_id === null
                 ? null
@@ -85,9 +88,9 @@ final class TransferCompletionController extends Controller
                 'state' => $plan->state->value,
                 'completable' => $canManage && $plan->state === TransferPlanState::Locked,
             ],
-            'participants' => $participantRows
-                ->map(fn (TransferParticipant $participant): array => $this->participant($participant, $rosterById, $playersById))
-                ->all(),
+            'participantSummary' => $plan === null ? null : $participants->summary($scope->playerId, $scope->allianceId, (string) $plan->id, true),
+            'participants' => [...$participantPage->toArray(), 'items' => $participantRows
+                ->map(fn (TransferParticipant $participant): array => $this->participant($participant, $rosterById, $playersById))->all()],
         ]);
     }
 

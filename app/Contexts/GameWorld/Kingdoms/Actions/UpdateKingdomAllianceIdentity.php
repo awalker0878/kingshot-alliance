@@ -62,15 +62,16 @@ final readonly class UpdateKingdomAllianceIdentity
             $actor,
             $reason,
         ): void {
-            $alliance = KingdomAlliance::query()->whereKey($targetKingdomAllianceId)->lockForUpdate()->firstOrFail();
-            if ((string) $alliance->kingdom_id !== $expectedKingdomId) {
+            $kingdom = Kingdom::query()->whereKey($expectedKingdomId)->lockForUpdate()->firstOrFail();
+            $alliance = KingdomAlliance::query()->whereKey($targetKingdomAllianceId)->where('kingdom_id', $expectedKingdomId)->lockForUpdate()->first();
+            if (! $alliance instanceof KingdomAlliance) {
+                KingdomAlliance::query()->findOrFail($targetKingdomAllianceId);
                 throw ValidationException::withMessages(['kingdom_alliance' => 'The neutral alliance no longer belongs to the expected Kingdom.']);
             }
             if ($alliance->status !== KingdomAllianceStatus::Active || $alliance->canonical_kingdom_alliance_id !== null) {
                 throw ValidationException::withMessages(['kingdom_alliance' => 'Archived or reconciled Alliance identities cannot be mutated. Resolve the active canonical identity first.']);
             }
 
-            $kingdom = Kingdom::query()->whereKey($expectedKingdomId)->lockForUpdate()->firstOrFail();
             if ($kingdom->status !== KingdomStatus::Active) {
                 throw ValidationException::withMessages(['kingdom' => 'Alliance identity cannot change while its Kingdom is archived.']);
             }

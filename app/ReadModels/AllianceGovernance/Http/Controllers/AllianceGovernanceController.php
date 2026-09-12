@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\ReadModels\AllianceGovernance\Http\Controllers;
 
 use App\Contexts\Accounts\Identity\Models\User;
-use App\Contexts\Alliance\Access\Enums\AlliancePermission;
-use App\Contexts\Alliance\Access\Services\AllianceAuthorization;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
@@ -26,13 +24,11 @@ final class AllianceGovernanceController extends Controller
     public function index(
         Request $request,
         AllianceContext $context,
-        AllianceAuthorization $authorization,
         AllianceReferenceQuery $alliances,
         AllianceGovernanceTimelineQuery $timeline,
     ): Response {
         $user = $this->user($request);
         $scope = $context->scope();
-        $this->authorizeOfficer($authorization, $scope->playerId, $scope->allianceId);
         $alliance = $alliances->require($scope->allianceId);
         $validated = $request->validate([
             'capability' => ['nullable', 'string', 'in:alliance,membership,invitation,recruitment,content,integration'],
@@ -40,6 +36,7 @@ final class AllianceGovernanceController extends Controller
             'before' => ['nullable', 'string', 'ulid'],
         ]);
         $result = $timeline->forAlliance(
+            $scope->playerId,
             $scope->allianceId,
             isset($validated['capability']) ? (string) $validated['capability'] : null,
             isset($validated['actor_player_id']) ? (string) $validated['actor_player_id'] : null,
@@ -60,7 +57,6 @@ final class AllianceGovernanceController extends Controller
     public function member(
         Request $request,
         AllianceContext $context,
-        AllianceAuthorization $authorization,
         AllianceReferenceQuery $alliances,
         PlayerReferenceQuery $players,
         MembershipGovernanceHistoryQuery $history,
@@ -68,15 +64,16 @@ final class AllianceGovernanceController extends Controller
     ): Response {
         $user = $this->user($request);
         $scope = $context->scope();
-        $this->authorizeOfficer($authorization, $scope->playerId, $scope->allianceId);
         $alliance = $alliances->require($scope->allianceId);
+        $validated = $request->validate(['cursor' => ['nullable', 'string', 'max:4096']]);
+        $page = $history->forPlayer($scope->playerId, $scope->allianceId, $player, $validated['cursor'] ?? null);
         $target = $players->require($player);
 
         return Inertia::render('Alliance/Members/History', [
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name],
             'player' => ['id' => $target->playerId, 'name' => $target->currentName, 'gamePlayerId' => $target->gamePlayerId],
-            'history' => $history->forPlayer($scope->allianceId, $player),
+            'historyPage' => $page->toArray(),
         ]);
     }
 
@@ -99,15 +96,6 @@ final class AllianceGovernanceController extends Controller
             'alliance' => ['id' => $alliance->allianceId, 'name' => $alliance->name],
             'reconciliation' => $reconciliation->forAlliance($scope->allianceId),
         ]);
-    }
-
-    private function authorizeOfficer(AllianceAuthorization $authorization, string $playerId, string $allianceId): void
-    {
-        if (! $authorization->allows($playerId, $allianceId, AlliancePermission::MembershipManage)
-            && ! $authorization->allows($playerId, $allianceId, AlliancePermission::RoleManage)
-            && ! $authorization->allows($playerId, $allianceId, AlliancePermission::Manage)) {
-            throw new AuthorizationException;
-        }
     }
 
     private function user(Request $request): User

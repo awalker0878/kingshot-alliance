@@ -2,6 +2,16 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    searchChoices: 'Поиск вариантов',
+    findChoices: 'Найти',
+    noChoices: 'Подходящих вариантов нет.',
+    choiceLookupFailed: 'Не удалось загрузить варианты. Повторите попытку.',
+    activeConfigurationLimit:
+      'Не более {limit} активных пунктов. Отключите один, чтобы добавить другой.',
+    historyItemsOnPage: 'На этой странице {count} записей (не более {pageSize}).',
+    bulkOutcome: {
+      'permission-denied': 'Недостаточно прав',
+    },
     eyebrow: 'Набор в альянс',
     title: 'Набор',
     candidates: 'Кандидаты',

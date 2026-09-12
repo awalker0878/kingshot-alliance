@@ -2,6 +2,16 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    searchChoices: 'Seçeneklerde ara',
+    findChoices: 'Ara',
+    noChoices: 'Eşleşen seçenek yok.',
+    choiceLookupFailed: 'Seçenekler yüklenemedi. Tekrar deneyin.',
+    activeConfigurationLimit:
+      'En fazla {limit} etkin öğe. Yeni bir öğe eklemek için birini devre dışı bırakın.',
+    historyItemsOnPage: 'Bu sayfada {count} kayıt (en fazla {pageSize}).',
+    bulkOutcome: {
+      'permission-denied': 'İzin reddedildi',
+    },
     eyebrow: 'İttifak üye alımı',
     title: 'Üye alımı',
     candidates: 'Adaylar',

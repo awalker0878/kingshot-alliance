@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class ProcessAccountDeletionRequests
 {
+    private const BLOCKED_RETRY_MINUTES = 60;
+
     public function __construct(
         private LegalHoldService $legalHolds,
         private AccountIdentityQuery $accounts,
@@ -37,13 +39,14 @@ final readonly class ProcessAccountDeletionRequests
         $requests = AccountDeletionRequest::query()
             ->whereIn('status', ['pending', 'blocked'])
             ->where('eligible_at', '<=', now())
-            ->orderBy('eligible_at')
+            ->whereRaw('COALESCE(next_attempt_at, eligible_at) <= ?', [now()])
+            ->orderByRaw('COALESCE(next_attempt_at, eligible_at)')
             ->orderBy('id')
             ->limit(max(1, min(500, $limit)))
             ->get();
 
         foreach ($requests as $request) {
-            if ($this->process((string) $request->id)) {
+            if ($this->process((string) $request->id, (int) $request->user_id)) {
                 $processed++;
             }
         }
@@ -51,21 +54,22 @@ final readonly class ProcessAccountDeletionRequests
         return $processed;
     }
 
-    private function process(string $requestId): bool
+    private function process(string $requestId, int $userId): bool
     {
-        return DB::transaction(function () use ($requestId): bool {
-            $request = AccountDeletionRequest::query()->whereKey($requestId)->lockForUpdate()->first();
+        return DB::transaction(function () use ($requestId, $userId): bool {
+            $account = $this->accounts->lockCurrent($userId);
+            $request = AccountDeletionRequest::query()->whereKey($requestId)->where('user_id', $userId)->lockForUpdate()->first();
             if (! $request instanceof AccountDeletionRequest
                 || ! in_array($request->status, ['pending', 'blocked'], true)
-                || $request->eligible_at->isFuture()) {
+                || $request->eligible_at->isFuture()
+                || $request->next_attempt_at?->isFuture()) {
                 return false;
             }
 
-            $userId = (int) $request->user_id;
-            $account = $this->accounts->find($userId);
-            if ($account === null || $account->anonymized) {
+            if ($account->anonymized) {
                 $request->forceFill([
                     'status' => 'processed',
+                    'next_attempt_at' => null,
                     'processed_at' => now(),
                     'blocked_reason' => null,
                 ])->save();
@@ -84,6 +88,7 @@ final readonly class ProcessAccountDeletionRequests
                 $request->forceFill([
                     'status' => 'blocked',
                     'blocked_reason' => $blockedReason,
+                    'next_attempt_at' => now()->addMinutes(self::BLOCKED_RETRY_MINUTES),
                 ])->save();
 
                 return false;
@@ -95,6 +100,7 @@ final readonly class ProcessAccountDeletionRequests
 
             $request->forceFill([
                 'status' => 'processed',
+                'next_attempt_at' => null,
                 'processed_at' => now(),
                 'blocked_reason' => null,
             ])->save();

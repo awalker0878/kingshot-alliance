@@ -65,4 +65,14 @@ final readonly class AllianceAuthorization
             throw new AuthorizationException;
         }
     }
+
+    public function canManageMembership(string $playerId, string $allianceId): bool
+    {
+        return $this->allows($playerId, $allianceId, AlliancePermission::MembershipManage);
+    }
+
+    public function canManageRecruitment(string $playerId, string $allianceId): bool
+    {
+        return $this->allows($playerId, $allianceId, AlliancePermission::RecruitmentManage);
+    }
 }

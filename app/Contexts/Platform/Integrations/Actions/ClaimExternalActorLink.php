@@ -8,16 +8,19 @@ use App\Contexts\Platform\Integrations\Enums\ExternalActorProvider;
 use App\Contexts\Platform\Integrations\Models\ApiCredential;
 use App\Contexts\Platform\Integrations\Models\ExternalActorLink;
 use App\Contexts\Platform\Integrations\Models\ExternalActorPairingCode;
+use App\Contexts\Platform\Integrations\Policies\IntegrationRuntimePolicy;
 use App\Contexts\Platform\Integrations\Services\ExternalActorIdentity;
 use App\Contexts\Platform\Integrations\ValueObjects\ExternalActorLinkReference;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class ClaimExternalActorLink
 {
     public function __construct(
+        private IntegrationRuntimePolicy $availability,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
     ) {}
@@ -34,6 +37,10 @@ final readonly class ClaimExternalActorLink
         $subjectHint = ExternalActorIdentity::subjectHint($externalSubject);
 
         return DB::transaction(function () use ($allianceId, $apiCredentialId, $provider, $codeHash, $subjectHash, $subjectHint): ExternalActorLinkReference {
+            if (! $this->availability->allowsApi($allianceId)) {
+                throw new AuthorizationException;
+            }
+
             $credential = ApiCredential::query()
                 ->whereKey($apiCredentialId)
                 ->where('alliance_id', $allianceId)
