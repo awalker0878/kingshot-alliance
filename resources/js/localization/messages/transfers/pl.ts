@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    searchChoices: 'Szukaj opcji',
+    choicePageSummary:
+      '{count} opcji na tej stronie; {total} pasuje. Kolejność według stałego identyfikatora.',
+    choiceUnavailable: 'Wybrana opcja nie jest już dostępna.',
+    choicesFailed: 'Nie udało się wczytać opcji. Wybór i wyświetlana strona pozostają bez zmian.',
+    retryChoices: 'Ponów wczytanie',
+
     participantPagination: 'Strony uczestników',
     participantPageSummary: '{count} uczestników na tej stronie; {total} w tym widoku.',
     participantPageOrder:

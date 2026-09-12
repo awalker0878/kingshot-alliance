@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace App\ReadModels\TransferManagement\Queries;
 
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
-use App\Contexts\Alliance\Membership\Queries\PlayerMembershipQuery;
-use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
-use App\Contexts\Alliance\Membership\ValueObjects\RosterEntryReference;
 use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Enums\TransferPermission;
 use App\Contexts\GameWorld\KingdomTransfers\Access\Services\TransferAuthorization;
@@ -24,7 +21,6 @@ use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferKingdomConditionQuer
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferParticipantQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferPlanQuery;
 use App\Contexts\GameWorld\KingdomTransfers\Queries\TransferWindowQuery;
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\ReadModels\TransferManagement\Presenters\TransferManagementPresenter;
 use App\Shared\Infrastructure\Pagination\PageSlice;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -42,9 +38,6 @@ final readonly class TransferManagementPageQuery
         private TransferWindowQuery $windows,
         private TransferGroupQuery $groups,
         private TransferKingdomConditionQuery $conditions,
-        private RosterEntryQuery $roster,
-        private PlayerMembershipQuery $memberships,
-        private PlayerReferenceQuery $players,
         private TransferManagementPresenter $presenter,
     ) {}
 
@@ -78,12 +71,6 @@ final readonly class TransferManagementPageQuery
         $kingdom = $this->kingdoms->require($alliance->kingdomId);
         $mutable = $this->plans->mutableForAlliance($allianceId);
         $participantPage = $mutable === null ? new PageSlice([], null, TransferParticipantQuery::PAGE_SIZE) : $this->participants->page($actorPlayerId, $allianceId, (string) $mutable->id, true, $cursor, TransferPermission::Manage);
-        $rosterOptions = $this->roster->activeOrTracked($allianceId);
-        $memberIds = $this->memberships->activePlayerIds($allianceId);
-        $refs = $this->players->byIds(array_values(array_unique(array_merge(
-            $memberIds,
-            array_map(static fn (RosterEntryReference $e): string => $e->playerId, $rosterOptions),
-        ))));
         $windowRows = $this->windows->forAlliance($allianceId);
         $selectedWindow = $mutable?->window;
         $capacityRows = $selectedWindow === null
@@ -107,16 +94,7 @@ final readonly class TransferManagementPageQuery
             'cohorts' => $mutable === null ? [] : $this->cohorts->forPlan($allianceId, (string) $mutable->id, true)->map(fn (TransferCohort $c): array => $this->presenter->cohort($c, true))->all(),
             'participantSummary' => $mutable === null ? null : $this->participants->summary($actorPlayerId, $allianceId, (string) $mutable->id, true, TransferPermission::Manage),
             'participants' => [...$participantPage->toArray(), 'items' => array_map(fn (TransferParticipant $p): array => $this->presenter->participant($p, true), $participantPage->items)],
-            'rosterOptions' => array_values(array_map(fn (RosterEntryReference $e): array => [
-                'id' => $e->rosterEntryId,
-                'name' => $e->observedName,
-                'gamePlayerId' => $refs[$e->playerId]->gamePlayerId ?? null,
-                'playerId' => $e->playerId,
-            ], $rosterOptions)),
-            'players' => array_values(array_map(static fn (string $id): array => [
-                'id' => $id,
-                'name' => $refs[$id]->currentName ?? $id,
-            ], $memberIds)),
+
         ];
     }
 }

@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    searchChoices: 'Seçenek ara',
+    choicePageSummary:
+      'Bu sayfada {count} seçenek; toplam {total} eşleşme. Sabit kayıt kimliğine göre sıralanır.',
+    choiceUnavailable: 'Seçilen seçenek artık kullanılamıyor.',
+    choicesFailed: 'Seçenekler yüklenemedi. Seçiminiz ve görüntülenen sayfa değişmedi.',
+    retryChoices: 'Yeniden dene',
+
     participantPagination: 'Katılımcı sayfaları',
     participantPageSummary: 'Bu sayfada {count}, bu görünümde toplam {total} katılımcı var.',
     participantPageOrder:

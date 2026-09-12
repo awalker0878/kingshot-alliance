@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
+import TransferChoicePicker from '@/components/transfers/TransferChoicePicker.vue';
 import TransferParticipantPager from '@/components/transfers/TransferParticipantPager.vue';
 import type { ParticipantPage, ParticipantSummary } from '@/components/transfers/participantPages';
 import { useTransferDrafts } from '@/components/transfers/useTransferDrafts';
@@ -96,8 +97,6 @@ type Participant = {
   managerNotes?: string | null;
   withdrawnAt: string | null;
 };
-type Roster = { id: string; name: string; gamePlayerId: string | null; playerId: string };
-type PlayerOption = { id: string; name: string };
 const props = defineProps<{
   user: { name: string; email: string };
   alliance: { id: string; name: string; kingdom: string };
@@ -110,8 +109,6 @@ const props = defineProps<{
   cohorts: Cohort[];
   participants: ParticipantPage<Participant>;
   participantSummary: ParticipantSummary | null;
-  rosterOptions: Roster[];
-  players: PlayerOption[];
 }>();
 const participants = computed(() => props.participants.items);
 const { t, formatDate, formatNumber } = useLocale();
@@ -192,6 +189,15 @@ const participantForm = useForm({
   source_kingdom: '',
   destination_kingdom: '',
   manager_notes: '',
+});
+watch(transferScope, () => {
+  windowForm.reset();
+  planForm.reset();
+  groupForm.reset();
+  conditionForm.reset();
+  capacityForm.reset();
+  cohortForm.reset();
+  participantForm.reset();
 });
 const cohortDrafts = useTransferDrafts(
   () => props.cohorts,
@@ -501,10 +507,15 @@ function compatibleCohorts(p: Participant): Cohort[] {
           class="ks-input min-w-60 flex-1"
           :placeholder="t('kingdomP7D.cycleLabel')"
           required
-        /><select v-model="planForm.transfer_window_id" class="ks-input min-w-60" required>
-          <option value="" disabled>{{ t('kingdomP7D.chooseTransferWindow') }}</option>
-          <option v-for="w in windows" :key="w.id" :value="w.id">{{ w.label }}</option></select
-        ><button class="rounded-lg bg-[var(--ks-gold)] px-4 py-2 font-bold text-[var(--ks-ink)]">
+        /><TransferChoicePicker
+          id="transfer-plan-window"
+          v-model="planForm.transfer_window_id"
+          kind="windows"
+          :scope="transferScope"
+          :label="t('kingdomP7D.transferWindow')"
+          :empty-label="t('kingdomP7D.chooseTransferWindow')"
+          required
+        /><button class="rounded-lg bg-[var(--ks-gold)] px-4 py-2 font-bold text-[var(--ks-ink)]">
           {{ t('kingdomP7D.createDraft') }}
         </button>
       </form>
@@ -826,10 +837,15 @@ function compatibleCohorts(p: Participant): Cohort[] {
             :disabled="cohortForm.direction === 'incoming'"
             :placeholder="t('kingdomP7D.destinationKingdom')"
             type="number"
-          /><select v-model="cohortForm.coordinator_player_id" class="ks-input">
-            <option value="">{{ t('kingdomP7D.unassigned') }}</option>
-            <option v-for="p in players" :key="p.id" :value="p.id">{{ p.name }}</option></select
-          ><button class="rounded-lg border border-[var(--ks-border)] px-3 py-2 font-semibold">
+          /><TransferChoicePicker
+            id="transfer-new-coordinator"
+            v-model="cohortForm.coordinator_player_id"
+            kind="coordinators"
+            :scope="transferScope"
+            :plan-id="mutablePlan.id"
+            :label="t('kingdomP7D.coordinator')"
+            :empty-label="t('kingdomP7D.unassigned')"
+          /><button class="rounded-lg border border-[var(--ks-border)] px-3 py-2 font-semibold">
             {{ t('kingdomP7D.createCohort') }}
           </button>
         </form>
@@ -854,14 +870,17 @@ function compatibleCohorts(p: Participant): Cohort[] {
             class="ks-input"
             :disabled="c.state === 'archived' || cohortDrafts[c.id]!.direction === 'incoming'"
             type="number"
-          /><select
+          /><TransferChoicePicker
+            :id="'transfer-coordinator-' + c.id"
             v-model="cohortDrafts[c.id]!.coordinator_player_id"
-            class="ks-input"
+            kind="coordinators"
+            :scope="transferScope"
+            :plan-id="mutablePlan.id"
+            :selected-name="c.coordinator?.name"
+            :label="t('kingdomP7D.coordinator')"
+            :empty-label="t('kingdomP7D.unassigned')"
             :disabled="c.state === 'archived'"
-          >
-            <option value="">{{ t('kingdomP7D.unassigned') }}</option>
-            <option v-for="p in players" :key="p.id" :value="p.id">{{ p.name }}</option></select
-          ><button
+          /><button
             :disabled="c.state === 'archived'"
             class="ks-command-link"
             @click="saveCohort(c)"
@@ -890,17 +909,17 @@ function compatibleCohorts(p: Participant): Cohort[] {
             <option value="staying">{{ t('kingdomP7D.directionStaying') }}</option>
             <option value="outgoing">{{ t('kingdomP7D.directionOutgoing') }}</option>
             <option value="incoming">{{ t('kingdomP7D.directionIncoming') }}</option></select
-          ><select
+          ><TransferChoicePicker
             v-if="participantForm.direction !== 'incoming'"
+            id="transfer-new-roster"
             v-model="participantForm.roster_entry_id"
-            class="ks-input"
+            kind="roster"
+            :scope="transferScope"
+            :plan-id="mutablePlan.id"
+            :label="t('kingdomP7D.chooseRosterEntry')"
+            :empty-label="t('kingdomP7D.chooseRosterEntry')"
             required
-          >
-            <option value="">{{ t('kingdomP7D.chooseRosterEntry') }}</option>
-            <option v-for="r in rosterOptions" :key="r.id" :value="r.id">
-              {{ r.name }}
-            </option></select
-          ><input
+          /><input
             v-else
             v-model="participantForm.name"
             class="ks-input"

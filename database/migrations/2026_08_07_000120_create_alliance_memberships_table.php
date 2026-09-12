@@ -26,6 +26,7 @@ return new class extends Migration
             $table->index(['player_id', 'status']);
             $table->index(['alliance_id', 'status', 'rank']);
             $table->index(['alliance_id', 'status', 'id'], 'alliance_active_audience_cursor');
+            $table->index(['alliance_id', 'status', 'player_id'], 'alliance_member_choice_cursor');
             $table->index(['alliance_id', 'created_at', 'id']);
         });
 

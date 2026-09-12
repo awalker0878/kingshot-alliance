@@ -27,6 +27,7 @@ return new class extends Migration
             $table->timestamps();
             $table->index(['alliance_id', 'pre_transfer_starts_at', 'ends_at']);
             $table->unique(['alliance_id', 'label']);
+            $table->index(['alliance_id', 'id'], 'transfer_window_choice_cursor');
         });
 
         Schema::create('transfer_groups', function (Blueprint $table): void {

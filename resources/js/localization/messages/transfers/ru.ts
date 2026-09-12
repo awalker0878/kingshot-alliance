@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    searchChoices: 'Поиск вариантов',
+    choicePageSummary:
+      '{count} вариантов на странице; найдено {total}. Порядок по постоянному идентификатору.',
+    choiceUnavailable: 'Выбранный вариант больше недоступен.',
+    choicesFailed: 'Не удалось загрузить варианты. Выбор и текущая страница сохранены.',
+    retryChoices: 'Повторить загрузку',
+
     participantPagination: 'Страницы участников',
     participantPageSummary: '{count} участников на этой странице; {total} в этом представлении.',
     participantPageOrder:

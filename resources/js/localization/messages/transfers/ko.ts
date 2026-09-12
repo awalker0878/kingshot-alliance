@@ -2,6 +2,12 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    searchChoices: '선택 항목 검색',
+    choicePageSummary: '이 페이지에 {count}개, 일치하는 항목 총 {total}개. 고정 레코드 ID순입니다.',
+    choiceUnavailable: '선택한 항목을 더 이상 사용할 수 없습니다.',
+    choicesFailed: '선택 항목을 불러오지 못했습니다. 선택과 표시된 페이지는 유지됩니다.',
+    retryChoices: '다시 불러오기',
+
     participantPagination: '참가자 페이지',
     participantPageSummary: '현재 페이지에 {count}명, 이 보기 전체에 {total}명이 있습니다.',
     participantPageOrder: '변하지 않는 등록 ID순입니다. 합계는 보기 전체를 포함합니다.',

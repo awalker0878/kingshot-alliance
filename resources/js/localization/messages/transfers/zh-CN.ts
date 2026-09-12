@@ -2,6 +2,12 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    searchChoices: '搜索选项',
+    choicePageSummary: '本页 {count} 个选项，共 {total} 个匹配项。按固定记录标识排序。',
+    choiceUnavailable: '所选选项已不可用。',
+    choicesFailed: '无法加载选项。当前选择和显示的页面保持不变。',
+    retryChoices: '重试加载',
+
     participantPagination: '参与者分页',
     participantPageSummary: '本页 {count} 人；此视图共 {total} 人。',
     participantPageOrder: '按固定注册 ID 排序。统计覆盖整个视图。',

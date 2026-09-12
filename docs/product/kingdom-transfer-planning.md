@@ -316,3 +316,9 @@ Overview, management, readiness and outcomes display 25 participants at a time, 
 Readiness's eligibility filter applies to the currently displayed page, as labelled beside the filter. An empty filtered page is not a statement that no participant in the plan matches; continue paging to review the rest. Game eligibility still comes from the canonical server evaluator, independently of Alliance readiness.
 
 Participant/cohort edits are retained during page navigation and failed loads. The displayed page does not silently become empty on failure: a retry control appears. Switching Alliance or Plan discards old-scope drafts. Loading further pages is not a write and does not change readiness, evidence or completion. History navigation remains separate for each visible participant. See the [authoritative query boundary](../architecture/contexts/game-world/kingdom-transfers.md) for current authorization and cursor rules.
+
+## Management choices
+
+Window, coordinator and roster selection uses searchable 25-record pages rather than loading the complete audience with the workspace. Next continues through matching choices, and First page refreshes the result set. The count includes all current matches; ordering is by stable record ID, not alphabetic or priority ranking. An existing selected value remains visible when it is outside the current page or search.
+
+Failed loads expose retry and keep the previously displayed choices, selection and form draft. A superseded response cannot overwrite a newer search or another Alliance/plan. Changing the active actor, Alliance or plan discards old-scope creation drafts. A choice that is no longer currently available is labelled as such; selecting or displaying it does not bypass server-side write authorization. Archived Kingdoms and revoked management permission deny choice reads, including with previously issued cursors. These selectors do not change game eligibility or cohort compatibility rules.

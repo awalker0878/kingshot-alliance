@@ -2,6 +2,14 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    searchChoices: 'Cari pilihan',
+    choicePageSummary:
+      '{count} pilihan pada halaman ini; {total} cocok. Diurutkan menurut ID rekaman tetap.',
+    choiceUnavailable: 'Pilihan yang dipilih tidak lagi tersedia.',
+    choicesFailed:
+      'Pilihan tidak dapat dimuat. Pilihan Anda dan halaman yang tampil tidak berubah.',
+    retryChoices: 'Coba lagi',
+
     participantPagination: 'Halaman peserta',
     participantPageSummary: '{count} peserta di halaman ini; {total} dalam tampilan ini.',
     participantPageOrder:

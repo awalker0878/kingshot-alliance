@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    searchChoices: 'Tìm lựa chọn',
+    choicePageSummary:
+      '{count} lựa chọn trên trang; {total} kết quả phù hợp. Sắp xếp theo mã bản ghi ổn định.',
+    choiceUnavailable: 'Lựa chọn đã chọn không còn khả dụng.',
+    choicesFailed: 'Không thể tải lựa chọn. Lựa chọn của bạn và trang đang xem được giữ nguyên.',
+    retryChoices: 'Thử tải lại',
+
     participantPagination: 'Trang người tham gia',
     participantPageSummary: '{count} người tham gia trên trang này; {total} trong chế độ xem này.',
     participantPageOrder: 'Sắp xếp theo mã đăng ký cố định. Tổng số bao gồm toàn bộ chế độ xem.',

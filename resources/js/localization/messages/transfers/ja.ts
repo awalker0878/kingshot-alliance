@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   kingdomP7D: {
+    searchChoices: '選択肢を検索',
+    choicePageSummary:
+      'このページは{count}件、該当する選択肢は全{total}件です。固定レコードID順です。',
+    choiceUnavailable: '選択した項目は利用できなくなりました。',
+    choicesFailed: '選択肢を読み込めませんでした。選択内容と表示ページは変更されていません。',
+    retryChoices: '再読み込み',
+
     participantPagination: '参加者のページ',
     participantPageSummary: 'このページは {count} 人、この表示全体は {total} 人です。',
     participantPageOrder: '固定の登録 ID 順です。合計は表示全体を対象とします。',

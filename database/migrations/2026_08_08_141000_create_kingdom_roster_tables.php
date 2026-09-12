@@ -31,6 +31,7 @@ return new class extends Migration
                 'alliance_roster_entries_cursor_idx',
             );
             $table->index(['alliance_id', 'last_observed_at']);
+            $table->index(['alliance_id', 'id', 'state'], 'alliance_roster_choice_cursor');
         });
 
         $driver = DB::connection()->getDriverName();
