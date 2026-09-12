@@ -81,6 +81,14 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['alliance_id', 'captured_at']);
+            $table->index(['captured_at', 'id'], 'usage_snapshot_retention_index');
+        });
+
+        Schema::create('alliance_usage_capture_state', function (Blueprint $table): void {
+            $table->string('id', 24)->primary();
+            // A deleted Alliance must not erase the durable traversal frontier.
+            $table->ulid('last_alliance_id')->nullable();
+            $table->timestamp('last_batch_at')->nullable();
         });
 
         Schema::create('legal_holds', function (Blueprint $table): void {
@@ -123,6 +131,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['alliance_id', 'generated_at']);
+            $table->index(['generated_at', 'id'], 'alliance_export_retention_index');
         });
 
         Schema::create('api_credentials', function (Blueprint $table): void {
@@ -139,6 +148,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['alliance_id', 'revoked_at']);
+            $table->index(['revoked_at', 'id'], 'api_credential_retention_index');
         });
 
         Schema::create('external_actor_pairing_codes', function (Blueprint $table): void {
@@ -247,6 +257,8 @@ return new class extends Migration
             $table->index(['status', 'updated_at', 'id'], 'webhook_delivery_queue_index');
         });
 
+        DB::statement("CREATE INDEX webhook_payload_retention_index ON webhook_deliveries (updated_at, id) WHERE payload IS NOT NULL AND status IN ('delivered', 'failed')");
+
         $now = now();
         DB::table('platform_plans')->insert([
             'code' => 'standard',
@@ -296,6 +308,7 @@ return new class extends Migration
         Schema::dropIfExists('account_deletion_requests');
         Schema::dropIfExists('legal_holds');
         Schema::dropIfExists('alliance_usage_snapshots');
+        Schema::dropIfExists('alliance_usage_capture_state');
         Schema::dropIfExists('alliance_feature_flags');
         Schema::dropIfExists('alliance_platform_settings');
         Schema::dropIfExists('alliance_plan_assignments');

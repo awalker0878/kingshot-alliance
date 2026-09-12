@@ -78,3 +78,11 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0053: Webhook egress destination security](0053-webhook-egress-destination-security.md)
 
 - [ADR-0054: Fenced and bounded webhook recovery](0054-fenced-bounded-webhook-recovery.md)
+
+- [ADR-0055: Transfer management catalogue and assignment pages](0055-transfer-management-catalogue-pages.md)
+
+- [ADR-0056: Current integration runtime availability](0056-current-integration-runtime-availability.md)
+
+- [ADR-0057: Bounded Alliance export preparation](0057-bounded-alliance-export-preparation.md)
+
+- [ADR-0058: Bounded Platform maintenance progress](0058-bounded-platform-maintenance-progress.md)

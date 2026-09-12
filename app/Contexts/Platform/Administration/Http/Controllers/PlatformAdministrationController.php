@@ -16,10 +16,10 @@ use App\Contexts\Platform\DataGovernance\Services\LegalHoldService;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class PlatformAdministrationController extends Controller
 {
@@ -186,14 +186,13 @@ final class PlatformAdministrationController extends Controller
         return back()->with('actionReceipt', $this->receipt('platform-outbox-retry-released'));
     }
 
-    public function export(Request $request, string $alliance, AllianceDataExportService $exports): HttpResponse
+    public function export(Request $request, string $alliance, AllianceDataExportService $exports): StreamedResponse
     {
         $actor = $this->account($request);
         $export = $exports->generate($actor, $alliance);
 
-        return response($export['contents'], 200, [
+        return response()->streamDownload(static fn () => $export['buffer']->send(), $export['filename'], [
             'Content-Type' => 'application/json; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="'.$export['filename'].'"',
             'X-Export-SHA256' => $export['sha256'],
             'X-Export-Rows' => (string) $export['rowCount'],
         ]);

@@ -4,21 +4,41 @@ declare(strict_types=1);
 
 namespace App\Contexts\Platform\DataGovernance\Actions;
 
-use App\Contexts\Platform\AllianceAdministration\Models\AllianceUsageSnapshot;
-use App\Contexts\Platform\Integrations\Models\ApiCredential;
-use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 final class EnforcePlatformRetention
 {
     /** @return array{webhookPayloadsRedacted:int,credentialsPurged:int,usageSnapshotsPurged:int,exportMetadataPurged:int} */
-    public function handle(): array
+    public function handle(int $limit = 500): array
     {
-        $webhookPayloadsRedacted = WebhookDelivery::query()->whereNotNull('payload')->whereIn('status', ['delivered', 'failed'])->where('updated_at', '<', now()->subDays(30))->update(['payload' => null, 'response_excerpt' => null, 'last_error' => null, 'updated_at' => now()]);
-        $credentialsPurged = ApiCredential::query()->whereNotNull('revoked_at')->where('revoked_at', '<', now()->subDays(90))->delete();
-        $usageSnapshotsPurged = AllianceUsageSnapshot::query()->where('captured_at', '<', now()->subDays(365))->delete();
-        $exportMetadataPurged = DB::table('alliance_data_exports')->where('generated_at', '<', now()->subDays(365))->delete();
+        $limit = max(1, min(500, $limit));
+        $now = now()->toImmutable();
+        $webhookPayloadsRedacted = DB::transaction(function () use ($limit, $now): int {
+            $query = DB::table('webhook_deliveries')->whereNotNull('payload')
+                ->whereIn('status', ['delivered', 'failed'])->where('updated_at', '<', $now->subDays(30));
+            $ids = (clone $query)->orderBy('updated_at')->orderBy('id')->limit($limit)
+                ->lock('for update skip locked')->pluck('id');
+
+            // The lock and terminal predicate fence a concurrent manual retry.
+            return $query->whereIn('id', $ids)->update([
+                'payload' => null, 'response_excerpt' => null, 'last_error' => null, 'updated_at' => $now,
+            ]);
+        });
+        $credentialsPurged = $this->purge(DB::table('api_credentials')->where('revoked_at', '<', $now->subDays(90)), 'revoked_at', $limit);
+        $usageSnapshotsPurged = $this->purge(DB::table('alliance_usage_snapshots')->where('captured_at', '<', $now->subDays(365)), 'captured_at', $limit);
+        $exportMetadataPurged = $this->purge(DB::table('alliance_data_exports')->where('generated_at', '<', $now->subDays(365)), 'generated_at', $limit);
 
         return ['webhookPayloadsRedacted' => $webhookPayloadsRedacted, 'credentialsPurged' => $credentialsPurged, 'usageSnapshotsPurged' => $usageSnapshotsPurged, 'exportMetadataPurged' => $exportMetadataPurged];
+    }
+
+    private function purge(Builder $query, string $ageColumn, int $limit): int
+    {
+        return DB::transaction(static function () use ($query, $ageColumn, $limit): int {
+            $ids = (clone $query)->orderBy($ageColumn)->orderBy('id')->limit($limit)
+                ->lock('for update skip locked')->pluck('id');
+
+            return $query->whereIn('id', $ids)->delete();
+        });
     }
 }

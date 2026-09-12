@@ -15,7 +15,7 @@ final class CapturePlatformUsageCommand extends Command
 
     public function handle(PlatformUsageService $usage): int
     {
-        $captured = $usage->captureAll(max(1, min(2000, (int) $this->option('limit'))));
+        $captured = $usage->captureAll((int) $this->option('limit'));
         $this->info(sprintf('Captured usage for %d alliance(s).', $captured));
 
         return self::SUCCESS;

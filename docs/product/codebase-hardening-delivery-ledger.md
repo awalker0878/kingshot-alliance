@@ -4,11 +4,11 @@
 
 - Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
 - Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
-- Latest pushed implementation: `a52a69fe99833d021c7244639fb8554f9fa51dcd`. Focused run `34714229056` at this exact head passes all72 Integrations cases /249 assertions (including real HTTPS) and all29 TransferManagement cases /425 assertions; both earlier fixture errors are resolved. Its focused TransferManagement run `34713992222` passes27/29 cases (407 assertions); two new fixture clones collide with the existing active-cohort name constraint. This checkpoint gives those fixtures distinct names; the constraint is unchanged. Webhook implementation: `06858c343362fe62c184cf4bda6bfa0ee0b4d45f`. Focused hosted Integrations run `34712995411`, exact head checkout, passes 71 tests /237 assertions on PHP8.5.10 in40.876 seconds; current normal CI is still running. Previous all-nine milestone: `cb8c652c1d520cfed6927ada9a41a93d1c0d4760`. All nine normal workflows pass. CI `34709928296` checks merge revision `e9a9d7532da5497d506411141869fd9a4be9f92b`: PHP job `103596747843` passes 1,771 tests / 86,390 assertions in 18:35.019, Pint and types. Container/staging/recovery job `103599626666` and frontend job `103596747773` pass. Other workflows: Architecture `34709928235`, Gift Code `34709928408`, KingdomMaps `34709928263`, Dependency Review `34709928316`, CodeQL `34709928326`, King Perks `34709928306`, Intelligence `34709928262`, Visual `34709928271`.
-- Current item/state: HARD-112 / In progress; HARD-095 awaits containing browser verification; HARD-109/110 await final transport/containing verification. Passing prior tests did not cover IPv4-mapped IPv6, proxy bypass, body/signature byte mismatch, durable retry exhaustion or global recipient fan-out. This continuation repairs those gaps under the existing Integrations owner.
-- Active files: existing TransferManagement composition/choice endpoint/picker, independent catalogue pages and group-membership adapter, owner-local cohort compatibility, canonical indexes, regression/browser fixtures and ADR-0055. The stale proposed alternative choice endpoint and publication manifest are not applied.
-- Local verification: changed PHP formatting, TransferManagement/KingdomTransfers PHPStan and full npm check pass (Node24.19.0/npm11.9.0). Thirteen selection source contracts pass, including participant-switch stale-response fencing. Catalogue PostgreSQL traversal/authority/group-history cases pass in the focused run except the two explicitly recorded fixture errors; new browser results remain pending. Integrations PHPStan passes. Destination-policy/transport-option suite passes 48 tests / 61 assertions. PostgreSQL is unavailable in this execution environment; database-backed cases are authored and must pass hosted verification. No local database pass is claimed.
-- Next action: publish and execute HARD-112 runtime controls; inspect the existing new catalogue browser journeys and full containing gates. The browser assignment locator now uses the existing translated button text (Save cohort). Continue HARD-111 management pages and HARD-113–115 platform export/retention/usage findings, then the remaining repository audit.
+- Latest pushed implementation: `abcc062d7f60fe987ebde07796b2ce89d1f72c57`. Exact-head focused run `34714873728`, job `103610215999`, passes 76 Integrations tests /261 assertions and 29 TransferManagement tests /425 assertions. Visual run `34714873690`, job `103610216014`, passes all78 desktop/mobile cases in7.6 minutes, including the four new catalogue journeys. Full containing PHP/CI is still running. Previous all-nine milestone remains `cb8c652c1d520cfed6927ada9a41a93d1c0d4760` (1,771 tests /86,390 assertions; all74 prior browser cases).
+- Current item/state: HARD-113–115 / In progress. HARD-095 browser coverage passes; HARD-109/110 transport and runtime regressions pass. Full containing and final candidate gates remain required.
+- Active files: Platform DataGovernance export/retention, AllianceAdministration usage traversal, Lifecycle's bounded reference projection, canonical Platform migration, regression cases and ADR-0057/0058.
+- Local verification: changed formatting and complete Platform PHPStan pass. New database-backed maintenance cases are authored and await hosted execution; no local PostgreSQL pass is claimed. Prior full frontend and current hosted frontend gates pass.
+- Next action: execute the export/retention/usage checkpoint, inspect full containing CI, complete HARD-111 Connections history and remaining repository audit. Preserve owner boundaries and remove temporary publication/diagnostic assets before final gates.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -1654,7 +1654,7 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Remediation: Provide independent authorized pages and complete live active counts, resolved visible subscription names, retained drafts and old-delivery retry access.
 - State: Planned.
 - Verification required: owner behavior, current authorization/lifecycle, cross-Alliance isolation, bounded backlog/query behavior, canonical schema, frontend when applicable and final containing gates.
-- Verification result: actual source paths traced during the Platform audit; no completion is claimed. HARD-112 source and four boundary regressions are authored; changed formatting and Integrations PHPStan pass, hosted behavior is pending.
+- Verification result: confirmed by tracing current management queries and frontend loaded-array counts. Implementation and behavior verification remain open.
 - Commit SHA: recorded following `a52a69fe99833d021c7244639fb8554f9fa51dcd`.
 
 ### HARD-112 — Platform integration switches do not stop existing runtime access
@@ -1674,9 +1674,9 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Finding: generate loads every Alliance-scoped row from every discovered table, builds all nested arrays and only then checks the 100 MiB JSON limit while holding repeatable-read and authority locks. The supposed safety limit cannot prevent memory exhaustion.
 - Intended authoritative owner: Existing authorized DataGovernance export owner.
 - Remediation: Bound database reads and encoding before allocation, retain complete export semantics and explicit size rejection, verify deterministic row/count/checksum and current private-field exclusions; document the chosen export contract.
-- State: Planned.
+- State: In progress.
 - Verification required: owner behavior, current authorization/lifecycle, cross-Alliance isolation, bounded backlog/query behavior, canonical schema, frontend when applicable and final containing gates.
-- Verification result: actual source paths traced during the Platform audit; no completion is claimed. HARD-112 source and four boundary regressions are authored; changed formatting and Integrations PHPStan pass, hosted behavior is pending.
+- Verification result: owner remediation and meaningful database regressions are authored; complete Platform PHPStan and formatting pass. Hosted behavior and containing gates are pending. See ADR-0057 for export and ADR-0058 for retention/usage.
 - Commit SHA: recorded following `a52a69fe99833d021c7244639fb8554f9fa51dcd`.
 
 ### HARD-114 — Platform retention mutates an entire eligible backlog per invocation
@@ -1685,9 +1685,9 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Finding: Each retention invocation updates/deletes every eligible webhook payload, credential, usage snapshot and export record without a bounded batch, leaving transaction work and lock impact proportional to the global backlog.
 - Intended authoritative owner: Existing DataGovernance retention policy, retaining owner state and privacy predicates.
 - Remediation: Bound each retention unit, preserve progress and retention cutoffs, fence concurrent retries/current eligibility, and verify large backlogs and repeat invocations.
-- State: Planned.
+- State: In progress.
 - Verification required: owner behavior, current authorization/lifecycle, cross-Alliance isolation, bounded backlog/query behavior, canonical schema, frontend when applicable and final containing gates.
-- Verification result: actual source paths traced during the Platform audit; no completion is claimed. HARD-112 source and four boundary regressions are authored; changed formatting and Integrations PHPStan pass, hosted behavior is pending.
+- Verification result: owner remediation and meaningful database regressions are authored; complete Platform PHPStan and formatting pass. Hosted behavior and containing gates are pending. See ADR-0057 for export and ADR-0058 for retention/usage.
 - Commit SHA: recorded following `a52a69fe99833d021c7244639fb8554f9fa51dcd`.
 
 ### HARD-115 — Platform usage capture repeatedly visits only the first Alliances
@@ -1696,9 +1696,9 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Finding: The scheduled capture uses AllianceReferenceQuery::all(limit), ordered from the first ID on every invocation. Alliances beyond that prefix never receive snapshots.
 - Intended authoritative owner: Existing usage owner with an authorized neutral Alliance reference query.
 - Remediation: Use durable or persisted least-visited progression across every Alliance, bound per-sweep work and preserve complete per-Alliance count semantics.
-- State: Planned.
+- State: In progress.
 - Verification required: owner behavior, current authorization/lifecycle, cross-Alliance isolation, bounded backlog/query behavior, canonical schema, frontend when applicable and final containing gates.
-- Verification result: actual source paths traced during the Platform audit; no completion is claimed. HARD-112 source and four boundary regressions are authored; changed formatting and Integrations PHPStan pass, hosted behavior is pending.
+- Verification result: owner remediation and meaningful database regressions are authored; complete Platform PHPStan and formatting pass. Hosted behavior and containing gates are pending. See ADR-0057 for export and ADR-0058 for retention/usage.
 - Commit SHA: recorded following `a52a69fe99833d021c7244639fb8554f9fa51dcd`.
 
 ## Repository audit coverage
@@ -1733,3 +1733,9 @@ This table records production paths actually traced and remaining audit scope. F
 The first focused run 34649439808 at 86cc403f exposed two capture defects before any baseline was accepted. The desktop fixed top bar is a div rather than a header, so earlier tiles captured repeated overlay pixels. The mobile main edge rounds one pixel beneath the sticky bar. Inspect actual sticky/fixed overlays intersecting main; preserve the initial rounded prefix in the shell and tile every remaining pixel below the overlay. A new source case proves complete prefix/tile coverage and invalid-overlay rejection. All thirty-six Node source cases pass.
 
 The desktop trial took 31.3 seconds for nineteen captures plus the existing interaction assertions; mobile requires thirty-nine bounded captures. Set only this complete-raster journey to a ninety-second cap instead of silently sampling pixels or dropping assertions. All other timeouts, worker counts and retry settings remain unchanged. Combine scroll, painting wait and viewport-offset retrieval in one browser call per tile. Original expected hashes remain review-required until corrected hosted captures are inspected. HARD-107 is still In progress; the first image set is not an accepted baseline.
+
+### Containing browser/runtime evidence on abcc062
+
+- Exact-head focused Platform Integrations run `34714873728`, job `103610215999`: 76 tests /261 assertions in52.956 seconds. This includes the real HTTPS transport case and all four runtime-disable boundary cases. TransferManagement: 29 tests /425 assertions in13.517 seconds.
+- Normal Visual Regression run `34714873690`, job `103610216014`: 78 passed in7.6 minutes. Both desktop and mobile catalogue journeys pass retained create/row drafts, independent paging, injected failure/retry, off-page cohort assignment, separately paged group membership and archived-plan reachability. Existing participant, choice and observation history journeys also pass.
+- This records HARD-095 browser and HARD-112 runtime evidence. The full containing CI and final immutable candidate gates remain open.

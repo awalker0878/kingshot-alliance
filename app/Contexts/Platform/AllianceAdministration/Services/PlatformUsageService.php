@@ -11,6 +11,7 @@ use App\Contexts\Platform\AllianceAdministration\Models\AllianceUsageSnapshot;
 use App\Contexts\Platform\Integrations\Models\ApiCredential;
 use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
+use Illuminate\Support\Facades\DB;
 
 final readonly class PlatformUsageService
 {
@@ -63,12 +64,28 @@ final readonly class PlatformUsageService
 
     public function captureAll(int $limit = 500): int
     {
-        $count = 0;
-        foreach ($this->alliances->all($limit) as $alliance) {
-            $this->capture($alliance->allianceId);
-            $count++;
-        }
+        return DB::transaction(function () use ($limit): int {
+            DB::table('alliance_usage_capture_state')->insertOrIgnore(['id' => 'scheduled']);
+            $state = DB::table('alliance_usage_capture_state')->where('id', 'scheduled')
+                ->lock('for update skip locked')->first();
+            if ($state === null) {
+                return 0;
+            }
 
-        return $count;
+            $batch = $this->alliances->after($state->last_alliance_id, max(1, min(500, $limit)));
+            if ($batch === [] && $state->last_alliance_id !== null) {
+                $batch = $this->alliances->after(null, max(1, min(500, $limit)));
+            }
+            $lastId = null;
+            foreach ($batch as $alliance) {
+                $this->capture($alliance->allianceId);
+                $lastId = $alliance->allianceId;
+            }
+            DB::table('alliance_usage_capture_state')->where('id', 'scheduled')->update([
+                'last_alliance_id' => $lastId, 'last_batch_at' => now(),
+            ]);
+
+            return count($batch);
+        });
     }
 }

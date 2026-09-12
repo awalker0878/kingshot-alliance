@@ -11,30 +11,27 @@ use App\Contexts\Platform\Administration\Services\PlatformWriteState;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use RuntimeException;
+use LogicException;
 
 final readonly class AllianceDataExportService
 {
     private const SCHEMA_VERSION = 'v3.1';
-
-    private const REDACTED_COLUMNS = [
-        'secret_hash',
-        'signing_secret',
-        'token_hash',
-        'two_factor_secret',
-        'two_factor_recovery_codes',
-    ];
 
     public function __construct(
         private AuditRecorder $audit,
         private PlatformWriteState $platformWriteState,
         private PlatformAuthorization $mutations,
         private AllianceReferenceQuery $alliances,
+        private AllianceExportTableWriter $tableWriter,
     ) {}
 
-    /** @return array{contents:string,filename:string,rowCount:int,sha256:string,tableCounts:array<string,int>} */
+    /** @return array{buffer:AllianceExportBuffer,filename:string,rowCount:int,sha256:string,tableCounts:array<string,int>} */
     public function generate(AccountIdentity $actor, string $allianceId): array
     {
+        if (DB::transactionLevel() !== 0) {
+            throw new LogicException('Alliance export requires its own repeatable-read transaction.');
+        }
+
         return DB::transaction(function () use ($actor, $allianceId): array {
             if (DB::connection()->getDriverName() === 'pgsql') {
                 DB::statement('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
@@ -50,20 +47,6 @@ final readonly class AllianceDataExportService
                 ->filter('is_string')
                 ->values();
 
-            $tablePayloads = [];
-            $tableCounts = [];
-            $rowCount = 1;
-            foreach ($tables as $table) {
-                $rows = DB::table($table)
-                    ->where('alliance_id', $alliance->allianceId)
-                    ->get()
-                    ->map(fn (object $row): array => $this->sanitizeRow((array) $row))
-                    ->all();
-                $tablePayloads[$table] = $rows;
-                $tableCounts[$table] = count($rows);
-                $rowCount += count($rows);
-            }
-
             $generatedAt = now();
             $payload = [
                 'schema_version' => self::SCHEMA_VERSION,
@@ -77,14 +60,19 @@ final readonly class AllianceDataExportService
                     'timezone' => $alliance->timezone,
                     'status' => $alliance->status,
                 ],
-                'tables' => $tablePayloads,
             ];
-            $contents = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
-            if (strlen($contents) > 104857600) {
-                throw new RuntimeException('Alliance export exceeded the 100 MiB synchronous export safety limit.');
+            $buffer = new AllianceExportBuffer;
+            $metadata = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+            $buffer->write(substr($metadata, 0, -1).',"tables":{');
+            $tableCounts = [];
+            $rowCount = 1;
+            foreach ($tables as $index => $table) {
+                $buffer->write(($index > 0 ? ',' : '').json_encode($table, JSON_THROW_ON_ERROR).':');
+                $tableCounts[$table] = $this->tableWriter->write($buffer, $table, $alliance->allianceId);
+                $rowCount += $tableCounts[$table];
             }
-
-            $sha256 = hash('sha256', $contents);
+            $buffer->write('}}');
+            $sha256 = $buffer->sha256();
             $exportId = (string) Str::ulid();
             DB::table('alliance_data_exports')->insert([
                 'id' => $exportId,
@@ -114,27 +102,12 @@ final readonly class AllianceDataExportService
             );
 
             return [
-                'contents' => $contents,
+                'buffer' => $buffer,
                 'filename' => 'alliance-'.$alliance->allianceId.'-'.$generatedAt->format('Ymd-His').'.json',
                 'rowCount' => $rowCount,
                 'sha256' => $sha256,
                 'tableCounts' => $tableCounts,
             ];
         });
-    }
-
-    /**
-     * @param  array<string, mixed>  $row
-     * @return array<string, mixed>
-     */
-    private function sanitizeRow(array $row): array
-    {
-        foreach (self::REDACTED_COLUMNS as $column) {
-            if (array_key_exists($column, $row)) {
-                $row[$column] = '[REDACTED]';
-            }
-        }
-
-        return $row;
     }
 }

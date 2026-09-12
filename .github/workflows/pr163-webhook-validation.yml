@@ -3,7 +3,8 @@ name: PR 163 webhook validation
 on:
   pull_request:
     paths:
-      - 'app/Contexts/Platform/Integrations/**'
+      - 'app/Contexts/Platform/**'
+      - 'tests/Contexts/Platform/**'
       - 'app/ReadModels/TransferManagement/**'
       - 'tests/ReadModels/TransferManagement/**'
       - 'app/Contexts/GameWorld/KingdomTransfers/**'
@@ -82,6 +83,8 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
       - name: Run Integrations behavior
         run: php vendor/bin/phpunit tests/Contexts/Platform/Integrations --log-junit storage/logs/webhooks-junit.xml
+      - name: Run Platform maintenance behavior
+        run: php vendor/bin/phpunit tests/Contexts/Platform/DataGovernance tests/Contexts/Platform/AllianceAdministration --log-junit storage/logs/platform-maintenance-junit.xml
       - name: Run TransferManagement behavior
         run: php vendor/bin/phpunit tests/ReadModels/TransferManagement --log-junit storage/logs/transfer-management-junit.xml
       - name: Upload behavior result
@@ -92,5 +95,6 @@ jobs:
           path: |
             storage/logs/webhooks-junit.xml
             storage/logs/transfer-management-junit.xml
+            storage/logs/platform-maintenance-junit.xml
           if-no-files-found: ignore
           retention-days: 7

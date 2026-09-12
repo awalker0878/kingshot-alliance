@@ -34,7 +34,14 @@ final class AllianceReferenceQuery
     /** @return list<AllianceReference> */
     public function all(int $limit = 500): array
     {
+        return $this->after(null, $limit);
+    }
+
+    /** @return list<AllianceReference> */
+    public function after(?string $allianceId, int $limit = 500): array
+    {
         return array_values(Alliance::query()
+            ->when($allianceId !== null, static fn ($query) => $query->where('id', '>', $allianceId))
             ->orderBy('id')
             ->limit(max(1, min(5000, $limit)))
             ->get()
