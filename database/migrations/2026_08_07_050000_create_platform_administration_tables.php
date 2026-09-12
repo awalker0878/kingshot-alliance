@@ -179,6 +179,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['alliance_id', 'provider', 'subject_hash'], 'actor_link_subject_unique');
+            $table->index('api_credential_id', 'actor_link_credential_index');
             $table->index(['alliance_id', 'player_id', 'provider', 'revoked_at'], 'actor_link_player_provider_index');
         });
 
@@ -196,6 +197,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['external_actor_link_id', 'idempotency_key'], 'actor_action_idempotency_unique');
+            $table->index('api_credential_id', 'actor_action_credential_index');
             $table->index(['alliance_id', 'created_at'], 'actor_action_alliance_created_index');
         });
 

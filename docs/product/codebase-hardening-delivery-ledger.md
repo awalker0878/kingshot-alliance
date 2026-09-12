@@ -4,11 +4,11 @@
 
 - Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
 - Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
-- Latest pushed implementation: `24e9a48bc6f959b10b15803caa71e4f04b4bb2d8`. Focused run `34716370802` passes83 Integrations cases /1,002 assertions,31 Platform maintenance cases /200 assertions, and29 TransferManagement cases /425 assertions. The new Connections browser journeys fail on an incorrect password-confirmation locator; all78 existing browser cases pass. Last all-nine milestone remains `abcc062d7f60fe987ebde07796b2ce89d1f72c57` (1,840 PHP tests /86,867 assertions and78 browser cases).
-- Current item/state: HARD-116 / In progress. HARD-095/109/110/112 are Complete with containing evidence; HARD-111/113–115 await containing completion; HARD-117 records referenced-credential retention starvation.
-- Active files: Operations participation scope, ExternalEventParticipation atomic composition, Integrations contention adapter, PostgreSQL competing-order regressions, architecture decision and exact named enforcement, Connections browser locator.
-- Local verification: PHPStan and formatting pass for changed production PHP. Twelve new PostgreSQL cases are authored; their hosted execution remains pending. No local PostgreSQL pass is claimed.
-- Next action: verify the lock-order checkpoint and corrected Connections journeys, repair HARD-117 through existing owners, and complete repository audit coverage before final gates.
+- Latest pushed implementation: `b512a5530c9600d21bac781993b2d9f1eee7c72c` (HARD-116 and the Connections browser locator correction); hosted checks are running. Preceding `24e9a48bc6f959b10b15803caa71e4f04b4bb2d8` passes complete PHP1,856 /87,942 assertions and frontend. Last all-nine milestone remains `abcc062d7f60fe987ebde07796b2ce89d1f72c57` (1,840 PHP tests /86,867 assertions and78 browser cases).
+- Current item/state: HARD-117 / In progress. HARD-095/109/110/112 are Complete with containing evidence; HARD-111/113–116 await containing completion; HARD-118 records administrator-grant ordering and current account lifecycle gaps.
+- Active files: DataGovernance credential-retention eligibility, reference indexes, mixed-history and concurrent-reference regressions, ADR-0058 and retention contract.
+- Local verification: changed production PHPStan, formatting, architecture, test layout and documentation pass. Two referenced-credential PostgreSQL cases await hosted execution; no local PostgreSQL pass is claimed.
+- Next action: inspect HARD-116 hosted results and corrected Connections journeys, verify HARD-117, repair administrator grant boundaries and complete repository audit coverage before final gates.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -1730,9 +1730,22 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners, preserving historical references while purging eligible unreferenced credentials.
 - Rationale: maintenance must remain bounded and progress without deleting linked actor or idempotency history or weakening referential integrity.
 - Remediation: exclude currently referenced credentials before batch selection, retain the deletion-time predicate under locks, index reference lookups and test mixed referenced/unreferenced history and concurrent references.
-- State: Planned.
+- State: In progress.
 - Verification required: both reference types, older ineligible rows preceding eligible rows, bounded continued progress, unchanged history and other-category progress, and a concurrent locked credential/reference.
-- Verification result: restrictive foreign keys and the unconditional age-only purge are confirmed in the canonical schema and owner action. Reproduction and repair pending.
+- Verification result: restrictive foreign keys and the unconditional age-only purge are confirmed in the canonical schema and owner action. The owner now excludes both reference types before selection and on deletion, preserving restrictive foreign keys and adding reference indexes. Two PostgreSQL cases cover mixed history/bounded progress and an uncommitted reference on a second connection. Local PHPStan/Pint pass; hosted behavior remains pending.
+- Completion evidence: ReferencedCredentialRetentionTest and the extended ADR-0058; containing execution pending.
+
+### HARD-118 — Platform administrator grants lack current account and consistent lock ordering
+
+- Area: Administration grants/revocation and account finalization.
+- Finding: grant() checks only target account existence before the transaction, then locks actor grant before target grant. revoke() locks the same grants in sorted order. Crossed grant/revoke commands can oppose one another; a grant can also race account finalization or target an already anonymized account. The deletion owner checks active administrator access while holding the account lock, which the grant path does not acquire.
+- Current owner: Platform Administration and Accounts Identity/Lifecycle.
+- Intended authoritative owner: the same owners, with ordered grant acquisition and a current active target-account barrier.
+- Rationale: platform access must not attach to a finalized account or bypass deletion's current blocker check; rare administrative commands must remain retryable under contention without creating a new permission authority.
+- Remediation: reproduce the crossed acquisition and deletion outcomes; use current Accounts owner locking and a consistent grant order, account for absent target grants, and preserve bootstrap/idempotency/audit semantics.
+- State: Planned.
+- Verification required: grant/revoke in both orders, active and finalized target accounts, deletion/grant competing outcomes, concurrent first target grant, bootstrap and late audit rollback.
+- Verification result: traced ManagePlatformAdministrator, PlatformWriteState, bootstrap coordinator, account identity locking, ProcessAccountDeletionRequests blocker and current HTTP adapters. No implementation or behavioral pass claimed.
 - Completion evidence: pending.
 
 ## Repository audit coverage
@@ -1781,3 +1794,7 @@ CI `34714873738`, PHP job `103610256346`, on merge checkout `ef2a29fe0c93b6bf59e
 ### Maintenance checkpoint focused feedback
 
 Exact-head run `34716143412`, job `103613621165`, on `cd088c9b09fcdc7dbe9938397158a793cee7009d` passes Integrations. Platform maintenance has31 tests /156 assertions, with three export errors caused by the existing `Collection::filter(is_string)` callback arity and one HTTP fixture rejection because Platform access requires MFA. All other cases, including the new retention traversal/retry and usage progress/rollback/overlap cases, pass. The callback is replaced with a typed closure; the HTTP fixture establishes the existing MFA and recent-authentication requirements. These export cases remain unverified until rerun.
+
+### Containing PHP and focused evidence on24e9
+
+CI `34716370816`, PHP job `103614286177`, passes1,856 tests /87,942 assertions in20:20.292 on merge checkout `2cbfc030b951aee482c3225562a10d817519bd94`. Frontend job `103614286422` passes. Focused run `34716370802`, job `103614233940`, passes83 Integrations cases /1,002 assertions,31 Platform maintenance cases /200 assertions and29 TransferManagement cases /425 assertions. All export fixture/callback defects fromcd088 are resolved. Visual `34716370871` passes78 existing cases; both new Connections cases fail on the incorrect password-confirmation field locator, corrected inb512. Container/staging/recovery was still running when the next checkpoint was published; this head is not an all-nine milestone.

@@ -25,7 +25,12 @@ final class EnforcePlatformRetention
                 'payload' => null, 'response_excerpt' => null, 'last_error' => null, 'updated_at' => $now,
             ]);
         });
-        $credentialsPurged = $this->purge(DB::table('api_credentials')->where('revoked_at', '<', $now->subDays(90)), 'revoked_at', $limit);
+        $credentials = DB::table('api_credentials')->where('revoked_at', '<', $now->subDays(90));
+        foreach (['external_actor_links', 'external_actor_action_receipts'] as $history) {
+            $credentials->whereNotExists(static fn (Builder $query) => $query->select('id')->from($history)
+                ->whereColumn($history.'.api_credential_id', 'api_credentials.id'));
+        }
+        $credentialsPurged = $this->purge($credentials, 'revoked_at', $limit);
         $usageSnapshotsPurged = $this->purge(DB::table('alliance_usage_snapshots')->where('captured_at', '<', $now->subDays(365)), 'captured_at', $limit);
         $exportMetadataPurged = $this->purge(DB::table('alliance_data_exports')->where('generated_at', '<', $now->subDays(365)), 'generated_at', $limit);
 
