@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   integrationExperience: {
+    recordCount: 'Записей: {count}',
+    historyUnavailable: 'Не удалось загрузить эту страницу.',
+    retryPage: 'Повторить загрузку',
+    expired: 'Срок истёк',
+    deliveryQueued: 'В очереди',
+    deliveryHistory: 'История доставки',
+
     eyebrow: 'Интеграции альянса',
     title: 'Учётные данные API и вебхуки',
     activeCredentials: 'Активные учётные данные',

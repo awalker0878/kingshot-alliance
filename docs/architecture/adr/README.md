@@ -86,3 +86,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0057: Bounded Alliance export preparation](0057-bounded-alliance-export-preparation.md)
 
 - [ADR-0058: Bounded Platform maintenance progress](0058-bounded-platform-maintenance-progress.md)
+
+- [ADR-0059: Bounded integration management history](0059-bounded-integration-management-history.md)

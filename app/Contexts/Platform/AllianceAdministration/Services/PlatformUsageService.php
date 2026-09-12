@@ -8,8 +8,7 @@ use App\Contexts\Alliance\Content\Queries\ContentStorageUsageQuery;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Alliance\Membership\Queries\MembershipStatisticsQuery;
 use App\Contexts\Platform\AllianceAdministration\Models\AllianceUsageSnapshot;
-use App\Contexts\Platform\Integrations\Models\ApiCredential;
-use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
+use App\Contexts\Platform\Integrations\Queries\IntegrationUsageQuery;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
 
@@ -19,6 +18,7 @@ final readonly class PlatformUsageService
         private AllianceReferenceQuery $alliances,
         private MembershipStatisticsQuery $memberships,
         private ContentStorageUsageQuery $storage,
+        private IntegrationUsageQuery $integrations,
     ) {}
 
     /** @return array{activeMembers:int,storageBytes:int,activeApiCredentials:int,activeWebhookSubscriptions:int,pendingOutboxMessages:int} */
@@ -29,18 +29,8 @@ final readonly class PlatformUsageService
         return [
             'activeMembers' => $this->memberships->activeCount($allianceId),
             'storageBytes' => $this->storage->bytes($allianceId),
-            'activeApiCredentials' => ApiCredential::query()
-                ->where('alliance_id', $allianceId)
-                ->whereNull('revoked_at')
-                ->where(static function ($query): void {
-                    $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
-                })
-                ->count(),
-            'activeWebhookSubscriptions' => WebhookSubscription::query()
-                ->where('alliance_id', $allianceId)
-                ->where('is_active', true)
-                ->whereNull('revoked_at')
-                ->count(),
+            'activeApiCredentials' => $this->integrations->activeCredentials($allianceId),
+            'activeWebhookSubscriptions' => $this->integrations->activeWebhooks($allianceId),
             'pendingOutboxMessages' => OutboxMessage::query()
                 ->where('alliance_id', $allianceId)
                 ->whereNull('published_at')

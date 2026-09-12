@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   integrationExperience: {
+    recordCount: '{count} kayıt',
+    historyUnavailable: 'Bu sayfa yüklenemedi.',
+    retryPage: 'Sayfayı yeniden dene',
+    expired: 'Süresi doldu',
+    deliveryQueued: 'Kuyrukta',
+    deliveryHistory: 'Teslimat geçmişi',
+
     eyebrow: 'İttifak entegrasyonları',
     title: 'API kimlik bilgileri ve webhooklar',
     activeCredentials: 'Etkin kimlik bilgileri',

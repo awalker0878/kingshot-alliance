@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   integrationExperience: {
+    recordCount: '{count} rekordów',
+    historyUnavailable: 'Nie udało się wczytać tej strony.',
+    retryPage: 'Ponów wczytanie strony',
+    expired: 'Wygasłe',
+    deliveryQueued: 'W kolejce',
+    deliveryHistory: 'Historia dostarczania',
+
     eyebrow: 'Integracje sojuszu',
     title: 'Poświadczenia API i webhooki',
     activeCredentials: 'Aktywne poświadczenia',

@@ -4,11 +4,11 @@
 
 - Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
 - Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
-- Latest pushed implementation: `abcc062d7f60fe987ebde07796b2ce89d1f72c57`. Exact-head focused run `34714873728`, job `103610215999`, passes 76 Integrations tests /261 assertions and 29 TransferManagement tests /425 assertions. Visual run `34714873690`, job `103610216014`, passes all78 desktop/mobile cases in7.6 minutes, including the four new catalogue journeys. Full containing PHP/CI is still running. Previous all-nine milestone remains `cb8c652c1d520cfed6927ada9a41a93d1c0d4760` (1,771 tests /86,390 assertions; all74 prior browser cases).
-- Current item/state: HARD-113–115 / In progress. HARD-095 browser coverage passes; HARD-109/110 transport and runtime regressions pass. Full containing and final candidate gates remain required.
-- Active files: Platform DataGovernance export/retention, AllianceAdministration usage traversal, Lifecycle's bounded reference projection, canonical Platform migration, regression cases and ADR-0057/0058.
-- Local verification: changed formatting and complete Platform PHPStan pass. New database-backed maintenance cases are authored and await hosted execution; no local PostgreSQL pass is claimed. Prior full frontend and current hosted frontend gates pass.
-- Next action: execute the export/retention/usage checkpoint, inspect full containing CI, complete HARD-111 Connections history and remaining repository audit. Preserve owner boundaries and remove temporary publication/diagnostic assets before final gates.
+- Latest pushed implementation: `cd088c9b09fcdc7dbe9938397158a793cee7009d` (HARD-113–115 export/retention/usage). Its hosted behavior is pending. Last all-nine milestone: `abcc062d7f60fe987ebde07796b2ce89d1f72c57`; CI `34714873738` passes1,840 tests /86,867 assertions, frontend and container/staging/recovery; Visual `34714873690` passes all78 cases; all specialized/security gates pass.
+- Current item/state: HARD-111 / In progress. HARD-095/109/110/112 are Complete with containing evidence; HARD-113–115 are published for verification; HARD-116 records the remaining external participation/credential revocation lock cycle.
+- Active files: Integrations catalogue/usage projection, management adapter and UI, independent cursor pager, canonical indexes, all17 locales, owner/HTTP and desktop/mobile regressions, ADR-0059.
+- Local verification: complete npm check and changed Platform PHPStan/formatting pass; test layout and documentation pass. Seven Connections owner/HTTP cases and two browser journeys are authored. New database-backed cases await hosted execution; no local PostgreSQL pass is claimed.
+- Next action: inspect the maintenance-focused run, publish the Connections checkpoint, reproduce and repair HARD-116 through existing owners, and complete repository audit coverage before final gates.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -1364,7 +1364,7 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: Scoped participant facts and explicit bounded workspace/history/aggregate projections.
 - Rationale: A member profile must not hydrate unrelated participants, and current workflow state must remain complete without returning every historical child row.
 - Remediation: Trace writer cardinality and each consumer, introduce precise single-participant reads and bounded workspace/history navigation or aggregate evaluation without clipping meaningful facts.
-- State: In progress.
+- State: Complete.
 - Verification required: Large plans and child histories, complete current blocker/state semantics, scoped continuation, current authority and profile/dashboard query budgets.
 - Verification result: First slice replaces full-plan profile hydration with a current-authorized alliance/plan/player SQL lookup, nonwithdrawn only and without unrelated eager relationships. The existing partial unique plan/player index supports the lookup. Five new regressions cover 150 unrelated participants, withdrawn/missing targets, exact scope, revoked membership and foreign officers; before remediation the profile hydrated 151 rows (or 30 unrelated rows after withdrawal). Corrected new/existing profile tests pass 8 / 29; broader Roster/Transfer Feature plus budget tests pass 57 / 603. Changed production PHPStan and Pint pass. No production schema, response contract or eligibility implementation changed. Dashboard/workspace/history remediation and final containing gates remain required.
 - Workflow-history slice: `TransferWorkflowHistoryQuery` reauthorizes the current actor and exact Alliance/Plan/participant before independent active/resolved blocker and readiness-transition pages. Encrypted cursors bind kind/state; complete scoped SQL counts replace embedded child arrays. `(created_at,id)` keysets have fresh-schema indexes and dated rows; deletion of the boundary row does not prevent continuation. The owner-local Vue component retains drafts, displays retry, validates response shape and discards superseded requests. Existing writes and canonical eligibility remain unchanged.
@@ -1396,6 +1396,8 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Two real desktop/mobile browser journeys are authored and included in normal visual fixture setup: traverse55 choices across25/25/5, inject503/retry, retain selected/draft state, select an off-page coordinator, perform actual cohort/participant writes and locate an older window beyond the former25-row cap. They are not yet reported as executed. Full management catalogue and cohort-choice bounds remain unfinished; this slice is not HARD-095 or program completion.
 
 - Management catalogue continuation: ADR-0055 replaces the final full/truncated management arrays with independent25-record scope-bound pages and exact live totals. Archived plans and separately paged official-group membership remain reachable. The existing choices endpoint adds participant-compatible cohorts; its Context-owned query is reused by the locked assignment Action. Removed four obsolete eager query classes and the unused plan catalogue method. Local full frontend and owner PHPStan pass; new PostgreSQL/browser execution remains pending.
+
+- Containing completion evidence: `abcc062d7f60fe987ebde07796b2ce89d1f72c57` passes all nine normal workflows. CI `34714873738` passes1,840 tests /86,867 assertions on merge checkout `ef2a29fe0c93b6bf59e4d3b3c21b44c782de3ead`, frontend and container/staging/recovery. Visual `34714873690` passes78 cases; focused exact-head `34714873728` passes76 Integrations and29 TransferManagement cases. The full repository program and final candidate gates remain open.
 
 ### HARD-096 — Full serial verification exceeds the CI job budget
 
@@ -1624,13 +1626,15 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: Same owner; no shared HTTP bypass or controller policy.
 - Rationale: Configuration-time validation alone cannot authorize a later network destination. TLS must continue to authenticate the original hostname while transport connects only to a freshly approved public address.
 - Remediation: Re-resolve at every attempt, reject empty/private/reserved/mixed answers, pin one approved address, retain certificate verification, restrict HTTPS and disable redirects. Preserve signing and public event contracts.
-- State: In progress.
+- State: Complete.
 - Verification required: IPv4/IPv6 and mixed DNS answers, rebinding between configuration and delivery, redirects, no provider IO on denial, real HTTPS behavior, static analysis, security and containing gates.
 - Verification result: prior containing `cb8c652c` is green but additional review found transport gaps. New policy/options tests pass locally (48 cases /61 assertions); changed Pint and Integrations PHPStan pass. Database-backed and actual HTTPS execution remain pending.
 - Completion evidence: ADR-0053 and `WebhookOutboundHardeningV3Test`; do not mark Complete before executed containing evidence.
 - Commit SHA: pending coherent publication.
 
 - Real transport verification: `WebhookHttpsTransportTest` runs the production CurlHandler against an ephemeral loopback TLS server and CA; all12 assertions pass locally, including exact signed bytes, pinned host/port, proxy bypass prevention, redirects, declared/streamed response limits and hostname certificate rejection. The network fixture is isolated from the separately tested public-destination policy. Hosted containing execution remains required.
+
+- Containing completion evidence: `abcc062d7f60fe987ebde07796b2ce89d1f72c57` passes all nine normal workflows. CI `34714873738` passes1,840 tests /86,867 assertions on merge checkout `ef2a29fe0c93b6bf59e4d3b3c21b44c782de3ead`, frontend and container/staging/recovery. Visual `34714873690` passes78 cases; focused exact-head `34714873728` passes76 Integrations and29 TransferManagement cases. The full repository program and final candidate gates remain open.
 
 ### HARD-110 — Webhook retry recovery is unbounded and not fenced to an exact attempt
 
@@ -1640,11 +1644,13 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: Same Integrations delivery owner with one persisted attempt identity and bounded scheduler reservation.
 - Rationale: Queue job identity is not provider-attempt authority. Recovery must remain finite under backlog and stale completions must not rewrite newer state.
 - Remediation: Persist exact queue reservation and provider-attempt UUIDs, due-time checks, a five-attempt durable budget, bounded skip-locked stale recovery and durable 25-subscription fan-out pages. Remove queue retry/failure state ownership. Manual retry grants five further attempts without resetting cumulative counts. Preserve stable delivery identity and at-least-once semantics.
-- State: In progress.
+- State: Complete.
 - Verification required: early jobs, stale reservation jobs and provider responses, overlapping sweep selection, bounded large backlogs, queued/delivering interruption, retry exhaustion/manual retry, fresh schema/indexes and containing gates.
 - Verification result: Source and owner regressions are authored; PostgreSQL concurrency and containing execution are pending.
 - Completion evidence: ADR-0054 and `WebhookOutboundHardeningV3Test`; do not mark Complete before executed containing evidence.
 - Commit SHA: pending coherent publication.
+
+- Containing completion evidence: `abcc062d7f60fe987ebde07796b2ce89d1f72c57` passes all nine normal workflows. CI `34714873738` passes1,840 tests /86,867 assertions on merge checkout `ef2a29fe0c93b6bf59e4d3b3c21b44c782de3ead`, frontend and container/staging/recovery. Visual `34714873690` passes78 cases; focused exact-head `34714873728` passes76 Integrations and29 TransferManagement cases. The full repository program and final candidate gates remain open.
 
 ### HARD-111 — Integration management history grows without bounded continuation
 
@@ -1652,9 +1658,9 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Finding: IntegrationManagementController materializes all historical API credentials and subscriptions, while frontend active counters count loaded rows and treat expired credentials as active. The fifty-delivery sample has no history continuation for older failed deliveries.
 - Intended authoritative owner: Existing Integrations read owner and Connections presentation; current write Actions remain authoritative.
 - Remediation: Provide independent authorized pages and complete live active counts, resolved visible subscription names, retained drafts and old-delivery retry access.
-- State: Planned.
+- State: In progress.
 - Verification required: owner behavior, current authorization/lifecycle, cross-Alliance isolation, bounded backlog/query behavior, canonical schema, frontend when applicable and final containing gates.
-- Verification result: confirmed by tracing current management queries and frontend loaded-array counts. Implementation and behavior verification remain open.
+- Verification result: independent 25-record owner projections, signed scoped cursors, complete SQL totals, one shared active-usage query, bounded subscription names and current retry flags are implemented. The UI preserves independent page positions and drafts, reports page/revocation errors, and translates queued/expired/history states in all17 locales. Complete npm check and changed Platform PHPStan pass. Seven owner/HTTP feature cases and two viewport browser journeys are authored; hosted behavior remains pending. ADR-0059 records the boundary.
 - Commit SHA: recorded following `a52a69fe99833d021c7244639fb8554f9fa51dcd`.
 
 ### HARD-112 — Platform integration switches do not stop existing runtime access
@@ -1663,10 +1669,12 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Finding: The platform API/webhook switches are checked only during creation. Existing credentials remain accepted and queued webhooks still leave the system after disablement; delivery does not recheck source Alliance/Kingdom lifecycle.
 - Intended authoritative owner: IntegrationRuntimePolicy composes current lifecycle and Platform settings; existing adapters and delivery owner enforce it.
 - Remediation: Check API admission and direct external actions, webhook claim and final handoff, and authorized test/manual retry. Fail unavailable delivery before DNS without opening an attempt; recheck after DNS and preserve normal authorized recovery.
-- State: In progress.
+- State: Complete.
 - Verification required: owner behavior, current authorization/lifecycle, cross-Alliance isolation, bounded backlog/query behavior, canonical schema, frontend when applicable and final containing gates.
 - Verification result: actual source paths traced during the Platform audit; no completion is claimed. HARD-112 source and four boundary regressions are authored; changed formatting and Integrations PHPStan pass, hosted behavior is pending.
 - Commit SHA: recorded following `a52a69fe99833d021c7244639fb8554f9fa51dcd`.
+
+- Containing completion evidence: `abcc062d7f60fe987ebde07796b2ce89d1f72c57` passes all nine normal workflows. CI `34714873738` passes1,840 tests /86,867 assertions on merge checkout `ef2a29fe0c93b6bf59e4d3b3c21b44c782de3ead`, frontend and container/staging/recovery. Visual `34714873690` passes78 cases; focused exact-head `34714873728` passes76 Integrations and29 TransferManagement cases. The full repository program and final candidate gates remain open.
 
 ### HARD-113 — Synchronous Alliance export checks its size after full hydration
 
@@ -1700,6 +1708,19 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Verification required: owner behavior, current authorization/lifecycle, cross-Alliance isolation, bounded backlog/query behavior, canonical schema, frontend when applicable and final containing gates.
 - Verification result: owner remediation and meaningful database regressions are authored; complete Platform PHPStan and formatting pass. Hosted behavior and containing gates are pending. See ADR-0057 for export and ADR-0058 for retention/usage.
 - Commit SHA: recorded following `a52a69fe99833d021c7244639fb8554f9fa51dcd`.
+
+### HARD-116 — External Event participation locks integration authority before Alliance scope
+
+- Area: Integrations external-action receipts and ExternalEventParticipation Workflow.
+- Finding: ExecuteExternalActorAction locks the API credential before invoking the Participation callback, which obtains current Player and Alliance scope. RevokeApiCredential takes the Alliance lock before the credential. Concurrent admission and revocation can therefore form a credential/Alliance lock cycle.
+- Current owner: Integrations credential/link/receipt authority, Workflow composition, Operations Event/Participation write scope.
+- Intended authoritative owner: the same owners with composition following the existing Operations scope order before Integration authority.
+- Rationale: preserve current revocation and atomic idempotency while eliminating opposing lock acquisition; do not copy Event or Alliance authorization into Integrations.
+- Remediation: reproduce the competing orders, compose explicit owner scope acquisition in the Workflow, recheck scalar binding under locks and retain complete rollback/replay semantics.
+- State: Planned.
+- Verification required: real PostgreSQL admission/revocation in both orders, current link/credential/runtime revocation, replay after changed authority, and late owner/receipt rollback without duplicate effects.
+- Verification result: traced ExecuteExternalEventParticipation → ExecuteExternalActorAction → RespondToEvent/EventWriteState and RevokeApiCredential → AllianceWriteAuthorization. No implementation or passing reproduction is claimed yet.
+- Completion evidence: pending.
 
 ## Repository audit coverage
 
@@ -1739,3 +1760,7 @@ The desktop trial took 31.3 seconds for nineteen captures plus the existing inte
 - Exact-head focused Platform Integrations run `34714873728`, job `103610215999`: 76 tests /261 assertions in52.956 seconds. This includes the real HTTPS transport case and all four runtime-disable boundary cases. TransferManagement: 29 tests /425 assertions in13.517 seconds.
 - Normal Visual Regression run `34714873690`, job `103610216014`: 78 passed in7.6 minutes. Both desktop and mobile catalogue journeys pass retained create/row drafts, independent paging, injected failure/retry, off-page cohort assignment, separately paged group membership and archived-plan reachability. Existing participant, choice and observation history journeys also pass.
 - This records HARD-095 browser and HARD-112 runtime evidence. The full containing CI and final immutable candidate gates remain open.
+
+### Full PHP evidence on abcc062
+
+CI `34714873738`, PHP job `103610256346`, on merge checkout `ef2a29fe0c93b6bf59e4d3b3c21b44c782de3ead` contains exact PR head `abcc062d7f60fe987ebde07796b2ce89d1f72c57` and passes1,840 tests /86,867 assertions in19:35.702. Formatting, PHPStan and schema checks also pass. Frontend job `103610256534` passes. Container/staging/recovery job `103613047913` also passes. All nine normal workflows are successful on this containing head.

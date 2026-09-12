@@ -148,6 +148,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['alliance_id', 'revoked_at']);
+            $table->index(['alliance_id', 'id'], 'api_credential_catalogue_index');
             $table->index(['revoked_at', 'id'], 'api_credential_retention_index');
         });
 
@@ -212,6 +213,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['alliance_id', 'is_active']);
+            $table->index(['alliance_id', 'id'], 'webhook_subscription_catalogue_index');
         });
 
         Schema::create('webhook_fanouts', function (Blueprint $table): void {
@@ -252,6 +254,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['alliance_id', 'status', 'available_at']);
+            $table->index(['alliance_id', 'id'], 'webhook_delivery_catalogue_index');
             $table->index(['status', 'available_at', 'id'], 'webhook_delivery_due_index');
             $table->index(['status', 'last_attempt_at', 'id'], 'webhook_delivery_claim_index');
             $table->index(['status', 'updated_at', 'id'], 'webhook_delivery_queue_index');

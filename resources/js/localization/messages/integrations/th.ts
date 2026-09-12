@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   integrationExperience: {
+    recordCount: '{count} รายการ',
+    historyUnavailable: 'ไม่สามารถโหลดหน้านี้ได้',
+    retryPage: 'ลองโหลดหน้าอีกครั้ง',
+    expired: 'หมดอายุ',
+    deliveryQueued: 'อยู่ในคิว',
+    deliveryHistory: 'ประวัติการส่ง',
+
     eyebrow: 'การเชื่อมต่อพันธมิตร',
     title: 'ข้อมูลรับรอง API และเว็บฮุก',
     activeCredentials: 'ข้อมูลรับรองที่ใช้งาน',

@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   integrationExperience: {
+    recordCount: '{count} catatan',
+    historyUnavailable: 'Halaman ini tidak dapat dimuat.',
+    retryPage: 'Coba lagi halaman',
+    expired: 'Kedaluwarsa',
+    deliveryQueued: 'Dalam antrean',
+    deliveryHistory: 'Riwayat pengiriman',
+
     eyebrow: 'Integrasi aliansi',
     title: 'Kredensial API & webhook',
     activeCredentials: 'Kredensial aktif',

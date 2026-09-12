@@ -2,6 +2,13 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   integrationExperience: {
+    recordCount: '{count} 条记录',
+    historyUnavailable: '无法加载此页面。',
+    retryPage: '重试此页',
+    expired: '已过期',
+    deliveryQueued: '已排队',
+    deliveryHistory: '投递历史',
+
     eyebrow: '联盟集成',
     title: 'API 凭据与 Webhook',
     activeCredentials: '有效凭据',
