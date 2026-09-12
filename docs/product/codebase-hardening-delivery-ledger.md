@@ -1613,6 +1613,34 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Completion evidence: hard108-red.log and hard108-green.log; actual raw text from readiness run34651212749/artifact10283617928. HARD-107 instant capture run34651886705/artifact10283689032 reaches both final comparisons with every bounded tile captured; placeholders remain until corrected labels are rendered and all tiles reviewed.
 - Commit SHA: `1a8a3b5830860268c7a218c17a1b3712911fe875`; containing normal milestone remains required.
 
+### HARD-109 — Outbound webhooks do not bind transport to an approved public destination
+
+- Area: Platform/Integrations webhook endpoint policy and delivery transport.
+- Finding: URL validation rejects literal private addresses but does not resolve hostnames; delivery follows redirects and does not bind the connection to the address approved immediately before transport. DNS rebinding or a redirect can therefore cross the intended egress boundary.
+- Current owner: Platform/Integrations `WebhookEndpointPolicy` and `DeliverWebhook`.
+- Intended authoritative owner: Same owner; no shared HTTP bypass or controller policy.
+- Rationale: Configuration-time validation alone cannot authorize a later network destination. TLS must continue to authenticate the original hostname while transport connects only to a freshly approved public address.
+- Remediation: Re-resolve at every attempt, reject empty/private/reserved/mixed answers, pin one approved address, retain certificate verification, restrict HTTPS and disable redirects. Preserve signing and public event contracts.
+- State: In progress.
+- Verification required: IPv4/IPv6 and mixed DNS answers, rebinding between configuration and delivery, redirects, no provider IO on denial, real HTTPS behavior, static analysis, security and containing gates.
+- Verification result: Source and owner regressions are authored; runtime execution is pending.
+- Completion evidence: ADR-0053 and `WebhookOutboundHardeningV3Test`; do not mark Complete before executed containing evidence.
+- Commit SHA: pending coherent publication.
+
+### HARD-110 — Webhook retry recovery is unbounded and not fenced to an exact attempt
+
+- Area: Platform/Integrations webhook queue claim, failed callback and stale recovery.
+- Finding: a delayed job can claim Pending work before `available_at`; the queue failed callback updates by delivery ID without an attempt fence; stale recovery materializes every eligible delivery; concurrent sweeps can fan out duplicate jobs before claim.
+- Current owner: `DeliverWebhook`, `DeliverWebhookJob` and `QueueDueWebhookDeliveries`.
+- Intended authoritative owner: Same Integrations delivery owner with one persisted attempt identity and bounded scheduler reservation.
+- Rationale: Queue job identity is not provider-attempt authority. Recovery must remain finite under backlog and stale completions must not rewrite newer state.
+- Remediation: Add a per-attempt UUID fence, due-time claim check, explicit queued reservation with locked disjoint selection, and bounded recovery for queued/delivering leases. Preserve monotonic attempts, stable delivery idempotency and at-least-once semantics.
+- State: In progress.
+- Verification required: early jobs, stale and matching failed callbacks, overlapping sweep selection, bounded large backlogs, queued/delivering interruption, retry exhaustion/manual retry, fresh schema/indexes and containing gates.
+- Verification result: Source and owner regressions are authored; PostgreSQL concurrency and containing execution are pending.
+- Completion evidence: ADR-0054 and `WebhookOutboundHardeningV3Test`; do not mark Complete before executed containing evidence.
+- Commit SHA: pending coherent publication.
+
 ## Repository audit coverage
 
 All rows below remain Planned until actual production paths have been traced. This table tracks audit scope, not discovered defects.

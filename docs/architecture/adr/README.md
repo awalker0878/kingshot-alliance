@@ -74,3 +74,7 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0051: Bounded Transfer verification overviews with explicit coverage](0051-bounded-transfer-verification-overviews.md)
 
 - [ADR-0052: Bounded current-manager Content workspaces](0052-bounded-current-manager-content-workspaces.md)
+
+- [ADR-0053: Webhook egress destination security](0053-webhook-egress-destination-security.md)
+
+- [ADR-0054: Fenced and bounded webhook recovery](0054-fenced-bounded-webhook-recovery.md)

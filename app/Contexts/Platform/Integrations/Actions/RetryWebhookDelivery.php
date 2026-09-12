@@ -47,6 +47,7 @@ final readonly class RetryWebhookDelivery
             $delivery->forceFill([
                 'status' => WebhookDeliveryStatus::Pending,
                 'available_at' => now(),
+                'attempt_token' => null,
                 'last_error' => 'Manual retry requested.',
             ])->save();
 

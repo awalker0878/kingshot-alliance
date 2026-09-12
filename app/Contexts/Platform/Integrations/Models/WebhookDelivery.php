@@ -33,6 +33,7 @@ final class WebhookDelivery extends Model
         'payload',
         'status',
         'attempts',
+        'attempt_token',
         'available_at',
         'last_attempt_at',
         'delivered_at',

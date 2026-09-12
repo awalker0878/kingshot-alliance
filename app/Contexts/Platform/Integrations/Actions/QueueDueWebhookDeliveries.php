@@ -16,34 +16,54 @@ final class QueueDueWebhookDeliveries
         $limit = max(1, min(500, $limit));
         $now = now();
 
-        DB::transaction(function () use ($now): void {
+        $recoveryLimit = $limit;
+        DB::transaction(function () use ($now, $recoveryLimit): void {
             WebhookDelivery::query()
-                ->where('status', WebhookDeliveryStatus::Delivering->value)
-                ->where('last_attempt_at', '<=', $now->copy()->subMinutes(5))
+                ->where(static function ($stale) use ($now): void {
+                    $stale->where(static function ($delivering) use ($now): void {
+                        $delivering->where('status', WebhookDeliveryStatus::Delivering->value)
+                            ->where('last_attempt_at', '<=', $now->copy()->subMinutes(5));
+                    })->orWhere(static function ($queued) use ($now): void {
+                        $queued->where('status', WebhookDeliveryStatus::Queued->value)
+                            ->where('updated_at', '<=', $now->copy()->subMinutes(5));
+                    });
+                })
+                ->orderBy('updated_at')
+                ->orderBy('id')
+                ->limit($recoveryLimit)
                 ->lockForUpdate()
                 ->get()
                 ->each(static function (WebhookDelivery $delivery) use ($now): void {
                     $delivery->forceFill([
                         'status' => WebhookDeliveryStatus::Pending,
                         'available_at' => $now,
+                        'attempt_token' => null,
                         'last_error' => 'Recovered a stale webhook delivery claim after worker interruption.',
                     ])->save();
                 });
         });
 
-        $queued = 0;
-        $deliveries = WebhookDelivery::query()
-            ->where('status', WebhookDeliveryStatus::Pending->value)
-            ->where('available_at', '<=', $now)
-            ->orderBy('available_at')
-            ->limit($limit)
-            ->get();
+        $deliveryIds = DB::transaction(function () use ($now, $limit): array {
+            $deliveries = WebhookDelivery::query()
+                ->where('status', WebhookDeliveryStatus::Pending->value)
+                ->where('available_at', '<=', $now)
+                ->orderBy('available_at')
+                ->orderBy('id')
+                ->limit($limit)
+                ->lock('for update skip locked')
+                ->get();
 
-        foreach ($deliveries as $delivery) {
-            DeliverWebhookJob::dispatch((string) $delivery->id)->onQueue('integrations');
-            $queued++;
+            foreach ($deliveries as $delivery) {
+                $delivery->forceFill(['status' => WebhookDeliveryStatus::Queued])->save();
+            }
+
+            return $deliveries->modelKeys();
+        });
+
+        foreach ($deliveryIds as $deliveryId) {
+            DeliverWebhookJob::dispatch((string) $deliveryId)->onQueue('integrations');
         }
 
-        return $queued;
+        return count($deliveryIds);
     }
 }

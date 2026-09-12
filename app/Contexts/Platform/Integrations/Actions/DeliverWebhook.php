@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Contexts\Platform\Integrations\Actions;
 
 use App\Contexts\Platform\Integrations\Enums\WebhookDeliveryStatus;
+use App\Contexts\Platform\Integrations\Exceptions\WebhookAttemptFailed;
 use App\Contexts\Platform\Integrations\Models\WebhookDelivery;
 use App\Contexts\Platform\Integrations\Models\WebhookSubscription;
 use App\Contexts\Platform\Integrations\Services\WebhookEndpointPolicy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use RuntimeException;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 final readonly class DeliverWebhook
 {
@@ -22,7 +24,8 @@ final readonly class DeliverWebhook
 
         $claim = DB::transaction(function () use ($delivery): ?array {
             $locked = WebhookDelivery::query()->lockForUpdate()->findOrFail($delivery->id);
-            if ($locked->status !== WebhookDeliveryStatus::Pending) {
+            if (! in_array($locked->status, [WebhookDeliveryStatus::Pending, WebhookDeliveryStatus::Queued], true)
+                || $locked->available_at->isFuture()) {
                 return null;
             }
 
@@ -49,11 +52,23 @@ final readonly class DeliverWebhook
             }
 
             /** @var array<string, mixed> $payload */
-            $this->endpointPolicy->assertAllowed((string) $subscription->url);
+            try {
+                $endpoint = $this->endpointPolicy->resolveAllowed((string) $subscription->url);
+            } catch (ValidationException) {
+                $locked->forceFill([
+                    'status' => WebhookDeliveryStatus::Failed,
+                    'attempt_token' => null,
+                    'last_error' => 'Webhook destination failed the current outbound security policy.',
+                ])->save();
+
+                return null;
+            }
             $attempts = $locked->attempts + 1;
+            $attemptToken = (string) Str::uuid();
             $locked->forceFill([
                 'status' => WebhookDeliveryStatus::Delivering,
                 'attempts' => $attempts,
+                'attempt_token' => $attemptToken,
                 'last_attempt_at' => now(),
                 'last_error' => null,
             ])->save();
@@ -62,9 +77,11 @@ final readonly class DeliverWebhook
                 'delivery_id' => (string) $locked->id,
                 'event_type' => (string) $locked->event_type,
                 'url' => (string) $subscription->url,
+                'curl_resolution' => $endpoint->curlResolution(),
                 'signing_secret' => (string) $subscription->signing_secret,
                 'payload' => $payload,
                 'attempts' => $attempts,
+                'attempt_token' => $attemptToken,
             ];
         });
 
@@ -82,6 +99,14 @@ final readonly class DeliverWebhook
         try {
             $response = Http::acceptJson()
                 ->asJson()
+                ->withoutRedirecting()
+                ->withOptions([
+                    'verify' => true,
+                    'curl' => [
+                        CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
+                        CURLOPT_RESOLVE => [(string) $claim['curl_resolution']],
+                    ],
+                ])
                 ->connectTimeout(3)
                 ->timeout(10)
                 ->withHeaders([
@@ -95,18 +120,19 @@ final readonly class DeliverWebhook
 
             $excerpt = mb_substr($response->body(), 0, 1000);
             if ($response->successful()) {
-                $this->finishAttempt((string) $claim['delivery_id'], $attempts, [
+                $this->finishAttempt((string) $claim['delivery_id'], (string) $claim['attempt_token'], [
                     'status' => WebhookDeliveryStatus::Delivered,
                     'delivered_at' => now(),
                     'response_code' => $response->status(),
                     'response_excerpt' => $excerpt,
                     'last_error' => null,
+                    'attempt_token' => null,
                 ]);
 
                 return;
             }
 
-            $this->finishAttempt((string) $claim['delivery_id'], $attempts, [
+            $this->finishAttempt((string) $claim['delivery_id'], (string) $claim['attempt_token'], [
                 'status' => WebhookDeliveryStatus::Pending,
                 'available_at' => now()->addSeconds($this->backoffSeconds($attempts)),
                 'response_code' => $response->status(),
@@ -114,26 +140,26 @@ final readonly class DeliverWebhook
                 'last_error' => 'Webhook endpoint returned HTTP '.$response->status().'.',
             ]);
 
-            throw new RuntimeException('Webhook endpoint returned HTTP '.$response->status().'.');
-        } catch (RuntimeException $exception) {
+            throw new WebhookAttemptFailed((string) $claim['delivery_id'], (string) $claim['attempt_token'], 'Webhook endpoint returned HTTP '.$response->status().'.');
+        } catch (WebhookAttemptFailed $exception) {
             throw $exception;
         } catch (\Throwable $exception) {
-            $this->finishAttempt((string) $claim['delivery_id'], $attempts, [
+            $this->finishAttempt((string) $claim['delivery_id'], (string) $claim['attempt_token'], [
                 'status' => WebhookDeliveryStatus::Pending,
                 'available_at' => now()->addSeconds($this->backoffSeconds($attempts)),
                 'last_error' => mb_substr($exception->getMessage(), 0, 1000),
             ]);
 
-            throw new RuntimeException('Webhook delivery failed.', previous: $exception);
+            throw new WebhookAttemptFailed((string) $claim['delivery_id'], (string) $claim['attempt_token'], 'Webhook delivery failed.', $exception);
         }
     }
 
     /** @param array<string, mixed> $attributes */
-    private function finishAttempt(string $deliveryId, int $attempts, array $attributes): void
+    private function finishAttempt(string $deliveryId, string $attemptToken, array $attributes): void
     {
-        DB::transaction(function () use ($deliveryId, $attempts, $attributes): void {
+        DB::transaction(function () use ($deliveryId, $attemptToken, $attributes): void {
             $locked = WebhookDelivery::query()->lockForUpdate()->findOrFail($deliveryId);
-            if ($locked->status !== WebhookDeliveryStatus::Delivering || $locked->attempts !== $attempts) {
+            if ($locked->status !== WebhookDeliveryStatus::Delivering || ! hash_equals((string) $locked->attempt_token, $attemptToken)) {
                 return;
             }
 

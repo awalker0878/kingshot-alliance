@@ -213,6 +213,7 @@ return new class extends Migration
             $table->json('payload')->nullable();
             $table->string('status', 24)->default('pending')->index();
             $table->unsignedTinyInteger('attempts')->default(0);
+            $table->uuid('attempt_token')->nullable();
             $table->timestamp('available_at')->index();
             $table->timestamp('last_attempt_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
@@ -223,6 +224,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['alliance_id', 'status', 'available_at']);
+            $table->index(['status', 'available_at', 'id'], 'webhook_delivery_due_index');
         });
 
         $now = now();

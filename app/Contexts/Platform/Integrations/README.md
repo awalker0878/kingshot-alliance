@@ -23,6 +23,8 @@ The management surface receives the catalogue from the same contract used by val
 
 Endpoint verification creates one targeted `integration.test` delivery through the normal signing job without publishing an outbox message. Manual recovery changes only an exhausted delivery back to pending, preserves its immutable payload and identity, requires an active owning subscription, and records the manager action in the audit trail. Rotation replaces the encrypted signing secret immediately, shows the replacement once and preserves past delivery evidence.
 
+Outbound delivery re-resolves the configured host for every attempt, accepts only entirely public DNS answers, pins the approved address while retaining TLS hostname verification, and never follows redirects. Due delivery rows are reserved in bounded locked pages. A UUID attempt token fences transport completion and queue exhaustion; stale queued/delivering leases recover in bounded batches without resetting monotonic attempt counts. See ADR-0053 and ADR-0054.
+
 External pairing stores keyed hashes rather than raw provider user IDs. A claim is bound to an Alliance, Player, provider and scoped API credential. Actor writes resolve that link server-side and reserve an action receipt before calling a cross-context workflow; the workflow calls the Operations owner action and never accepts a client-supplied Player ID. Revocation and scope checks are revalidated for every write.
 
 ## Dependencies
