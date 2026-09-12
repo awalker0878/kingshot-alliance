@@ -19,3 +19,5 @@ See [ADR 0008: Bound operator recovery](../../adr/0008-bounded-operator-recovery
 ## Authority boundary
 
 Platform Administrator is User-scoped. It does not grant Alliance membership, Kingdom governance authority or Operations/Intelligence permissions.
+
+Grant and revocation share the existing transaction coordinator before catalogue rows, including first grants and bootstrap. Grants require the Accounts owner to lock and validate the current active target; a contended account returns a retryable validation error and a finalized account is rejected. This serializes with the deletion blocker without copying account lifecycle rules. See [ADR-0061](../../adr/0061-current-platform-administrator-grants.md).

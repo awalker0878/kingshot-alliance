@@ -7,7 +7,8 @@ namespace App\Contexts\Platform\Administration\Services;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 
-final class PlatformAdministratorBootstrapCoordinator
+/** Serializes the small privileged grant catalogue, including absent target grants. */
+final class PlatformAdministratorMutationCoordinator
 {
     private const LOCK_NAMESPACE = 1263556436;
 
@@ -16,7 +17,7 @@ final class PlatformAdministratorBootstrapCoordinator
     public function acquire(): void
     {
         if (DB::transactionLevel() < 1) {
-            throw new LogicException('Platform administrator bootstrap coordination requires an existing database transaction.');
+            throw new LogicException('Platform administrator mutation coordination requires an existing database transaction.');
         }
         $driver = DB::connection()->getDriverName();
         if ($driver === 'pgsql') {
@@ -24,9 +25,6 @@ final class PlatformAdministratorBootstrapCoordinator
 
             return;
         }
-        if ($driver === 'sqlite') {
-            return;
-        }
-        throw new LogicException('Platform administrator bootstrap coordination requires PostgreSQL.');
+        throw new LogicException('Platform administrator mutation coordination requires PostgreSQL.');
     }
 }

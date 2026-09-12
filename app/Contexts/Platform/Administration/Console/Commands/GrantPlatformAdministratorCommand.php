@@ -7,6 +7,7 @@ namespace App\Contexts\Platform\Administration\Console\Commands;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
 use Illuminate\Console\Command;
+use InvalidArgumentException;
 
 final class GrantPlatformAdministratorCommand extends Command
 {
@@ -30,7 +31,13 @@ final class GrantPlatformAdministratorCommand extends Command
             return self::FAILURE;
         }
 
-        $manage->grant($userId);
+        try {
+            $manage->grant($userId);
+        } catch (InvalidArgumentException $exception) {
+            $this->error($exception->getMessage());
+
+            return self::FAILURE;
+        }
         $this->info('Platform administrator grant created. Web access still requires verified email and MFA.');
 
         return self::SUCCESS;

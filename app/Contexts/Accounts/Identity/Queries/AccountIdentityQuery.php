@@ -27,9 +27,9 @@ final class AccountIdentityQuery
         return $this->snapshot(User::query()->whereKey($userId)->lockForUpdate()->firstOrFail());
     }
 
-    public function lockActive(int $userId): AccountIdentity
+    public function lockActive(int $userId, bool $wait = true): AccountIdentity
     {
-        $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+        $user = User::query()->whereKey($userId)->lock($wait ? 'for update' : 'for update nowait')->firstOrFail();
         $user->ensureActive();
 
         return $this->snapshot($user);

@@ -4,11 +4,11 @@
 
 - Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
 - Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
-- Latest pushed implementation: `b512a5530c9600d21bac781993b2d9f1eee7c72c` (HARD-116 and the Connections browser locator correction); hosted checks are running. Preceding `24e9a48bc6f959b10b15803caa71e4f04b4bb2d8` passes complete PHP1,856 /87,942 assertions and frontend. Last all-nine milestone remains `abcc062d7f60fe987ebde07796b2ce89d1f72c57` (1,840 PHP tests /86,867 assertions and78 browser cases).
-- Current item/state: HARD-117 / In progress. HARD-095/109/110/112 are Complete with containing evidence; HARD-111/113–116 await containing completion; HARD-118 records administrator-grant ordering and current account lifecycle gaps.
-- Active files: DataGovernance credential-retention eligibility, reference indexes, mixed-history and concurrent-reference regressions, ADR-0058 and retention contract.
-- Local verification: changed production PHPStan, formatting, architecture, test layout and documentation pass. Two referenced-credential PostgreSQL cases await hosted execution; no local PostgreSQL pass is claimed.
-- Next action: inspect HARD-116 hosted results and corrected Connections journeys, verify HARD-117, repair administrator grant boundaries and complete repository audit coverage before final gates.
+- Latest pushed implementation: `a707ccdef8783620f28c454e885ee863349665fc` contains HARD-117 and corrected competing Eloquent connection names; hosted checks are running. Preceding `24e9a48bc6f959b10b15803caa71e4f04b4bb2d8` passes complete PHP1,856 /87,942 assertions and frontend. Last all-nine milestone remains `abcc062d7f60fe987ebde07796b2ce89d1f72c57` (1,840 PHP tests /86,867 assertions and78 browser cases).
+- Current item/state: HARD-118 / In progress. HARD-095/109/110/112 are Complete with containing evidence; HARD-111/113–117 await containing completion. HARD-119 records remaining Platform management projection gaps.
+- Active files: Accounts current target lock contract, Administration mutation coordinator and grants/HTTP/CLI, retained field errors, eight PostgreSQL regressions, ADR-0061; Connections browser synchronous retry assertion.
+- Local verification: changed production PHPStan, formatting, architecture, test layout, Vue types, affected frontend lint/format and documentation pass. Eight administrator PostgreSQL cases await hosted execution; no local PostgreSQL pass is claimed.
+- Next action: inspect corrected HARD-116/117 results, verify administrator lifecycle/concurrency and corrected Connections journeys, then complete Platform projection and repository audit coverage before final gates.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -1743,9 +1743,22 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners, with ordered grant acquisition and a current active target-account barrier.
 - Rationale: platform access must not attach to a finalized account or bypass deletion's current blocker check; rare administrative commands must remain retryable under contention without creating a new permission authority.
 - Remediation: reproduce the crossed acquisition and deletion outcomes; use current Accounts owner locking and a consistent grant order, account for absent target grants, and preserve bootstrap/idempotency/audit semantics.
-- State: Planned.
+- State: In progress.
 - Verification required: grant/revoke in both orders, active and finalized target accounts, deletion/grant competing outcomes, concurrent first target grant, bootstrap and late audit rollback.
-- Verification result: traced ManagePlatformAdministrator, PlatformWriteState, bootstrap coordinator, account identity locking, ProcessAccountDeletionRequests blocker and current HTTP adapters. No implementation or behavioral pass claimed.
+- Verification result: traced ManagePlatformAdministrator, PlatformWriteState, bootstrap coordinator, account identity locking, ProcessAccountDeletionRequests blocker and current HTTP adapters. The existing bootstrap coordinator now serializes all grants/revocations before catalogue rows, including absent targets. Accounts owns the active target barrier with NOWAIT; busy/finalized target errors remain visible in the retained grant form. Eight PostgreSQL cases are authored, including authenticated HTTP contention/retry/revocation and explicit CLI bootstrap rejection. Local PHPStan/Pint/architecture/layout pass; hosted execution remains pending.
+- Completion evidence: ADR-0061 and PlatformAdministratorConcurrencyTest; containing execution pending.
+
+### HARD-119 — Platform management clips catalogues and reads unrelated history
+
+- Area: PlatformAdministration ReadModel, current HTTP admission and management UI.
+- Finding: dashboard() silently limits Alliances to200 and legal holds to100 while loading all Alliance plan assignments/settings and administrator history. Its active credential subquery counts expired credentials, and pending webhook counts omit the new queued state. Older exhausted outbox work is inaccessible beyond the latest25 retry rows. Direct projection admission is not bound to a current administrator identity; selected feature history is unbounded.
+- Current owner: Platform Administration/AllianceAdministration facts and PlatformAdministration read composition.
+- Intended authoritative owner: existing Context facts and current-authorized bounded ReadModel catalogues with reachable operator history.
+- Rationale: management must remain truthful and complete as tenants/history grow, without duplicating credential/runtime state or exposing a viewer-less privileged projection.
+- Remediation: trace each catalogue and consumer; add current administrator admission, scoped continuation/complete totals, page-scoped supporting facts, shared active credential semantics and retained management errors/drafts.
+- State: Planned.
+- Verification required: more-than-limit catalogues, independent continuation, current grant revocation, scope-bound cursors, bounded hydration, exact active/pending counts, older outbox retry reachability and desktop/mobile retained errors/drafts.
+- Verification result: traced PlatformAdministrationQuery, HTTP read/write controllers, routes and Index.vue alongside the owner usage/retention APIs. No remediation or behavioral pass is claimed yet.
 - Completion evidence: pending.
 
 ## Repository audit coverage
@@ -1798,3 +1811,11 @@ Exact-head run `34716143412`, job `103613621165`, on `cd088c9b09fcdc7dbe99383971
 ### Containing PHP and focused evidence on24e9
 
 CI `34716370816`, PHP job `103614286177`, passes1,856 tests /87,942 assertions in20:20.292 on merge checkout `2cbfc030b951aee482c3225562a10d817519bd94`. Frontend job `103614286422` passes. Focused run `34716370802`, job `103614233940`, passes83 Integrations cases /1,002 assertions,31 Platform maintenance cases /200 assertions and29 TransferManagement cases /425 assertions. All export fixture/callback defects fromcd088 are resolved. Visual `34716370871` passes78 existing cases; both new Connections cases fail on the incorrect password-confirmation field locator, corrected inb512. Container/staging/recovery was still running when the next checkpoint was published; this head is not an all-nine milestone.
+
+### HARD-116 first hosted feedback
+
+Focused run `34717559716`, job `103617400920`, onb512 executes95 Integrations cases /1,026 assertions with nine errors confined to the new competing-owner fixtures. Copying a live connection configuration also copied its `name: pgsql`, so Eloquent hydrated from the competing connection but saved through the primary name. Explicit competitor names keep selection and persistence on the same connection. The late receipt rollback, stale-membership replay and HTTP contention/retry cases pass; the nine corrected competing-order cases still require rerun. No production lock timeout or assertion is relaxed.
+
+### HARD-111 second hosted browser feedback
+
+Visual `34717559683`, job `103617400828`, passes78 existing cases and both new Connections journeys reach successful older-delivery retry submission, independent paging and failure/retry navigation. Their Pending assertion is incorrect for the existing synchronous visual queue: the redirected page already shows one additional attempt and the real outbound policy's safe destination-rejection message for the reserved.test fixture. The corrected journey asserts that exact attempt increment and safe result before retained-draft checks; no network policy, workflow queue mode, timeout or assertion scope is weakened.

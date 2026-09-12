@@ -84,7 +84,7 @@ jobs:
       - name: Run Integrations behavior
         run: php vendor/bin/phpunit tests/Contexts/Platform/Integrations --log-junit storage/logs/webhooks-junit.xml
       - name: Run Platform maintenance behavior
-        run: php vendor/bin/phpunit tests/Contexts/Platform/DataGovernance tests/Contexts/Platform/AllianceAdministration --log-junit storage/logs/platform-maintenance-junit.xml
+        run: php vendor/bin/phpunit tests/Contexts/Platform/DataGovernance tests/Contexts/Platform/AllianceAdministration tests/Contexts/Platform/Administration --log-junit storage/logs/platform-maintenance-junit.xml
       - name: Run Participation owner behavior
         run: php vendor/bin/phpunit tests/Contexts/Operations/Participation --log-junit storage/logs/participation-junit.xml
       - name: Run TransferManagement behavior

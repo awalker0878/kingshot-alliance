@@ -567,7 +567,16 @@ function diagnosticTitle(item: DiagnosticFailure): string {
               type="email"
               required
               class="ks-input"
+              :aria-invalid="!!adminForm.errors.email"
+              :aria-describedby="adminForm.errors.email ? 'platform-admin-email-error' : undefined"
             />
+            <span
+              v-if="adminForm.errors.email"
+              id="platform-admin-email-error"
+              role="alert"
+              class="text-xs text-rose-300"
+              >{{ adminForm.errors.email }}</span
+            >
           </label>
           <button
             type="submit"

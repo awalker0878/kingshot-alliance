@@ -35,7 +35,11 @@ final class PlatformAdministrationController extends Controller
             throw ValidationException::withMessages(['email' => 'No account exists for that email address.']);
         }
 
-        $manage->grant($targetUserId, $actor);
+        try {
+            $manage->grant($targetUserId, $actor);
+        } catch (InvalidArgumentException $exception) {
+            throw ValidationException::withMessages(['email' => $exception->getMessage()]);
+        }
 
         return back()->with('actionReceipt', $this->receipt('platform-administrator-granted'));
     }

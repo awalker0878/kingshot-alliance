@@ -90,3 +90,5 @@ Architecture decision records explain material changes to ownership, boundaries,
 - [ADR-0059: Bounded integration management history](0059-bounded-integration-management-history.md)
 
 - [ADR-0060: Atomic external participation scope order](0060-atomic-external-participation-scope-order.md)
+
+- [ADR-0061: Current Platform Administrator grants](0061-current-platform-administrator-grants.md)
