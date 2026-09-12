@@ -48,7 +48,8 @@ final class ExternalActorScopeOrderingTest extends TestCase
     {
         $f = $this->fixture();
         $primary = DB::getDefaultConnection();
-        config()->set('database.connections.external_revoker', DB::connection()->getConfig());
+        // Eloquent persists hydrated models through the connection's configured name.
+        config()->set('database.connections.external_revoker', [...DB::connection()->getConfig(), 'name' => 'external_revoker']);
         DB::connection()->statement("SET lock_timeout = '150ms'");
         DB::connection('external_revoker')->statement("SET lock_timeout = '150ms'");
         $respond = fn () => $operation === 'response' ? $this->respond($f)
@@ -155,7 +156,7 @@ final class ExternalActorScopeOrderingTest extends TestCase
         $pairing = app(IssueExternalActorPairingCode::class)->handle($f['allianceId'], $f['playerId'], ExternalActorProvider::Discord);
         $newSubject = '223456789012345678';
         $primary = DB::getDefaultConnection();
-        config()->set('database.connections.external_pairing', DB::connection()->getConfig());
+        config()->set('database.connections.external_pairing', [...DB::connection()->getConfig(), 'name' => 'external_pairing']);
         DB::connection()->statement("SET lock_timeout = '150ms'");
         $attempted = false;
         DB::listen(function (QueryExecuted $query) use ($primary, $f, &$attempted): void {
@@ -195,7 +196,7 @@ final class ExternalActorScopeOrderingTest extends TestCase
     public function test_http_link_contention_returns_conflict_and_the_same_request_can_retry(): void
     {
         $f = $this->fixture();
-        config()->set('database.connections.external_link_holder', DB::connection()->getConfig());
+        config()->set('database.connections.external_link_holder', [...DB::connection()->getConfig(), 'name' => 'external_link_holder']);
         $holder = DB::connection('external_link_holder');
         try {
             $holder->beginTransaction();
