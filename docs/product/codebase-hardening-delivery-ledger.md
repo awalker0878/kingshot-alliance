@@ -1884,3 +1884,7 @@ While HARD-119 runs on the hosted PostgreSQL/browser gates, HARD-121 follows the
 ### HARD-119 first hosted feedback
 
 Focused `34719518199`, job `103622672130`, passes all 95 Integrations cases and executes 65 Platform/ReadModel cases with three catalogue fixture failures. The new historical fixture used uppercase ULIDs while the maintained HasUlids model contract emits lowercase IDs; binary ID ordering therefore placed older owner-created Alliance/administrator rows before the uppercase history, invalidating two exact-order expectations and the off-page selection setup. The fixture now uses the maintained lowercase representation. Catalogue bounds, SQL fingerprint privacy, all scope/revocation checks and the remaining seven catalogue traversals pass. No production ordering, cursor validation or assertion is relaxed.
+
+### Platform visual fixture isolation
+
+The first HARD-119 visual run `34719518190`, job `103622671990`, stops during fixture setup: ScenarioFactory::alliance uses process-local sequence names, and earlier separately invoked fixtures already own that slug. The Platform visual fixture now calls the normal CreateAlliance owner with its own explicit `platform-catalogue-anchor` slug, as the other dedicated visual fixtures do. No application slug uniqueness rule or browser gate changes. HARD-121 and the lowercase-ID correction are durable at `9336a3c0b4c880e0f7b55f6b77dc4ce7a9cb33b0`; this separate fixture repair awaits containing verification.

@@ -6,6 +6,7 @@ namespace Tests\ReadModels\PlatformAdministration\Fixtures;
 
 use App\Contexts\Accounts\Identity\Models\User;
 use App\Contexts\Accounts\Identity\Queries\AccountIdentityQuery;
+use App\Contexts\Alliance\Lifecycle\Actions\CreateAlliance;
 use App\Contexts\Alliance\Lifecycle\Queries\AllianceReferenceQuery;
 use App\Contexts\Platform\Administration\Actions\ManagePlatformAdministrator;
 use App\ReadModels\PlatformAdministration\PlatformCatalogueKind;
@@ -29,7 +30,9 @@ final class PlatformCatalogueVisualFixture
         }
         $factory = app(ScenarioFactory::class);
         $player = $factory->player($authority->userId, 61691, 'platform-catalogue-owner');
-        $alliance = $factory->alliance($player);
+        $alliance = app(AllianceReferenceQuery::class)->require(app(CreateAlliance::class)->handle(
+            $authority->userId, $player->playerId, 'Platform catalogue anchor', 'platform-catalogue-anchor',
+        ));
         $ids = PlatformCatalogueFixture::seed(PlatformCatalogueKind::Alliances, $authority->userId, $alliance, $player->playerId);
         $selected = app(AllianceReferenceQuery::class)->require($ids[0]);
         foreach ([PlatformCatalogueKind::Features, PlatformCatalogueKind::OutboxFailures, PlatformCatalogueKind::LegalHolds] as $kind) {
