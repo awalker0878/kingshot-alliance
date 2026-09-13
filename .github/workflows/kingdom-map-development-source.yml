@@ -1,0 +1,97 @@
+name: Kingdom Map development source
+
+# Temporary development transport. Remove before the workspace is merge-ready.
+# Export only tracked Git objects and public, lockfile-selected development tools.
+on:
+  push:
+    branches: [astra/kingdom-map-workspace]
+    paths: [.github/workflows/kingdom-map-development-source.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    if: github.repository == 'awalker0878/kingshot-alliance'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Export exact tracked source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/kingdom-map-source"
+          git rev-parse HEAD > "$RUNNER_TEMP/kingdom-map-source/revision.txt"
+          git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/kingdom-map-source/tree-sha.txt"
+          git bundle create "$RUNNER_TEMP/kingdom-map-source/source.bundle" HEAD
+          sha256sum "$RUNNER_TEMP/kingdom-map-source/source.bundle" > "$RUNNER_TEMP/kingdom-map-source/SHA256SUMS"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: kingdom-map-source
+          path: ${{ runner.temp }}/kingdom-map-source
+          retention-days: 1
+          if-no-files-found: error
+  tools:
+    if: github.repository == 'awalker0878/kingshot-alliance'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.5'
+          extensions: dom, gd, intl, mbstring, pcntl, pdo_pgsql, pdo_sqlite, posix, redis, simplexml, sqlite3, xml, xmlwriter, zip
+          coverage: none
+          tools: composer:v2
+      - name: Install exact locked development dependencies
+        run: |
+          npm ci --no-audit --no-fund
+          composer install --no-interaction --no-progress --prefer-dist
+      - name: Package offline development tools without environment or credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/kingdom-map-tools"
+          runtime="$RUNNER_TEMP/runtime"
+          mkdir -p "$out" "$runtime/bin" "$runtime/php-ext" "$runtime/lib"
+          install -m755 "$(command -v node)" "$runtime/bin/node"
+          install -m755 "$(readlink -f "$(command -v php)")" "$runtime/bin/php"
+          extension_dir="$(php -r 'echo ini_get("extension_dir");')"
+          cp -L "$extension_dir"/*.so "$runtime/php-ext/"
+          python3 - "$runtime" <<'PY'
+          import pathlib, re, shutil, subprocess, sys
+          root = pathlib.Path(sys.argv[1])
+          paths = [root / 'bin/php', *root.glob('php-ext/*.so')]
+          excluded = {'libc.so.6', 'libm.so.6', 'libpthread.so.0', 'libdl.so.2', 'librt.so.1'}
+          for path in paths:
+              result = subprocess.run(['ldd', str(path)], capture_output=True, text=True, check=False)
+              for name in re.findall(r'=> (/\S+)', result.stdout):
+                  source = pathlib.Path(name)
+                  if source.name not in excluded:
+                      shutil.copyfile(source.resolve(), root / 'lib' / source.name)
+          PY
+          git rev-parse HEAD > "$out/revision.txt"
+          node --version > "$out/node-version.txt"
+          php --version > "$out/php-version.txt"
+          sha256sum package-lock.json composer.lock > "$out/lockfiles.sha256"
+          tar -czf "$out/node-modules.tar.gz" node_modules
+          tar -czf "$out/vendor.tar.gz" vendor
+          tar -C "$RUNNER_TEMP" -czf "$out/runtime.tar.gz" runtime
+          (cd "$out" && sha256sum *.tar.gz > SHA256SUMS)
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: kingdom-map-locked-tools
+          path: ${{ runner.temp }}/kingdom-map-tools
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
