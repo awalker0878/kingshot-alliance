@@ -54,7 +54,7 @@ final class EventManagementPageController extends Controller
         $user = $this->user($request);
         $actor = $this->player();
         $record = $query->eventForManage($actor, $event);
-        $input = $request->validate(['occurrence' => ['nullable', 'ulid'], 'occurrence_cursor' => ['nullable', 'string', 'max:2048']]);
+        $input = $request->validate(['occurrence' => ['nullable', 'ulid'], 'occurrence_cursor' => ['nullable', 'string', 'max:2048'], 'phase_cursor' => ['nullable', 'string', 'max:2048'], 'poll_cursor' => ['nullable', 'string', 'max:2048']]);
         $command = $eventCommand->forEvent($actor, $record, $input['occurrence'] ?? null, $input['occurrence_cursor'] ?? null);
         $selected = $command['selectedOccurrenceId'];
         $record->setRelation('occurrences', $selected === null ? new Collection : EventOccurrence::query()
@@ -103,7 +103,7 @@ final class EventManagementPageController extends Controller
             'event' => $this->managementPayload($record, $profile, (int) $command['occurrencePage']['total']),
             'eventCommand' => $command,
             'participants' => $participantOperations,
-            'operations' => $phasePolls->management($record),
+            'operations' => $phasePolls->management($record, $actor->playerId, $input['phase_cursor'] ?? null, $input['poll_cursor'] ?? null),
             'battlePlan' => $this->supports($workflowDimensions, EventWorkflowDimension::BattleAssignments)
                 ? $objectives->management($record)
                 : [],

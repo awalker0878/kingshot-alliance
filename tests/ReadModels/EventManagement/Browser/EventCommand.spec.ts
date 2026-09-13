@@ -162,3 +162,64 @@ test('Event occurrence history preserves drafts through paging and retry and ope
     await command.evaluate((element) => element.scrollWidth > element.clientWidth),
   ).toBeFalsy();
 });
+
+test('Event phase and poll pages preserve independent drafts and saved member votes', async ({
+  page,
+}, testInfo) => {
+  const command = await openEventCommand(page, 'Event History Visual');
+  const occurrence = await command.getByRole('combobox', { name: 'Occurrence' }).inputValue();
+  const phases = page.locator('#phases');
+  const polls = page.locator('#polls');
+  const phasePager = phases.locator('[data-event-catalogue="phase"]');
+  const pollPager = polls.locator('[data-event-catalogue="poll"]');
+  await expect(phasePager.getByText('61 records')).toBeVisible();
+  await expect(pollPager.getByText('61 records')).toBeVisible();
+  const phaseDraft = phases.getByPlaceholder('Phase name', { exact: true });
+  const pollDraft = polls.getByPlaceholder('Poll question', { exact: true });
+  await phaseDraft.fill('Unsubmitted phase draft');
+  await pollDraft.fill('Unsubmitted poll draft');
+  await phasePager.getByRole('button', { name: 'Next page', exact: true }).click();
+  await expect(phases.getByRole('button', { name: /History phase 25/ })).toBeVisible();
+  await expect(polls.getByText('History poll 0', { exact: true })).toBeVisible();
+  await pollPager.getByRole('button', { name: 'Next page', exact: true }).click();
+  await expect(polls.getByText('History poll 25', { exact: true })).toBeVisible();
+  await expect(phaseDraft).toHaveValue('Unsubmitted phase draft');
+  await expect(pollDraft).toHaveValue('Unsubmitted poll draft');
+  await expect(phases.getByRole('button', { name: /History phase 25/ })).toBeVisible();
+  await phasePager.getByRole('button', { name: 'Next page', exact: true }).click();
+  await expect(phases.getByRole('button', { name: /History phase 60/ })).toBeVisible();
+  await pollPager.getByRole('button', { name: 'Next page', exact: true }).click();
+  await expect(polls.getByText('History poll 60', { exact: true })).toBeVisible();
+  await expect(phaseDraft).toHaveValue('Unsubmitted phase draft');
+  await expect(pollDraft).toHaveValue('Unsubmitted poll draft');
+
+  await page.goto(`/events/${occurrence}`);
+  const memberPolls = page.locator('section[aria-labelledby="polls-heading"]');
+  const memberPager = memberPolls.locator('[data-event-catalogue="poll"]');
+  await expect(memberPager.getByText('60 records')).toBeVisible();
+  await memberPager.getByRole('button', { name: 'Next page', exact: true }).click();
+  const question = testInfo.project.name === 'desktop' ? 'History poll 30' : 'History poll 31';
+  const poll = memberPolls
+    .locator('article')
+    .filter({ has: page.getByText(question, { exact: true }) });
+  const option = poll.getByRole('button', { name: 'History option 1', exact: true });
+  const saved = page.waitForResponse(
+    (response) => response.request().method() === 'PUT' && response.url().endsWith('/vote'),
+  );
+  await option.click();
+  expect((await saved).status()).toBe(303);
+  await page.waitForLoadState('networkidle');
+  // The owner redirect may return to page one; navigate from a fresh catalogue in either case.
+  await page.goto(`/events/${occurrence}`);
+  await memberPager.getByRole('button', { name: 'Next page', exact: true }).click();
+  await expect(option).toHaveAttribute('aria-pressed', 'true');
+  await memberPager.getByRole('button', { name: 'Next page', exact: true }).click();
+  await expect(memberPolls.locator('article')).toHaveCount(10);
+  await expect(memberPolls.getByText('History poll 60', { exact: true })).toHaveCount(0);
+  await memberPager.getByRole('button', { name: 'First page', exact: true }).click();
+  await memberPager.getByRole('button', { name: 'Next page', exact: true }).click();
+  await expect(option).toHaveAttribute('aria-pressed', 'true');
+  expect(
+    await memberPolls.evaluate((element) => element.scrollWidth > element.clientWidth),
+  ).toBeFalsy();
+});

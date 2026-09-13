@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { computed, reactive } from 'vue';
+import { computed, reactive, watch } from 'vue';
 
 import EventSigil from '@/components/game/EventSigil.vue';
+import EventCataloguePager from '@/components/events/EventCataloguePager.vue';
+import type { EventCataloguePage } from '@/types/event-command';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
@@ -117,7 +119,12 @@ const props = defineProps<{
     recurrenceInterval: number;
     canManage: boolean;
     participation: Participation | null;
-    operations: { phases: Phase[]; polls: Poll[] };
+    operations: {
+      phases: Phase[];
+      polls: Poll[];
+      phasePage: EventCataloguePage;
+      pollPage: EventCataloguePage;
+    };
     battlePlan: { objectives: Objective[]; myAssignmentIds: string[] };
     results: { summary: ResultSummary | null; player: ResultSummary | null };
     rosters: Assignment[];
@@ -143,8 +150,14 @@ const registrationForm = useForm({});
 const hasActiveRegistration = computed(() =>
   ['registered', 'waitlisted'].includes(props.event.participation?.registration?.status ?? ''),
 );
-const pollSelections = reactive<Record<string, string[]>>(
-  Object.fromEntries(props.event.operations.polls.map((poll) => [poll.id, poll.selectedOptionIds])),
+const pollSelections = reactive<Record<string, string[]>>({});
+watch(
+  () => props.event.operations.polls,
+  (polls) => {
+    for (const id of Object.keys(pollSelections)) delete pollSelections[id];
+    for (const poll of polls) pollSelections[poll.id] = [...poll.selectedOptionIds];
+  },
+  { immediate: true },
 );
 
 const durationLabel = computed(() => {
@@ -417,7 +430,7 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
         </section>
 
         <section
-          v-if="event.operations.phases.length"
+          v-if="event.operations.phasePage.total || !event.operations.phasePage.isFirstPage"
           class="ks-surface p-5 sm:p-6"
           aria-labelledby="phases-heading"
         >
@@ -442,10 +455,19 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
               </p>
             </li>
           </ol>
+          <EventCataloguePager
+            v-if="event.operations.phasePage.hasMore || !event.operations.phasePage.isFirstPage"
+            :page="event.operations.phasePage"
+            kind="phase"
+            :label="t('events.phases.title')"
+            :scope="event.id"
+            :occurrence="null"
+            :only="['event']"
+          />
         </section>
 
         <section
-          v-if="event.operations.polls.length"
+          v-if="event.operations.pollPage.total || !event.operations.pollPage.isFirstPage"
           class="ks-surface p-5 sm:p-6"
           aria-labelledby="polls-heading"
         >
@@ -479,6 +501,7 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
                       ? 'bg-[var(--ks-teal-soft)]'
                       : 'bg-black/10'
                   "
+                  :aria-pressed="pollSelections[poll.id]?.includes(option.id) ?? false"
                   :disabled="!poll.votingOpen || !event.participation"
                   @click="vote(poll, option.id)"
                 >
@@ -490,6 +513,15 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
               </div>
             </article>
           </div>
+          <EventCataloguePager
+            v-if="event.operations.pollPage.hasMore || !event.operations.pollPage.isFirstPage"
+            :page="event.operations.pollPage"
+            kind="poll"
+            :label="t('events.show.polls')"
+            :scope="event.id"
+            :occurrence="null"
+            :only="['event']"
+          />
         </section>
 
         <section

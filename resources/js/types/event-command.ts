@@ -27,7 +27,7 @@ export type EventCommandSection = {
   items: EventCommandItem[];
 };
 
-export type EventOccurrencePage = {
+export type EventCataloguePage = {
   nextCursor: string | null;
   hasMore: boolean;
   pageSize: number;
@@ -36,7 +36,7 @@ export type EventOccurrencePage = {
 };
 
 export type EventCommandProjection = {
-  occurrencePage: EventOccurrencePage;
+  occurrencePage: EventCataloguePage;
   eventId: string;
   selectedOccurrenceId: string | null;
   occurrences: Array<{

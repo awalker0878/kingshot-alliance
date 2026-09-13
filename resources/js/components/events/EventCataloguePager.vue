@@ -2,10 +2,10 @@
 import { router, usePage } from '@inertiajs/vue3';
 import { onBeforeUnmount, ref, watch } from 'vue';
 import { useLocale } from '@/localization';
-import type { EventOccurrencePage } from '@/types/event-command';
+import type { EventCataloguePage } from '@/types/event-command';
 
 const props = defineProps<{
-  page: EventOccurrencePage;
+  page: EventCataloguePage;
   kind: string;
   label: string;
   scope: string;

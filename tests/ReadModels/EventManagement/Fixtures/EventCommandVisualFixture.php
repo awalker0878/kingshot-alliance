@@ -127,8 +127,30 @@ final class EventCommandVisualFixture
                 'created_at' => now(), 'updated_at' => now()];
         }
         DB::table('event_occurrences')->insert($history);
+        self::seedOperationalPages((string) $historyEvent->firstOccurrenceId, (string) $player->id);
 
         CapabilityAcceptanceVisualFixture::seed();
+    }
+
+    private static function seedOperationalPages(string $occurrenceId, string $playerId): void
+    {
+        $phases = $polls = $options = [];
+        for ($i = 0; $i < 61; $i++) {
+            $phases[] = ['id' => strtolower((string) Str::ulid()), 'occurrence_id' => $occurrenceId,
+                'key' => 'history-phase-'.$i, 'name' => 'History phase '.$i, 'phase_type' => 'custom',
+                'status' => 'scheduled', 'sort_order' => $i];
+            $pollId = strtolower((string) Str::ulid());
+            $polls[] = ['id' => $pollId, 'occurrence_id' => $occurrenceId, 'key' => 'history-poll-'.$i,
+                'question' => 'History poll '.$i, 'poll_type' => 'choice', 'status' => $i === 60 ? 'draft' : 'open',
+                'max_choices' => 1, 'created_by_player_id' => $playerId, 'created_at' => now(), 'updated_at' => now()];
+            for ($j = 0; $j < 2; $j++) {
+                $options[] = ['id' => strtolower((string) Str::ulid()), 'poll_id' => $pollId,
+                    'label' => 'History option '.$j, 'value' => (string) $j, 'sort_order' => $j];
+            }
+        }
+        DB::table('event_phases')->insert($phases);
+        DB::table('event_polls')->insert($polls);
+        DB::table('event_poll_options')->insert($options);
     }
 
     private static function recordReadyOwnerFacts(

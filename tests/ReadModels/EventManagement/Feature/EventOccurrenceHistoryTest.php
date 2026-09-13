@@ -38,6 +38,7 @@ final class EventOccurrenceHistoryTest extends TestCase
         parent::setUp();
         $factory = app(ScenarioFactory::class);
         $user = $factory->authUser();
+        $user->forceFill(['email_verified_at' => now()])->save();
         $this->actor = $factory->player((int) $user->id, 61734);
         $alliance = $factory->alliance($this->actor);
         $factory->roster($this->actor, $alliance);

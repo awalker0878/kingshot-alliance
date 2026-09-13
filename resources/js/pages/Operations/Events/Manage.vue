@@ -2,6 +2,8 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
+import EventCataloguePager from '@/components/events/EventCataloguePager.vue';
+import type { EventCataloguePage } from '@/types/event-command';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
@@ -68,6 +70,8 @@ type Poll = {
   options: PollOption[];
 };
 type OccurrenceOperations = {
+  phasePage: EventCataloguePage;
+  pollPage: EventCataloguePage;
   occurrenceId: string;
   startsAt: string;
   phases: Phase[];
@@ -1262,6 +1266,15 @@ function cancel(): void {
                   {{ t('events.phases.none') }}
                 </p>
               </div>
+              <EventCataloguePager
+                v-if="group.phasePage.hasMore || !group.phasePage.isFirstPage"
+                :page="group.phasePage"
+                kind="phase"
+                :label="t('events.phases.title')"
+                :scope="event.id + ':' + group.occurrenceId"
+                :occurrence="group.occurrenceId"
+                :only="['operations']"
+              />
             </div>
           </div>
           <form class="ks-surface space-y-3 p-4" @submit.prevent="savePhase">
@@ -1387,6 +1400,15 @@ function cancel(): void {
               <p v-if="!group.polls.length" class="text-xs text-[var(--ks-text-muted)]">
                 {{ t('events.polls.none') }}
               </p>
+              <EventCataloguePager
+                v-if="group.pollPage.hasMore || !group.pollPage.isFirstPage"
+                :page="group.pollPage"
+                kind="poll"
+                :label="t('events.show.polls')"
+                :scope="event.id + ':' + group.occurrenceId"
+                :occurrence="group.occurrenceId"
+                :only="['operations']"
+              />
             </div>
           </div>
           <form class="ks-surface space-y-3 p-4" @submit.prevent="savePoll">
