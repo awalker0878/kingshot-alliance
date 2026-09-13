@@ -24,7 +24,8 @@ jobs:
           docker run --rm -i --entrypoint bash -v "$RUNNER_TEMP/kingdom-map-database:/out" postgres:18-bookworm -eu <<'SCRIPT'
           mkdir -p /tmp/tools/lib
           cp -a /usr/lib/postgresql/18 /tmp/tools/postgresql
-          cp -a /usr/share/postgresql/18 /tmp/tools/share
+          cp -aL /usr/share/postgresql/18 /tmp/tools/share
+          test -f /tmp/tools/share/postgresql.conf.sample
           find /usr/lib/postgresql/18 -type f -exec ldd {} \; 2>/dev/null | awk '$2 == "=>" && $3 ~ /^\// { print $3 }' | sort -u > /tmp/dependencies
           test -s /tmp/dependencies
           while read -r dependency; do
