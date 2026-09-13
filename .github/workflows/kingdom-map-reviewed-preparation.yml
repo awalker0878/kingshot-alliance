@@ -68,7 +68,8 @@ jobs:
               'tests/Contexts/GameWorld/KingdomMaps/', 'tests/Contexts/Operations/TerritoryPlanning/',
               'tests/ReadModels/TerritoryPlanning/',
           )
-          roots = {'tsconfig.json', 'phpunit.xml'}
+          roots = {'tsconfig.json', 'phpunit.xml',
+                   'tests/ReadModels/AllianceAssistant/Feature/AllianceAssistantGameWorldHttpV3Test.php'}
           removable = {
               '.github/workflows/kingdom-map-development-source.yml',
               '.github/workflows/kingdom-map-reviewed-preparation.yml',
