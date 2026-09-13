@@ -21,17 +21,20 @@ jobs:
           mkdir -p "$RUNNER_TEMP/kingdom-map-database"
           docker pull postgres:18-bookworm
           docker image inspect postgres:18-bookworm --format '{{json .RepoDigests}}' > "$RUNNER_TEMP/kingdom-map-database/postgres-image.json"
-          docker run --rm --entrypoint bash -v "$RUNNER_TEMP/kingdom-map-database:/out" postgres:18-bookworm -euc '
-            mkdir -p /tmp/tools/lib
-            cp -a /usr/lib/postgresql/18 /tmp/tools/postgresql
-            cp -a /usr/share/postgresql/18 /tmp/tools/share
-            find /usr/lib/postgresql/18 -type f -exec ldd {} \; 2>/dev/null | awk "/=> \\/ { print \$3 }" | sort -u | while read -r dependency; do
-              case "$(basename "$dependency")" in libc.so.6|libm.so.6|libpthread.so.0|libdl.so.2|librt.so.1) continue ;; esac
-              cp -L "$dependency" /tmp/tools/lib/
-            done
-            /usr/lib/postgresql/18/bin/postgres --version > /out/postgres-version.txt
-            tar -C /tmp/tools -czf /out/postgresql-runtime.tar.gz .
-          '
+          docker run --rm -i --entrypoint bash -v "$RUNNER_TEMP/kingdom-map-database:/out" postgres:18-bookworm -eu <<'SCRIPT'
+          mkdir -p /tmp/tools/lib
+          cp -a /usr/lib/postgresql/18 /tmp/tools/postgresql
+          cp -a /usr/share/postgresql/18 /tmp/tools/share
+          find /usr/lib/postgresql/18 -type f -exec ldd {} \; 2>/dev/null | awk '$2 == "=>" && $3 ~ /^\// { print $3 }' | sort -u > /tmp/dependencies
+          test -s /tmp/dependencies
+          while read -r dependency; do
+            case "$(basename "$dependency")" in libc.so.6|libm.so.6|libpthread.so.0|libdl.so.2|librt.so.1) continue ;; esac
+            cp -L "$dependency" /tmp/tools/lib/
+          done < /tmp/dependencies
+          test -f /tmp/tools/lib/libldap-2.5.so.0
+          /usr/lib/postgresql/18/bin/postgres --version > /out/postgres-version.txt
+          tar -C /tmp/tools -czf /out/postgresql-runtime.tar.gz .
+          SCRIPT
           (cd "$RUNNER_TEMP/kingdom-map-database" && sha256sum *.tar.gz > SHA256SUMS)
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
