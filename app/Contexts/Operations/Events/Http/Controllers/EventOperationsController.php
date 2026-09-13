@@ -87,7 +87,7 @@ final class EventOperationsController extends Controller
             status: EventPollStatus::from((string) $validated['status']),
             maxChoices: (int) $validated['max_choices'],
             options: $this->options($validated['options'] ?? []),
-            settings: ['deadline_reminder_minutes' => $validated['deadline_reminder_minutes'] ?? null],
+            settings: ['deadline_reminder_minutes' => isset($validated['deadline_reminder_minutes']) ? (int) $validated['deadline_reminder_minutes'] : null],
         );
         $reminders->handle($actor->playerId, $pollId);
 
@@ -113,7 +113,7 @@ final class EventOperationsController extends Controller
             status: EventPollStatus::from((string) $validated['status']),
             maxChoices: (int) $validated['max_choices'],
             options: array_key_exists('options', $validated) ? $this->options($validated['options']) : null,
-            settings: array_replace($pollRecord->settings ?? [], ['deadline_reminder_minutes' => $validated['deadline_reminder_minutes'] ?? null]),
+            settings: ['deadline_reminder_minutes' => isset($validated['deadline_reminder_minutes']) ? (int) $validated['deadline_reminder_minutes'] : null],
             pollId: $poll,
         );
         $reminders->handle($actor->playerId, $pollId);

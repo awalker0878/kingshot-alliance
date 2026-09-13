@@ -26,10 +26,19 @@ final readonly class CastEventPollVote
         private OutboxRecorder $outbox,
     ) {}
 
-    /** @param list<string> $optionIds */
+    /** @param array<mixed> $optionIds Raw selections validated before normalization and owner acquisition. */
     public function handle(string $actorPlayerId, string $occurrenceId, string $pollId, array $optionIds): void
     {
-        DB::transaction(function () use ($actorPlayerId, $occurrenceId, $pollId, $optionIds): void {
+        if (! array_is_list($optionIds) || $optionIds === [] || count($optionIds) > 20) {
+            throw ValidationException::withMessages(['options' => 'Select between 1 and 20 poll choices.']);
+        }
+        foreach ($optionIds as $optionId) {
+            if (! is_string($optionId) || preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/i', $optionId) !== 1) {
+                throw ValidationException::withMessages(['options' => 'Poll choices must be valid option identifiers.']);
+            }
+        }
+        $ids = array_values(array_unique($optionIds));
+        DB::transaction(function () use ($actorPlayerId, $occurrenceId, $pollId, $ids): void {
             $route = EventPoll::query()->select(['id', 'occurrence_id'])->whereKey($pollId)->where('occurrence_id', $occurrenceId)->firstOrFail();
             $occurrenceRoute = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
             $context = $this->eventWriteState->lockSelfScope($actorPlayerId, (string) $occurrenceRoute->event_id, $actorPlayerId);
@@ -48,7 +57,6 @@ final readonly class CastEventPollVote
                 throw ValidationException::withMessages(['poll' => 'Voting is not currently open.']);
             }
 
-            $ids = array_values(array_unique(array_map('strval', $optionIds)));
             if ($ids === [] || count($ids) > (int) $poll->max_choices) {
                 throw ValidationException::withMessages(['options' => 'Select between 1 and '.$poll->max_choices.' option(s).']);
             }

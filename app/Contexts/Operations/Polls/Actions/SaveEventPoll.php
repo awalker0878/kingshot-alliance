@@ -27,7 +27,7 @@ final readonly class SaveEventPoll
     ) {}
 
     /**
-     * @param  list<array{label:string,value:string,metadata?:array<string,mixed>}>|null  $options
+     * @param  array<mixed>|null  $options  Raw options validated before owner acquisition.
      * @param  array<string, mixed>|null  $settings
      */
     public function handle(
@@ -45,6 +45,13 @@ final readonly class SaveEventPoll
         ?array $settings = null,
         ?string $pollId = null,
     ): string {
+        foreach (['key' => [$key, 64], 'question' => [$question, 500], 'question_key' => [$questionKey, 180]] as $field => [$value, $limit]) {
+            if ($value !== null && mb_strlen($value) > $limit) {
+                throw ValidationException::withMessages([$field => 'This poll field exceeds its supported length of '.$limit.' characters.']);
+            }
+        }
+        $this->validateSettings($settings);
+        $normalizedOptions = $options === null ? null : $this->normalizeOptions($type, $options);
         if (! preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $key)) {
             throw ValidationException::withMessages(['key' => 'Poll key must use lowercase letters, numbers, and hyphens.']);
         }
@@ -61,7 +68,7 @@ final readonly class SaveEventPoll
             throw ValidationException::withMessages(['max_choices' => 'Time voting allows one choice per Player.']);
         }
 
-        return DB::transaction(function () use ($actorPlayerId, $occurrenceId, $pollId, $key, $type, $question, $questionKey, $opensAt, $closesAt, $status, $maxChoices, $options, $settings): string {
+        return DB::transaction(function () use ($actorPlayerId, $occurrenceId, $pollId, $key, $type, $question, $questionKey, $opensAt, $closesAt, $status, $maxChoices, $normalizedOptions, $settings): string {
             $route = EventOccurrence::query()->select(['id', 'event_id'])->whereKey($occurrenceId)->firstOrFail();
             $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
             $this->authorization->authorizeManager($context);
@@ -76,11 +83,16 @@ final readonly class SaveEventPoll
                 : new EventPoll(['occurrence_id' => $occurrence->id]);
             $created = ! $record->exists;
             $hasVotes = $record->exists && $record->votes()->exists();
-            if ($hasVotes && $options !== null) {
+            if ($hasVotes && $normalizedOptions !== null) {
                 throw ValidationException::withMessages(['options' => 'Poll options cannot change after voting has started.']);
             }
 
-            $normalizedOptions = $options === null ? null : $this->normalizeOptions($type, $options);
+            if ($hasVotes && ($record->poll_type !== $type || $record->max_choices !== $maxChoices)) {
+                throw ValidationException::withMessages(['poll_type' => 'Poll type and maximum choices cannot change after voting has started.']);
+            }
+            if ($record->exists && $record->poll_type !== $type && $normalizedOptions === null) {
+                throw ValidationException::withMessages(['options' => 'Changing the poll type requires a complete replacement option list.']);
+            }
             $optionCount = $normalizedOptions === null
                 ? ($record->exists ? $record->options()->count() : 0)
                 : count($normalizedOptions);
@@ -141,16 +153,25 @@ final readonly class SaveEventPoll
     }
 
     /**
-     * @param  list<array{label:string,value:string,metadata?:array<string,mixed>}>  $options
+     * @param  array<mixed>  $options
      * @return list<array{label:string,value:string,metadata?:array<string,mixed>}>
      */
     private function normalizeOptions(EventPollType $type, array $options): array
     {
+        if (! array_is_list($options) || count($options) > 50) {
+            throw ValidationException::withMessages(['options' => 'Poll options must be a list of at most 50 choices.']);
+        }
         $normalized = [];
         $seen = [];
         foreach ($options as $option) {
-            $label = trim((string) ($option['label'] ?? ''));
-            $value = trim((string) ($option['value'] ?? ''));
+            if (! is_array($option) || count($option) > 3 || array_diff(array_keys($option), ['label', 'value', 'metadata']) !== []
+                || ! is_string($option['label'] ?? null) || ! is_string($option['value'] ?? null)
+                || mb_strlen($option['label']) > 180 || mb_strlen($option['value']) > 255) {
+                throw ValidationException::withMessages(['options' => 'Every option requires a label of at most 180 characters and a value of at most 255 characters.']);
+            }
+            $metadata = $this->normalizeMetadata($option['metadata'] ?? []);
+            $label = trim($option['label']);
+            $value = trim($option['value']);
             if ($label === '' || $value === '') {
                 throw ValidationException::withMessages(['options' => 'Every poll option requires a label and value.']);
             }
@@ -165,7 +186,42 @@ final readonly class SaveEventPoll
                 }
             }
             $seen[$value] = true;
-            $normalized[] = ['label' => $label, 'value' => $value, 'metadata' => $option['metadata'] ?? []];
+            $normalized[] = ['label' => $label, 'value' => $value, 'metadata' => $metadata];
+        }
+
+        return $normalized;
+    }
+
+    /** @param array<string,mixed>|null $settings */
+    private function validateSettings(?array $settings): void
+    {
+        if ($settings === null) {
+            return;
+        }
+        if (count($settings) > 1 || array_diff(array_keys($settings), ['deadline_reminder_minutes']) !== []) {
+            throw ValidationException::withMessages(['settings' => 'Only the poll deadline reminder setting is supported.']);
+        }
+        $minutes = $settings['deadline_reminder_minutes'] ?? null;
+        if ($minutes !== null && (! is_int($minutes) || $minutes < 1 || $minutes > 10080)) {
+            throw ValidationException::withMessages(['deadline_reminder_minutes' => 'Deadline reminders must be between 1 and 10080 whole minutes.']);
+        }
+    }
+
+    /** @return array<string,bool|int|float|string|null> */
+    private function normalizeMetadata(mixed $metadata): array
+    {
+        if (! is_array($metadata) || count($metadata) > 20) {
+            throw ValidationException::withMessages(['options' => 'Option metadata must contain at most 20 named scalar fields.']);
+        }
+        $normalized = [];
+        foreach ($metadata as $key => $value) {
+            if (! is_string($key) || $key === '' || strlen($key) > 64
+                || (! is_null($value) && ! is_scalar($value))
+                || (is_string($value) && (strlen($value) > 500 || ! mb_check_encoding($value, 'UTF-8')))
+                || (is_float($value) && ! is_finite($value))) {
+                throw ValidationException::withMessages(['options' => 'Option metadata requires short named scalar values.']);
+            }
+            $normalized[$key] = $value;
         }
 
         return $normalized;
