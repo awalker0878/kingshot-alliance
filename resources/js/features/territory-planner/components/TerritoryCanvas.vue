@@ -171,6 +171,16 @@ function cancelGesture(): void {
   ids.forEach(releasePointer);
   draw();
 }
+
+function rotatedRectangle(
+  rectangle: { width: number; height: number },
+  rotation: number,
+): { width: number; height: number } {
+  return rotation === 90 || rotation === 270
+    ? { width: rectangle.height, height: rectangle.width }
+    : rectangle;
+}
+
 function objectAt(screenX: number, screenY: number): PlanObject | null {
   const visible = props.objects.filter((object) => visibleAlliances.value.has(object.alliance_key));
   for (let index = visible.length - 1; index >= 0; index -= 1) {
@@ -178,8 +188,9 @@ function objectAt(screenX: number, screenY: number): PlanObject | null {
     if (!object) continue;
     const definition = props.map.object_types[object.type];
     const [x, yBottom] = toScreen(object.x, object.y);
-    const objectWidth = definition.footprint.width * zoom.value;
-    const objectHeight = definition.footprint.height * zoom.value;
+    const footprint = rotatedRectangle(definition.footprint, object.rotation);
+    const objectWidth = footprint.width * zoom.value;
+    const objectHeight = footprint.height * zoom.value;
     if (
       screenX >= x &&
       screenX <= x + objectWidth &&
@@ -320,11 +331,12 @@ function onPointerUp(event: PointerEvent): void {
       .filter((object) => {
         if (!visibleAlliances.value.has(object.alliance_key)) return false;
         const definition = props.map.object_types[object.type];
+        const footprint = rotatedRectangle(definition.footprint, object.rotation);
         const [x, yBottom] = toScreen(object.x, object.y);
         return (
           x >= left &&
-          x + definition.footprint.width * zoom.value <= right &&
-          yBottom - definition.footprint.height * zoom.value >= top &&
+          x + footprint.width * zoom.value <= right &&
+          yBottom - footprint.height * zoom.value >= top &&
           yBottom <= bottom
         );
       })
@@ -457,23 +469,21 @@ function render(): void {
       : stored;
     if (!visibleAlliances.value.has(object.alliance_key)) continue;
     const definition = props.map.object_types[object.type];
+    const footprint = rotatedRectangle(definition.footprint, object.rotation);
     const color = allianceColor.value.get(object.alliance_key) ?? '#4da3ff';
     const [x, yBottom] = toScreen(object.x, object.y);
-    const objectWidth = definition.footprint.width * zoom.value;
-    const objectHeight = definition.footprint.height * zoom.value;
+    const objectWidth = footprint.width * zoom.value;
+    const objectHeight = footprint.height * zoom.value;
     if (props.showCoverage && definition.coverage) {
-      const coverageOffsetX = Math.trunc(
-        (definition.coverage.width - definition.footprint.width) / 2,
-      );
-      const coverageOffsetY = Math.trunc(
-        (definition.coverage.height - definition.footprint.height) / 2,
-      );
+      const coverage = rotatedRectangle(definition.coverage, object.rotation);
+      const coverageOffsetX = Math.trunc((coverage.width - footprint.width) / 2);
+      const coverageOffsetY = Math.trunc((coverage.height - footprint.height) / 2);
       const [coverageX, coverageBottom] = toScreen(
         object.x - coverageOffsetX,
         object.y - coverageOffsetY,
       );
-      const coverageWidth = definition.coverage.width * zoom.value;
-      const coverageHeight = definition.coverage.height * zoom.value;
+      const coverageWidth = coverage.width * zoom.value;
+      const coverageHeight = coverage.height * zoom.value;
       context.globalAlpha = 0.12;
       context.fillStyle = color;
       context.fillRect(coverageX, coverageBottom - coverageHeight, coverageWidth, coverageHeight);

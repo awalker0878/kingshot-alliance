@@ -19,6 +19,13 @@ import {
   type SaveReceipt,
   type SaveRequest,
 } from '@/features/territory-planner/engine/editor-session';
+import {
+  objectIsLocked,
+  requireAtomicEditableSelection,
+  rotateObjectsAtomic,
+  selectionPivot,
+  translateObjectsAtomic,
+} from '@/features/territory-planner/engine/commands';
 import { analyzeLayout, validatePlacement } from '@/features/territory-planner/engine/geometry';
 import type {
   AllianceAnalysis,
@@ -191,9 +198,6 @@ const validation = computed(() =>
 const analysis = computed(() =>
   analyzeLayout(props.territory.map.data, objects.value, preferences.value),
 );
-const selectedObjects = computed(() =>
-  objects.value.filter((object) => selectedKeys.value.includes(object.key)),
-);
 const governorCities = computed(() =>
   visibleObjects.value.filter((object) => object.type === 'governor_city'),
 );
@@ -318,8 +322,22 @@ function key(prefix: string): string {
 function allianceFor(object: PlanObject): PlanAlliance | undefined {
   return alliances.value.find((alliance) => alliance.key === object.alliance_key);
 }
-function editable(object: PlanObject): boolean {
+function editableByScope(object: PlanObject): boolean {
   return canEdit.value && !allianceFor(object)?.locked;
+}
+function editable(object: PlanObject): boolean {
+  return editableByScope(object) && !objectIsLocked(object);
+}
+function atomicSelection(keys: string[]): PlanObject[] | null {
+  const result = requireAtomicEditableSelection(objects.value, keys, editable);
+  if (result.ok) return result.selected;
+  if (result.reason === 'locked_selection') {
+    notice.value = {
+      tone: 'warning',
+      message: `Selection includes ${result.blockedKeys.length} locked or read-only object(s); no objects were changed.`,
+    };
+  }
+  return null;
 }
 function governorOptionsFor(object: PlanObject): Array<{ id: string; name: string }> {
   return props.territory.governor_options[object.alliance_key] ?? [];
@@ -366,28 +384,23 @@ function place(point: { x: number; y: number }): void {
   selectedKeys.value = [objectKey];
 }
 function move(payload: { keys: string[]; dx: number; dy: number }): void {
-  const movable = payload.keys.filter((item) => {
-    const object = objects.value.find((candidate) => candidate.key === item);
-    return object ? editable(object) : false;
-  });
-  if (!movable.length || (!payload.dx && !payload.dy)) return;
+  if ((!payload.dx && !payload.dy) || !atomicSelection(payload.keys)) return;
+  const result = translateObjectsAtomic(objects.value, payload.keys, payload.dx, payload.dy, editable);
+  if (!result.ok) return;
   remember();
-  objects.value = objects.value.map((object) =>
-    movable.includes(object.key)
-      ? { ...object, x: object.x + payload.dx, y: object.y + payload.dy }
-      : object,
-  );
+  objects.value = result.objects;
 }
 function removeSelected(): void {
-  const keys = selectedObjects.value.filter(editable).map((object) => object.key);
-  if (!keys.length) return;
+  const selected = atomicSelection(selectedKeys.value);
+  if (!selected?.length) return;
+  const keys = new Set(selected.map((object) => object.key));
   remember();
-  objects.value = objects.value.filter((object) => !keys.includes(object.key));
+  objects.value = objects.value.filter((object) => !keys.has(object.key));
   selectedKeys.value = [];
 }
 function duplicateSelected(): void {
-  const source = selectedObjects.value.filter(editable);
-  if (!source.length) return;
+  const source = atomicSelection(selectedKeys.value);
+  if (!source?.length) return;
   remember();
   const clones = source.map((object, index) => ({
     ...cloneJson(object),
@@ -395,43 +408,61 @@ function duplicateSelected(): void {
     x: object.x + 3,
     y: object.y + 3,
     group_key: null,
+    player_id: null,
+    external_player_name: object.external_player_name ? `${object.external_player_name} copy` : null,
   }));
   objects.value.push(...clones);
   selectedKeys.value = clones.map((object) => object.key);
 }
 function groupSelected(): void {
-  const items = selectedObjects.value.filter(editable);
-  if (items.length < 2) return;
+  const items = atomicSelection(selectedKeys.value);
+  if (!items || items.length < 2) return;
   remember();
   const groupKey = key('group');
   groups.value.push({ key: groupKey, label: t('territory.group') });
+  const keys = new Set(items.map((item) => item.key));
   objects.value = objects.value.map((object) =>
-    items.some((item) => item.key === object.key) ? { ...object, group_key: groupKey } : object,
+    keys.has(object.key) ? { ...object, group_key: groupKey } : object,
   );
 }
 function ungroupSelected(): void {
+  const selected = atomicSelection(selectedKeys.value);
+  if (!selected?.length) return;
   const affected = new Set(
-    selectedObjects.value
-      .filter(editable)
-      .map((object) => object.group_key)
-      .filter((value): value is string => value !== null),
+    selected.map((object) => object.group_key).filter((value): value is string => value !== null),
   );
   if (!affected.size) return;
+  const groupMembers = objects.value.filter((object) => affected.has(object.group_key ?? ''));
+  if (!atomicSelection(groupMembers.map((object) => object.key))) return;
   remember();
   objects.value = objects.value.map((object) =>
     affected.has(object.group_key ?? '') ? { ...object, group_key: null } : object,
   );
   groups.value = groups.value.filter((group) => !affected.has(group.key));
 }
-function rotateSelected(direction = 1): void {
-  const keys = selectedObjects.value.filter(editable).map((object) => object.key);
-  if (!keys.length) return;
-  remember();
-  objects.value = objects.value.map((object) =>
-    keys.includes(object.key)
-      ? { ...object, rotation: (object.rotation + direction * 90 + 360) % 360 }
-      : object,
+function rotateSelected(direction: 1 | -1 = 1): void {
+  const selected = atomicSelection(selectedKeys.value);
+  if (!selected?.length) return;
+  const groupedKeys = new Set(selected.map((object) => object.group_key).filter(Boolean));
+  const rotationKeys = groupedKeys.size
+    ? objects.value
+        .filter((object) => object.group_key !== null && groupedKeys.has(object.group_key))
+        .map((object) => object.key)
+    : selected.map((object) => object.key);
+  const rotationSelection = atomicSelection(rotationKeys);
+  if (!rotationSelection?.length) return;
+  const pivot = selectionPivot(props.territory.map.data, rotationSelection);
+  const result = rotateObjectsAtomic(
+    props.territory.map.data,
+    objects.value,
+    rotationKeys,
+    direction,
+    pivot,
+    editable,
   );
+  if (!result.ok) return;
+  remember();
+  objects.value = result.objects;
 }
 function nudge(dx: number, dy: number): void {
   move({ keys: selectedKeys.value, dx, dy });
