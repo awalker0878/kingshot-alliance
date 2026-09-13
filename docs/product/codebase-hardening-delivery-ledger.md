@@ -5,11 +5,12 @@
 - Program state: In progress. Keep the active hardening follow-up PR draft until the full ledger, repository audit and final gates are complete. PR #163 was merged outside this continuation at 2026-09-12 23:40:58 UTC; that merge is not completion evidence.
 - Original baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`. Continuation base: merge `044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c`, whose tree matches `b9a7b7ed90516eb229646d69af2ff488901dc538`; working branch `astra/hardening-followup`.
 - Latest containing implementation: `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3` passes complete PHP (2,017 tests/96,582 assertions), all 86 browser cases, architecture, frontend, fresh schema, image/staging/recovery, security and dependency checks. All five normal workflows triggered by the limited follow-up diff and the focused behavior workflow succeed. The four capability-specific workflows did not trigger; all nine remain required for the final candidate.
-- Latest durable checkpoint: `a585a4dd384471beffcf860a83d6c4744caa9a3d` publishes HARD-133 Poll owner bounds after HARD-132 at `027d880b567eb6afc295a92a22c9a78bc1a2a480` and HARD-130/131 cleanup at `82313fbafccb6d7459fcaf51924cd84564d5fcf9`, on draft PR #164. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`.
-- Current item/state: HARD-136 / In progress; HARD-130–133 await final containing verification; HARD-134/135 are Planned. HARD-001–129 are Complete with containing evidence. Repository coverage and final gates remain open.
-- Active files: strict Progression regeneration comparison, live acquisition evidence report, workflow integration, ten Python regression cases and ADR-0074/source inventory documentation.
-- Local verification: ten HARD-136 contract/Git/filesystem cases pass, current 24-artifact corpus/unchanged comparison passes, and exact replay of 115 observed HTML hash differences preserves all factual artifacts and 12 structured/pinned hashes. Documentation links pass for 297 files. No checked-in progression data changed. HARD-132 passes all seven PostgreSQL cases in the containing 92-case Operations group and all 86 browser cases; HARD-133 mutation behavior remains running.
-- Next action: finish hosted HARD-133 behavior, publish/verify HARD-136 with actual live source regeneration, then implement HARD-134/135 current Event-management and Debrief projections. Continue the remaining production audit and immutable final gates.
+- Latest durable checkpoint: `bdfc2ec8305545cd0dfcaab607dcb28351b3859f` publishes HARD-136 factual/acquisition verification after HARD-133 at `a585a4dd384471beffcf860a83d6c4744caa9a3d`, HARD-132 at `027d880b567eb6afc295a92a22c9a78bc1a2a480` and HARD-130/131 at `82313fbafccb6d7459fcaf51924cd84564d5fcf9`, on draft PR #164. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`.
+- Current item/state: HARD-137 / In progress; HARD-136 hosted refresh passes; HARD-130–133 await final containing verification; HARD-134/135 are Planned. HARD-001–129 are Complete with containing evidence. Repository coverage and final gates remain open.
+- Active files: bounded Event schedule reconciliation/capacity aggregate, completed-history preservation, eight PostgreSQL regression cases and ADR-0075.
+- Latest focused verification: all groups at `a585a4dd` pass, including 119 Operations tests/641 assertions (all HARD-132/133 cases). Source Refresh `34728896680`, job `103647934958`, at `bdfc2ec8` passes ten comparison contracts, both 24-artifact corpus validations and exact factual/pinned comparison; 115 permitted HTML hash changes are in review artifact `10308272283`, with no canonical release changes.
+- Local verification: changed Event production/tests pass PHPStan and Pint. HARD-137 PostgreSQL execution remains required; full containing runtime gates are running on `bdfc2ec8`.
+- Next action: publish and verify HARD-137; implement HARD-134/135 current Event-management and Debrief projections. Complete the remaining production audit and immutable final gates.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -1932,6 +1933,8 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Verification result: all five structure-gate behavior cases pass. Complete npm check passes, including the new canonical structure check, current product language, frontend types/build, localization/accessibility and performance budgets. Current 342-source PHP layout and 294-document links pass. Containing execution remains pending.
 - Completion evidence: pending.
 
+- Containing verification update: Containing frontend quality/build job `103647965917` at `bdfc2ec8` passes the complete npm check, including the new canonical structure gate. Full final program gates remain separate.
+
 ### HARD-131 — Superseded progression completion transforms remain executable
 
 - Area: four progression transformation workflows and their apply_completion Python scripts.
@@ -1944,6 +1947,8 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Verification required: no remaining executable references, coherent workflow inventory, existing source/profile/architecture/frontend gates.
 - Verification result: sole executable consumers were the four removed workflows. Static AST inspection established obsolete assumptions without importing or running the transforms. Repository references and containing gates remain required.
 - Completion evidence: pending.
+
+- Containing verification update: Containing read-only Source Refresh `34728896680` succeeds at `bdfc2ec8` after HARD-136 separates live acquisition evidence; retired transforms remain removed. Full final program gates remain separate.
 
 ### HARD-132 — Bear Hunt result recomputation expands the entire occurrence per report
 
@@ -1958,6 +1963,8 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Verification result: implementation, all receipt consumers and existing ranking/removal semantics traced; seven PostgreSQL cases authored for 1,000-row completeness/query budget, 100-row and one-row receipts, replay/removal, admission overflow, ties/zero/manual restoration, two integer-overflow cases, corrupt stored receipt rollback and transaction guard. Production/test PHPStan and Pint pass; all 78 architecture cases/72,467 assertions, 343-source PHP layout and 295-document links pass. Hosted behavior remains pending.
 - Completion evidence: [ADR-0072](../architecture/adr/0072-bounded-bear-hunt-result-recomputation.md), BearHuntResultBoundsTest and existing BearHuntBattleReportLedgerV3Test; containing behavior pending.
 
+- Containing verification update: Containing focused run `34728441895`, job `103646710853`, at `a585a4dd` passes all 119 Operations tests/641 assertions, including all seven result bound cases. Visual `34727938824` at `027d880b` passes all 86 cases. Full final program gates remain separate.
+
 ### HARD-133 — Poll owner commands depend on adapter-only input bounds
 
 - Area: Operations Polls SaveEventPoll/CastEventPollVote and EventOperationsController.
@@ -1970,6 +1977,8 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Verification required: direct malformed/oversized inputs, existing-vote updates, atomic rollback, valid boundary cases and current scope admission.
 - Verification result: raw options/selections, current schema fields, declared settings and bounded flat metadata now validate before locks; voted type/maximum/option changes reject atomically and pre-vote type changes require validated replacements. All 21 malformed-input/no-query cases pass locally (42 assertions); six PostgreSQL mutation cases are authored. Production/tests PHPStan and Pint pass; containing behavior remains pending.
 - Completion evidence: [ADR-0073](../architecture/adr/0073-bounded-poll-owner-inputs.md), PollInputBoundsTest and PollMutationContractTest; hosted mutation behavior pending.
+
+- Containing verification update: All 27 new input/mutation cases pass in the 119-case Operations group at `a585a4dd`; focused run `34728441895`, job `103646710853`, succeeds for every group. Full final program gates remain separate.
 
 ### HARD-134 — Event management expands retained operational collections
 
@@ -2009,6 +2018,19 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Verification required: changed factual output, source identity/inventory, pinned hashes and malformed lock data must reject; unchanged facts with changed allowed live-page acquisition bytes must be distinguished; hosted source refresh and full existing progression gates must pass.
 - Verification result: the sole hosted diff changes 115 declared live HTML hashes; all other artifacts and 12 structured/pinned hashes remain exact. New comparison uses the immutable Git HEAD baseline, byte-exact factual files, strict source inventory/metadata and pinned checks, with separately timestamped allowed acquisition evidence. Ten local contract cases, current 24-artifact comparison and exact replay of the observed 115 hash changes pass; hosted regeneration remains required.
 - Completion evidence: [ADR-0074](../architecture/adr/0074-progression-factual-reproducibility-and-acquisition.md), verify_regenerated.py and ProgressionReproducibility_test.py; actual containing hosted refresh pending.
+
+### HARD-137 — Event schedule edits hydrate and rewrite retained occurrence history
+
+- Area: Operations Events UpdateEvent, CancelEvent and RecurrenceCalculator.
+- Finding: each schedule edit hydrates and locks all future occurrences, including growing cancelled history, then searches them repeatedly. Capacity validation materializes every historical grouped registration count. Edits can reset completed future occurrences to scheduled and cancellation rewrites completed/already-cancelled history; update also omits creation's capacity range.
+- Current owner: Operations Events with current governing authority facts.
+- Intended authoritative owner: unchanged, with bounded schedule work and exact scalar capacity validation.
+- Rationale: the existing 64-generated-occurrence contract must bound retained mutation work while preserving attached identities and completed facts.
+- Remediation: load only scheduled future rows plus the at most 64 desired identities, guard invalid stored cardinality, match by UTC database-precision timestamps, preserve completed and unrelated cancelled history, aggregate maximum registrations in SQL and retain creation's capacity range.
+- State: In progress.
+- Verification required: large cancelled/registered histories, complete 64-date replacement/reactivation, attached state, completed preservation, corrupt stored budget, capacity bounds, rollback/retry and existing current-owner concurrency tests.
+- Verification result: changed production/tests pass PHPStan and Pint. Eight PostgreSQL cases are authored; hosted execution required.
+- Completion evidence: [ADR-0075](../architecture/adr/0075-bounded-event-schedule-reconciliation.md) and EventScheduleHistoryBoundsTest; containing behavior pending.
 
 ## Repository audit coverage
 
@@ -2060,6 +2082,8 @@ Exact-head run `34716143412`, job `103613621165`, on `cd088c9b09fcdc7dbe99383971
 ### Containing PHP and focused evidence on24e9
 
 CI `34716370816`, PHP job `103614286177`, passes1,856 tests /87,942 assertions in20:20.292 on merge checkout `2cbfc030b951aee482c3225562a10d817519bd94`. Frontend job `103614286422` passes. Focused run `34716370802`, job `103614233940`, passes83 Integrations cases /1,002 assertions,31 Platform maintenance cases /200 assertions and29 TransferManagement cases /425 assertions. All export fixture/callback defects fromcd088 are resolved. Visual `34716370871` passes78 existing cases; both new Connections cases fail on the incorrect password-confirmation field locator, corrected inb512. Container/staging/recovery was still running when the next checkpoint was published; this head is not an all-nine milestone.
+
+- Containing verification update: Actual hosted Source Refresh `34728896680`, job `103647934958`, at `bdfc2ec8` passes all ten comparison contracts, both 24-artifact corpus validations and exact factual/pinned comparison. Review artifact `10308272283` contains 115 allowed live HTML acquisition changes. Checkout `eaa44a0763284298a87c55e80e70dde9e4915943`. Full final program gates remain separate.
 
 ### HARD-116 first hosted feedback
 

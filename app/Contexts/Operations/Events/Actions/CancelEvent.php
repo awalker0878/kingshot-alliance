@@ -34,6 +34,7 @@ final readonly class CancelEvent
 
             $context->event->occurrences()
                 ->where('starts_at', '>=', now())
+                ->where('status', EventOccurrenceStatus::Scheduled->value)
                 ->update([
                     'status' => EventOccurrenceStatus::Cancelled->value,
                     'updated_at' => now(),
