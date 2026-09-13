@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    pagination: {
+      recordCount: '{count} 筆記錄',
+      unavailable: '無法載入此頁面。您的變更仍然保留。',
+      retry: '重試',
+    },
     history: {
       title: '活動歷史',
       subtitle:

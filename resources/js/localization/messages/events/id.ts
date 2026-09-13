@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    pagination: {
+      recordCount: '{count} catatan',
+      unavailable: 'Halaman ini tidak dapat dimuat. Perubahan Anda tetap tersimpan.',
+      retry: 'Coba lagi',
+    },
     history: {
       title: 'Riwayat event',
       subtitle:

@@ -7,7 +7,7 @@ This reference describes the server-built Event Command projection exposed on th
 ## Route
 
 ```text
-GET /events/{event}/manage?occurrence={occurrenceId}
+GET /events/{event}/manage?occurrence={occurrenceId}&occurrence_cursor={cursor}
 ```
 
 The route already uses the authenticated/verified Event Management boundary. `{event}` is authorized through `Operations/Events`. The optional `occurrence` selector is accepted only when that occurrence belongs to the authorized Event.
@@ -22,6 +22,13 @@ No routes such as `mark-ready`, `complete-closeout`, `fix-readiness` or Event Co
 {
   eventId: string,
   selectedOccurrenceId: string|null,
+  occurrencePage: {
+    nextCursor: string|null,
+    hasMore: boolean,
+    pageSize: 25,
+    isFirstPage: boolean,
+    total: number
+  },
   occurrences: Array<{
     id: string,
     startsAt: ISO-8601 string,
@@ -40,6 +47,8 @@ No routes such as `mark-ready`, `complete-closeout`, `fix-readiness` or Event Co
   sections: EventCommandSection[]
 }
 ```
+
+`occurrences` contains up to 25 catalogue choices and the selected occurrence if it is outside that page. `event.occurrences` contains only the selected occurrence used by management forms; `event.occurrenceCount` is the complete stored count. Cursors are scoped to the current actor/Event and do not authorize access.
 
 `state` is null when no occurrence can be selected or cancellation is the governing Event truth.
 

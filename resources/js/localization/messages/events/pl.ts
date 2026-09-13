@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    pagination: {
+      recordCount: '{count} rekordów',
+      unavailable: 'Nie udało się wczytać tej strony. Twoje zmiany pozostają zachowane.',
+      retry: 'Ponów wczytanie',
+    },
     history: {
       title: 'Historia wydarzeń',
       subtitle:

@@ -338,6 +338,7 @@ const props = defineProps<{
     workflowDimensions: string[];
     createdByPlayerId: string | null;
     updatedByPlayerId: string | null;
+    occurrenceCount: number;
     occurrences: Array<{ id: string; startsAt: string; endsAt: string; status: string }>;
   };
   participants: Array<{
@@ -1002,11 +1003,7 @@ function cancel(): void {
         class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4"
         :aria-label="t('events.manage.title')"
       >
-        <StatSeal
-          :label="t('events.manage.occurrences')"
-          :value="event.occurrences.length"
-          icon="▦"
-        />
+        <StatSeal :label="t('events.manage.occurrences')" :value="event.occurrenceCount" icon="▦" />
         <StatSeal
           :label="t('events.manage.participants')"
           :value="participants.length"

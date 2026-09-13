@@ -23,14 +23,7 @@ It owns no business write, retry command, readiness flag, closeout flag or dupli
 
 ## Authorization sequence
 
-```text
-authenticated account
-  -> active PlayerReference
-  -> Operations/Events eventForManage authorization
-  -> occurrence constrained by authorized event_id
-  -> applicable owner Queries
-  -> EventManagement projection
-```
+The authenticated account supplies its active PlayerReference. Operations Events authorizes the current Event before reading its occurrence catalogue. EventManagement selects only an occurrence belonging to that Event, then composes applicable owner queries.
 
 An explicit `occurrence` selector is never treated as an independent authorization key. `EventCommandQuery` constrains it by the already-authorized Event before invoking owner projections.
 
@@ -92,6 +85,6 @@ No schema/model may persist:
 
 Composition is occurrence-level, not per-Governor/per-artifact/per-delivery. Owners provide bounded aggregate projections. `EventCommandQueryBudgetV3Test` compares the selected-occurrence query count as the eligible Governor population grows and fails if query growth becomes proportional.
 
-## Existing architecture decisions
+## Occurrence navigation
 
-No new ADR is required for this extension. It follows the existing Architecture V3 ReadModel rule and the established composed-management-read approach rather than introducing a new ownership or consistency model. If Event Command later gains durable process state or cross-owner write orchestration, that would be a new architecture decision and requires an ADR before implementation.
+[ADR-0076](adr/0076-event-occurrence-catalogue-and-selection.md) defines current-authorized 25-row occurrence pages, an independent selected choice, bounded database selection and one-occurrence management composition. Readiness/closeout remains derived and read-only. Bounds for each nested owner collection are independently required; limiting the number of occurrences does not bound those collections.

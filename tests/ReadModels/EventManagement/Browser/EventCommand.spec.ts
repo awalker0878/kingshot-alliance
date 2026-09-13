@@ -13,7 +13,7 @@ const fingerprints: Record<string, Record<'closeout' | 'ready', string>> = {
   },
 };
 
-async function openEventCommand(page: Page): Promise<Locator> {
+async function openEventCommand(page: Page, eventName = 'Event Command Visual'): Promise<Locator> {
   await page.goto('/login');
   await page.locator('#email').fill('event-command-visual@example.test');
   await page.locator('#password').fill('password');
@@ -36,7 +36,7 @@ async function openEventCommand(page: Page): Promise<Locator> {
 
   await page.goto('/events');
   await page.waitForLoadState('networkidle');
-  await page.getByRole('link', { name: 'Event Command Visual' }).first().click();
+  await page.getByRole('link', { name: eventName }).first().click();
   await page.waitForLoadState('networkidle');
   await page.getByRole('link', { name: 'Manage Event' }).click();
   await page.waitForLoadState('networkidle');
@@ -99,9 +99,7 @@ test('Event Command keeps closeout and readiness visible without responsive over
   ).toBeVisible();
   await normalizeDynamicTimes(refreshed);
 
-  const overflow = await refreshed.evaluate(
-    (element) => element.scrollWidth > element.clientWidth,
-  );
+  const overflow = await refreshed.evaluate((element) => element.scrollWidth > element.clientWidth);
   expect(overflow).toBeFalsy();
 
   const readyHash = await fingerprint(refreshed);
@@ -109,4 +107,58 @@ test('Event Command keeps closeout and readiness visible without responsive over
     { closeout: closeoutHash, ready: readyHash },
     `Update Event Command visual fingerprints for ${testInfo.project.name}`,
   ).toEqual(fingerprints[testInfo.project.name]);
+});
+
+test('Event occurrence history preserves drafts through paging and retry and opens older occurrences', async ({
+  page,
+}) => {
+  const command = await openEventCommand(page, 'Event History Visual');
+  const pager = command.locator('[data-event-catalogue="occurrence"]');
+  await expect(pager.getByText('101 records')).toBeVisible();
+  const selected = await command.getByRole('combobox', { name: 'Occurrence' }).inputValue();
+  const title = page.getByRole('textbox', { name: 'Optional Event name', exact: true });
+  await title.fill('Unsubmitted schedule draft');
+  const firstValues = await command
+    .locator('select option')
+    .evaluateAll((nodes) => nodes.map((node) => (node as HTMLOptionElement).value));
+  let inject = true;
+  await page.route('**/events/*/manage?**', async (route) => {
+    if (inject && route.request().url().includes('occurrence_cursor=')) {
+      inject = false;
+      await route.abort('failed');
+      return;
+    }
+    await route.continue();
+  });
+  await pager.getByRole('button', { name: 'Next page', exact: true }).click();
+  await expect(pager.getByRole('alert')).toContainText('This page could not be loaded');
+  await expect(title).toHaveValue('Unsubmitted schedule draft');
+  await pager.getByRole('button', { name: 'Retry page', exact: true }).click();
+  await expect(pager.getByRole('button', { name: 'First page', exact: true })).toBeVisible();
+  await expect(title).toHaveValue('Unsubmitted schedule draft');
+  await expect(command.getByRole('combobox', { name: 'Occurrence' })).toHaveValue(selected);
+  const nextValues = await command
+    .locator('select option')
+    .evaluateAll((nodes) => nodes.map((node) => (node as HTMLOptionElement).value));
+  expect(nextValues).toHaveLength(26);
+  expect(
+    nextValues.filter((id) => id !== selected).every((id) => !firstValues.includes(id)),
+  ).toBeTruthy();
+  await pager.getByRole('button', { name: 'First page', exact: true }).click();
+  await expect(pager.getByRole('button', { name: 'First page', exact: true })).toHaveCount(0);
+  await expect(title).toHaveValue('Unsubmitted schedule draft');
+  await pager.getByRole('button', { name: 'Next page', exact: true }).click();
+  await expect(pager.getByRole('button', { name: 'First page', exact: true })).toBeVisible();
+  const older = nextValues.find((id) => id !== selected);
+  expect(older).toBeTruthy();
+  await command.getByRole('combobox', { name: 'Occurrence' }).selectOption(older!);
+  await expect(command.getByText('Cancelled', { exact: true })).toBeVisible();
+  await expect(command.getByRole('combobox', { name: 'Occurrence' })).toHaveValue(older!);
+  await expect(page.locator('#schedule').getByRole('link').first()).toHaveAttribute(
+    'href',
+    `/events/${older}`,
+  );
+  expect(
+    await command.evaluate((element) => element.scrollWidth > element.clientWidth),
+  ).toBeFalsy();
 });

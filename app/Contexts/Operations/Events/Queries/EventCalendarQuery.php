@@ -107,7 +107,7 @@ final readonly class EventCalendarQuery
     {
         $event = Event::query()
             ->whereKey($eventId)
-            ->with(['eventType.workflowDimensions', 'typeScope', 'occurrences'])
+            ->with(['eventType.workflowDimensions', 'typeScope'])
             ->firstOrFail();
         $this->authorize($actor, $event, (string) $event->typeScope->manage_permission_key);
 

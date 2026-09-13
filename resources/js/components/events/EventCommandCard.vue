@@ -3,6 +3,7 @@ import { router } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 import { useLocale } from '@/localization';
+import EventCataloguePager from './EventCataloguePager.vue';
 import type { EventCommandItem, EventCommandProjection } from '@/types/event-command';
 
 const props = defineProps<{ command: EventCommandProjection }>();
@@ -126,6 +127,16 @@ function selectOccurrence(event: Event): void {
         </select>
       </label>
     </div>
+
+    <EventCataloguePager
+      v-if="command.occurrencePage.hasMore || !command.occurrencePage.isFirstPage"
+      :page="command.occurrencePage"
+      kind="occurrence"
+      :label="t('events.command.occurrence')"
+      :scope="command.eventId + ':' + command.selectedOccurrenceId"
+      :occurrence="command.selectedOccurrenceId"
+      :only="['eventCommand']"
+    />
 
     <div
       v-if="!command.selectedOccurrenceId"

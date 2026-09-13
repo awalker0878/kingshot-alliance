@@ -27,7 +27,16 @@ export type EventCommandSection = {
   items: EventCommandItem[];
 };
 
+export type EventOccurrencePage = {
+  nextCursor: string | null;
+  hasMore: boolean;
+  pageSize: number;
+  isFirstPage: boolean;
+  total: number;
+};
+
 export type EventCommandProjection = {
+  occurrencePage: EventOccurrencePage;
   eventId: string;
   selectedOccurrenceId: string | null;
   occurrences: Array<{

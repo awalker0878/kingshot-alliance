@@ -4,13 +4,12 @@
 
 - Program state: In progress. Keep the active hardening follow-up PR draft until the full ledger, repository audit and final gates are complete. PR #163 was merged outside this continuation at 2026-09-12 23:40:58 UTC; that merge is not completion evidence.
 - Original baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`. Continuation base: merge `044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c`, whose tree matches `b9a7b7ed90516eb229646d69af2ff488901dc538`; working branch `astra/hardening-followup`.
-- Latest containing implementation: `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3` passes complete PHP (2,017 tests/96,582 assertions), all 86 browser cases, architecture, frontend, fresh schema, image/staging/recovery, security and dependency checks. All five normal workflows triggered by the limited follow-up diff and the focused behavior workflow succeed. The four capability-specific workflows did not trigger; all nine remain required for the final candidate.
-- Latest durable checkpoint: `bdfc2ec8305545cd0dfcaab607dcb28351b3859f` publishes HARD-136 factual/acquisition verification after HARD-133 at `a585a4dd384471beffcf860a83d6c4744caa9a3d`, HARD-132 at `027d880b567eb6afc295a92a22c9a78bc1a2a480` and HARD-130/131 at `82313fbafccb6d7459fcaf51924cd84564d5fcf9`, on draft PR #164. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`.
-- Current item/state: HARD-137 / In progress; HARD-136 hosted refresh passes; HARD-130–133 await final containing verification; HARD-134/135 are Planned. HARD-001–129 are Complete with containing evidence. Repository coverage and final gates remain open.
-- Active files: bounded Event schedule reconciliation/capacity aggregate, completed-history preservation, eight PostgreSQL regression cases and ADR-0075.
-- Latest focused verification: all groups at `a585a4dd` pass, including 119 Operations tests/641 assertions (all HARD-132/133 cases). Source Refresh `34728896680`, job `103647934958`, at `bdfc2ec8` passes ten comparison contracts, both 24-artifact corpus validations and exact factual/pinned comparison; 115 permitted HTML hash changes are in review artifact `10308272283`, with no canonical release changes.
-- Local verification: changed Event production/tests pass PHPStan and Pint. HARD-137 PostgreSQL execution remains required; full containing runtime gates are running on `bdfc2ec8`.
-- Next action: publish and verify HARD-137; implement HARD-134/135 current Event-management and Debrief projections. Complete the remaining production audit and immutable final gates.
+- Latest containing PHP/visual evidence: `bdfc2ec8305545cd0dfcaab607dcb28351b3859f` passes all 2,051 PHP tests/96,726 assertions in 22:46.178 (CI `34728896660`, PHP job `103647966011`, merge checkout `eaa44a0763284298a87c55e80e70dde9e4915943`) and 86 browser cases in 8.4 minutes (Visual `34728896590`, job `103647934794`). Frontend, fresh schema, architecture, CodeQL, dependency review, all focused groups and actual Source Refresh also pass. Its downstream container job was queued when the next candidate was published; no completed container claim is made for this head. Last full image/staging/recovery milestone remains `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`.
+- Latest durable checkpoint: `66a68ed55cbd5bdd29d53447947def3d27910a15` publishes HARD-137 schedule reconciliation/history preservation after HARD-136 at `bdfc2ec8`, on draft PR #164. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`; the final candidate must repeat all applicable gates.
+- Current item/state: HARD-134 / In progress (occurrence catalogue/selection slice); HARD-135 Planned; HARD-137 awaits containing behavior. HARD-001–133 and HARD-136 are Complete with containing evidence. Repository coverage and final gates remain open.
+- Active files: current-authorized Event occurrence catalogue, bounded Command selection, one-occurrence management composition, King Perk/Rally caller reconciliation, localized navigation, five database cases, desktop/mobile journey and ADR-0076.
+- Local verification: complete npm check passes, including strict frontend types, localization and existing performance budgets; changed production/tests PHPStan/Pint and all 78 architecture cases/72,511 assertions pass. 347-source PHP layout and 299-document links pass. New hosted Event-management behavior/browser execution remains required.
+- Next action: publish/verify occurrence navigation and HARD-137; finish HARD-134 selected-occurrence phase/poll/vote, participation, roster/Rally/results/reminder collections and EventPlayerIntelligence history composition. Implement HARD-135 Debrief projection. Complete the remaining production audit and immutable final gates.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -1928,12 +1927,14 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: unchanged, with one current frontend check sequence.
 - Rationale: remove contradictory guidance without weakening active verification.
 - Remediation: consolidate page roots, static Inertia targets, runtime artwork and strict compiler settings into check:frontend-structure; retain the current product-language/type/build gates, remove obsolete scripts and reconcile architecture/capability docs.
-- State: In progress.
+- State: Complete.
 - Verification required: current frontend check, missing/invalid target and artwork rejection, compiler guarantees and full check sequence.
 - Verification result: all five structure-gate behavior cases pass. Complete npm check passes, including the new canonical structure check, current product language, frontend types/build, localization/accessibility and performance budgets. Current 342-source PHP layout and 294-document links pass. Containing execution remains pending.
 - Completion evidence: pending.
 
 - Containing verification update: Containing frontend quality/build job `103647965917` at `bdfc2ec8` passes the complete npm check, including the new canonical structure gate. Full final program gates remain separate.
+
+- Final containing verification: complete at `bdfc2ec8305545cd0dfcaab607dcb28351b3859f`: all 2,051 PHP cases/96,726 assertions, 86 browser cases, frontend, fresh schema, architecture, security/dependency and focused behavior pass. HARD-136 actual Source Refresh `34728896680` also passes with the 24 immutable artifacts and separately recorded acquisition evidence. This supersedes earlier pending behavior statements; final program gates remain open.
 
 ### HARD-131 — Superseded progression completion transforms remain executable
 
@@ -1943,12 +1944,14 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: normal reviewed source, capability owners and current verification.
 - Rationale: remove dead source-rewriting paths that could partially overwrite later hardening if invoked manually.
 - Remediation: remove all four retired branch-transform workflows and four corresponding scripts; preserve the independent read-only source refresh and current dataset build/verification tools.
-- State: In progress.
+- State: Complete.
 - Verification required: no remaining executable references, coherent workflow inventory, existing source/profile/architecture/frontend gates.
 - Verification result: sole executable consumers were the four removed workflows. Static AST inspection established obsolete assumptions without importing or running the transforms. Repository references and containing gates remain required.
 - Completion evidence: pending.
 
 - Containing verification update: Containing read-only Source Refresh `34728896680` succeeds at `bdfc2ec8` after HARD-136 separates live acquisition evidence; retired transforms remain removed. Full final program gates remain separate.
+
+- Final containing verification: complete at `bdfc2ec8305545cd0dfcaab607dcb28351b3859f`: all 2,051 PHP cases/96,726 assertions, 86 browser cases, frontend, fresh schema, architecture, security/dependency and focused behavior pass. HARD-136 actual Source Refresh `34728896680` also passes with the 24 immutable artifacts and separately recorded acquisition evidence. This supersedes earlier pending behavior statements; final program gates remain open.
 
 ### HARD-132 — Bear Hunt result recomputation expands the entire occurrence per report
 
@@ -1958,12 +1961,14 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: unchanged, with complete bounded aggregation and receipt contracts.
 - Rationale: finish the actual supported Bear Hunt production trace without treating a bounded input as bounded retained work.
 - Remediation: preserve Operations ownership and current scope admission; enforce a 1,000-distinct-Governor atomic work budget, group accepted SQL totals, use keyed bounded materialization and 100-row upserts, validate integer totals and capture only the stored report’s 1–100 Governors in receipts. Preserve manual baseline values, result identity, competition ranks, source identity and removal/retry semantics.
-- State: In progress.
+- State: Complete.
 - Verification required: large retained histories, query/payload bounds, ties, zero scores, manual baseline restoration, removed reports, rollback and current-authority retries.
 - Verification result: implementation, all receipt consumers and existing ranking/removal semantics traced; seven PostgreSQL cases authored for 1,000-row completeness/query budget, 100-row and one-row receipts, replay/removal, admission overflow, ties/zero/manual restoration, two integer-overflow cases, corrupt stored receipt rollback and transaction guard. Production/test PHPStan and Pint pass; all 78 architecture cases/72,467 assertions, 343-source PHP layout and 295-document links pass. Hosted behavior remains pending.
 - Completion evidence: [ADR-0072](../architecture/adr/0072-bounded-bear-hunt-result-recomputation.md), BearHuntResultBoundsTest and existing BearHuntBattleReportLedgerV3Test; containing behavior pending.
 
 - Containing verification update: Containing focused run `34728441895`, job `103646710853`, at `a585a4dd` passes all 119 Operations tests/641 assertions, including all seven result bound cases. Visual `34727938824` at `027d880b` passes all 86 cases. Full final program gates remain separate.
+
+- Final containing verification: complete at `bdfc2ec8305545cd0dfcaab607dcb28351b3859f`: all 2,051 PHP cases/96,726 assertions, 86 browser cases, frontend, fresh schema, architecture, security/dependency and focused behavior pass. HARD-136 actual Source Refresh `34728896680` also passes with the 24 immutable artifacts and separately recorded acquisition evidence. This supersedes earlier pending behavior statements; final program gates remain open.
 
 ### HARD-133 — Poll owner commands depend on adapter-only input bounds
 
@@ -1973,12 +1978,14 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owner with one bounded command contract.
 - Rationale: supported internal calls and future adapters must not bypass the protected work/input budget or silently reinterpret existing votes.
 - Remediation: validate raw cardinality and shapes before normalization, enforce current field/settings limits in the owner and preserve voted option/type semantics; keep current scope and atomic audit/outbox behavior.
-- State: In progress.
+- State: Complete.
 - Verification required: direct malformed/oversized inputs, existing-vote updates, atomic rollback, valid boundary cases and current scope admission.
 - Verification result: raw options/selections, current schema fields, declared settings and bounded flat metadata now validate before locks; voted type/maximum/option changes reject atomically and pre-vote type changes require validated replacements. All 21 malformed-input/no-query cases pass locally (42 assertions); six PostgreSQL mutation cases are authored. Production/tests PHPStan and Pint pass; containing behavior remains pending.
 - Completion evidence: [ADR-0073](../architecture/adr/0073-bounded-poll-owner-inputs.md), PollInputBoundsTest and PollMutationContractTest; hosted mutation behavior pending.
 
 - Containing verification update: All 27 new input/mutation cases pass in the 119-case Operations group at `a585a4dd`; focused run `34728441895`, job `103646710853`, succeeds for every group. Full final program gates remain separate.
+
+- Final containing verification: complete at `bdfc2ec8305545cd0dfcaab607dcb28351b3859f`: all 2,051 PHP cases/96,726 assertions, 86 browser cases, frontend, fresh schema, architecture, security/dependency and focused behavior pass. HARD-136 actual Source Refresh `34728896680` also passes with the 24 immutable artifacts and separately recorded acquisition evidence. This supersedes earlier pending behavior statements; final program gates remain open.
 
 ### HARD-134 — Event management expands retained operational collections
 
@@ -1988,10 +1995,13 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: unchanged, with complete bounded navigation and SQL aggregates.
 - Rationale: current owner admission does not bound read composition, payloads or memory.
 - Remediation: trace all management/member consumers and supported profile gates; establish bounded occurrence/resource navigation, exact SQL totals and current scoped selections without truncated inaccessible history.
-- State: Planned.
+- State: In progress.
 - Verification required: large retained histories, exact aggregate counts, complete navigation, stale/cross-scope cursors, current authority and actual browser member/manager journeys.
 - Verification result: current management controller, EventCalendar owner lookup, Event Command occurrence expansion and complete phase/poll/vote projection traced; implementation pending.
 - Completion evidence: pending.
+
+- Occurrence slice: Events authorizes without eager history; a 25-row scoped catalogue exports the exact total and finite ULID frontier. Command selection uses bounded database queries and retains an independent off-page selection. Management composes one selected occurrence; Rally and King Perk callers no longer re-fetch full occurrence history. Existing small-history visual fingerprints remain active. Five PostgreSQL cases and one desktop/mobile navigation/failure/retry journey are authored; full local frontend, PHPStan/Pint and architecture pass.
+- Remaining collections: selected-occurrence phase/poll/options/votes, participation rows, roster/Rally assignments and eligible Governor selectors, results, reminder rules and EventPlayerIntelligence full-history aggregates remain independently unbounded. This slice does not close HARD-134 or claim that one occurrence bounds its nested rows. ADR-0076 records the precise scope.
 
 ### HARD-135 — Bear Hunt Debrief result projection materializes every Governor and sums in PHP
 
@@ -2014,10 +2024,12 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: unchanged, with explicit acquisition provenance and factual reproducibility semantics.
 - Rationale: preserve meaningful immutable facts and pinned sources without treating changing web-page transport bytes as a factual release change or silently accepting generated facts.
 - Remediation: inspect every changed lock record and its source classification, retain immutable canonical artifact comparisons and pinned-source checks, and make volatile acquisition evidence explicit and reviewable. Do not regenerate or bless checked-in release data to obtain green output.
-- State: In progress.
+- State: Complete.
 - Verification required: changed factual output, source identity/inventory, pinned hashes and malformed lock data must reject; unchanged facts with changed allowed live-page acquisition bytes must be distinguished; hosted source refresh and full existing progression gates must pass.
 - Verification result: the sole hosted diff changes 115 declared live HTML hashes; all other artifacts and 12 structured/pinned hashes remain exact. New comparison uses the immutable Git HEAD baseline, byte-exact factual files, strict source inventory/metadata and pinned checks, with separately timestamped allowed acquisition evidence. Ten local contract cases, current 24-artifact comparison and exact replay of the observed 115 hash changes pass; hosted regeneration remains required.
 - Completion evidence: [ADR-0074](../architecture/adr/0074-progression-factual-reproducibility-and-acquisition.md), verify_regenerated.py and ProgressionReproducibility_test.py; actual containing hosted refresh pending.
+
+- Final containing verification: complete at `bdfc2ec8305545cd0dfcaab607dcb28351b3859f`: all 2,051 PHP cases/96,726 assertions, 86 browser cases, frontend, fresh schema, architecture, security/dependency and focused behavior pass. HARD-136 actual Source Refresh `34728896680` also passes with the 24 immutable artifacts and separately recorded acquisition evidence. This supersedes earlier pending behavior statements; final program gates remain open.
 
 ### HARD-137 — Event schedule edits hydrate and rewrite retained occurrence history
 

@@ -57,7 +57,7 @@ If an owner fact is correct but Event Command classification is wrong, treat tha
 
 `tests/ReadModels/EventManagement/Feature/EventCommandQueryBudgetV3Test.php` protects the selected-occurrence composition from query-count growth as eligible Governor population increases. A regression should be resolved by adding/batching a bounded owner projection, not by caching/persisting derived Event Command truth.
 
-Owner summaries must avoid per-Governor, per-Evidence and per-delivery retrieval loops. Query payload row counts may naturally grow; query count must remain bounded.
+Owner summaries must avoid per-Governor, per-Evidence and per-delivery retrieval loops. Bound both materialized rows and query count. The occurrence catalogue returns 25 choices plus an independent selection when needed; current authority is checked on every page. Restart at the first page to include newly created occurrences. Paging failure retains local drafts and offers a retry. Selected-occurrence nested collections remain independently tracked under HARD-134.
 
 ## Visual/accessibility verification
 

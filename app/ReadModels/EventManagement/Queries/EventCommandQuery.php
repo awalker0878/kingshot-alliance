@@ -10,12 +10,14 @@ use App\Contexts\Operations\Events\Enums\EventStatus;
 use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
+use App\Contexts\Operations\Events\Queries\EventOccurrenceCatalogueQuery;
 use App\Contexts\Operations\Events\Services\EventTypeProfileResolver;
 use App\ReadModels\EventManagement\Enums\EventCommandItemStatus;
 use App\ReadModels\EventManagement\Enums\EventCommandSeverity;
 use App\ReadModels\EventManagement\Enums\EventCommandState;
 use App\ReadModels\EventManagement\Support\EventCommandItems as Items;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
@@ -30,13 +32,16 @@ final readonly class EventCommandQuery
         private EventCommandContextReadinessQuery $contextReadiness,
         private EventCommandCloseoutQuery $closeout,
         private EventTypeProfileResolver $profiles,
+        private EventOccurrenceCatalogueQuery $catalogue,
     ) {}
 
     /** @return array<string, mixed> */
-    public function forEvent(PlayerReference $actor, Event $event, ?string $requestedOccurrenceId = null): array
+    public function forEvent(PlayerReference $actor, Event $event, ?string $requestedOccurrenceId = null, ?string $cursor = null): array
     {
         $startedAt = hrtime(true);
-        $event->loadMissing(['eventType.workflowDimensions', 'occurrences']);
+        $page = $this->catalogue->forEvent($actor, (string) $event->id, $cursor);
+        $event = $page['event'];
+        $pagination = array_diff_key($page, ['event' => true, 'items' => true]);
         $profile = $this->profiles->resolve($event->eventType);
         $dimensions = $profile['profile_enabled'] === true ? $profile['workflow_dimensions'] : [];
         $commandDimensions = $this->has($dimensions, EventWorkflowDimension::ReadinessCloseout) ? $dimensions : [];
@@ -49,6 +54,7 @@ final readonly class EventCommandQuery
                 'eventProfile' => $profile,
                 'selectedOccurrenceId' => null,
                 'occurrences' => [],
+                'occurrencePage' => $pagination,
                 'state' => null,
                 'eventStatus' => $event->status->value,
                 'occurrenceStatus' => null,
@@ -79,7 +85,11 @@ final readonly class EventCommandQuery
         $warnings = Items::warnings($items);
         $state = $cancelled ? null : $this->state($occurrence, $active, $ended, $blockers, $now);
 
-        $occurrences = $event->occurrences
+        $choices = $page['items'];
+        if (! $choices->contains('id', $occurrence->id)) {
+            $choices->push($occurrence);
+        }
+        $occurrences = $choices
             ->sortBy('starts_at')
             ->values()
             ->map(static fn (EventOccurrence $item): array => [
@@ -96,6 +106,7 @@ final readonly class EventCommandQuery
             'eventProfile' => $profile,
             'selectedOccurrenceId' => (string) $occurrence->id,
             'occurrences' => array_values($occurrences),
+            'occurrencePage' => $pagination,
             'state' => $state?->value,
             'eventStatus' => $event->status->value,
             'occurrenceStatus' => $occurrence->status->value,
@@ -126,37 +137,35 @@ final readonly class EventCommandQuery
             return $requested;
         }
 
-        $occurrences = $event->occurrences->filter(static fn ($item): bool => $item instanceof EventOccurrence)->values();
-        $active = $occurrences
-            ->filter(fn (EventOccurrence $item): bool => ! $this->cancelled($event, $item) && $this->active($item, $now))
-            ->sortBy('starts_at')->first();
-        if ($active instanceof EventOccurrence) {
-            return $active;
-        }
-
-        $ended = $occurrences
-            ->filter(fn (EventOccurrence $item): bool => ! $this->cancelled($event, $item) && $this->ended($item, $now))
-            ->sortByDesc('ends_at')->take(self::CLOSEOUT_SELECTION_LIMIT);
-        foreach ($ended as $item) {
-            if (! $item instanceof EventOccurrence) {
-                continue;
+        $eligible = EventOccurrence::query()->where('event_id', $event->id)
+            ->where('status', '!=', EventOccurrenceStatus::Cancelled->value);
+        if ($event->status !== EventStatus::Cancelled) {
+            $active = (clone $eligible)->where('status', '!=', EventOccurrenceStatus::Completed->value)
+                ->where('starts_at', '<=', $now)->where('ends_at', '>', $now)
+                ->orderBy('starts_at')->orderBy('id')->first();
+            if ($active instanceof EventOccurrence) {
+                return $active;
             }
-            $sections = $this->closeout->forOccurrence($actor, $event, $item, $dimensions);
-            if (Items::blockers(Items::flatten($sections)) > 0) {
-                return $item;
+
+            $ended = (clone $eligible)->where(static fn (Builder $query) => $query
+                ->where('status', EventOccurrenceStatus::Completed->value)->orWhere('ends_at', '<=', $now))
+                ->orderByDesc('ends_at')->orderByDesc('id')->limit(self::CLOSEOUT_SELECTION_LIMIT)->get();
+            foreach ($ended as $item) {
+                $sections = $this->closeout->forOccurrence($actor, $event, $item, $dimensions);
+                if (Items::blockers(Items::flatten($sections)) > 0) {
+                    return $item;
+                }
+            }
+
+            $upcoming = (clone $eligible)->where('starts_at', '>', $now)
+                ->orderBy('starts_at')->orderBy('id')->first();
+            if ($upcoming instanceof EventOccurrence) {
+                return $upcoming;
             }
         }
 
-        $upcoming = $occurrences
-            ->filter(fn (EventOccurrence $item): bool => ! $this->cancelled($event, $item) && $item->starts_at->greaterThan($now))
-            ->sortBy('starts_at')->first();
-        if ($upcoming instanceof EventOccurrence) {
-            return $upcoming;
-        }
-
-        $recent = $occurrences->sortByDesc('starts_at')->first();
-
-        return $recent instanceof EventOccurrence ? $recent : null;
+        return EventOccurrence::query()->where('event_id', $event->id)
+            ->orderByDesc('starts_at')->orderByDesc('id')->first();
     }
 
     /** @return array<string, mixed> */

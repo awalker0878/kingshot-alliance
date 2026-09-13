@@ -85,6 +85,8 @@ jobs:
         run: php vendor/bin/phpunit tests/Contexts/GameWorld/Governance tests/Workflows/KingdomGovernance tests/ReadModels/KingdomGovernance tests/Contexts/GameWorld/Kingdoms/Feature/KingdomDownstreamActiveBoundaryV3Test.php --log-junit storage/logs/kingdom-recovery-junit.xml
       - name: Run Operations scope and Territory behavior
         run: php vendor/bin/phpunit tests/Contexts/Operations --log-junit storage/logs/operations-scopes-junit.xml
+      - name: Run EventManagement history behavior
+        run: php vendor/bin/phpunit tests/ReadModels/EventManagement --log-junit storage/logs/event-management-junit.xml
       - name: Run Gift Code operational alert progress
         run: php vendor/bin/phpunit tests/Contexts/GameWorld/GiftCodes/Feature/OperationalAlertProgressTest.php tests/Workflows/NotificationDelivery/Feature/NotificationSourceEligibilityTest.php tests/Shared/Testing/Integration/MigrationReferenceDataIsolationTest.php --log-junit storage/logs/operational-alerts-junit.xml
       - name: Run Participation owner behavior
@@ -104,5 +106,6 @@ jobs:
             storage/logs/kingdom-recovery-junit.xml
             storage/logs/operational-alerts-junit.xml
             storage/logs/operations-scopes-junit.xml
+            storage/logs/event-management-junit.xml
           if-no-files-found: ignore
           retention-days: 7

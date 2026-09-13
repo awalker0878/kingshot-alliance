@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    pagination: {
+      recordCount: '{count} รายการ',
+      unavailable: 'ไม่สามารถโหลดหน้านี้ได้ การเปลี่ยนแปลงของคุณยังคงอยู่',
+      retry: 'ลองอีกครั้ง',
+    },
     history: {
       title: 'ประวัติอีเวนต์',
       subtitle:

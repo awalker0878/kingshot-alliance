@@ -57,9 +57,9 @@ final readonly class EventRallyQuery
         $eventPlayers = $this->eligiblePlayers->for($event);
         $alliances = $this->rallyAlliances->forEvent($event);
 
-        return array_values($event->occurrences()
-            ->orderBy('starts_at')
-            ->get()
+        return array_values($event->occurrences
+            ->sortBy('starts_at')
+            ->values()
             ->map(function (EventOccurrence $occurrence) use ($event, $eventPlayers, $alliances): array {
                 return [
                     'occurrenceId' => (string) $occurrence->id,

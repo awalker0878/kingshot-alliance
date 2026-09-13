@@ -28,7 +28,9 @@ use App\Contexts\Operations\Rallies\Models\RallyGroup;
 use App\Contexts\Operations\Rosters\Enums\EventRosterType;
 use App\Contexts\Operations\Rosters\Models\EventRoster;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Tests\System\Acceptance\Fixtures\CapabilityAcceptanceVisualFixture;
 
 final class EventCommandVisualFixture
@@ -112,6 +114,19 @@ final class EventCommandVisualFixture
             'created_by_player_id' => (string) $player->id,
             'updated_by_player_id' => (string) $player->id,
         ]);
+
+        $historyEvent = app(CreateEvent::class)->handle(
+            (string) $player->id, (string) $configuration->id, EventScope::Alliance, $allianceId,
+            now('UTC')->addDay()->startOfMinute()->toImmutable(), title: 'Event History Visual', durationMinutes: 60,
+        );
+        $history = [];
+        for ($i = 0; $i < 100; $i++) {
+            $start = now('UTC')->subDays($i + 2)->startOfMinute();
+            $history[] = ['id' => strtolower((string) Str::ulid()), 'event_id' => $historyEvent->eventId,
+                'starts_at' => $start, 'ends_at' => $start->copy()->addHour(), 'status' => 'cancelled',
+                'created_at' => now(), 'updated_at' => now()];
+        }
+        DB::table('event_occurrences')->insert($history);
 
         CapabilityAcceptanceVisualFixture::seed();
     }
