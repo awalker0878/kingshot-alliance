@@ -71,6 +71,40 @@ export type MapPlacementRule = {
   confidence: string;
   provenance: string[];
 };
+export type MapWorldRectangle = { x: number; y: number; width: number; height: number };
+export type MapTerrainFeature = {
+  key: string;
+  family: 'lake' | 'mountain';
+  bounds: MapWorldRectangle;
+  centroid: { x: number; y: number };
+  cell_count: number;
+  spans: Array<[number, number, number]>;
+};
+export type MapResourceNode = {
+  key: string;
+  resource_type: 'bread' | 'woodmill' | 'quarry' | 'ironmine';
+  x: number;
+  y: number;
+  footprint: MapRectangle;
+};
+export type MapLayerAvailability = {
+  state: 'materialized' | 'unavailable';
+  available_count: number;
+  expected_count: number;
+  extent: MapWorldRectangle | null;
+  artifact_sha256: string | null;
+  confidence: string;
+  observed_at: string;
+  unavailable_reason: string | null;
+  release_id: string;
+  release_checksum: string;
+};
+export type MapSpatialDiagnostic = {
+  code: 'resource_terrain_overlap' | 'resource_footprint_overlap';
+  resource_keys: string[];
+  terrain_keys: string[];
+};
+
 export type MapData = {
   id: string;
   schema_version: 2;
@@ -98,6 +132,11 @@ export type MapData = {
     provenance: string[];
   }>;
   resource_layers?: Record<string, unknown>;
+  terrain_features?: MapTerrainFeature[];
+  resource_nodes?: MapResourceNode[];
+  layer_availability?: Record<'facilities' | 'terrain' | 'resources', MapLayerAvailability>;
+  spatial_diagnostics?: MapSpatialDiagnostic[];
+  resource_ownership_semantics?: 'unqualified_resource_node';
 };
 
 export type ValidationIssue = { code: string; message: string; object_key?: string };

@@ -1,3 +1,4 @@
+import { spatialCollisionCodes } from './spatial.ts';
 import type {
   AllianceAnalysis,
   MapData,
@@ -234,6 +235,18 @@ export function validatePlacement(
         issue('map_bounds', 'The object footprint must stay inside the Kingdom map.', object.key),
       );
       continue;
+    }
+
+    for (const code of spatialCollisionCodes(map, rect)) {
+      violations.push(
+        issue(
+          code,
+          code === 'terrain_collision'
+            ? 'The object overlaps a materialized lake or mountain cell.'
+            : 'The object overlaps a materialized resource footprint.',
+          object.key,
+        ),
+      );
     }
 
     for (const structure of map.structures) {

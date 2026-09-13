@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Contexts\Operations\TerritoryPlanning\Unit;
 
+use App\Contexts\GameWorld\KingdomMaps\Services\KingdomMapSpatialPlacementIndex;
 use App\Contexts\GameWorld\KingdomMaps\Services\PlacementValidator;
 use App\Contexts\GameWorld\KingdomMaps\Services\TerritoryCoverageGeometry;
 use App\Contexts\Operations\TerritoryPlanning\Services\HiveLayoutGenerator;
@@ -17,7 +18,7 @@ final class TerritoryHiveGenerationTest extends TestCase
     public function test_both_styles_return_exact_valid_city_count_and_deterministic_proposals(): void
     {
         $geometry = new TerritoryCoverageGeometry;
-        $validator = new PlacementValidator($geometry);
+        $validator = new PlacementValidator($geometry, new KingdomMapSpatialPlacementIndex);
         $generator = new HiveLayoutGenerator($validator, $geometry);
         $dataset = $this->dataset($this->fixture());
         $existing = [['key' => 'hq', 'type' => 'headquarters', 'x' => 20, 'y' => 20, 'alliance_key' => 'alpha']];
@@ -35,7 +36,7 @@ final class TerritoryHiveGenerationTest extends TestCase
     public function test_infeasible_proposal_exposes_diagnostics_without_partial_additions(): void
     {
         $geometry = new TerritoryCoverageGeometry;
-        $generator = new HiveLayoutGenerator(new PlacementValidator($geometry), $geometry);
+        $generator = new HiveLayoutGenerator(new PlacementValidator($geometry, new KingdomMapSpatialPlacementIndex), $geometry);
         $dataset = $this->dataset($this->fixture());
         $missing = $generator->preview($dataset, [], 'swirl', 'alpha', 20, 20, 8);
         self::assertSame('headquarters_required', $missing['diagnostics'][0]['code']);

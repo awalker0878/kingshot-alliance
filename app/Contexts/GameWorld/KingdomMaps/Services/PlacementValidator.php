@@ -10,7 +10,10 @@ use App\Contexts\GameWorld\KingdomMaps\ValueObjects\Rectangle;
 
 final class PlacementValidator
 {
-    public function __construct(private readonly TerritoryCoverageGeometry $coverageGeometry) {}
+    public function __construct(
+        private readonly TerritoryCoverageGeometry $coverageGeometry,
+        private readonly KingdomMapSpatialPlacementIndex $spatialIndex,
+    ) {}
 
     /**
      * @param  list<array{key: string, type: string, x: int, y: int, alliance_key: string}>  $objects
@@ -63,6 +66,16 @@ final class PlacementValidator
                 $violations[] = $this->issue('map_bounds', 'The object footprint must stay inside the Kingdom map.', $object['key']);
 
                 continue;
+            }
+
+            foreach ($this->spatialIndex->intersections($dataset, $rect) as $code) {
+                $violations[] = $this->issue(
+                    $code,
+                    $code === 'terrain_collision'
+                        ? 'The object overlaps a materialized lake or mountain cell.'
+                        : 'The object overlaps a materialized resource footprint.',
+                    $object['key'],
+                );
             }
 
             foreach ($data['structures'] as $structure) {

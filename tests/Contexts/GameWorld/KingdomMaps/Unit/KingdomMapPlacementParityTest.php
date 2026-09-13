@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Contexts\GameWorld\KingdomMaps\Unit;
 
+use App\Contexts\GameWorld\KingdomMaps\Services\KingdomMapSpatialPlacementIndex;
 use App\Contexts\GameWorld\KingdomMaps\Services\PlacementValidator;
 use App\Contexts\GameWorld\KingdomMaps\Services\TerritoryCoverageGeometry;
 use App\Contexts\GameWorld\KingdomMaps\ValueObjects\Rectangle;
@@ -46,7 +47,7 @@ final class KingdomMapPlacementParityTest extends TestCase
                 throw new RuntimeException('Territory geometry validation fixture shape is invalid.');
             }
 
-            $result = (new PlacementValidator(new TerritoryCoverageGeometry))->validate($dataset, $objects, $preferences);
+            $result = (new PlacementValidator(new TerritoryCoverageGeometry, new KingdomMapSpatialPlacementIndex))->validate($dataset, $objects, $preferences);
 
             self::assertSame(
                 $this->stringList($expectedViolations),

@@ -17,9 +17,9 @@ use Tests\TestCase;
 
 final class KingdomMapDatasetV2Test extends TestCase
 {
-    public function test_production_release_loads_with_researched_sources_facilities_and_spatial_corpus(): void
+    public function test_original_release_retains_researched_sources_facilities_and_explicit_corpus_references(): void
     {
-        $dataset = app(KingdomMapDatasetQuery::class)->current();
+        $dataset = app(KingdomMapDatasetQuery::class)->require('kingshot-evidence-backed-2026-09-06-v2');
 
         self::assertSame('kingshot-evidence-backed-2026-09-06-v2', $dataset->id);
         self::assertSame(2, $dataset->schemaVersion);
