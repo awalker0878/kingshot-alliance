@@ -1,0 +1,67 @@
+name: Kingdom Map resource source
+
+# Temporary read-only evidence acquisition. The resource URL is declared by the
+# already inspected public ksmapper core.js; this does not call write/report APIs.
+# Remove before final readiness.
+on:
+  push:
+    branches: [astra/kingdom-map-workspace]
+    paths: [.github/workflows/kingdom-map-resource-source.yml]
+permissions:
+  contents: read
+jobs:
+  evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Capture public source bytes and provenance without executing upstream code
+        env:
+          OUTPUT: ${{ runner.temp }}/source
+        run: |
+          mkdir -p "$OUTPUT"
+          git bundle create "$OUTPUT/source.bundle" HEAD
+          git rev-parse HEAD > "$OUTPUT/revision.txt"
+          python3 <<'PY'
+          import datetime, hashlib, json, os, pathlib, urllib.request
+          root = pathlib.Path(os.environ['OUTPUT'])
+          records = []
+          sources = {
+              'kingshot-resources-source.json': 'https://ksmapper.jim-harvey-yu.workers.dev/resources?game=kingshot',
+              'ksmapper-core.js': 'https://ksmapper.pages.dev/core.js',
+          }
+          class SameHostRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, request, fp, code, message, headers, url):
+                  raise ValueError('Redirects are not permitted for pinned evidence capture')
+          opener = urllib.request.build_opener(SameHostRedirect())
+          for filename, url in sources.items():
+              entry = {'url': url, 'retrieved_at': datetime.datetime.now(datetime.timezone.utc).isoformat()}
+              try:
+                  request = urllib.request.Request(url, headers={'User-Agent': 'Kingshot-Map-Source-Review/1.0', 'Accept': 'application/json' if filename.endswith('.json') else 'text/javascript'})
+                  with opener.open(request, timeout=30) as response:
+                      data = response.read(8_000_001)
+                      if len(data) > 8_000_000:
+                          raise ValueError('Evidence file exceeds bounded size')
+                      entry['content_type'] = response.headers.get('Content-Type')
+                  if filename.endswith('.json'):
+                      parsed = json.loads(data)
+                      if not isinstance(parsed, dict) or not isinstance(parsed.get('nodes'), list):
+                          raise ValueError('Public resource response does not contain a node list')
+                      entry['node_count'] = len(parsed['nodes'])
+                  (root / filename).write_bytes(data)
+                  entry.update({'file': filename, 'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)})
+              except Exception as error:
+                  entry['error'] = type(error).__name__ + ': ' + str(error)[:500]
+              records.append(entry)
+          (root / 'sources.json').write_text(json.dumps({'game': 'kingshot', 'records': records, 'notice': 'Source bytes are inspection inputs, not an official game-data or artwork-completeness claim. No upstream application code is executed or committed by this workflow.'}, indent=2) + '\n')
+          print(json.dumps(records, indent=2))
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: kingdom-map-resource-source
+          path: ${{ runner.temp }}/source
+          retention-days: 1
+          if-no-files-found: error
