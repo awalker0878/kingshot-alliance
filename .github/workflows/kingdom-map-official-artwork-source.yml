@@ -1,0 +1,122 @@
+name: Kingdom Map official artwork source
+
+# Temporary read-only source acquisition for user-authorized Kingshot artwork.
+# Store references/bytes for visual review only; never execute external content,
+# fetch unrelated hosts, mutate runtime state or publish unreviewed assets.
+# Remove this workflow before merge readiness.
+on:
+  push:
+    branches: [astra/kingdom-map-workspace]
+    paths: [.github/workflows/kingdom-map-official-artwork-source.yml]
+permissions:
+  contents: read
+jobs:
+  artwork:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Capture exact checkout and directly linked image references
+        env:
+          OUTPUT: ${{ runner.temp }}/official-artwork
+        run: |
+          mkdir -p "$OUTPUT"
+          git bundle create "$OUTPUT/source.bundle" HEAD
+          git rev-parse HEAD > "$OUTPUT/revision.txt"
+          python3 <<'PY'
+          import datetime, hashlib, html.parser, json, os, pathlib, re, urllib.parse, urllib.request
+          root = pathlib.Path(os.environ['OUTPUT'])
+          (root / 'images').mkdir()
+          pages = [
+              'https://kingshotwiki.com/territory/alliance-territory/',
+              'https://kingshotwiki.com/alliance-outpost/outpost/',
+              'https://kingshotwiki.com/alliance-ruins/ruins/',
+              'https://kingshotwiki.com/buildings/',
+              'https://kingshotwiki.com/buildings/true-gold-town-center/',
+              'https://kingshotwiki.com/events/castle-battle/',
+              'https://kingshotwiki.com/events/kingdom-of-power/',
+          ]
+          hosts = {'kingshotwiki.com', 'got-global-wiki.s3.us-west-1.amazonaws.com', 'got-global-wiki.s3.amazonaws.com'}
+          suffixes = {'.png', '.jpg', '.jpeg', '.webp', '.avif'}
+          class RestrictedRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, request, fp, code, message, headers, url):
+                  parsed = urllib.parse.urlsplit(url)
+                  if parsed.scheme != 'https' or parsed.hostname not in hosts or parsed.username or parsed.port:
+                      raise ValueError('Unapproved redirect destination')
+                  return super().redirect_request(request, fp, code, message, headers, url)
+          opener = urllib.request.build_opener(RestrictedRedirect())
+          class ImageReferences(html.parser.HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.images = []
+              def handle_starttag(self, tag, attrs):
+                  attributes = dict(attrs)
+                  for key in ('src', 'href', 'data-src', 'data-full-url', 'data-orig-file', 'data-large-file'):
+                      value = attributes.get(key)
+                      if value:
+                          self.images.append((value, attributes.get('alt', '')))
+                  for reference in attributes.get('srcset', '').split(','):
+                      if reference.strip():
+                          self.images.append((reference.strip().split()[0], attributes.get('alt', '')))
+          def fetch(url, limit):
+              request = urllib.request.Request(url, headers={'User-Agent': 'Kingshot-Authorized-Artwork-Review/1.0'})
+              with opener.open(request, timeout=25) as response:
+                  data = response.read(limit + 1)
+                  if len(data) > limit:
+                      raise ValueError('Source file exceeds review byte limit')
+                  return data, response.headers.get('Content-Type', '')
+          image_sources = {}
+          records = []
+          for page in pages:
+              record = {'url': page, 'retrieved_at': datetime.datetime.now(datetime.timezone.utc).isoformat()}
+              try:
+                  data, mime = fetch(page, 2_000_000)
+                  filename = hashlib.sha256(page.encode()).hexdigest() + '.html'
+                  (root / filename).write_bytes(data)
+                  record.update({'file': filename, 'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data), 'content_type': mime})
+                  parser = ImageReferences()
+                  parser.feed(data.decode('utf-8'))
+                  for reference, alt in parser.images:
+                      url = urllib.parse.urljoin(page, reference)
+                      parts = urllib.parse.urlsplit(url)
+                      if parts.scheme != 'https' or parts.hostname not in hosts or parts.username or parts.port or parts.query:
+                          continue
+                      if pathlib.PurePosixPath(parts.path).suffix.lower() not in suffixes:
+                          continue
+                      url = url.split('#')[0]
+                      image_sources.setdefault(url, []).append({'page': page, 'alt': alt[:250]})
+              except Exception as error:
+                  record['error'] = type(error).__name__ + ': ' + str(error)[:400]
+              records.append(record)
+          total = 0
+          images = []
+          # Prefer original masters when linked; still retain linked thumbnails if
+          # the site exposes no original. No invented URL variants are requested.
+          ordered = sorted(image_sources, key=lambda url: (bool(re.search(r'-\d+x\d+\.', url)), url))
+          for url in ordered[:250]:
+              if total >= 100_000_000:
+                  break
+              record = {'url': url, 'source_pages': image_sources[url], 'retrieved_at': datetime.datetime.now(datetime.timezone.utc).isoformat()}
+              try:
+                  data, mime = fetch(url, 5_000_000)
+                  if not mime.lower().startswith('image/'):
+                      raise ValueError('Image reference did not return an image')
+                  filename = 'images/' + hashlib.sha256(url.encode()).hexdigest() + pathlib.PurePosixPath(urllib.parse.urlsplit(url).path).suffix.lower()
+                  (root / filename).write_bytes(data)
+                  total += len(data)
+                  record.update({'file': filename, 'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data), 'content_type': mime})
+              except Exception as error:
+                  record['error'] = type(error).__name__ + ': ' + str(error)[:400]
+              images.append(record)
+          (root / 'sources.json').write_text(json.dumps({'pages': records, 'images': images, 'total_image_bytes': total, 'total_linked_images': len(image_sources), 'notice': 'User-authorized Kingshot artwork; inspection inputs only. No official mechanics, complete family coverage, third-party rights or production approval is inferred from this capture.'}, indent=2) + '\n')
+          print('Captured', len(images), 'linked image references;', total, 'bytes')
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: kingdom-map-official-artwork-source
+          path: ${{ runner.temp }}/official-artwork
+          retention-days: 1
+          if-no-files-found: error
