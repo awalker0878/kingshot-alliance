@@ -1,0 +1,51 @@
+name: Kingdom Map isolated database tools
+
+# Temporary, branch-scoped development tools only. No application data, secrets,
+# deployments, or branch writes. Delete this workflow before merge readiness.
+on:
+  push:
+    branches: [astra/kingdom-map-workspace]
+    paths: [.github/workflows/kingdom-map-local-database-tools.yml]
+permissions:
+  contents: read
+jobs:
+  tools:
+    if: github.repository == 'awalker0878/kingshot-alliance'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Package public PostgreSQL binaries without a running database
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/kingdom-map-database"
+          docker pull postgres:18-bookworm
+          docker image inspect postgres:18-bookworm --format '{{json .RepoDigests}}' > "$RUNNER_TEMP/kingdom-map-database/postgres-image.json"
+          docker run --rm --entrypoint bash -v "$RUNNER_TEMP/kingdom-map-database:/out" postgres:18-bookworm -euc '
+            mkdir -p /tmp/tools/lib
+            cp -a /usr/lib/postgresql/18 /tmp/tools/postgresql
+            cp -a /usr/share/postgresql/18 /tmp/tools/share
+            find /usr/lib/postgresql/18 -type f -exec ldd {} \; 2>/dev/null | awk "/=> \\/ { print \$3 }" | sort -u | while read -r dependency; do
+              case "$(basename "$dependency")" in libc.so.6|libm.so.6|libpthread.so.0|libdl.so.2|librt.so.1) continue ;; esac
+              cp -L "$dependency" /tmp/tools/lib/
+            done
+            /usr/lib/postgresql/18/bin/postgres --version > /out/postgres-version.txt
+            tar -C /tmp/tools -czf /out/postgresql-runtime.tar.gz .
+          '
+          (cd "$RUNNER_TEMP/kingdom-map-database" && sha256sum *.tar.gz > SHA256SUMS)
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+      - name: Package Node-selected npm CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm --version > "$RUNNER_TEMP/kingdom-map-database/npm-version.txt"
+          tar -C "$(npm root -g)" -czf "$RUNNER_TEMP/kingdom-map-database/npm-cli.tar.gz" npm
+          (cd "$RUNNER_TEMP/kingdom-map-database" && sha256sum *.tar.gz > SHA256SUMS)
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: kingdom-map-isolated-database-tools
+          path: ${{ runner.temp }}/kingdom-map-database
+          retention-days: 1
+          if-no-files-found: error
