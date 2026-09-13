@@ -21,6 +21,46 @@ use Inertia\Response;
 
 final class TerritoryPlanningPageController extends Controller
 {
+    public function explore(
+        Request $request,
+        PlayerContext $playerContext,
+        KingdomMapDatasetQuery $datasets,
+    ): Response {
+        $user = $request->user();
+        abort_unless($user instanceof AuthenticatedAccount, 401);
+        $player = $playerContext->playerOrNull();
+        abort_unless($player !== null, 403);
+
+        $input = $request->validate([
+            'map_dataset_id' => ['sometimes', 'required', 'string', 'max:120'],
+            'map_dataset_checksum' => ['required_with:map_dataset_id', 'prohibited_without:map_dataset_id', 'string', 'regex:/^[a-f0-9]{64}$/'],
+        ]);
+        $dataset = isset($input['map_dataset_id'])
+            ? $datasets->require($input['map_dataset_id'], $input['map_dataset_checksum'])
+            : $datasets->current();
+
+        return Inertia::render('Kingdom/Territory/Explorer', [
+            'user' => ['name' => $user->name, 'email' => $user->email],
+            'activePlayer' => [
+                'id' => $player->playerId,
+                'name' => $player->currentName,
+                'kingdomId' => $player->kingdomId,
+                'kingdomNumber' => $player->kingdomNumber,
+            ],
+            'territory' => [
+                'map' => [
+                    'id' => $dataset->id,
+                    'checksum' => $dataset->checksum,
+                    'source_label' => $dataset->sourceLabel,
+                    'source_uri' => $dataset->sourceUri,
+                    'confidence' => $dataset->confidence->value,
+                    'observed_at' => $dataset->observedAt,
+                    'data' => $dataset->data,
+                ],
+            ],
+        ]);
+    }
+
     public function index(
         Request $request,
         PlayerContext $playerContext,

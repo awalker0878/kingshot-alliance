@@ -71,6 +71,40 @@ export type MapPlacementRule = {
   confidence: string;
   provenance: string[];
 };
+export type MapWorldRectangle = { x: number; y: number; width: number; height: number };
+export type MapTerrainFeature = {
+  key: string;
+  family: 'lake' | 'mountain';
+  bounds: MapWorldRectangle;
+  centroid: { x: number; y: number };
+  cell_count: number;
+  spans: Array<[number, number, number]>;
+};
+export type MapResourceNode = {
+  key: string;
+  resource_type: 'bread' | 'woodmill' | 'quarry' | 'ironmine';
+  x: number;
+  y: number;
+  footprint: MapRectangle;
+};
+export type MapLayerAvailability = {
+  state: 'materialized' | 'unavailable';
+  available_count: number;
+  expected_count: number;
+  extent: MapWorldRectangle | null;
+  artifact_sha256: string | null;
+  confidence: string;
+  observed_at: string;
+  unavailable_reason: string | null;
+  release_id: string;
+  release_checksum: string;
+};
+export type MapSpatialDiagnostic = {
+  code: 'resource_terrain_overlap' | 'resource_footprint_overlap';
+  resource_keys: string[];
+  terrain_keys: string[];
+};
+
 export type MapData = {
   id: string;
   schema_version: 2;
@@ -98,6 +132,11 @@ export type MapData = {
     provenance: string[];
   }>;
   resource_layers?: Record<string, unknown>;
+  terrain_features?: MapTerrainFeature[];
+  resource_nodes?: MapResourceNode[];
+  layer_availability?: Record<'facilities' | 'terrain' | 'resources', MapLayerAvailability>;
+  spatial_diagnostics?: MapSpatialDiagnostic[];
+  resource_ownership_semantics?: 'unqualified_resource_node';
 };
 
 export type ValidationIssue = { code: string; message: string; object_key?: string };
@@ -120,6 +159,21 @@ export type MarchAnalysis = {
 };
 
 export type AllianceAnalysis = {
+  algorithm_version: 'territory-analysis-v2';
+  territory_area_tiles: number;
+  hq_anchored_components: number;
+  disconnected_components: number;
+  useful_banner_area_tiles: number;
+  redundant_banner_count: number;
+  hive_density_percent: number | null;
+  density_bounds_area_tiles: number | null;
+  assumptions: {
+    city_coverage: 'entire_footprint';
+    distance: 'euclidean_southwest_anchor';
+    march_time: 'user_calibration_no_pathfinding';
+    banner_efficiency: 'covered_cities_per_banner';
+    density: 'city_footprint_union_over_city_bounds';
+  };
   counts: Record<string, number>;
   governor_cities: number;
   covered_governor_cities: number;

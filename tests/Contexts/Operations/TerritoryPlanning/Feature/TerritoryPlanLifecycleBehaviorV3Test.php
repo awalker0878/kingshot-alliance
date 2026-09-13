@@ -63,6 +63,7 @@ final class TerritoryPlanLifecycleBehaviorV3Test extends TestCase
             $actor->playerId,
             $created->planId,
             $saved->revision,
+            (string) $saved->layoutChecksum,
         );
         self::assertNotNull($published->publishedRevisionId);
         self::assertSame(TerritoryPlanStatus::Published->value, $published->status);

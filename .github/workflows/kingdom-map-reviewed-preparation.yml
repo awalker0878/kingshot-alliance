@@ -1,0 +1,137 @@
+name: Kingdom Map reviewed object preparation
+
+# Temporary transport for reviewed local changes when the local environment has
+# no direct GitHub network. This job creates Git objects only: never a ref write,
+# merge, deployment, test-baseline update or execution of the supplied patch.
+# Remove this workflow and its manifest before final readiness.
+on:
+  push:
+    branches: [astra/kingdom-map-workspace]
+    paths: [.github/kingdom-map-reviewed-slice.json]
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    if: github.repository == 'awalker0878/kingshot-alliance' && github.actor == 'awalker0878'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Validate reviewed patch and prepare immutable Git objects
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import base64, gzip, hashlib, io, json, os, pathlib, re, subprocess, urllib.request
+          root = pathlib.Path.cwd()
+          def git(*args, binary=False):
+              value = subprocess.check_output(['git', *args])
+              return value if binary else value.decode().strip()
+          def require(condition, message):
+              if not condition:
+                  raise RuntimeError(message)
+          def api(path, payload):
+              require(path in ('git/blobs', 'git/trees', 'git/commits'), 'Ref writes are prohibited')
+              request = urllib.request.Request(
+                  'https://api.github.com/repos/awalker0878/kingshot-alliance/' + path,
+                  data=json.dumps(payload).encode(), method='POST', headers={
+                      'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                      'Accept': 'application/vnd.github+json',
+                      'Content-Type': 'application/json',
+                      'User-Agent': 'kingdom-map-reviewed-preparation',
+                  })
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  return json.load(response)
+          head = git('rev-parse', 'HEAD')
+          require(head == os.environ['GITHUB_SHA'], 'Checkout does not match triggering SHA')
+          manifest_path = root / '.github/kingdom-map-reviewed-slice.json'
+          require(manifest_path.stat().st_size <= 4_000_000, 'Manifest size limit')
+          manifest = json.loads(manifest_path.read_text())
+          require(set(manifest) == {'schema_version', 'base_sha', 'message', 'files', 'patch_sha256', 'patch_gzip_base64'}, 'Unexpected manifest contract')
+          require(manifest['schema_version'] == 1, 'Unsupported manifest version')
+          require(git('rev-parse', 'HEAD^') == manifest['base_sha'], 'Preparation parent changed; reconcile before retry')
+          require(isinstance(manifest['message'], str) and 1 <= len(manifest['message']) <= 3000, 'Invalid commit message')
+          files = manifest['files']
+          require(isinstance(files, list) and 1 <= len(files) <= 500, 'Invalid reviewed file count')
+          prefixes = (
+              'resources/js/features/territory-planner/', 'resources/js/pages/Kingdom/Territory/',
+              'resources/js/localization/messages/territory/', 'resources/data/kingdom-maps/',
+              'public/images/kingshot/map/', 'app/Contexts/GameWorld/KingdomMaps/',
+              'app/Contexts/Operations/TerritoryPlanning/', 'app/ReadModels/TerritoryPlanning/',
+              'tests/Contexts/GameWorld/KingdomMaps/', 'tests/Contexts/Operations/TerritoryPlanning/',
+              'tests/ReadModels/TerritoryPlanning/',
+          )
+          roots = {'tsconfig.json', 'phpunit.xml'}
+          removable = {
+              '.github/workflows/kingdom-map-development-source.yml',
+              '.github/workflows/kingdom-map-reviewed-preparation.yml',
+              '.github/kingdom-map-reviewed-slice.json',
+          }
+          names = set()
+          for file in files:
+              require(set(file) == {'path', 'old_sha', 'new_sha', 'mode'}, 'Invalid file contract')
+              path = file['path']
+              require(isinstance(path, str) and path and '\\' not in path and '\x00' not in path and not path.startswith('/') and '..' not in pathlib.PurePosixPath(path).parts, 'Unsafe path')
+              require(path not in names, 'Duplicate path')
+              names.add(path)
+              allowed = path.startswith(prefixes) or path in roots or (
+                  path.startswith('docs/product/kingdom-map-workspace') and path.endswith('.md')) or (
+                  path.startswith('scripts/check-territory-') and path.endswith('.mjs')) or (
+                  path.startswith('database/migrations/') and 'territory' in pathlib.PurePosixPath(path).name and path.endswith('.php')) or (
+                  path.startswith('lang/') and pathlib.PurePosixPath(path).name == 'territory.php') or (
+                  path in removable and file['new_sha'] is None)
+              require(allowed, 'Path is outside reviewed Kingdom Map owner boundaries: ' + path)
+              require(file['mode'] in ('100644', '100755'), 'Non-regular file mode')
+              for key in ('old_sha', 'new_sha'):
+                  require(file[key] is None or re.fullmatch('[0-9a-f]{40}', file[key]), 'Invalid blob identity')
+              current = git('ls-tree', 'HEAD', '--', path)
+              old_sha = current.split()[2] if current else None
+              require(old_sha == file['old_sha'], 'Source blob changed: ' + path)
+          compressed = base64.b64decode(manifest['patch_gzip_base64'], validate=True)
+          require(len(compressed) <= 3_000_000, 'Compressed patch limit')
+          with gzip.GzipFile(fileobj=io.BytesIO(compressed)) as stream:
+              patch = stream.read(16_000_001)
+          require(len(patch) <= 16_000_000, 'Expanded patch limit')
+          require(hashlib.sha256(patch).hexdigest() == manifest['patch_sha256'], 'Patch digest mismatch')
+          subprocess.run(['git', 'apply', '--check', '--binary', '-'], input=patch, check=True)
+          subprocess.run(['git', 'apply', '--index', '--binary', '-'], input=patch, check=True)
+          changed = set(git('diff', '--cached', '--name-only', '-z', binary=True).decode().rstrip('\x00').split('\x00'))
+          require(changed == names, 'Patch paths differ from reviewed manifest')
+          tree_entries = []
+          for file in files:
+              path = file['path']
+              indexed = git('ls-files', '--stage', '--', path)
+              new_sha = indexed.split()[1] if indexed else None
+              require(new_sha == file['new_sha'], 'Resulting blob differs from reviewed contents: ' + path)
+              if new_sha is not None:
+                  require(indexed.split()[0] == file['mode'], 'Resulting mode differs')
+                  content = git('show', ':' + path, binary=True)
+                  blob = api('git/blobs', {'content': base64.b64encode(content).decode(), 'encoding': 'base64'})
+                  require(blob['sha'] == new_sha, 'Remote blob identity mismatch')
+              tree_entries.append({'path': path, 'mode': file['mode'], 'type': 'blob', 'sha': new_sha})
+          tree = api('git/trees', {'base_tree': git('rev-parse', 'HEAD^{tree}'), 'tree': tree_entries})
+          require(tree['sha'] == git('write-tree'), 'Remote tree identity mismatch')
+          commit = api('git/commits', {'message': manifest['message'], 'tree': tree['sha'], 'parents': [head]})
+          receipt = {'candidate_sha': commit['sha'], 'parent_sha': head, 'tree_sha': tree['sha'],
+                     'patch_sha256': manifest['patch_sha256'], 'files': files,
+                     'ref_updated': False, 'verification_executed': False}
+          out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'kingdom-map-reviewed'
+          out.mkdir()
+          (out / 'candidate.json').write_text(json.dumps(receipt, indent=2) + '\n')
+          print(json.dumps(receipt))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('Prepared candidate `' + commit['sha'] + '` from `' + head + '`.\n\nNo ref writes, tests, merges or deployments were performed.\n')
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: kingdom-map-reviewed-candidate
+          path: ${{ runner.temp }}/kingdom-map-reviewed
+          retention-days: 1
+          if-no-files-found: error

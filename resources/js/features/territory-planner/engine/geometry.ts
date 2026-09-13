@@ -1,3 +1,4 @@
+import { spatialCollisionCodes } from './spatial.ts';
 import type {
   AllianceAnalysis,
   MapData,
@@ -10,27 +11,33 @@ import type {
 type Rect = { x: number; y: number; width: number; height: number };
 type CoverageSource = { key: string; type: PlanObject['type']; rect: Rect };
 
-function rectFor(object: PlanObject, map: MapData): Rect | null {
+export function rectFor(object: PlanObject, map: MapData): Rect | null {
   const definition = map.object_types[object.type];
   if (!definition || definition.footprint.width < 1 || definition.footprint.height < 1) return null;
+  const swap = object.rotation === 90 || object.rotation === 270;
   return {
     x: object.x,
     y: object.y,
-    width: definition.footprint.width,
-    height: definition.footprint.height,
+    width: swap ? definition.footprint.height : definition.footprint.width,
+    height: swap ? definition.footprint.width : definition.footprint.height,
   };
 }
 
-function coverageRect(object: PlanObject, map: MapData): Rect | null {
+export function coverageRect(object: PlanObject, map: MapData): Rect | null {
   const definition = map.object_types[object.type];
   if (!definition?.coverage) return null;
-  const offsetX = Math.trunc((definition.coverage.width - definition.footprint.width) / 2);
-  const offsetY = Math.trunc((definition.coverage.height - definition.footprint.height) / 2);
+  const swap = object.rotation === 90 || object.rotation === 270;
+  const width = swap ? definition.coverage.height : definition.coverage.width;
+  const height = swap ? definition.coverage.width : definition.coverage.height;
+  const footprint = rectFor(object, map);
+  if (!footprint) return null;
+  const offsetX = Math.trunc((width - footprint.width) / 2);
+  const offsetY = Math.trunc((height - footprint.height) / 2);
   return {
     x: object.x - offsetX,
     y: object.y - offsetY,
-    width: definition.coverage.width,
-    height: definition.coverage.height,
+    width,
+    height,
   };
 }
 
@@ -69,6 +76,31 @@ export function coveredRatio(target: Rect, territory: Rect[]): number {
     }
   }
   return covered / area;
+}
+
+/** Exact union area; complexity depends on source count, never world cell count. */
+export function unionArea(rectangles: Rect[]): number {
+  const edges = [...new Set(rectangles.flatMap((rect) => [rect.x, rect.x + rect.width]))].sort(
+    (a, b) => a - b,
+  );
+  let area = 0;
+  for (let index = 1; index < edges.length; index += 1) {
+    const start = edges[index - 1];
+    const end = edges[index];
+    if (start === undefined || end === undefined) continue;
+    const intervals = rectangles
+      .filter((rect) => rect.x < end && rect.x + rect.width > start)
+      .map((rect) => [rect.y, rect.y + rect.height] as const)
+      .sort((a, b) => a[0] - b[0]);
+    let previous: number | null = null;
+    let length = 0;
+    for (const [from, to] of intervals) {
+      length += Math.max(0, to - Math.max(from, previous ?? from));
+      previous = Math.max(previous ?? to, to);
+    }
+    area += (end - start) * length;
+  }
+  return area;
 }
 
 export function allianceResourceMinimumRatio(map: MapData): number {
@@ -128,10 +160,6 @@ function coverageComponents(rectangles: Rect[]): number[][] {
   return components;
 }
 
-function coverageComponentCount(sources: CoverageSource[]): number {
-  return coverageComponents(sources.map((source) => source.rect)).length;
-}
-
 function selectedTrap(
   allianceKey: string,
   traps: PlanObject[],
@@ -171,6 +199,12 @@ export function validatePlacement(
   const bounds = map.bounds;
 
   for (const object of objects) {
+    if (![0, 90, 180, 270].includes(object.rotation ?? 0)) {
+      violations.push(
+        issue('invalid_rotation', 'Rotation must be 0, 90, 180, or 270 degrees.', object.key),
+      );
+      continue;
+    }
     const rect = rectFor(object, map);
     if (!rect) {
       violations.push(
@@ -201,6 +235,18 @@ export function validatePlacement(
         issue('map_bounds', 'The object footprint must stay inside the Kingdom map.', object.key),
       );
       continue;
+    }
+
+    for (const code of spatialCollisionCodes(map, rect)) {
+      violations.push(
+        issue(
+          code,
+          code === 'terrain_collision'
+            ? 'The object overlaps a materialized lake or mountain cell.'
+            : 'The object overlaps a materialized resource footprint.',
+          object.key,
+        ),
+      );
     }
 
     for (const structure of map.structures) {
@@ -443,7 +489,34 @@ export function analyzeLayout(
       return target !== null && coveredRatio(target, territory) >= 1 - 1e-9;
     }).length;
 
-    const components = coverageComponentCount(sources);
+    const members = coverageComponents(territory);
+    const components = members.length;
+    const anchored = members.filter((indices) =>
+      indices.some((index) => sources[index]?.type === 'headquarters'),
+    ).length;
+    const territoryArea = unionArea(territory);
+    const hqTerritory = sources
+      .filter((source) => source.type === 'headquarters')
+      .map((source) => source.rect);
+    const redundantBanners = sources.filter(
+      (source, index) =>
+        source.type === 'banner' &&
+        coveredRatio(
+          source.rect,
+          territory.filter((_rect, other) => index !== other),
+        ) >=
+          1 - 1e-9,
+    ).length;
+    const cityRects = cities.flatMap((city) => {
+      const rect = rectFor(city, map);
+      return rect ? [rect] : [];
+    });
+    const densityArea = cityRects.length
+      ? (Math.max(...cityRects.map((rect) => rect.x + rect.width)) -
+          Math.min(...cityRects.map((rect) => rect.x))) *
+        (Math.max(...cityRects.map((rect) => rect.y + rect.height)) -
+          Math.min(...cityRects.map((rect) => rect.y)))
+      : null;
     const seconds = preferences.march_seconds_per_tile;
     const marches = cities.flatMap((city) => {
       const target = targetTrapForCity(city, traps, preferences);
@@ -470,6 +543,24 @@ export function analyzeLayout(
 
     result[allianceKey] = {
       counts,
+      algorithm_version: 'territory-analysis-v2',
+      territory_area_tiles: territoryArea,
+      hq_anchored_components: anchored,
+      disconnected_components: components - anchored,
+      useful_banner_area_tiles: territoryArea - unionArea(hqTerritory),
+      redundant_banner_count: redundantBanners,
+      hive_density_percent:
+        densityArea === null || densityArea < 1
+          ? null
+          : Math.round((10000 * unionArea(cityRects)) / densityArea) / 100,
+      density_bounds_area_tiles: densityArea,
+      assumptions: {
+        city_coverage: 'entire_footprint',
+        distance: 'euclidean_southwest_anchor',
+        march_time: 'user_calibration_no_pathfinding',
+        banner_efficiency: 'covered_cities_per_banner',
+        density: 'city_footprint_union_over_city_bounds',
+      },
       governor_cities: cities.length,
       covered_governor_cities: covered,
       uncovered_governor_cities: cities.length - covered,

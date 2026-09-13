@@ -201,6 +201,14 @@ final class KingdomMapSchemaV2Validator
         $this->nonNegativeCount($terrain['lakes'] ?? null, 'resource_layers.terrain.lakes');
         $this->nonNegativeCount($terrain['mountains'] ?? null, 'resource_layers.terrain.mountains');
         $this->provenance($terrain, $sources, 'resource_layers.terrain');
+        foreach (['resource_nodes' => $resourceNodes, 'terrain' => $terrain] as $key => $layer) {
+            if (! in_array($layer['data_state'] ?? null, ['authorized_source_corpus_reference', 'materialized'], true)) {
+                $this->fail('resource_layers.'.$key.'.data_state is unsupported.');
+            }
+            if (! is_bool($layer['placement_blocking'] ?? null)) {
+                $this->fail('resource_layers.'.$key.'.placement_blocking must be boolean.');
+            }
+        }
     }
 
     /** @param array<string,mixed> $data */

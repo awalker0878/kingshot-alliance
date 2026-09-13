@@ -1,0 +1,121 @@
+name: Kingdom Map exact spatial reconciliation
+
+# Temporary object-only transport. Correct exactly two diagnosed transfer typos,
+# then require the original reviewed patch digest and every reviewed Git blob.
+# This is not application compatibility or a relaxed verification gate.
+# Never executes supplied patch code or writes a branch ref. Remove before ready.
+on:
+  push:
+    branches: [astra/kingdom-map-workspace]
+    paths: [.github/workflows/kingdom-map-spatial-reconciliation.yml]
+permissions:
+  contents: write
+jobs:
+  prepare:
+    if: github.repository == 'awalker0878/kingshot-alliance' && github.actor == 'awalker0878'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 3
+          persist-credentials: false
+      - name: Reconstruct only exact reviewed blobs and a complete unreferenced commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import base64, gzip, hashlib, io, json, os, pathlib, re, subprocess
+          root = pathlib.Path.cwd()
+          def require(condition, message):
+              if not condition:
+                  raise RuntimeError(message)
+          def git(*args, raw=False, data=None):
+              value = subprocess.check_output(['git', *args], input=data)
+              return value if raw else value.decode().strip()
+          def api(endpoint, payload=None):
+              require(endpoint in {'git/blobs', 'git/trees', 'git/commits'} or re.fullmatch(r'git/blobs/[0-9a-f]{40}', endpoint), 'Only immutable Git object endpoints are permitted')
+              args = ['gh', 'api', 'repos/awalker0878/kingshot-alliance/' + endpoint]
+              if payload is not None:
+                  args += ['--method', 'POST', '--input', '-']
+              return json.loads(subprocess.check_output(args, input=json.dumps(payload).encode() if payload is not None else None))
+          head = git('rev-parse', 'HEAD')
+          require(head == os.environ['GITHUB_SHA'], 'Trigger identity mismatch')
+          require(git('rev-parse', 'HEAD^') == 'd0633040ab6ee252a51ffd7225ae40a056176f4e', 'Concurrent parent changed; explicit reconciliation required')
+          manifest_path = '.github/kingdom-map-reviewed-slice.json'
+          require(git('rev-parse', 'HEAD:' + manifest_path) == '933c982e2c9885522be2d9b3fa2944a1e37b3cf4', 'Transfer source identity changed')
+          manifest = json.loads((root / manifest_path).read_text())
+          require(set(manifest) == {'schema_version', 'base_sha', 'message', 'files', 'patch_sha256', 'patch_gzip_base64'}, 'Unexpected manifest keys')
+          require(manifest['schema_version'] == 1 and manifest['base_sha'] == '4449f26723df4343e646bd8c06b02c6623d78bf6', 'Reviewed baseline mismatch')
+          require(manifest['patch_sha256'] == '85a8fca7d9cd8e25e6022869ae528a1a9aa4ca6d3953b73ae04c34389e5cb950', 'Reviewed patch identity mismatch')
+          encoded = manifest['patch_gzip_base64']
+          fixes = [
+              ('hKjoazV59vAbazHazqK5dzdDyDsJPmQnoPQmyzJF7', 'hKjoazV59vAbazHazqK5zdDyDsJPmQnoPQmyzJF7'),
+              ('/N3351fPv/zaFhy+eP//eX0/7AQ9bZbFdZYXR3EN', '/N3351fPv/zaFhy+eP//+eX0/7AQ9bZbFdZYXR3EN'),
+          ]
+          for old, new in fixes:
+              require(encoded.count(old) == 1, 'Diagnosed transfer location changed')
+              encoded = encoded.replace(old, new)
+          require(len(encoded) == 35056, 'Transfer size mismatch')
+          with gzip.GzipFile(fileobj=io.BytesIO(base64.b64decode(encoded, validate=True))) as stream:
+              patch = stream.read(138513)
+          require(len(patch) == 138512 and hashlib.sha256(patch).hexdigest() == manifest['patch_sha256'], 'Original patch integrity gate failed')
+          prefixes = ('app/Contexts/GameWorld/KingdomMaps/', 'resources/js/features/territory-planner/engine/', 'tests/Contexts/GameWorld/KingdomMaps/')
+          exact = {'tsconfig.json', 'docs/product/kingdom-map-workspace-spatial-evidence.md', 'resources/data/kingdom-maps/kingshot-spatial-complete-v2-r1.json', 'tests/Contexts/Operations/TerritoryPlanning/Unit/TerritoryHiveGenerationTest.php'}
+          names = set()
+          require(len(manifest['files']) == 19, 'Unexpected reviewed file count')
+          for file in manifest['files']:
+              require(set(file) == {'path', 'old_sha', 'new_sha', 'mode'}, 'Invalid file contract')
+              path = file['path']
+              require(isinstance(path, str) and '\\' not in path and '\x00' not in path and not path.startswith('/') and '..' not in pathlib.PurePosixPath(path).parts, 'Unsafe path')
+              require(path.startswith(prefixes) or path in exact, 'Unowned file')
+              require(path not in names and file['mode'] == '100644' and re.fullmatch('[0-9a-f]{40}', file['new_sha']), 'Invalid path, mode or blob')
+              names.add(path)
+              current = git('ls-tree', 'HEAD', '--', path)
+              require((current.split()[2] if current else None) == file['old_sha'], 'Reviewed source blob changed: ' + path)
+          subprocess.run(['git', 'apply', '--check', '--binary', '-'], input=patch, check=True)
+          subprocess.run(['git', 'apply', '--index', '--binary', '-'], input=patch, check=True)
+          changed = set(git('diff', '--cached', '--name-only', '-z', raw=True).decode().rstrip('\x00').split('\x00'))
+          require(changed == names, 'Unreviewed patch paths')
+          entries = []
+          for file in manifest['files']:
+              indexed = git('ls-files', '--stage', '--', file['path']).split()
+              require(indexed[0] == file['mode'] and indexed[1] == file['new_sha'], 'Result differs from reviewed local blob')
+              content = git('show', ':' + file['path'], raw=True)
+              blob = api('git/blobs', {'content': base64.b64encode(content).decode(), 'encoding': 'base64'})
+              require(blob['sha'] == file['new_sha'], 'Remote blob mismatch')
+              entries.append({'path': file['path'], 'mode': file['mode'], 'type': 'blob', 'sha': blob['sha']})
+          artifacts = [
+              ('kingshot-terrain-2026-09-13.json', 'fc9627268eafee889d98a30d281a8a7c1c3e76d1', '877cdfb1901251783914d6ae4a1610e59f2adf3510107eaace3958e57dcfcfc1'),
+              ('kingshot-resources-2026-09-13.json', 'c379db11c36051f0d48b16b00354f674cb22b48f', '279977c38ffbbf7ff0fa6530098d512c0a49869a45f3b043718eb421bf9156cd'),
+          ]
+          for name, blob_sha, digest in artifacts:
+              path = 'resources/data/kingdom-maps/artifacts/' + name
+              require(not git('ls-tree', 'HEAD', '--', path), 'Immutable artifact already exists')
+              blob = api('git/blobs/' + blob_sha)
+              require(blob['encoding'] == 'base64', 'Unsupported remote blob encoding')
+              raw = base64.b64decode(''.join(blob['content'].split()), validate=True)
+              require(len(raw) < 2_000_000 and hashlib.sha256(raw).hexdigest() == digest, 'Prepared artifact digest mismatch')
+              require(git('hash-object', '-w', '--stdin', data=raw) == blob_sha, 'Prepared artifact Git identity mismatch')
+              subprocess.run(['git', 'update-index', '--add', '--cacheinfo', '100644,' + blob_sha + ',' + path], check=True)
+              entries.append({'path': path, 'mode': '100644', 'type': 'blob', 'sha': blob_sha})
+          subprocess.run(['git', 'rm', '--cached', manifest_path], check=True)
+          entries.append({'path': manifest_path, 'mode': '100644', 'type': 'blob', 'sha': None})
+          tree = api('git/trees', {'base_tree': git('rev-parse', 'HEAD^{tree}'), 'tree': entries})
+          require(tree['sha'] == git('write-tree'), 'Complete remote tree mismatch')
+          message = 'KM-02/KM-04: release complete captured spatial facts and exact-cell placement\n\nPublish checksum-pinned 6499 resource nodes, 501 lakes and 1948 mountains without rewriting historical V2 releases. Retain three source-overlap diagnostics and unqualified ownership semantics. Hydrate strict artifacts with explicit availability; validate exact cells and resource footprints consistently in PHP and TypeScript.\n\nLocal verification: 44 PHP tests/592 assertions, 9 frontend tests, existing geometry parity, static analysis/types and isolated fresh PostgreSQL schema pass. Wider collaboration fixture errors and full artwork/UI/browser/performance/release gates remain open. No runtime compatibility paths; keep PR draft. Remove the failed temporary transfer manifest.'
+          commit = api('git/commits', {'message': message, 'tree': tree['sha'], 'parents': [head]})
+          out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'spatial-complete'
+          out.mkdir()
+          receipt = {'candidate_sha': commit['sha'], 'parent_sha': head, 'tree_sha': tree['sha'], 'patch_sha256': manifest['patch_sha256'], 'files': entries, 'ref_updated': False, 'application_verification_executed_here': False}
+          (out / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
+          print(json.dumps(receipt, indent=2))
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: kingdom-map-complete-spatial-candidate
+          path: ${{ runner.temp }}/spatial-complete
+          retention-days: 1
+          if-no-files-found: error

@@ -1,0 +1,41 @@
+name: Kingdom Map development source
+
+# Temporary read-only source transport for concurrent implementation and verification.
+# Remove before merge readiness. Never export environment, database or credentials.
+on:
+  push:
+    branches: [astra/kingdom-map-workspace]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kingdom-map-source-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source:
+    if: github.repository == 'awalker0878/kingshot-alliance'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Export exact tracked source
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/kingdom-map-source"
+          mkdir -p "$out"
+          git rev-parse HEAD > "$out/revision.txt"
+          git rev-parse 'HEAD^{tree}' > "$out/tree-sha.txt"
+          git bundle create "$out/source.bundle" HEAD
+          (cd "$out" && sha256sum source.bundle > SHA256SUMS)
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: kingdom-map-source
+          path: ${{ runner.temp }}/kingdom-map-source
+          retention-days: 1
+          if-no-files-found: error

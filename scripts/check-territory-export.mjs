@@ -91,10 +91,15 @@ assert.match(svg, /role="img"/);
 assert.match(svg, /Plan &lt;Alpha&gt; &amp; &quot;Bravo&quot;/);
 assert.match(svg, /A &amp; B &lt;Guard&gt;/);
 assert.match(svg, /Map: Observed &amp; reviewed/);
-assert.match(svg, /observed 2026-08-22/);
+// Metadata wraps visually; assert its rendered reading order rather than one text node.
+const renderedText = svg.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+assert.match(renderedText, /observed 2026-08-22/);
 assert.match(svg, /community_observed/);
-assert.match(svg, /coordinates are planning data, not an official Century Games map claim/);
+assert.match(
+  renderedText,
+  /coordinates are planning data, not an official Century Games map claim/,
+);
 assert.match(svg, /x="20"/);
 assert.doesNotMatch(svg, /x="80" y="17"/);
 
-console.log('Territory SVG/PNG source contract passed.');
+console.log('Territory SVG source contract passed; browser PNG execution is a separate gate.');

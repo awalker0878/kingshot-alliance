@@ -110,6 +110,7 @@ final class TerritoryStableKeyBehaviorV3Test extends TestCase
             $actor->playerId,
             $created->planId,
             $resaved->revision,
+            (string) $resaved->layoutChecksum,
         );
         $revision = TerritoryPlanRevision::query()->findOrFail($published->publishedRevisionId);
         $snapshot = $revision->snapshot;

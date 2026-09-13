@@ -68,6 +68,7 @@ final class TerritoryEventRevisionIntegrationV3Test extends TestCase
             $actor->playerId,
             $created->planId,
             $saved->revision,
+            (string) $saved->layoutChecksum,
         );
         self::assertNotNull($firstPublished->publishedRevisionId);
 
@@ -100,6 +101,7 @@ final class TerritoryEventRevisionIntegrationV3Test extends TestCase
             $actor->playerId,
             $created->planId,
             $resaved->revision,
+            (string) $resaved->layoutChecksum,
         );
         self::assertNotNull($secondPublished->publishedRevisionId);
         $replacedLinkId = app(AttachTerritoryPlanRevisionToEvent::class)->handle(

@@ -301,6 +301,7 @@ final class TerritoryReconciliationBoundariesV3Test extends TestCase
             $actor->playerId,
             $created->planId,
             $saved->revision,
+            (string) $saved->layoutChecksum,
         );
         self::assertNotNull($published->publishedRevisionId);
 

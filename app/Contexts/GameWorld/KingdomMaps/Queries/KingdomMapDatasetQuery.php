@@ -94,6 +94,11 @@ final class KingdomMapDatasetQuery
         }
 
         $data = $this->artifacts->hydrate($data);
+        foreach ($data['layer_availability'] as &$availability) {
+            $availability['release_id'] = $id;
+            $availability['release_checksum'] = hash('sha256', $raw);
+        }
+        unset($availability);
 
         $primarySourceUri = null;
         $primarySourceId = $data['primary_source_id'] ?? null;

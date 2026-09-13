@@ -10,7 +10,10 @@ use App\Contexts\GameWorld\KingdomMaps\ValueObjects\Rectangle;
 
 final class PlacementValidator
 {
-    public function __construct(private readonly TerritoryCoverageGeometry $coverageGeometry) {}
+    public function __construct(
+        private readonly TerritoryCoverageGeometry $coverageGeometry,
+        private readonly KingdomMapSpatialPlacementIndex $spatialIndex,
+    ) {}
 
     /**
      * @param  list<array{key: string, type: string, x: int, y: int, alliance_key: string}>  $objects
@@ -28,6 +31,11 @@ final class PlacementValidator
         $countsByAlliance = [];
 
         foreach ($objects as $object) {
+            if (! in_array($object['rotation'] ?? 0, [0, 90, 180, 270], true)) {
+                $violations[] = $this->issue('invalid_rotation', 'Rotation must be 0, 90, 180, or 270 degrees.', $object['key']);
+
+                continue;
+            }
             $definition = $dataset->objectDefinition($object['type']);
             if ($definition === []) {
                 $violations[] = $this->issue('unknown_object_type', 'This object type is not supported by the selected map dataset.', $object['key']);
@@ -35,7 +43,7 @@ final class PlacementValidator
                 continue;
             }
 
-            $rect = $this->coverageGeometry->footprint($dataset, $object['type'], $object['x'], $object['y']);
+            $rect = $this->coverageGeometry->footprint($dataset, $object['type'], $object['x'], $object['y'], $object['rotation'] ?? 0);
             if (! $rect instanceof Rectangle || $rect->area() < 1) {
                 $violations[] = $this->issue('invalid_object_footprint', 'The selected map dataset has no valid footprint for this object.', $object['key']);
 
@@ -58,6 +66,16 @@ final class PlacementValidator
                 $violations[] = $this->issue('map_bounds', 'The object footprint must stay inside the Kingdom map.', $object['key']);
 
                 continue;
+            }
+
+            foreach ($this->spatialIndex->intersections($dataset, $rect) as $code) {
+                $violations[] = $this->issue(
+                    $code,
+                    $code === 'terrain_collision'
+                        ? 'The object overlaps a materialized lake or mountain cell.'
+                        : 'The object overlaps a materialized resource footprint.',
+                    $object['key'],
+                );
             }
 
             foreach ($data['structures'] as $structure) {
@@ -190,7 +208,7 @@ final class PlacementValidator
 
             $coverageSources = [];
             foreach ($scopedObjects as $object) {
-                $coverage = $this->coverageGeometry->coverage($dataset, $object['type'], $object['x'], $object['y']);
+                $coverage = $this->coverageGeometry->coverage($dataset, $object['type'], $object['x'], $object['y'], $object['rotation'] ?? 0);
                 if (! $coverage instanceof Rectangle) {
                     continue;
                 }
