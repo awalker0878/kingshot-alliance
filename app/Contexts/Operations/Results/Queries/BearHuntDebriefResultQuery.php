@@ -21,6 +21,11 @@ final readonly class BearHuntDebriefResultQuery
 {
     public function __construct(private PlayerReferenceQuery $players, private ScopedCursorCodec $cursors) {}
 
+    public function availableForOccurrence(string $occurrenceId): bool
+    {
+        return EventPlayerResult::query()->where('occurrence_id', $occurrenceId)->whereNotNull('score')->exists();
+    }
+
     /**
      * Facts for a currently authorized occurrence. Damage uses projected scores,
      * including preserved manual baselines; it never re-sums accepted OCR rows.

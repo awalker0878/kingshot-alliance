@@ -62,6 +62,9 @@ test('Bear Hunt Debrief remains readable and complete on desktop and mobile', as
   await expect(page.getByRole('heading', { name: 'Bear Hunt Debrief', level: 1 })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Your Hunt' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Governor leaderboard' })).toBeVisible();
+  await expect(
+    page.getByText('No Governor damage has been recorded for this Hunt yet.'),
+  ).toHaveCount(0);
   await expect(page.getByRole('heading', { name: /Governors need matching/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Recent Bear Hunt trends' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Bear Hunt run history' })).toBeVisible();

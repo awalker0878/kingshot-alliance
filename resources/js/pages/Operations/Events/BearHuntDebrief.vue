@@ -504,7 +504,9 @@ function direction(value: Debrief['signals']['personalDamage']): string {
             :occurrence="null"
             :only="['debrief']"
           />
-          <p v-else class="mt-4 text-sm text-[var(--ks-muted)]">{{ t('debrief.noResults') }}</p>
+          <p v-if="!debrief.governors.length" class="mt-4 text-sm text-[var(--ks-muted)]">
+            {{ t('debrief.noResults') }}
+          </p>
         </section>
 
         <section

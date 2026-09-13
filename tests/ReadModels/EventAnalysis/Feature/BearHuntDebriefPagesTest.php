@@ -78,17 +78,18 @@ final class BearHuntDebriefPagesTest extends TestCase
     public function test_large_results_attendance_and_rallies_compose_exact_summaries_without_history_hydration(): void
     {
         $ids = $this->seedResults(1001);
-        $attendance = $assignments = [];
-        $group = strtolower((string) Str::ulid());
-        DB::table('rally_groups')->insert(['id' => $group, 'occurrence_id' => $this->occurrence->id,
-            'alliance_id' => $this->allianceId, 'name' => 'Retained Rally']);
+        $attendance = $assignments = $groups = [];
         foreach ($ids as $i => $id) {
+            $group = strtolower((string) Str::ulid());
+            $groups[] = ['id' => $group, 'occurrence_id' => $this->occurrence->id,
+                'alliance_id' => $this->allianceId, 'name' => 'Retained Rally '.$i];
             $attendance[] = ['id' => strtolower((string) Str::ulid()), 'occurrence_id' => $this->occurrence->id,
-                'player_id' => $id, 'status' => ['present', 'absent', 'excused', 'unknown'][$i % 4], 'recorded_at' => now()];
+                'player_id' => $id, 'status' => ['present', 'absent', 'excused', 'unknown'][$i % 4], 'recorded_by_player_id' => $this->actor->playerId, 'recorded_at' => now()];
             $assignments[] = ['id' => strtolower((string) Str::ulid()), 'rally_group_id' => $group,
                 'player_id' => $id, 'role' => $i % 3 === 0 ? 'lead' : 'joiner',
-                'status' => $i % 2 === 0 ? 'participated' : 'absent', 'assigned_at' => now(), 'recorded_at' => now()];
+                'status' => $i % 2 === 0 ? 'participated' : 'absent', 'assigned_by_player_id' => $this->actor->playerId, 'assigned_at' => now(), 'recorded_at' => now()];
         }
+        DB::table('rally_groups')->insert($groups);
         DB::table('event_attendance')->insert($attendance);
         DB::table('rally_assignments')->insert($assignments);
         $results = $attendanceRows = $rallyRows = 0;
@@ -101,6 +102,12 @@ final class BearHuntDebriefPagesTest extends TestCase
         RallyAssignment::retrieved(static function () use (&$rallyRows): void {
             $rallyRows++;
         });
+        DB::enableQueryLog();
+        DB::flushQueryLog();
+        self::assertTrue(app(BearHuntDebriefResultQuery::class)->availableForOccurrence((string) $this->occurrence->id));
+        self::assertCount(1, DB::getQueryLog());
+        DB::disableQueryLog();
+        self::assertSame(0, $results);
         $debrief = app(BearHuntDebriefQuery::class)->forOccurrence($this->occurrence, $this->actor, false);
         self::assertCount(25, $debrief['governors']);
         self::assertSame(1001, $debrief['summary']['governorCount']);

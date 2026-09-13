@@ -9,15 +9,13 @@ use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Participation\Enums\EventAttendanceStatus;
 use App\Contexts\Operations\Participation\Enums\EventRegistrationStatus;
-use App\Contexts\Operations\Participation\Models\EventAttendance;
-use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Contexts\Operations\Participation\Queries\EventEligiblePlayerQuery;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentStatus;
-use App\Contexts\Operations\Rallies\Models\RallyAssignment;
-use App\Contexts\Operations\Results\Models\EventPlayerResult;
+use App\Contexts\Operations\Results\Services\ResultScoreTotal;
 use App\Contexts\Operations\Rosters\Enums\EventRosterMemberStatus;
-use App\Contexts\Operations\Rosters\Models\EventRosterMember;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 final readonly class EventPlayerIntelligenceQuery
 {
@@ -46,8 +44,8 @@ final readonly class EventPlayerIntelligenceQuery
         )[$player->playerId];
     }
 
-    /** @return Collection<int,string> */
-    private function historicalOccurrenceIds(Event $event, bool $comparableScoresOnly = false): Collection
+    /** @return Builder<EventOccurrence> */
+    private function historicalOccurrenceIds(Event $event, bool $comparableScoresOnly = false): Builder
     {
         $eventIds = Event::query()
             ->where('scope', $event->scope->value)
@@ -55,105 +53,68 @@ final readonly class EventPlayerIntelligenceQuery
             ->when($event->alliance_id !== null, static fn ($q) => $q->where('alliance_id', $event->alliance_id))
             ->when($event->kingdom_id !== null, static fn ($q) => $q->where('kingdom_id', $event->kingdom_id))
             ->when($comparableScoresOnly, static fn ($q) => $q->where('event_type_scope_id', $event->event_type_scope_id))
-            ->pluck('id');
+            ->select('id');
 
-        return EventOccurrence::query()
-            ->whereIn('event_id', $eventIds)
-            ->where('ends_at', '<=', now())
-            ->pluck('id')
-            ->map(static fn ($id): string => (string) $id);
+        return EventOccurrence::query()->select('id')
+            ->whereIn('event_id', $eventIds)->where('ends_at', '<=', now());
     }
 
     /**
      * @param  Collection<int,PlayerReference>  $players
-     * @param  Collection<int,string>  $occurrenceIds
-     * @param  Collection<int,string>  $scoreOccurrenceIds
+     * @param  Builder<EventOccurrence>  $occurrenceIds
+     * @param  Builder<EventOccurrence>  $scoreOccurrenceIds
      * @return array<string,array<string,mixed>>
      */
-    private function calculate(Collection $players, Collection $occurrenceIds, Collection $scoreOccurrenceIds): array
+    private function calculate(Collection $players, Builder $occurrenceIds, Builder $scoreOccurrenceIds): array
     {
         $result = [];
         foreach ($players as $player) {
             $result[$player->playerId] = $this->empty($player);
         }
-        if ($players->isEmpty() || $occurrenceIds->isEmpty()) {
+        if ($players->isEmpty()) {
             return $result;
         }
 
-        $playerIds = $players->pluck('playerId')->map(static fn ($id): string => (string) $id);
-        $registrations = EventRegistration::query()
-            ->whereIn('player_id', $playerIds)
-            ->whereIn('occurrence_id', $occurrenceIds)
-            ->where('status', EventRegistrationStatus::Registered->value)
-            ->get(['player_id', 'occurrence_id'])
-            ->groupBy('player_id');
-        $rosters = EventRosterMember::query()
-            ->whereIn('player_id', $playerIds)
-            ->whereIn('status', [EventRosterMemberStatus::Confirmed->value, EventRosterMemberStatus::Participated->value, EventRosterMemberStatus::Absent->value])
-            ->whereHas('roster', static fn ($q) => $q->whereIn('occurrence_id', $occurrenceIds))
-            ->with('roster:id,occurrence_id')
-            ->get()
-            ->groupBy('player_id');
-        $rallies = RallyAssignment::query()
-            ->whereIn('player_id', $playerIds)
-            ->whereIn('status', [RallyAssignmentStatus::Confirmed->value, RallyAssignmentStatus::Participated->value, RallyAssignmentStatus::Absent->value])
-            ->whereHas('rallyGroup', static fn ($q) => $q->whereIn('occurrence_id', $occurrenceIds))
-            ->with('rallyGroup:id,occurrence_id')
-            ->get()
-            ->groupBy('player_id');
-        $attendance = EventAttendance::query()
-            ->whereIn('player_id', $playerIds)
-            ->whereIn('occurrence_id', $occurrenceIds)
-            ->get()
-            ->groupBy('player_id');
-        $scores = EventPlayerResult::query()
-            ->whereIn('player_id', $playerIds)
-            ->whereIn('occurrence_id', $scoreOccurrenceIds)
-            ->whereNotNull('score')
-            ->orderByDesc('recorded_at')
-            ->get(['player_id', 'score', 'recorded_at'])
-            ->groupBy('player_id');
-
+        $playerIds = $players->pluck('playerId')->all();
+        $registrations = DB::table('event_registrations')->whereIn('player_id', $playerIds)
+            ->whereIn('occurrence_id', clone $occurrenceIds)->where('status', EventRegistrationStatus::Registered->value)
+            ->selectRaw('player_id, occurrence_id, 1 AS committed, 0 AS completed, 0 AS absent, 0 AS excused');
+        $rosters = DB::table('event_roster_members as member')->join('event_rosters as roster', 'roster.id', '=', 'member.roster_id')
+            ->whereIn('member.player_id', $playerIds)->whereIn('roster.occurrence_id', clone $occurrenceIds)
+            ->whereIn('member.status', [EventRosterMemberStatus::Confirmed->value, EventRosterMemberStatus::Participated->value, EventRosterMemberStatus::Absent->value])
+            ->selectRaw('member.player_id, roster.occurrence_id, 1 AS committed, CASE WHEN member.status = ? THEN 1 ELSE 0 END AS completed, CASE WHEN member.status = ? THEN 1 ELSE 0 END AS absent, 0 AS excused', [EventRosterMemberStatus::Participated->value, EventRosterMemberStatus::Absent->value]);
+        $rallies = DB::table('rally_assignments as assignment')->join('rally_groups as rally', 'rally.id', '=', 'assignment.rally_group_id')
+            ->whereIn('assignment.player_id', $playerIds)->whereIn('rally.occurrence_id', clone $occurrenceIds)
+            ->whereIn('assignment.status', [RallyAssignmentStatus::Confirmed->value, RallyAssignmentStatus::Participated->value, RallyAssignmentStatus::Absent->value])
+            ->selectRaw('assignment.player_id, rally.occurrence_id, 1 AS committed, CASE WHEN assignment.status = ? THEN 1 ELSE 0 END AS completed, CASE WHEN assignment.status = ? THEN 1 ELSE 0 END AS absent, 0 AS excused', [RallyAssignmentStatus::Participated->value, RallyAssignmentStatus::Absent->value]);
+        $attendance = DB::table('event_attendance')->whereIn('player_id', $playerIds)->whereIn('occurrence_id', clone $occurrenceIds)
+            ->selectRaw('player_id, occurrence_id, 0 AS committed, CASE WHEN status = ? THEN 1 ELSE 0 END AS completed, CASE WHEN status = ? THEN 1 ELSE 0 END AS absent, CASE WHEN status = ? THEN 1 ELSE 0 END AS excused', [EventAttendanceStatus::Present->value, EventAttendanceStatus::Absent->value, EventAttendanceStatus::Excused->value]);
+        // One fact per Governor/occurrence preserves set union and resolution priority.
+        $facts = DB::query()->fromSub($registrations->unionAll($rosters)->unionAll($rallies)->unionAll($attendance), 'fact')
+            ->selectRaw('player_id, occurrence_id, MAX(committed) AS committed, MAX(completed) AS completed, MAX(absent) AS absent, MAX(excused) AS excused')
+            ->groupBy('player_id', 'occurrence_id');
+        $counts = DB::query()->fromSub($facts, 'resolved')->selectRaw('player_id, SUM(committed) AS commitments, SUM(completed) AS completed, SUM(CASE WHEN completed = 0 AND excused = 1 THEN 1 ELSE 0 END) AS excused, SUM(CASE WHEN completed = 0 AND excused = 0 AND absent = 1 THEN 1 ELSE 0 END) AS absent, SUM(CASE WHEN committed = 1 AND completed = 0 AND excused = 0 AND absent = 0 THEN 1 ELSE 0 END) AS unresolved')
+            ->groupBy('player_id')->get()->keyBy('player_id');
+        $scoreQuery = DB::table('event_player_results')->whereIn('player_id', $playerIds)
+            ->whereIn('occurrence_id', $scoreOccurrenceIds)->whereNotNull('score');
+        $scores = (clone $scoreQuery)->selectRaw('player_id, COUNT(*) AS result_count, ROUND(AVG(score)) AS average_score, MAX(score) AS best_score')
+            ->groupBy('player_id')->get()->keyBy('player_id');
+        $latest = $scoreQuery->selectRaw('DISTINCT ON (player_id) player_id, score')->orderBy('player_id')
+            ->orderByDesc('recorded_at')->orderByDesc('id')->get()->keyBy('player_id');
         foreach ($players as $player) {
             $id = $player->playerId;
-            $playerRegistrations = $registrations->get($id, collect());
-            $playerRosters = $rosters->get($id, collect());
-            $playerRallies = $rallies->get($id, collect());
-            $playerAttendance = $attendance->get($id, collect());
-
-            $committed = $playerRegistrations->pluck('occurrence_id')->map(static fn ($id): string => (string) $id)
-                ->merge($playerRosters->pluck('roster.occurrence_id')->filter()->map(static fn ($id): string => (string) $id))
-                ->merge($playerRallies->pluck('rallyGroup.occurrence_id')->filter()->map(static fn ($id): string => (string) $id))
-                ->unique();
-            $completed = $playerAttendance->where('status', EventAttendanceStatus::Present)->pluck('occurrence_id')->map(static fn ($id): string => (string) $id)
-                ->merge($playerRosters->where('status', EventRosterMemberStatus::Participated)->pluck('roster.occurrence_id')->filter()->map(static fn ($id): string => (string) $id))
-                ->merge($playerRallies->where('status', RallyAssignmentStatus::Participated)->pluck('rallyGroup.occurrence_id')->filter()->map(static fn ($id): string => (string) $id))
-                ->unique();
-            $excused = $playerAttendance->where('status', EventAttendanceStatus::Excused)->pluck('occurrence_id')->map(static fn ($id): string => (string) $id)->unique()->diff($completed);
-            $missed = $playerAttendance->where('status', EventAttendanceStatus::Absent)->pluck('occurrence_id')->map(static fn ($id): string => (string) $id)
-                ->merge($playerRosters->where('status', EventRosterMemberStatus::Absent)->pluck('roster.occurrence_id')->filter()->map(static fn ($id): string => (string) $id))
-                ->merge($playerRallies->where('status', RallyAssignmentStatus::Absent)->pluck('rallyGroup.occurrence_id')->filter()->map(static fn ($id): string => (string) $id))
-                ->unique()->diff($completed)->diff($excused);
-            $resolved = $completed->merge($missed)->merge($excused)->unique();
-            $unresolved = $committed->diff($resolved)->unique();
-            $denominator = $completed->count() + $missed->count();
-            $playerScores = $scores->get($id, collect())->pluck('score')->map(static fn ($score): int => (int) $score);
-            $averageScore = $playerScores->avg();
-
-            $result[$id] = [
-                'playerId' => $id,
-                'playerName' => $player->currentName,
-                'commitments' => $committed->count(),
-                'completed' => $completed->count(),
-                'absent' => $missed->count(),
-                'excused' => $excused->count(),
-                'unresolved' => $unresolved->count(),
-                'reliabilityPercent' => $denominator === 0 ? null : round(($completed->count() / $denominator) * 100, 1),
-                'resultCount' => $playerScores->count(),
-                'averageScore' => $averageScore === null ? null : (int) round((float) $averageScore),
-                'bestScore' => $playerScores->isEmpty() ? null : (int) $playerScores->max(),
-                'latestScore' => $playerScores->first(),
-            ];
+            $row = $counts->get($id);
+            $completed = (int) ($row->completed ?? 0);
+            $absent = (int) ($row->absent ?? 0);
+            $score = $scores->get($id);
+            $result[$id] = ['playerId' => $id, 'playerName' => $player->currentName,
+                'commitments' => (int) ($row->commitments ?? 0), 'completed' => $completed,
+                'absent' => $absent, 'excused' => (int) ($row->excused ?? 0), 'unresolved' => (int) ($row->unresolved ?? 0),
+                'reliabilityPercent' => $completed + $absent === 0 ? null : round(($completed / ($completed + $absent)) * 100, 1),
+                'resultCount' => (int) ($score->result_count ?? 0),
+                'averageScore' => ResultScoreTotal::fromDatabase($score->average_score ?? null),
+                'bestScore' => ResultScoreTotal::fromDatabase($score->best_score ?? null),
+                'latestScore' => ResultScoreTotal::fromDatabase($latest->get($id)->score ?? null)];
         }
 
         return $result;

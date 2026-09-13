@@ -64,3 +64,5 @@ Those mutation paths retain their existing authority revalidation, audit/outbox 
 ## Result pages and numeric precision
 
 Results exposes 25 ranked Governors with an exact total and current-authorized scoped continuation. Personal facts remain independent of the displayed page. Participation/Rallies supply SQL aggregates plus only the requested page/current Governor's details; historical facts are grouped in SQL. Scores and signed deltas outside JavaScript's safe integer range cross JSON as exact decimal strings, formatted with BigInt. See [ADR-0078](adr/0078-bounded-debrief-and-exact-score-projections.md) for bounds, absence semantics and approximate chart/percentage display limits. The unmatched-Evidence queue's nested hydration remains separately open under HARD-138.
+
+Event Player Intelligence retained-history aggregation is independently described in [ADR-0079](adr/0079-event-player-intelligence-history-aggregates.md). Debrief availability uses an owner existence query rather than materializing a Governor page.

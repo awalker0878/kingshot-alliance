@@ -4,12 +4,12 @@ import type { Locator, Page } from '@playwright/test';
 
 const fingerprints: Record<string, Record<'closeout' | 'ready', string>> = {
   desktop: {
-    closeout: 'b723f20dd1a1b976eb270bc05d672673ae11145173c2ecb7562faeea656b458d',
-    ready: 'fd61a9f060a3e2f91d11b3009fc9b21ab6e7debfad24781c795f212d6abc447c',
+    closeout: 'f68b65a20aa9baec1a15e336a56aa21d1e34ccf74a52905f638a50a4e44cb46e',
+    ready: '01a618dd1798c3de4ab42b3f0638540e976d4a53179b626a02be20dc6b96408a',
   },
   mobile: {
-    closeout: '4c76b2ad60cf989492101f7d7ef673870f932b691a6cbb79ef8d26b0c7a4668d',
-    ready: 'c6fe2044fed60b5a74e76b614ee7cee683f9654fd0b7df691613584cc55aabc7',
+    closeout: 'c8a8ca4cb35a5e74af0528da60fcff2eb2c6f61e6fd1db041d342371ecf3c723',
+    ready: 'd51ac48f33cee8b8c2c6d80da51308659669ae162502de563d0c2ba6ef74ab82',
   },
 };
 
@@ -103,38 +103,6 @@ test('Event Command keeps closeout and readiness visible without responsive over
   expect(overflow).toBeFalsy();
 
   const readyHash = await fingerprint(refreshed);
-  // Temporary diagnostic: isolate whether the rounded card capture includes a
-  // document-height-dependent page backdrop after selected-occurrence composition.
-  if (readyHash !== fingerprints[testInfo.project.name].ready) {
-    const box = await refreshed.boundingBox();
-    if (!box) throw new Error('Event Command bounds are unavailable');
-    const clip = { x: box.x + 17, y: box.y + 17, width: box.width - 34, height: box.height - 34 };
-    const innerBefore = createHash('sha256')
-      .update(await page.screenshot({ clip, animations: 'disabled', caret: 'hide', scale: 'css' }))
-      .digest('hex');
-    await page.evaluate(() => {
-      const probe = document.createElement('div');
-      probe.id = 'event-backdrop-probe';
-      probe.style.height = '10000px';
-      document.body.appendChild(probe);
-    });
-    const outerAfter = await fingerprint(refreshed);
-    const innerAfter = createHash('sha256')
-      .update(await page.screenshot({ clip, animations: 'disabled', caret: 'hide', scale: 'css' }))
-      .digest('hex');
-    await page.evaluate(() => document.getElementById('event-backdrop-probe')?.remove());
-    console.log(
-      'Event Command backdrop diagnostic',
-      JSON.stringify({
-        project: testInfo.project.name,
-        readyHash,
-        outerAfter,
-        innerBefore,
-        innerAfter,
-        box,
-      }),
-    );
-  }
   expect(
     { closeout: closeoutHash, ready: readyHash },
     `Update Event Command visual fingerprints for ${testInfo.project.name}`,

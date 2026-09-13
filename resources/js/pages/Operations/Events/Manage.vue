@@ -290,9 +290,9 @@ type PlayerIntelligence = {
   unresolved: number;
   reliabilityPercent: number | null;
   resultCount: number;
-  averageScore: number | null;
-  bestScore: number | null;
-  latestScore: number | null;
+  averageScore: number | string | null;
+  bestScore: number | string | null;
+  latestScore: number | string | null;
 };
 
 type TerritoryPlanningOperations = {
