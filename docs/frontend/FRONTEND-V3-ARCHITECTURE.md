@@ -1,4 +1,4 @@
-# FRONTEND-V3 — Kingshot Alliance Command
+# FRONTEND-V3 — Kingshot Alliance
 
 ## Purpose
 
@@ -16,16 +16,17 @@ FRONTEND-V3 is a clean-room Inertia/Vue interface for the ARCH-V3 backend. The b
 
 Routable Vue pages live only under these game-facing surfaces:
 
-- `Command/`
+- `Dashboard/`
+- `Assistant/`
 - `Accounts/`
 - `Alliance/`
 - `Operations/`
 - `Intelligence/`
 - `Kingdom/`
-- `Citadel/`
+- `Platform/`
 - `Public/`
 
-Backend terms such as `ReadModels`, `GameWorld`, `Platform`, persistence layers, contexts, actions, and authority objects must not become frontend page taxonomy or visible copy.
+Backend implementation layers such as `ReadModels` and `GameWorld` do not become presentation taxonomy. `Platform` is the protected administration surface. Technical screens may use precise operator/API vocabulary as defined by the [product terminology contract](../product/terminology.md).
 
 Territory planning is presented as **Territory Command** under the Kingdom/Alliance operational experience. The browser never exposes `KingdomMaps` or `TerritoryPlanning` as architecture vocabulary.
 
@@ -53,29 +54,9 @@ The spatial editor may use Canvas 2D for efficient map rendering, but canvas is 
 
 ## Game-language rules
 
-Visible text should describe what a Kingshot Governor or Alliance officer is doing. Examples:
+Visible text follows the [product terminology contract](../product/terminology.md): Home, Alliance, Recruitment, Events, Event roster, Rally planning, Event results, Position Perks, Kingdom Transfer, Noticeboard and Platform administration. Use Governor for the selected game persona and Account for authentication identity. Names describe the available task and do not introduce fictional game systems or retired presentation metaphors.
 
-- Command Overview
-- Alliance Hall
-- Recruitment Hall
-- Event Command
-- Alliance Muster
-- Rally Command
-- Battle Plan
-- War Report
-- King's Court
-- Intel Room
-- Kingdom Alliances
-- Glory Ledger
-- Kingdom Transfer
-- Territory Command
-- Hive Builder
-- Layout Analysis
-- Noticeboard
-- Alliance Connections
-- Citadel
-
-Software architecture vocabulary is prohibited from ordinary player-facing copy. `tests/System/Frontend/verify-copy.php` enforces this rule.
+`npm run check:product-language` enforces current copy and retired presentation references, including the explicit technical-screen vocabulary policy. Localization overlays preserve those same product concepts.
 
 ## Capability truth
 
@@ -83,11 +64,11 @@ The frontend may only expose functionality backed by the application. The author
 
 Notable examples:
 
-- King's Court appears only on event occurrences that expose `king_perks`.
-- Rally Command appears only when formations or rally guidance exist.
-- Battle Plan appears only when the event exposes objectives.
-- War Report appears only when result capability/data is present.
-- Intel Room is Alliance-owned intelligence contributed by Governors.
+- Position Perks and Kingdom positions use the existing `king_perks` owner contract.
+- Specialized Event roster, Rally and result workflows remain behind the verified Event profile guard. Only the Alliance Bear Hunt profile currently enables them.
+- Candidate Event profiles remain disabled; stored or historical objective data does not enable unsupported writes.
+- Event results appear only when the verified profile supports their owner contract.
+- Alliance and Kingdom intelligence expose scoped observations contributed by Governors.
 - Territory Command appears only when a current Player has a permitted Alliance/Kingdom planning scope and uses real `GameWorld/KingdomMaps` + `Operations/TerritoryPlanning` contracts.
 - No donation totals, global leaderboard, gift level, inventory or invented event system is introduced.
 
@@ -120,20 +101,15 @@ New mutation forms must expose server validation beside the affected control, pr
 
 ## Validation
 
-Dependency-free gates:
+Current verification commands:
 
 ```bash
-php tests/System/Frontend/verify-architecture.php
-php tests/System/Frontend/verify-copy.php
-php tests/System/Frontend/verify-source.php
-```
-
-With the declared Node/npm toolchain installed:
-
-```bash
+composer test:architecture
 npm ci
 npm run check
-npm run build
+npx playwright test
 ```
 
-The Playwright suite under `tests/Browser` must include Territory Command desktop/mobile/reduced-motion coverage once the capability routes are enabled.
+The full npm check includes `check:frontend-structure`: current presentation roots, static Inertia render targets, referenced runtime artwork and strict TypeScript settings. Type checking and the production build validate imports and maintained dependency contracts; product-language and accessibility checks enforce their current policies. The three obsolete standalone Frontend PHP scripts are removed so they cannot contradict the current gates.
+
+Playwright discovers `tests/**/Browser/**/*.spec.ts` through the repository's `playwright.config.ts` and runs the configured desktop/mobile projects. Capability-owned Territory tests include keyboard, semantic controls and reduced-motion behavior. Browser execution requires the documented seeded PostgreSQL environment; a source check does not establish browser success.

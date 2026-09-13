@@ -6,67 +6,18 @@ This document defines the Governor-facing screen map from application capabiliti
 
 The frontend is organized by what a Governor or Alliance officer is doing. Backend context/read-model names stay behind Inertia.
 
-```text
-Governor Account
-      ├── Account Security
-      │   ├── Profile / verified account email
-      │   ├── Sign-in methods (Password / Google / Passkeys)
-      │   ├── MFA / recovery
-      │   ├── Sessions
-      │   └── Security Activity / account lifecycle
-      │
-      └── Active Governor
-          │
-          ├── Alliance Command
-          │   ├── Alliance Hall
-          │   ├── Alliance Settings / Specialist Roles
-          │   ├── Governance History
-          │   ├── Roster Screenshots / Reconciliation
-          │   ├── Recruitment Hall
-          │   ├── Noticeboard
-          │   ├── Alliance Rules
-          │   └── Alliance Connections
-          │
-          ├── Event Command
-          │   ├── Event Calendar / Agenda
-          │   ├── Responses / Registration / Attendance
-          │   ├── Phases / Polls
-          │   ├── Event Rosters / Teams / Legions / Substitutes
-          │   ├── Rally Guidance / Formations / Rally Groups
-          │   ├── Battle Objectives
-          │   ├── King's Court (Kingdom of Power only)
-          │   └── War Reports / Event History
-          │
-          ├── Territory Command
-          │   ├── Alliance Hive Plans
-          │   ├── Hive Builder
-          │   ├── Layout Analysis / Compare
-          │   ├── Multi-Alliance Kingdom Plans
-          │   └── Revisions / Import / Export
-          │
-          ├── Intel Room
-          │   ├── Alliance Roster
-          │   ├── Alliance Strength
-          │   ├── Scout History / CSV Import
-          │   ├── Kingdom Alliances
-          │   ├── Alliance Observations
-          │   ├── Recent Intelligence Changes
-          │   ├── Diplomacy / Contacts
-          │   ├── Shared Kingdom Intelligence
-          │   └── Glory Ledger
-          │
-          ├── Governor Utilities
-          │   ├── Gift Codes
-          │   └── Notification Center
-          │       ├── Logical inbox / filters / archive
-          │       ├── Delivery details
-          │       ├── Delivery preferences / routing policy
-          │       └── Named destinations / Web Push
-          │
-          └── Kingdom
-              ├── Kingdom Roles
-              └── Kingdom Transfer
-```
+| Presentation area | User-facing capabilities | Authority scope |
+| --- | --- | --- |
+| Account security | Profile, verified email, sign-in methods, MFA, sessions and lifecycle | Authenticated Account |
+| Home | Governor overview, upcoming Events and authorized summaries | Active Governor and current owner scopes |
+| Alliance | Overview, settings, specialist roles, membership history, Recruitment, Noticeboard, Rules and Connections | Current Alliance membership and delegated permissions |
+| Events | Calendar, scheduling, phases and Polls; specialized Bear Hunt roster, Rally, results and review tools | Current Event scope and enabled owner profile |
+| Territory planning | Hive plans, layout editing, comparison, published revisions and import/export | Current Alliance or Kingdom planning authority |
+| Intelligence | Roster observations, scout history, Kingdom Alliances, diplomacy, sharing and Contributions | Source-owner observation and sharing permissions |
+| Governor utilities | Gift Codes and Notifications | Account/Governor ownership and current source eligibility |
+| Kingdom | Governance roles, Position Perks and Kingdom Transfer | Current Kingdom/Transfer authority |
+| Platform | Administration and recovery | Explicit current Platform Administrator authority |
+
 
 ## Account Security
 
@@ -76,17 +27,17 @@ Sensitive mutations use one generic **Confirm it's you** boundary that may be sa
 
 The same account surface owns profile/account-email presentation, MFA and TOTP recovery codes, privacy-conscious session inventory/revocation, Security Activity and account-lifecycle controls. Communications remains the outbound security-notification delivery owner, while Platform/DataGovernance remains the deletion-orchestration owner.
 
-## Command Overview
+## Home
 
 Backed by current Governor membership/rank/specialist roles, Alliance notices/content, upcoming Events, permission-aware entry points and bounded Intelligence Change Detection composition. Territory Command may appear as an entry point only when the current Player has an eligible planning scope.
 
-When the active Governor has a concrete active Alliance and applicable Intelligence view authority, Command Overview may show a compact **Recent intelligence changes** feed. The feed is informational and does not automatically increase the global action count. An authorized scoped feed may show its localized empty state when no signals exist. Before a concrete active Alliance scope exists, the feed is not rendered; unscoped state must not be presented as “no changes.”
+When the active Governor has a concrete active Alliance and applicable Intelligence view authority, Home may show a compact **Recent intelligence changes** feed. The feed is informational and does not automatically increase the global action count. An authorized scoped feed may show its localized empty state when no signals exist. Before a concrete active Alliance scope exists, the feed is not rendered; unscoped state must not be presented as “no changes.”
 
 Do not show unsupported donation totals, leaderboard rank, Alliance Gift Level or arbitrary Alliance power merely because the game has those concepts.
 
-## Alliance Hall
+## Alliance overview
 
-Backed by Alliance Membership and Access: active memberships, R1–R5 rank, specialist-role assignments, invitations, membership status, bounded rank/role changes, leadership transfer and leaving the Alliance. Permission-aware links expose settings, role administration, factual governance history and roster reconciliation without moving their ownership into the Hall.
+Backed by Alliance Membership and Access: active memberships, R1–R5 rank, specialist-role assignments, invitations, membership status, bounded rank/role changes, leadership transfer and leaving the Alliance. Permission-aware links expose settings, role administration, factual governance history and roster reconciliation without moving their ownership into the overview.
 
 ### Alliance Settings and Specialist Roles
 
@@ -100,7 +51,7 @@ Roster screenshots are private `Intelligence/Evidence` artifacts. Officers revie
 
 Governance History is an officer-authorized `ReadModels/AllianceGovernance` view over existing owner audit facts. It supports bounded filtering/cursor navigation and owner-workflow links, but owns no domain truth and performs no writes.
 
-## Recruitment Hall
+## Recruitment
 
 Backed by Alliance Recruitment: modes/questions, Governor applications, stages, assigned reviewers, notes, tags, duplicate merge, decisions, invitation conversion, onboarding items and private Alliance-local re-entry controls. Re-entry restrictions are recruiter-private and never presented as a global blacklist. Configuration catalogues and candidate histories/tags/reviewers have independent 25-record navigation with retained drafts. RecruitmentOptionPicker loads scoped member, roster and decision-template choices with search, current off-page selection validation, failure recovery and explicit continuation. Active application questions and onboarding assignments remain complete under the owner limit of 30.
 
@@ -122,9 +73,9 @@ Every active Alliance member may read the first-class Rules surface. Only Govern
 
 Backed by Platform Integrations but presented as an officer utility: Alliance access keys and event-dispatch subscriptions with revoke behavior.
 
-## Event Command
+## Events
 
-Backed by Operations Events/Participation and the repository's KingShot event catalogue. Supported rooms remain Responses, Registration/Waitlist, Attendance, Phases, Polls, Rosters/Substitutes/Teams/Legions, Rally Guidance/Formations, Objectives, King's Court, Scoring and Results according to selected event capabilities.
+Backed by Operations Events/Participation and the repository's KingShot event catalogue. Scheduling, phases, Polls and Position Perks retain their independently authored owner contracts. Specialized participation, roster, Rally, results, screenshot and debrief tools require the verified enabled Event profile; only the Alliance Bear Hunt profile currently enables these dimensions. Candidate Kingdom and battle-assignment profiles remain disabled. Historical stored data does not imply supported writes.
 
 ### Bear Hunt Rally Command
 
@@ -134,9 +85,9 @@ Bear Hunt uses Responses, Registration, Attendance, Rally Guidance, Formations a
 
 Swordland continues to expose its existing Polls, Phases, combatant/substitute rosters, Objectives, Attendance, Scoring and Results. Spatial planning is linked only when an explicit supported revision reference exists.
 
-### King's Court — Kingdom of Power
+### Position Perks — Kingdom of Power
 
-King's Court remains the KingPerks appointment/King Skill workflow. Kingdom-wide Territory Command is a separate planning surface and is not presented as a royal appointment feature.
+Position Perks remains the KingPerks appointment/King Skill workflow. Kingdom-wide Territory Command is a separate planning surface and is not presented as a royal appointment feature.
 
 ## Territory Command
 
@@ -187,17 +138,17 @@ Backed by `GameWorld/KingdomMaps`, `Operations/TerritoryPlanning` and composed r
 
 The canvas is not the only control surface. Every material object is represented in synchronized DOM controls with exact coordinates, keyboard-operable actions and non-color validation messages.
 
-## Intel Room — Alliance Roster
+## Alliance Roster intelligence
 
 Backed by Alliance roster and Intelligence snapshots: observed Governor identity, roster state, optional membership linkage, recorded power/freshness/trends, summary metrics, joins/departures, manual scout readings, CSV preview/commit/export, accepted human-reviewed roster-screenshot observations and history. Missing observations are never estimated; screenshot absence is meaningful only when its reviewed source explicitly represents the complete roster.
 
-## Intel Room — Kingdom Alliances
+## Kingdom Alliances
 
 Backed by Intelligence Observations/Diplomacy/Sharing/Ingestion plus `ReadModels/IntelligenceSignals`: tracked Alliances, timestamped/invalidation state, diplomacy, contacts/channels, shared Kingdom intelligence and officer ingestion tooling.
 
 Kingdom Intelligence may show typed recent changes and stale-intelligence signals alongside the underlying latest/prior/7-day/30-day observation comparisons. Every signal retains neutral wording, source record/timestamp provenance and a canonical source link. Missing is not zero, stale is not missing, and ordinary source absence is not disappearance unless a complete-source contract explicitly proves it. The read model never turns power/member changes into strategic intent.
 
-## Glory Ledger
+## Alliance Contributions
 
 Backed by Intelligence Contributions: categories, self/officer reports, approval/correction/reversal, source/status/data-quality flags, report schedules, export and Governor history. It is not presented as an official in-game leaderboard.
 

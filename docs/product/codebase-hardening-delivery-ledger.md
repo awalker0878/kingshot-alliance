@@ -5,10 +5,10 @@
 - Program state: In progress. Keep the active hardening follow-up PR draft until the full ledger, repository audit and final gates are complete. PR #163 was merged outside this continuation at 2026-09-12 23:40:58 UTC; that merge is not completion evidence.
 - Original baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`. Continuation base: merge `044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c`, whose tree matches `b9a7b7ed90516eb229646d69af2ff488901dc538`; working branch `astra/hardening-followup`.
 - Latest containing implementation: b9a7b7ed contains HARD-126 and passes all focused PostgreSQL groups, including 88 Governance cases/1,435 assertions. Its architecture and visual-fixture failures are corrected in this follow-up. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`.
-- Current item/state: HARD-129 / In progress; HARD-119–128 have partial containing evidence and await final verification. HARD-001–118 are Complete with containing evidence. Repository coverage and final gates remain open.
-- Active files: Event secondary reference acquisition, current Rally guidance scope, eight committed-database regressions, Governance policy/fixture corrections and obsolete temporary-workflow cleanup.
-- Local verification: complete npm check for HARD-126; current production/new-test PHPStan, Pint and all 78 architecture cases pass. HARD-129's eight PostgreSQL cases await hosted execution. The focused workflow now covers all Operations.
-- Next action: verify the follow-up's current Governance browser and Operations behavior, then continue production audit and final immutable gates. Do not treat the external merge as a readiness declaration.
+- Current item/state: HARD-130/131 / In progress; HARD-129 has containing focused/browser evidence; HARD-119–128 have partial containing evidence and await final verification. HARD-001–118 are Complete with containing evidence. Repository coverage and final gates remain open.
+- Active files: canonical frontend structure gate and tests, current frontend reference documentation, superseded progression transformation cleanup and this program record.
+- Local verification: complete npm check for HARD-126; current production/new-test PHPStan, Pint and all 78 architecture cases pass. HARD-129's eight PostgreSQL cases pass in the containing 85-case Operations group. All 86 browser cases pass at 2f87c6bd. Full containing PHP is still running.
+- Next action: finish containing PHP verification, publish HARD-130/131 and implement HARD-132; continue the production audit and final immutable gates. Do not treat the external merge as a readiness declaration.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -1907,6 +1907,45 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Verification result: Rally guidance now holds active governing scope before its canonical actor, and Event subcommands use owner NOWAIT secondary references with whole-command retryable rollback. Four enabled Bear Hunt contention/retry cases and four actual rank/Kingdom changes in both orders are authored. Candidate profiles remain disabled. Production and test PHPStan pass; hosted behavior remains pending.
 - Completion evidence: [ADR-0071](../architecture/adr/0071-event-secondary-references-and-rally-guidance-scope.md), EventLinkedReferenceContentionTest and RallyGuidanceScopeOrderingTest; containing execution pending.
 
+### HARD-130 — Frontend reference architecture and standalone gates contradict current presentation
+
+- Area: Frontend architecture/capability documentation and three superseded standalone PHP scripts.
+- Finding: current documentation advertises removed presentation metaphors, rejects legitimate Home/Assistant/Platform roots and points to ungated scripts with an incompatible copy policy and obsolete browser layout. Useful source checks are absent from the canonical frontend sequence.
+- Current owner: frontend presentation, product terminology and repository verification.
+- Intended authoritative owner: unchanged, with one current frontend check sequence.
+- Rationale: remove contradictory guidance without weakening active verification.
+- Remediation: consolidate page roots, static Inertia targets, runtime artwork and strict compiler settings into check:frontend-structure; retain the current product-language/type/build gates, remove obsolete scripts and reconcile architecture/capability docs.
+- State: In progress.
+- Verification required: current frontend check, missing/invalid target and artwork rejection, compiler guarantees and full check sequence.
+- Verification result: all five structure-gate behavior cases pass. Complete npm check passes, including the new canonical structure check, current product language, frontend types/build, localization/accessibility and performance budgets. Current 342-source PHP layout and 294-document links pass. Containing execution remains pending.
+- Completion evidence: pending.
+
+### HARD-131 — Superseded progression completion transforms remain executable
+
+- Area: four progression transformation workflows and their apply_completion Python scripts.
+- Finding: branch-specific workflows still carry contents-write authority to rewrite and push source on progression-capability-completion. Their one-time substitutions are superseded by the current implementation; static inspection finds 7/11, 1/3, 3/8 and 6/13 required old source shapes absent respectively in backend, planner, topology and UI transforms. These are obsolete implementation transport, not current source-maintenance tools.
+- Current owner: temporary feature-delivery automation.
+- Intended authoritative owner: normal reviewed source, capability owners and current verification.
+- Rationale: remove dead source-rewriting paths that could partially overwrite later hardening if invoked manually.
+- Remediation: remove all four retired branch-transform workflows and four corresponding scripts; preserve the independent read-only source refresh and current dataset build/verification tools.
+- State: In progress.
+- Verification required: no remaining executable references, coherent workflow inventory, existing source/profile/architecture/frontend gates.
+- Verification result: sole executable consumers were the four removed workflows. Static AST inspection established obsolete assumptions without importing or running the transforms. Repository references and containing gates remain required.
+- Completion evidence: pending.
+
+### HARD-132 — Bear Hunt result recomputation expands the entire occurrence per report
+
+- Area: BearHuntResultProjector, RecordBearHuntBattleReport/RemoveBearHuntBattleReport and receipt consumers.
+- Finding: each reviewed report or removal hydrates all occurrence baselines, executes separate sum/count queries per Governor, ranks all rows in application memory, repeatedly searches baselines and returns every affected Governor in the receipt. The 100-entry input bound does not bound retained occurrence history or response size.
+- Current owner: Operations Results and its explicit Intelligence evidence adapter.
+- Intended authoritative owner: unchanged, with complete bounded aggregation and receipt contracts.
+- Rationale: finish the actual supported Bear Hunt production trace without treating a bounded input as bounded retained work.
+- Remediation: trace all receipt/ranking consumers and establish a current atomic aggregation contract with SQL aggregation, bounded materialization and a bounded complete receipt. Preserve manual baseline values, competition ranks, source identity and removal/retry semantics.
+- State: Planned.
+- Verification required: large retained histories, query/payload bounds, ties, zero scores, manual baseline restoration, removed reports, rollback and current-authority retries.
+- Verification result: projector, both owner Actions, snapshot query and receipt type traced; design/implementation pending.
+- Completion evidence: pending.
+
 ## Repository audit coverage
 
 This table records production paths actually traced and remaining audit scope. Findings have their own stable ledger entries; passing one capability does not close the table.
@@ -2051,3 +2090,7 @@ HARD-126 focused containing PostgreSQL evidence: b9a7b7ed90516eb229646d69af2ff48
 A fresh GitHub read before the prepared non-forced checkpoint publication reported PR #163 already merged at 2026-09-12 23:40:58 UTC, merge 044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c, head b9a7b7ed90516eb229646d69af2ff488901dc538. The continuation did not mark ready or merge it. Publication to that merged PR was stopped. Main's merge tree exactly equals the inspected b9a7b7ed tree, and no other open PR was returned; changes continue on astra/hardening-followup with the same incomplete-ledger/final-gate rule.
 
 The four obsolete PR-163 review-triggered preparation/source/content/raster workflows and their superseded reviewed-slice manifest are removed. The current read-only focused behavior workflow is renamed hardening-validation.yml, covers current changed paths and includes all Operations. Its eventual removal remains a final gate; no normal check is removed. The orphan prepared commit a620302a1534695ccf06cbc1ccdaeef619c11bc8 was never attached to a branch and is superseded by this continuation.
+
+### Follow-up Governance and Operations containing behavior
+
+At `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`, focused run `34726599273`, job `103641691123`, passes all seven groups: 95 Integrations/1,058 assertions, 78 Platform/6,367, 88 Governance/1,435, 85 Operations/541 (including all eight HARD-129 contention cases), 47 Gift Code/source/reset/256, four Participation/26 and 29 Transfer/425. Visual `34726599249`, job `103641690973`, passes all 86 desktop/mobile cases in 8.6 minutes, including both new Governance catalogue journeys. Architecture `34726599252` succeeds. Full PHP remains running at this documentation preparation; final immutable gates are still required.

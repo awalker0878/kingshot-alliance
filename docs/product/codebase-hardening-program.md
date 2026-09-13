@@ -59,7 +59,7 @@ Never weaken a meaningful gate to obtain green output. Remove obsolete tests onl
 
 ## Durable execution
 
-After every independently coherent slice: verify narrowly; update the ledger and affected current architecture/product/reference/operations/frontend documentation; commit implementation, tests and documentation together using the `HARD-*` identifier; push to `astra/codebase-hardening`; record the durable checkpoint before starting another slice. If interrupted, push a clearly labelled checkpoint with incomplete work and exact next action recorded.
+After every independently coherent slice: verify narrowly; update the ledger and affected current architecture/product/reference/operations/frontend documentation; commit implementation, tests and documentation together using the `HARD-*` identifier; push to `astra/hardening-followup`; record the durable checkpoint before starting another slice. If interrupted, push a clearly labelled checkpoint with incomplete work and exact next action recorded.
 
 The ledger header must record baseline, working branch, latest pushed durable checkpoint, current item/state, latest gates, active files, remaining work, known failures, blockers, exact next action and remaining repository-wide gates. Its checkpoint SHA identifies the preceding pushed implementation commit; a subsequent documentation-only checkpoint records that SHA without a circular self-reference. Confirm ancestry against branch HEAD when resuming.
 
