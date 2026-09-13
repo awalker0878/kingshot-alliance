@@ -5,11 +5,11 @@
 - Program state: In progress. Keep the active hardening follow-up PR draft until the full ledger, repository audit and final gates are complete. PR #163 was merged outside this continuation at 2026-09-12 23:40:58 UTC; that merge is not completion evidence.
 - Original baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`. Continuation base: merge `044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c`, whose tree matches `b9a7b7ed90516eb229646d69af2ff488901dc538`; working branch `astra/hardening-followup`.
 - Latest containing implementation: `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3` passes complete PHP (2,017 tests/96,582 assertions), all 86 browser cases, architecture, frontend, fresh schema, image/staging/recovery, security and dependency checks. All five normal workflows triggered by the limited follow-up diff and the focused behavior workflow succeed. The four capability-specific workflows did not trigger; all nine remain required for the final candidate.
-- Latest durable checkpoint: `027d880b567eb6afc295a92a22c9a78bc1a2a480` publishes HARD-132 Bear Hunt work/receipt bounds, following HARD-130/131 cleanup at `82313fbafccb6d7459fcaf51924cd84564d5fcf9`, on draft PR #164. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`.
-- Current item/state: HARD-133 / In progress; HARD-130–132 await final containing verification; HARD-134–136 are Planned. HARD-001–129 are Complete with containing evidence. Repository coverage and final gates remain open.
-- Active files: Poll owner input/choice semantics, HTTP reminder integer parsing, two test classes, suite registration and ADR-0073/current Poll documentation.
-- Local verification: HARD-133 production/tests pass PHPStan and Pint; 21 direct-input cases/42 assertions and all 78 architecture cases/72,467 assertions pass, 345-source PHP layout and 296-document links pass. Six new mutation cases await hosted PostgreSQL execution. The current source-refresh gate exposes HARD-136; no checked-in progression data was changed.
-- Next action: finish hosted HARD-132 evidence, publish/verify HARD-133, and resolve the concrete HARD-136 source-refresh gate before continuing HARD-134/135 current Event-management and Debrief projections. Continue the remaining production audit and immutable final gates.
+- Latest durable checkpoint: `a585a4dd384471beffcf860a83d6c4744caa9a3d` publishes HARD-133 Poll owner bounds after HARD-132 at `027d880b567eb6afc295a92a22c9a78bc1a2a480` and HARD-130/131 cleanup at `82313fbafccb6d7459fcaf51924cd84564d5fcf9`, on draft PR #164. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`.
+- Current item/state: HARD-136 / In progress; HARD-130–133 await final containing verification; HARD-134/135 are Planned. HARD-001–129 are Complete with containing evidence. Repository coverage and final gates remain open.
+- Active files: strict Progression regeneration comparison, live acquisition evidence report, workflow integration, ten Python regression cases and ADR-0074/source inventory documentation.
+- Local verification: ten HARD-136 contract/Git/filesystem cases pass, current 24-artifact corpus/unchanged comparison passes, and exact replay of 115 observed HTML hash differences preserves all factual artifacts and 12 structured/pinned hashes. Documentation links pass for 297 files. No checked-in progression data changed. HARD-132 passes all seven PostgreSQL cases in the containing 92-case Operations group and all 86 browser cases; HARD-133 mutation behavior remains running.
+- Next action: finish hosted HARD-133 behavior, publish/verify HARD-136 with actual live source regeneration, then implement HARD-134/135 current Event-management and Debrief projections. Continue the remaining production audit and immutable final gates.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -2005,10 +2005,10 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: unchanged, with explicit acquisition provenance and factual reproducibility semantics.
 - Rationale: preserve meaningful immutable facts and pinned sources without treating changing web-page transport bytes as a factual release change or silently accepting generated facts.
 - Remediation: inspect every changed lock record and its source classification, retain immutable canonical artifact comparisons and pinned-source checks, and make volatile acquisition evidence explicit and reviewable. Do not regenerate or bless checked-in release data to obtain green output.
-- State: Planned.
+- State: In progress.
 - Verification required: changed factual output, source identity/inventory, pinned hashes and malformed lock data must reject; unchanged facts with changed allowed live-page acquisition bytes must be distinguished; hosted source refresh and full existing progression gates must pass.
-- Verification result: hosted generation and corpus verification succeed; the sole diff is source-lock.json. Acquisition and semantic snapshot tooling traced; comparison design and implementation pending.
-- Completion evidence: failed source-refresh run 34727938823/job 103645337600 and candidate artifact 10308515838; remediation pending.
+- Verification result: the sole hosted diff changes 115 declared live HTML hashes; all other artifacts and 12 structured/pinned hashes remain exact. New comparison uses the immutable Git HEAD baseline, byte-exact factual files, strict source inventory/metadata and pinned checks, with separately timestamped allowed acquisition evidence. Ten local contract cases, current 24-artifact comparison and exact replay of the observed 115 hash changes pass; hosted regeneration remains required.
+- Completion evidence: [ADR-0074](../architecture/adr/0074-progression-factual-reproducibility-and-acquisition.md), verify_regenerated.py and ProgressionReproducibility_test.py; actual containing hosted refresh pending.
 
 ## Repository audit coverage
 
@@ -2166,3 +2166,7 @@ At `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`, CI `34726599251` succeeds on merg
 ### Bounded Bear Hunt containing behavior
 
 At `027d880b567eb6afc295a92a22c9a78bc1a2a480`, focused run `34727938818`, job `103645369064`, passes 92 Operations tests/575 assertions, including all seven HARD-132 regressions. Complete 1,000-Governor ranking stays within the query budget; receipts contain exactly the stored report’s 1 or 100 Governors; admission overflow, numeric overflow and corrupt stored receipt replay roll back all effects. The same run passes 95 Integrations/1,058, 78 Platform/6,367, 88 Governance/1,435, 47 Gift Code/source/reset/256, four Participation/26 and 29 Transfer/425. Full containing PHP and HARD-136 source-refresh reconciliation remain required.
+
+### Bear Hunt containing browser verification
+
+Visual `34727938824`, job `103645370417`, passes all 86 cases in 8.3 minutes on `027d880b567eb6afc295a92a22c9a78bc1a2a480`. This contains the new report receipt/recomputation behavior and prior frontend gate/cleanup. HARD-136 remains a separately explained source-refresh gate failure; the final immutable full PHP and all-nine program gates remain required.

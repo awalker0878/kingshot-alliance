@@ -7,6 +7,7 @@ on:
       - feature/factual-governor-progression
     paths:
       - scripts/progression/**
+      - tests/Contexts/GameWorld/Progression/Unit/*_test.py
       - .github/workflows/progression-source-refresh.yml
       - docs/product/factual-governor-progression-source-inventory.md
   pull_request:
@@ -14,6 +15,7 @@ on:
       - main
     paths:
       - scripts/progression/**
+      - tests/Contexts/GameWorld/Progression/Unit/*_test.py
       - .github/workflows/progression-source-refresh.yml
       - docs/product/factual-governor-progression.md
       - docs/product/factual-governor-progression-source-inventory.md
@@ -43,19 +45,29 @@ jobs:
       - name: Install refresh dependencies
         run: python -m pip install --disable-pip-version-check requests beautifulsoup4
 
-      - name: Regenerate immutable source-backed release
+      - name: Verify acquisition comparison contracts
+        run: python -m unittest discover -s tests/Contexts/GameWorld/Progression/Unit -p '*_test.py'
+
+      - name: Verify checked-in factual release
+        run: python scripts/progression/verify_release.py
+
+      - name: Regenerate source-backed comparison candidate
+        id: regenerate
         run: python scripts/progression/finalize_v2.py
 
       - name: Verify generated corpus and release contract
         run: python scripts/progression/verify_release.py
 
-      - name: Upload regenerated immutable candidate
+      - name: Verify immutable facts and record live acquisition evidence
+        run: python scripts/progression/verify_regenerated.py --report storage/logs/progression-refresh-acquisition.json
+
+      - name: Upload regenerated candidate and acquisition evidence
+        if: ${{ !cancelled() && steps.regenerate.outcome == 'success' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: factual-progression-2026.08.23.2
-          path: resources/data/progression/kingshot-2026-08-23-v2
+          name: progression-refresh-review-${{ github.sha }}
+          path: |
+            resources/data/progression/kingshot-2026-08-23-v2
+            storage/logs/progression-refresh-acquisition.json
           if-no-files-found: error
           retention-days: 7
-
-      - name: Verify checked-in release is reproducible
-        run: git diff --exit-code -- resources/data/progression/kingshot-2026-08-23-v2
