@@ -14,6 +14,8 @@ import {
 } from '../engine/viewport';
 import type { Point, PointerGesture, Viewport, WorldBounds } from '../engine/viewport';
 
+import { buildTerritoryScene } from '../engine/scene';
+import type { TerritorySceneEntity } from '../engine/scene-types';
 import type { MapData, PlanAlliance, PlanObject, TerritoryObjectType } from '../engine/types';
 
 type Tool = 'select' | 'pan' | 'place';
@@ -21,6 +23,7 @@ type Tool = 'select' | 'pan' | 'place';
 const props = withDefaults(
   defineProps<{
     map: MapData;
+    mapChecksum?: string;
     alliances: PlanAlliance[];
     objects: PlanObject[];
     selectedKeys: string[];
@@ -32,14 +35,27 @@ const props = withDefaults(
     showCoverage?: boolean;
     showStructures?: boolean;
     showZones?: boolean;
+    showTerrain?: boolean;
+    showFacilities?: boolean;
+    showResources?: boolean;
   }>(),
-  { readOnly: false, showCoverage: true, showStructures: true, showZones: true },
+  {
+    mapChecksum: '',
+    readOnly: false,
+    showCoverage: true,
+    showStructures: true,
+    showZones: true,
+    showTerrain: true,
+    showFacilities: true,
+    showResources: true,
+  },
 );
 
 const emit = defineEmits<{
   (event: 'update:selectedKeys', value: string[]): void;
   (event: 'move', value: { keys: string[]; dx: number; dy: number }): void;
   (event: 'place', value: { x: number; y: number }): void;
+  (event: 'inspectReference', value: string): void;
 }>();
 
 const canvas = ref<HTMLCanvasElement | null>(null);
@@ -79,6 +95,14 @@ const visibleAlliances = computed(
   () =>
     new Set(props.alliances.filter((alliance) => alliance.visible).map((alliance) => alliance.key)),
 );
+const scene = computed(() =>
+  buildTerritoryScene({
+    map: props.map,
+    mapChecksum: props.mapChecksum,
+    alliances: props.alliances,
+    objects: props.objects,
+  }),
+);
 
 function fitMap(): void {
   cancelGesture();
@@ -92,6 +116,16 @@ function jumpTo(point: Point): void {
   if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return;
   cancelGesture();
   setViewport({ ...viewport(), x: point.x, y: point.y });
+}
+function setCamera(view: { x: number; y: number; zoom: number }): void {
+  if (![view.x, view.y, view.zoom].every(Number.isFinite) || view.zoom <= 0) return;
+  cancelGesture();
+  setViewport({
+    ...viewport(),
+    x: view.x,
+    y: view.y,
+    zoom: Math.max(0.1, Math.min(100, view.zoom)),
+  });
 }
 function zoomBy(factor: number): void {
   cancelGesture();
@@ -157,6 +191,27 @@ function objectAt(screenX: number, screenY: number): PlanObject | null {
   return null;
 }
 
+function referenceAt(screenX: number, screenY: number): TerritorySceneEntity | null {
+  const references = scene.value.entities.filter(
+    (entity) => entity.kind === 'factual' && entity.selectable,
+  );
+  for (let index = references.length - 1; index >= 0; index -= 1) {
+    const entity = references[index];
+    if (!entity) continue;
+    const [x, yBottom] = toScreen(entity.bounds.x, entity.bounds.y);
+    const entityWidth = Math.max(4, entity.bounds.width * zoom.value);
+    const entityHeight = Math.max(4, entity.bounds.height * zoom.value);
+    if (
+      screenX >= x &&
+      screenX <= x + entityWidth &&
+      screenY <= yBottom &&
+      screenY >= yBottom - entityHeight
+    )
+      return entity;
+  }
+  return null;
+}
+
 function onPointerDown(event: PointerEvent): void {
   if (!canvas.value || ![0, 1, 2].includes(event.button) || pointers.size >= 2) return;
   const point = eventPoint(event);
@@ -207,6 +262,13 @@ function onPointerDown(event: PointerEvent): void {
     // Shift-deselecting an object must not start a drag of the remaining selection.
     if (selected.includes(hit.key) && keys.includes(hit.key))
       drag.value = { ...gesture, kind: 'object', keys };
+    return;
+  }
+  const reference = referenceAt(point.x, point.y);
+  if (reference) {
+    emit('inspectReference', reference.key);
+    if (!event.shiftKey) emit('update:selectedKeys', []);
+    drag.value = null;
     return;
   }
   if (!event.shiftKey) emit('update:selectedKeys', []);
@@ -335,21 +397,56 @@ function render(): void {
   context.fillStyle = '#101821';
   context.fillRect(0, 0, width.value, height.value);
 
-  if (props.showZones) {
-    for (const [zoneName, zone] of Object.entries(props.map.zones)) {
-      if (zoneName === 'badlands') continue;
-      const [x, yTop] = toScreen(zone.x, zone.y + zone.height);
-      context.strokeStyle = 'rgba(225, 195, 120, .18)';
-      context.strokeRect(x, yTop, zone.width * zoom.value, zone.height * zoom.value);
+  for (const entity of scene.value.entities) {
+    if (entity.kind !== 'factual') continue;
+    if ((entity.layer === 'regions' || entity.layer === 'restrictions') && !props.showZones)
+      continue;
+    if (entity.layer === 'terrain' && !props.showTerrain) continue;
+    if (entity.layer === 'resources' && !props.showResources) continue;
+    if (entity.layer === 'facilities' && !props.showFacilities) continue;
+    if (entity.layer === 'structures' && !props.showStructures) continue;
+    const [x, yBottom] = toScreen(entity.bounds.x, entity.bounds.y);
+    const entityWidth = Math.max(
+      entity.layer === 'facilities' ? 4 : 1,
+      entity.bounds.width * zoom.value,
+    );
+    const entityHeight = Math.max(
+      entity.layer === 'facilities' ? 4 : 1,
+      entity.bounds.height * zoom.value,
+    );
+    if (
+      x > width.value + 32 ||
+      x + entityWidth < -32 ||
+      yBottom > height.value + entityHeight + 32 ||
+      yBottom - entityHeight < -32
+    )
+      continue;
+    if (entity.layer === 'regions' || entity.layer === 'restrictions') {
+      context.strokeStyle =
+        entity.layer === 'restrictions' ? 'rgba(239, 138, 113, .34)' : 'rgba(225, 195, 120, .18)';
+      if (entity.layer === 'restrictions') context.setLineDash([5, 4]);
+      context.strokeRect(x, yBottom - entityHeight, entityWidth, entityHeight);
+      context.setLineDash([]);
+      continue;
     }
-  }
-  if (props.showStructures) {
-    for (const structure of props.map.structures) {
-      const [x, yBottom] = toScreen(structure.x, structure.y);
-      const structureWidth = structure.footprint.width * zoom.value;
-      const structureHeight = structure.footprint.height * zoom.value;
-      context.fillStyle = 'rgba(139, 125, 107, .82)';
-      context.fillRect(x, yBottom - structureHeight, structureWidth, structureHeight);
+    context.globalAlpha =
+      entity.layer === 'terrain' ? 0.62 : entity.layer === 'resources' ? 0.8 : 0.9;
+    context.fillStyle =
+      entity.layer === 'terrain'
+        ? entity.assetKey === 'terrain.lake'
+          ? '#335f78'
+          : '#485564'
+        : entity.layer === 'resources'
+          ? '#c49a58'
+          : entity.layer === 'facilities'
+            ? '#b39a72'
+            : '#8b7d6b';
+    context.fillRect(x, yBottom - entityHeight, entityWidth, entityHeight);
+    context.globalAlpha = 1;
+    if (zoom.value > 1.4 && (entity.layer === 'structures' || entity.layer === 'facilities')) {
+      context.fillStyle = '#dbe4ea';
+      context.font = '10px sans-serif';
+      context.fillText(entity.label, x + 2, yBottom - entityHeight - 3);
     }
   }
   const previewDelta = drag.value?.kind === 'object' ? gestureDelta(drag.value) : { x: 0, y: 0 };
@@ -420,7 +517,7 @@ function render(): void {
   }
 }
 
-defineExpose({ fitMap, focusBounds, jumpTo, viewport });
+defineExpose({ fitMap, focusBounds, jumpTo, setCamera, viewport });
 onMounted(() => {
   resizeObserver = new ResizeObserver(([entry]) => {
     if (!entry) return;
@@ -454,9 +551,19 @@ watch(
   cancelGesture,
   { deep: true },
 );
-watch(() => [props.selectedKeys, props.showCoverage, props.showStructures, props.showZones], draw, {
-  deep: true,
-});
+watch(
+  () => [
+    props.selectedKeys,
+    props.showCoverage,
+    props.showStructures,
+    props.showZones,
+    props.showTerrain,
+    props.showFacilities,
+    props.showResources,
+  ],
+  draw,
+  { deep: true },
+);
 </script>
 
 <template>

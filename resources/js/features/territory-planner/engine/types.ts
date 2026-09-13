@@ -55,6 +55,8 @@ export type MapStructure = {
   exclusion_tiles: number;
   city_exempt: boolean;
   blocks_placement?: boolean;
+  confidence?: string;
+  provenance?: string[];
 };
 export type MapZone = {
   x: number;
