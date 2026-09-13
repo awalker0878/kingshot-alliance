@@ -32,7 +32,8 @@ The `debrief` payload contains:
 
 - `run`: occurrence/Event/Alliance identity, title, start/end and status;
 - `summary`: Results availability, total damage, Governor count, accepted report count, attendance summary, Rally summary and unresolved Governor count;
-- `governors`: Governor damage/rank with attendance and Rally participation when recorded;
+- `governors`: at most 25 ranked Governor damage/rank rows with attendance and Rally participation when recorded;
+- `governorPage`: exact total, page size, first-page state and encrypted next cursor; pass `governor_cursor` on the same authorized occurrence route;
 - `personal`: the active Governor's result, attendance and Rally facts;
 - `unmatchedGovernors`: manager-only Evidence review summaries with Screenshot Intake handoff links;
 - `canReviewEvidence`: whether the current caller may open review actions;
@@ -41,6 +42,8 @@ The `debrief` payload contains:
 - `personalTrend`: bounded chronological personal trend points;
 - `allianceTrend`: bounded chronological Alliance trend points;
 - `runs`: bounded newest-first run history used for navigation.
+
+Damage values and signed damage deltas are JSON numbers within ±9,007,199,254,740,991 and canonical decimal strings outside that range. SQL totals can exceed PHP integers. Personal results are independent of the displayed Governor page. Exact values/orderings do not rely on approximate percentage or chart-width calculations.
 
 ### Comparison contract
 

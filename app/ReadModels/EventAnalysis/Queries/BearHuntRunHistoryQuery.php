@@ -7,7 +7,9 @@ namespace App\ReadModels\EventAnalysis\Queries;
 use App\Contexts\Operations\Participation\Enums\EventAttendanceStatus;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentRole;
 use App\Contexts\Operations\Rallies\Enums\RallyAssignmentStatus;
+use App\Contexts\Operations\Results\Services\ResultScoreTotal;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final class BearHuntRunHistoryQuery
 {
@@ -20,9 +22,9 @@ final class BearHuntRunHistoryQuery
      *
      * @param  list<string>  $occurrenceIds
      * @return array<string,array{
-     *   totalDamage:?int,
+     *   totalDamage:int|string|null,
      *   governorCount:int,
-     *   personalDamage:?int,
+     *   personalDamage:int|string|null,
      *   personalRank:?int,
      *   personalAccepted:bool,
      *   attendance:array{available:bool,total:int,present:int,absent:int,excused:int,unknown:int,ratePercent:?float,personalStatus:?string},
@@ -31,16 +33,18 @@ final class BearHuntRunHistoryQuery
      */
     public function forOccurrences(array $occurrenceIds, string $actorPlayerId): array
     {
+        if (count($occurrenceIds) > self::MAX_RUNS) {
+            throw ValidationException::withMessages(['history' => 'Debrief history supports at most 24 requested runs.']);
+        }
         $ids = array_values(array_unique(array_filter(
             array_map('trim', $occurrenceIds),
             static fn (string $id): bool => $id !== '',
         )));
-        $ids = array_slice($ids, 0, self::MAX_RUNS);
         if ($ids === []) {
             return [];
         }
 
-        /** @var array<string,array{totalDamage:?int,governorCount:int,personalDamage:?int,personalRank:?int,personalAccepted:bool}> $scores */
+        /** @var array<string,array{totalDamage:int|string|null,governorCount:int,personalDamage:int|string|null,personalRank:?int,personalAccepted:bool}> $scores */
         $scores = [];
         /** @var array<string,array{available:bool,total:int,present:int,absent:int,excused:int,unknown:int,ratePercent:?float,personalStatus:?string}> $attendance */
         $attendance = [];
@@ -91,7 +95,7 @@ final class BearHuntRunHistoryQuery
             }
 
             $summary = $scores[$occurrenceId];
-            $summary['totalDamage'] = (int) $row->total_damage;
+            $summary['totalDamage'] = ResultScoreTotal::fromDatabase($row->total_damage);
             $summary['governorCount'] = (int) $row->governor_count;
             $scores[$occurrenceId] = $summary;
         }
@@ -123,33 +127,24 @@ final class BearHuntRunHistoryQuery
             }
 
             $summary = $scores[$occurrenceId];
-            $summary['personalDamage'] = $row->score === null ? null : (int) $row->score;
+            $summary['personalDamage'] = ResultScoreTotal::fromDatabase($row->score);
             $summary['personalRank'] = $row->rank === null ? null : (int) $row->rank;
             $scores[$occurrenceId] = $summary;
         }
 
-        foreach (DB::table('event_attendance')
-            ->whereIn('occurrence_id', $ids)
-            ->get(['occurrence_id', 'player_id', 'status']) as $row) {
+        foreach (DB::table('event_attendance')->whereIn('occurrence_id', $ids)
+            ->selectRaw('occurrence_id, status, COUNT(*) AS aggregate, MAX(CASE WHEN player_id = ? THEN 1 ELSE 0 END) AS personal', [$actorPlayerId])
+            ->groupBy('occurrence_id', 'status')->get() as $row) {
             $occurrenceId = (string) $row->occurrence_id;
-            if (! isset($attendance[$occurrenceId])) {
-                continue;
-            }
             $status = EventAttendanceStatus::tryFrom((string) $row->status);
-            if (! $status instanceof EventAttendanceStatus) {
+            if (! isset($attendance[$occurrenceId]) || ! $status instanceof EventAttendanceStatus) {
                 continue;
             }
-
             $summary = $attendance[$occurrenceId];
             $summary['available'] = true;
-            $summary['total']++;
-            match ($status) {
-                EventAttendanceStatus::Present => $summary['present']++,
-                EventAttendanceStatus::Absent => $summary['absent']++,
-                EventAttendanceStatus::Excused => $summary['excused']++,
-                EventAttendanceStatus::Unknown => $summary['unknown']++,
-            };
-            if ((string) $row->player_id === $actorPlayerId) {
+            $summary['total'] += (int) $row->aggregate;
+            $summary[$status->value] = (int) $row->aggregate;
+            if ((int) $row->personal === 1) {
                 $summary['personalStatus'] = $status->value;
             }
             $attendance[$occurrenceId] = $summary;
@@ -166,46 +161,42 @@ final class BearHuntRunHistoryQuery
 
         foreach (DB::table('rally_assignments as assignment')
             ->join('rally_groups as rally', 'rally.id', '=', 'assignment.rally_group_id')
-            ->whereIn('rally.occurrence_id', $ids)
-            ->whereNotNull('assignment.recorded_at')
-            ->get(['rally.occurrence_id', 'assignment.player_id', 'assignment.role', 'assignment.status']) as $row) {
+            ->whereIn('rally.occurrence_id', $ids)->whereNotNull('assignment.recorded_at')
+            ->selectRaw('rally.occurrence_id, assignment.role, assignment.status, COUNT(*) AS aggregate, SUM(CASE WHEN assignment.player_id = ? THEN 1 ELSE 0 END) AS personal', [$actorPlayerId])
+            ->groupBy('rally.occurrence_id', 'assignment.role', 'assignment.status')->get() as $row) {
             $occurrenceId = (string) $row->occurrence_id;
             if (! isset($rallies[$occurrenceId])) {
                 continue;
             }
-
             $summary = $rallies[$occurrenceId];
             $summary['available'] = true;
-            $isActor = (string) $row->player_id === $actorPlayerId;
-            if ($isActor && $summary['personalParticipated'] === null) {
+            $personal = (int) $row->personal;
+            if ($personal > 0 && $summary['personalParticipated'] === null) {
                 $summary['personalParticipated'] = 0;
                 $summary['personalLed'] = 0;
                 $summary['personalJoined'] = 0;
             }
-
             if ((string) $row->status === RallyAssignmentStatus::Participated->value) {
-                $summary['participated']++;
-                if ($isActor) {
-                    $summary['personalParticipated'] = ((int) $summary['personalParticipated']) + 1;
+                $summary['participated'] += (int) $row->aggregate;
+                if ($personal > 0) {
+                    $summary['personalParticipated'] = (int) $summary['personalParticipated'] + $personal;
                 }
-
                 if ((string) $row->role === RallyAssignmentRole::Lead->value) {
-                    $summary['led']++;
-                    if ($isActor) {
-                        $summary['personalLed'] = ((int) $summary['personalLed']) + 1;
+                    $summary['led'] += (int) $row->aggregate;
+                    if ($personal > 0) {
+                        $summary['personalLed'] = (int) $summary['personalLed'] + $personal;
                     }
                 } elseif ((string) $row->role === RallyAssignmentRole::Joiner->value) {
-                    $summary['joined']++;
-                    if ($isActor) {
-                        $summary['personalJoined'] = ((int) $summary['personalJoined']) + 1;
+                    $summary['joined'] += (int) $row->aggregate;
+                    if ($personal > 0) {
+                        $summary['personalJoined'] = (int) $summary['personalJoined'] + $personal;
                     }
                 }
             }
-
             $rallies[$occurrenceId] = $summary;
         }
 
-        /** @var array<string,array{totalDamage:?int,governorCount:int,personalDamage:?int,personalRank:?int,personalAccepted:bool,attendance:array{available:bool,total:int,present:int,absent:int,excused:int,unknown:int,ratePercent:?float,personalStatus:?string},rallies:array{available:bool,participated:int,led:int,joined:int,personalParticipated:?int,personalLed:?int,personalJoined:?int}}> $result */
+        /** @var array<string,array{totalDamage:int|string|null,governorCount:int,personalDamage:int|string|null,personalRank:?int,personalAccepted:bool,attendance:array{available:bool,total:int,present:int,absent:int,excused:int,unknown:int,ratePercent:?float,personalStatus:?string},rallies:array{available:bool,participated:int,led:int,joined:int,personalParticipated:?int,personalLed:?int,personalJoined:?int}}> $result */
         $result = [];
         foreach ($ids as $occurrenceId) {
             $score = $scores[$occurrenceId];

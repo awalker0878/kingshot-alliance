@@ -16,6 +16,8 @@ use App\Contexts\Operations\Events\Services\EventAuthorization;
 use App\Contexts\Operations\Participation\Queries\BearHuntAttendanceSummaryQuery;
 use App\Contexts\Operations\Rallies\Queries\RallyParticipationSummaryQuery;
 use App\Contexts\Operations\Results\Queries\BearHuntDebriefResultQuery;
+use App\Contexts\Operations\Results\Services\ResultScoreTotal;
+use Brick\Math\BigInteger;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
 use LogicException;
@@ -38,6 +40,7 @@ final readonly class BearHuntDebriefQuery
         EventOccurrence $occurrence,
         PlayerReference $actor,
         bool $canManage,
+        ?string $governorCursor = null,
     ): array {
         $event = $occurrence->event;
         if (! $event instanceof Event) {
@@ -63,33 +66,15 @@ final readonly class BearHuntDebriefQuery
             OperationsPermission::EventAllianceView,
         );
 
-        $currentResults = $this->results->forOccurrence((string) $occurrence->id);
-        $currentAttendance = $this->attendance->forOccurrence((string) $occurrence->id);
-        $currentRallies = $this->rallies->forOccurrence((string) $occurrence->id);
+        $currentResults = $this->results->forOccurrence((string) $occurrence->id, $actor->playerId, $governorCursor);
+        $playerIds = array_values(array_unique([...array_column($currentResults['governors'], 'playerId'), $actor->playerId]));
+        $currentAttendance = $this->attendance->forOccurrence((string) $occurrence->id, $playerIds);
+        $currentRallies = $this->rallies->forOccurrence((string) $occurrence->id, $playerIds);
 
-        $governors = [];
-        foreach ($currentResults['governors'] as $governor) {
-            $playerId = (string) $governor['playerId'];
-            $attendance = $currentAttendance['players'][$playerId] ?? null;
-            $rallies = $currentRallies['players'][$playerId] ?? null;
-            $governors[] = [
-                ...$governor,
-                'attendanceStatus' => is_array($attendance) ? ($attendance['status'] ?? null) : null,
-                'rallies' => is_array($rallies)
-                    ? [
-                        'available' => true,
-                        'participated' => (int) ($rallies['participated'] ?? 0),
-                        'led' => (int) ($rallies['led'] ?? 0),
-                        'joined' => (int) ($rallies['joined'] ?? 0),
-                    ]
-                    : [
-                        'available' => false,
-                        'participated' => null,
-                        'led' => null,
-                        'joined' => null,
-                    ],
-            ];
-        }
+        $governors = array_map(fn (array $governor): array => $this->governor($governor, $currentAttendance['players'], $currentRallies['players']), $currentResults['governors']);
+        $actorResult = is_array($currentResults['personal'])
+            ? $this->governor($currentResults['personal'], $currentAttendance['players'], $currentRallies['players'])
+            : null;
 
         $runOccurrences = EventOccurrence::query()
             ->where(function (Builder $query) use ($occurrence): void {
@@ -143,14 +128,6 @@ final readonly class BearHuntDebriefQuery
             ? $this->unmatchedGovernors->forOccurrence($actor->playerId, (string) $occurrence->id)
             : [];
 
-        $actorResult = null;
-        foreach ($governors as $governor) {
-            if ($governor['playerId'] === $actor->playerId) {
-                $actorResult = $governor;
-                break;
-            }
-        }
-
         $personalTrend = [];
         $allianceTrend = [];
         foreach (array_reverse($runs) as $run) {
@@ -175,18 +152,18 @@ final readonly class BearHuntDebriefQuery
             ];
         }
         $comparison = $this->comparison($currentHistory, $previous);
-        $currentPersonalDamage = is_array($currentHistory) && is_int($currentHistory['personalDamage'] ?? null)
+        $currentPersonalDamage = is_array($currentHistory) && (is_int($currentHistory['personalDamage'] ?? null) || is_string($currentHistory['personalDamage'] ?? null))
             ? $currentHistory['personalDamage']
             : null;
         $currentPersonalAccepted = (bool) ($currentHistory['personalAccepted'] ?? false);
         $previousPersonalDamage = array_values(array_filter(array_map(
-            static fn (array $run): ?int => $run['occurrenceId'] !== (string) $occurrence->id
+            static fn (array $run): int|string|null => $run['occurrenceId'] !== (string) $occurrence->id
                 && ($run['personalAccepted'] ?? false) === true
-                && is_int($run['personalDamage'] ?? null)
+                && (is_int($run['personalDamage'] ?? null) || is_string($run['personalDamage'] ?? null))
                     ? $run['personalDamage']
                     : null,
             $runs,
-        ), static fn (?int $damage): bool => $damage !== null));
+        ), static fn (int|string|null $damage): bool => $damage !== null));
 
         return [
             'run' => [
@@ -222,6 +199,7 @@ final readonly class BearHuntDebriefQuery
                 )),
             ],
             'governors' => $governors,
+            'governorPage' => $currentResults['governorPage'],
             'personal' => [
                 'playerId' => $actor->playerId,
                 'playerName' => $actor->currentName,
@@ -244,7 +222,7 @@ final readonly class BearHuntDebriefQuery
                 'personalRallies' => $this->direction($comparison['personalRallies'] ?? null),
                 'newPersonalBest' => $currentPersonalAccepted
                     && $currentPersonalDamage !== null
-                    && ($previousPersonalDamage === [] || $currentPersonalDamage > max($previousPersonalDamage)),
+                    && array_all($previousPersonalDamage, static fn (int|string $previous): bool => BigInteger::of($currentPersonalDamage)->isGreaterThan($previous)),
                 'acceptedResult' => $currentPersonalAccepted,
                 'evidenceStatus' => $currentPersonalAccepted
                     ? 'accepted'
@@ -255,6 +233,24 @@ final readonly class BearHuntDebriefQuery
             'allianceTrend' => $allianceTrend,
             'runs' => $runs,
         ];
+    }
+
+    /**
+     * @param  array<string,mixed>  $governor
+     * @param  array<string,array<string,mixed>>  $attendance
+     * @param  array<string,array<string,mixed>>  $rallies
+     * @return array<string,mixed>
+     */
+    private function governor(array $governor, array $attendance, array $rallies): array
+    {
+        $id = (string) $governor['playerId'];
+        $rally = $rallies[$id] ?? null;
+
+        return [...$governor, 'attendanceStatus' => $attendance[$id]['status'] ?? null,
+            'rallies' => is_array($rally)
+                ? ['available' => true, 'participated' => (int) ($rally['participated'] ?? 0),
+                    'led' => (int) ($rally['led'] ?? 0), 'joined' => (int) ($rally['joined'] ?? 0)]
+                : ['available' => false, 'participated' => null, 'led' => null, 'joined' => null]];
     }
 
     /**
@@ -308,8 +304,8 @@ final readonly class BearHuntDebriefQuery
         ];
     }
 
-    /** @return array{current:int|float|null,previous:int|float|null,delta:int|float|null,percentChange:?float,state:string} */
-    private function delta(int|float|null $current, int|float|null $previous, bool $percent = true): array
+    /** @return array{current:int|float|string|null,previous:int|float|string|null,delta:int|float|string|null,percentChange:?float,state:string} */
+    private function delta(int|float|string|null $current, int|float|string|null $previous, bool $percent = true): array
     {
         if ($current === null || $previous === null) {
             return [
@@ -321,7 +317,9 @@ final readonly class BearHuntDebriefQuery
             ];
         }
 
-        $difference = $current - $previous;
+        $difference = ! is_float($current) && ! is_float($previous)
+            ? ResultScoreTotal::forJson(BigInteger::of($current)->minus($previous))
+            : (float) $current - (float) $previous;
         if (! $percent) {
             return [
                 'current' => $current,
@@ -338,7 +336,7 @@ final readonly class BearHuntDebriefQuery
             'delta' => $difference,
             'percentChange' => $previous == 0
                 ? null
-                : round(($difference / $previous) * 100, 2),
+                : round(((float) $difference / (float) $previous) * 100, 2),
             'state' => $previous == 0 ? 'previous_zero' : 'available',
         ];
     }
@@ -347,6 +345,9 @@ final readonly class BearHuntDebriefQuery
     private function direction(?array $comparison): string
     {
         $delta = $comparison['delta'] ?? null;
+        if (is_string($delta)) {
+            return $delta === '0' ? 'unchanged' : (str_starts_with($delta, '-') ? 'decreased' : 'increased');
+        }
         if (! is_int($delta) && ! is_float($delta)) {
             return 'unknown';
         }

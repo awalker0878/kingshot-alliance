@@ -103,6 +103,38 @@ test('Event Command keeps closeout and readiness visible without responsive over
   expect(overflow).toBeFalsy();
 
   const readyHash = await fingerprint(refreshed);
+  // Temporary diagnostic: isolate whether the rounded card capture includes a
+  // document-height-dependent page backdrop after selected-occurrence composition.
+  if (readyHash !== fingerprints[testInfo.project.name].ready) {
+    const box = await refreshed.boundingBox();
+    if (!box) throw new Error('Event Command bounds are unavailable');
+    const clip = { x: box.x + 17, y: box.y + 17, width: box.width - 34, height: box.height - 34 };
+    const innerBefore = createHash('sha256')
+      .update(await page.screenshot({ clip, animations: 'disabled', caret: 'hide', scale: 'css' }))
+      .digest('hex');
+    await page.evaluate(() => {
+      const probe = document.createElement('div');
+      probe.id = 'event-backdrop-probe';
+      probe.style.height = '10000px';
+      document.body.appendChild(probe);
+    });
+    const outerAfter = await fingerprint(refreshed);
+    const innerAfter = createHash('sha256')
+      .update(await page.screenshot({ clip, animations: 'disabled', caret: 'hide', scale: 'css' }))
+      .digest('hex');
+    await page.evaluate(() => document.getElementById('event-backdrop-probe')?.remove());
+    console.log(
+      'Event Command backdrop diagnostic',
+      JSON.stringify({
+        project: testInfo.project.name,
+        readyHash,
+        outerAfter,
+        innerBefore,
+        innerAfter,
+        box,
+      }),
+    );
+  }
   expect(
     { closeout: closeoutHash, ready: readyHash },
     `Update Event Command visual fingerprints for ${testInfo.project.name}`,

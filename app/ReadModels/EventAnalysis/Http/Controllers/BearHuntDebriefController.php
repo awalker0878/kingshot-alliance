@@ -48,7 +48,8 @@ final class BearHuntDebriefController extends Controller
             $target->targetId,
             OperationsPermission::from((string) $event->typeScope->manage_permission_key),
         );
-        $payload = $debrief->forOccurrence($eventOccurrence, $actor, $canManage);
+        $input = $request->validate(['governor_cursor' => ['nullable', 'string', 'max:2048']]);
+        $payload = $debrief->forOccurrence($eventOccurrence, $actor, $canManage, $input['governor_cursor'] ?? null);
         $summary = is_array($payload['summary'] ?? null) ? $payload['summary'] : [];
         $attendanceSummary = is_array($summary['attendance'] ?? null) ? $summary['attendance'] : [];
         $rallySummary = is_array($summary['rallies'] ?? null) ? $summary['rallies'] : [];

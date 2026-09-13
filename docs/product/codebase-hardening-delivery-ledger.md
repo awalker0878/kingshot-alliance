@@ -5,11 +5,11 @@
 - Program state: In progress. Keep the active hardening follow-up PR draft until the full ledger, repository audit and final gates are complete. PR #163 was merged outside this continuation at 2026-09-12 23:40:58 UTC; that merge is not completion evidence.
 - Original baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`. Continuation base: merge `044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c`, whose tree matches `b9a7b7ed90516eb229646d69af2ff488901dc538`; working branch `astra/hardening-followup`.
 - Latest containing PHP/visual evidence: `bdfc2ec8305545cd0dfcaab607dcb28351b3859f` passes all 2,051 PHP tests/96,726 assertions in 22:46.178 (CI `34728896660`, PHP job `103647966011`, merge checkout `eaa44a0763284298a87c55e80e70dde9e4915943`) and 86 browser cases in 8.4 minutes (Visual `34728896590`, job `103647934794`). Frontend, fresh schema, architecture, CodeQL, dependency review, all focused groups and actual Source Refresh also pass. Its downstream container job was queued when the next candidate was published; no completed container claim is made for this head. Last full image/staging/recovery milestone remains `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`.
-- Latest durable checkpoint: `8b12a54bb20c7f908838ef380b60edcb82b180de` publishes the HARD-134 occurrence catalogue and selected management after HARD-137 schedule reconciliation, on draft PR #164. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`; the final candidate must repeat all applicable gates.
-- Current item/state: HARD-134 / In progress (phase/poll catalogues and vote aggregates); HARD-135 Planned; HARD-137 has focused PostgreSQL evidence and awaits complete containing gates. HARD-001–133 and HARD-136 are Complete with containing evidence. Repository coverage and final gates remain open.
-- Active files: owner phase/poll catalogues, aggregate vote projection, scoped read adapters, independent member/manager paging and saved-vote state, five database cases, desktop/mobile journey and ADR-0077. The occurrence HTTP fixture now establishes the existing verified-email admission requirement.
-- Local verification: complete npm check passes, including strict types, localization and unchanged performance budgets. Changed production/tests pass PHPStan/Pint and current architecture verification. New hosted phase/poll behavior/browser execution remains required.
-- Next action: verify phase/poll navigation and corrected occurrence HTTP fixture; explain the two existing Event Command screenshot differences before accepting any baseline. Finish selected-occurrence participation, roster/Rally/results/reminder collections and EventPlayerIntelligence history composition. Implement HARD-135 Debrief projection. Complete the remaining production audit and immutable final gates.
+- Latest durable checkpoint: `640439b70053938f62248b5be583c8c077396ea8` publishes HARD-134 phase/poll catalogues and SQL vote aggregates after occurrence navigation and HARD-137 schedule reconciliation, on draft PR #164. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`; the final candidate must repeat all applicable gates.
+- Current item/state: HARD-134 / In progress (phase/poll catalogues and vote aggregates); HARD-135 In progress; HARD-138 Planned; HARD-137 has focused PostgreSQL evidence and awaits complete containing gates. HARD-001–133 and HARD-136 are Complete with containing evidence. Repository coverage and final gates remain open.
+- Active files: Debrief result catalogue and independent personal result; SQL attendance/Rally summaries and history; exact wide score/total/delta/JSON handling; eight database cases and complete 61-Governor browser journey; ADR-0078. A temporary Event Command capture diagnostic investigates page-backdrop dependence without changing expected fingerprints.
+- Local verification: complete npm check, changed production/tests PHPStan/Pint and all 78 architecture cases/72,644 assertions pass; 349-source test layout passes. New hosted Debrief behavior/browser execution remains required.
+- Next action: verify Debrief and diagnose the remaining two Event Command fingerprint failures. Resolve HARD-138 unmatched-Evidence nested hydration; finish HARD-134 participation, roster/Rally/results/reminder lists and EventPlayerIntelligence history. Complete the remaining production audit and immutable final gates.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -2012,10 +2012,10 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: unchanged, with bounded complete Governor access and exact totals.
 - Rationale: HARD-132 bounds report mutations/receipts, not independent manual-result history or the Debrief read contract.
 - Remediation: trace aggregate/personal/trend/browser consumers, use exact database totals and bounded scoped Governor navigation while preserving absence and current authorization.
-- State: Planned.
+- State: In progress.
 - Verification required: large manual/report histories, full navigation, exact totals above integer/safe-number ranges, missing data, personal history, permission isolation and browser behavior.
-- Verification result: complete owner result query traced; consumer design and implementation pending.
-- Completion evidence: pending.
+- Verification result: implemented 25-Governor scoped pages, independent personal facts, SQL aggregate current/history Attendance and Rallies, exact decimal wide scores/totals/deltas and personal-best comparisons. Changed code passes static/frontend gates. Eight database cases and a separate complete desktop/mobile journey are authored; hosted execution pending.
+- Completion evidence: [ADR-0078](../architecture/adr/0078-bounded-debrief-and-exact-score-projections.md), BearHuntDebriefPagesTest and the catalogue visual fixture/journey; full containing gates pending.
 
 ### HARD-136 — Live progression source hashes are treated as immutable regeneration output
 
@@ -2044,6 +2044,19 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Verification required: large cancelled/registered histories, complete 64-date replacement/reactivation, attached state, completed preservation, corrupt stored budget, capacity bounds, rollback/retry and existing current-owner concurrency tests.
 - Verification result: all eight new schedule history cases pass inside the 127 Operations tests/669 assertions at 8b12a54b, focused run 34730137527/job 103651318566. Changed production/tests also pass PHPStan/Pint. Full containing verification remains required.
 - Completion evidence: [ADR-0075](../architecture/adr/0075-bounded-event-schedule-reconciliation.md) and EventScheduleHistoryBoundsTest; containing behavior pending.
+
+### HARD-138 — Unmatched Debrief Evidence expands extraction history
+
+- Area: Intelligence Evidence BearHuntUnmatchedGovernorQuery and its extraction/review contracts.
+- Finding: the 50-Evidence queue loads every extraction attempt for those records to select each latest attempt in PHP, then loads every positive-ordinal extracted field without a materialization budget. The queue bound does not bound retained attempts or nested fields.
+- Current owner: Intelligence/Evidence; EventAnalysis only composes its manager-authorized facts.
+- Intended authoritative owner: unchanged, with SQL latest-attempt selection and explicit bounded field/row contracts.
+- Rationale: retained retries and malformed or oversized extraction output can expand a supposedly bounded manager read.
+- Remediation: trace extraction/review cardinality and latest-attempt semantics, constrain selection in SQL, bound nested materialization and preserve resolved-review exclusion and recovery reachability.
+- State: Planned.
+- Verification required: many retained attempts, latest-review exclusion, exact supported rows, oversized/corrupt output behavior, current authority, query/hydration budgets and existing Screenshot Intake/Debrief cases.
+- Verification result: complete unmatched query and extraction/review entry points traced; implementation pending.
+- Completion evidence: pending.
 
 ## Repository audit coverage
 
@@ -2214,3 +2227,17 @@ Visual `34727938824`, job `103645370417`, passes all 86 cases in 8.3 minutes on 
 Focused run `34730137527`, job `103651318566`, passes Integrations 95/1,058, Platform 78/6,367, Governance 88/1,435 and Operations 127/669, including all eight HARD-137 schedule cases. EventManagement runs 20 cases/11,411 assertions with one failure: the new management HTTP fixture's ScenarioFactory user was unverified, so current middleware returned 302. The fixture now verifies its own email; production admission is preserved. The other four new occurrence history cases pass, including the 1,000-row hydration bounds.
 
 Visual `34730137492`, job `103651315251`, passes 86 cases and fails the existing Event Command fingerprint case on desktop and mobile. Both new 101-occurrence paging/retry/draft/older-selection journeys pass. Failure artifact `10308463771` and its trace are retained for visual investigation; baselines have not been changed. Architecture, CodeQL, Dependency Review, King Perks and actual Source Refresh pass at this checkpoint. This is not a final containing milestone.
+
+
+### Phase/poll and occurrence containing feedback on 640439b7
+
+Focused run `34731248263`, job `103654325169`, succeeds: Operations 132 tests/720 assertions (all five new phase/poll catalogue and aggregate vote cases), EventManagement 20/11,456 (all five occurrence history cases, including corrected verified-email HTTP setup), Integrations 95/1,058, Platform 78/6,367, Governance 88/1,435, Gift/source/reset 47/256, Participation four/26 and Transfer 29/425.
+
+Visual `34731248267`, job `103654325185`, passes 88 cases in 8.5 minutes and fails only the existing Event Command fingerprints on desktop/mobile. Both new phase/poll manager-draft and saved-member-vote journeys pass alongside both occurrence history journeys. The original expectations remain unchanged while a temporary capture diagnostic isolates possible page-backdrop dependence. Architecture, CodeQL, Dependency Review, King Perks and Source Refresh pass. Full CI and final program gates remain separate.
+
+
+### Full PHP budget feedback on 640439b7
+
+CI `34731248265`, PHP job `103654325208`, finishes 2,069 tests/96,843 assertions in 22:27.723 with one failure: CapabilityReadModelBudgetAndTelemetryV3Test reports 68 Command Overview queries against its unchanged 65-query budget. Frontend succeeds; container/staging/recovery is skipped. This is not a full passing milestone.
+
+The occurrence catalogue now obtains count/frontier together, explicit selection reuses a matching freshly authorized catalogue row, and selected/closeout occurrences retain the freshly authorized parent Event relation for owner projections. These remove redundant reads while preserving current authorization, off-page SQL selection and the existing 65-query gate. The acceptance case is added to temporary focused execution. Containing hosted verification remains required; no query budget or normal gate is increased.

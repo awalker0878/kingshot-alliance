@@ -23,9 +23,10 @@ final readonly class EventOccurrenceCatalogueQuery
     {
         $event = $this->events->eventForManage($actor, $eventId);
         $query = EventOccurrence::query()->where('event_id', $event->id);
-        $total = (clone $query)->count();
+        $summary = (clone $query)->toBase()->selectRaw('COUNT(*) AS total, MAX(id) AS frontier')->first();
+        $total = (int) ($summary->total ?? 0);
         $scope = 'operations.event-occurrences.v1:'.$actor->playerId.':'.$event->id;
-        $through = $cursor === null ? (clone $query)->max('id') : null;
+        $through = $cursor === null ? ($summary->frontier ?? null) : null;
         if ($cursor !== null) {
             $position = $this->cursors->decode($cursor, $scope);
             $after = $position['after'] ?? null;

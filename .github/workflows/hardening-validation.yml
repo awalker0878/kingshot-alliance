@@ -87,6 +87,10 @@ jobs:
         run: php vendor/bin/phpunit tests/Contexts/Operations --log-junit storage/logs/operations-scopes-junit.xml
       - name: Run EventManagement history behavior
         run: php vendor/bin/phpunit tests/ReadModels/EventManagement --log-junit storage/logs/event-management-junit.xml
+      - name: Run EventAnalysis Debrief behavior
+        run: php vendor/bin/phpunit tests/ReadModels/EventAnalysis --log-junit storage/logs/event-analysis-junit.xml
+      - name: Run read-model budget and telemetry acceptance
+        run: php vendor/bin/phpunit tests/System/Acceptance/Feature/CapabilityReadModelBudgetAndTelemetryV3Test.php --log-junit storage/logs/read-model-budget-junit.xml
       - name: Run Gift Code operational alert progress
         run: php vendor/bin/phpunit tests/Contexts/GameWorld/GiftCodes/Feature/OperationalAlertProgressTest.php tests/Workflows/NotificationDelivery/Feature/NotificationSourceEligibilityTest.php tests/Shared/Testing/Integration/MigrationReferenceDataIsolationTest.php --log-junit storage/logs/operational-alerts-junit.xml
       - name: Run Participation owner behavior
@@ -107,5 +111,7 @@ jobs:
             storage/logs/operational-alerts-junit.xml
             storage/logs/operations-scopes-junit.xml
             storage/logs/event-management-junit.xml
+            storage/logs/event-analysis-junit.xml
+            storage/logs/read-model-budget-junit.xml
           if-no-files-found: ignore
           retention-days: 7

@@ -46,7 +46,10 @@ final readonly class EventCommandQuery
         $dimensions = $profile['profile_enabled'] === true ? $profile['workflow_dimensions'] : [];
         $commandDimensions = $this->has($dimensions, EventWorkflowDimension::ReadinessCloseout) ? $dimensions : [];
         $now = CarbonImmutable::now('UTC');
-        $occurrence = $this->selectOccurrence($actor, $event, $commandDimensions, $requestedOccurrenceId, $now);
+        $requested = trim((string) $requestedOccurrenceId);
+        $occurrence = $requested === '' ? null : $page['items']->firstWhere('id', $requested);
+        $occurrence ??= $this->selectOccurrence($actor, $event, $commandDimensions, $requestedOccurrenceId, $now);
+        $occurrence?->setRelation('event', $event);
 
         if (! $occurrence instanceof EventOccurrence) {
             return $this->record($event, null, [
@@ -151,6 +154,7 @@ final readonly class EventCommandQuery
                 ->where('status', EventOccurrenceStatus::Completed->value)->orWhere('ends_at', '<=', $now))
                 ->orderByDesc('ends_at')->orderByDesc('id')->limit(self::CLOSEOUT_SELECTION_LIMIT)->get();
             foreach ($ended as $item) {
+                $item->setRelation('event', $event);
                 $sections = $this->closeout->forOccurrence($actor, $event, $item, $dimensions);
                 if (Items::blockers(Items::flatten($sections)) > 0) {
                     return $item;

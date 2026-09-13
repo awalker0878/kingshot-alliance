@@ -86,7 +86,7 @@ export function t(key: string, params?: TranslationParams): string {
   return interpolate(resolveMessage(currentLocale.value, activeDomains(), key) ?? key, params);
 }
 
-export function formatNumber(value: number, options?: Intl.NumberFormatOptions): string {
+export function formatNumber(value: number | bigint, options?: Intl.NumberFormatOptions): string {
   return new Intl.NumberFormat(currentLocale.value, options).format(value);
 }
 

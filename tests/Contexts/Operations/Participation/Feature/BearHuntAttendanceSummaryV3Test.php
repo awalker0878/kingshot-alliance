@@ -64,7 +64,7 @@ final class BearHuntAttendanceSummaryV3Test extends TestCase
             ]);
         }
 
-        $summary = app(BearHuntAttendanceSummaryQuery::class)->forOccurrence($created->firstOccurrenceId);
+        $summary = app(BearHuntAttendanceSummaryQuery::class)->forOccurrence($created->firstOccurrenceId, array_column($players, 'playerId'));
 
         self::assertTrue($summary['available']);
         self::assertSame(4, $summary['total']);

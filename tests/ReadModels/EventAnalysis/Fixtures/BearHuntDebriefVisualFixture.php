@@ -33,6 +33,7 @@ use App\Contexts\Operations\Rallies\Models\RallyAssignment;
 use App\Contexts\Operations\Rallies\Models\RallyGroup;
 use App\Contexts\Operations\Results\Actions\RecordBearHuntBattleReport;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -217,6 +218,20 @@ final class BearHuntDebriefVisualFixture
         self::rallyAssignment($rally, (string) $third->id, RallyAssignmentRole::Joiner, RallyAssignmentStatus::Absent, (string) $actor->id);
 
         self::unmatchedEvidence($allianceId, $current->firstOccurrenceId, (string) $actor->id);
+
+        $catalogue = app(CreateEvent::class)->handle((string) $actor->id, (string) $configuration->id,
+            EventScope::Alliance, $allianceId, $nextStart->addDay(), title: 'Bear Hunt · Catalogue Visual', durationMinutes: 30);
+        $players = $results = [];
+        for ($i = 0; $i < 60; $i++) {
+            $id = strtolower((string) Str::ulid());
+            $players[] = ['id' => $id, 'current_kingdom_id' => (string) $kingdom->id, 'current_name' => 'History Debrief Governor '.$i];
+            $results[] = ['id' => strtolower((string) Str::ulid()), 'occurrence_id' => $catalogue->firstOccurrenceId,
+                'player_id' => $id, 'score' => PHP_INT_MAX, 'rank' => $i + 1, 'recorded_at' => now()];
+        }
+        $results[] = ['id' => strtolower((string) Str::ulid()), 'occurrence_id' => $catalogue->firstOccurrenceId,
+            'player_id' => (string) $actor->id, 'score' => PHP_INT_MAX, 'rank' => 61, 'recorded_at' => now()];
+        DB::table('players')->insert($players);
+        DB::table('event_player_results')->insert($results);
     }
 
     private static function attendance(
