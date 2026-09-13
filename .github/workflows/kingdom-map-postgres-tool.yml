@@ -1,0 +1,48 @@
+name: Kingdom Map PostgreSQL development tool
+
+# Temporary read-only development transport. Remove after obtaining the runtime.
+on:
+  push:
+    branches: [astra/kingdom-map-workspace]
+    paths: [.github/workflows/kingdom-map-postgres-tool.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  postgres:
+    if: github.repository == 'awalker0878/kingshot-alliance'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Export public PostgreSQL 18 binaries without database state
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/postgres-tool"
+          docker pull postgres:18-bookworm
+          docker image inspect postgres:18-bookworm --format '{{json .RepoDigests}}' > "$RUNNER_TEMP/postgres-tool/image-digest.json"
+          docker run --rm --entrypoint bash -v "$RUNNER_TEMP/postgres-tool:/export" postgres:18-bookworm -c '
+            set -euo pipefail
+            mkdir -p /export/runtime/lib /export/runtime/share
+            cp -a /usr/lib/postgresql/18 /export/runtime/postgresql
+            cp -a /usr/share/postgresql/18 /export/runtime/share/postgresql
+            find /export/runtime/postgresql -type f -exec ldd {} \; 2>/dev/null | awk "/=> \\// { print \$3 }" | sort -u > /tmp/dependencies
+            while IFS= read -r library; do
+              case "$(basename "$library")" in libc.so.6|libm.so.6|libpthread.so.0|libdl.so.2|librt.so.1) continue ;; esac
+              cp -L "$library" /export/runtime/lib/
+            done < /tmp/dependencies
+            /usr/lib/postgresql/18/bin/postgres --version > /export/version.txt
+            tar -C /export -czf /export/postgres-runtime.tar.gz runtime
+            cd /export && sha256sum postgres-runtime.tar.gz > SHA256SUMS
+          '
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: kingdom-map-postgres-tool
+          path: |
+            ${{ runner.temp }}/postgres-tool/postgres-runtime.tar.gz
+            ${{ runner.temp }}/postgres-tool/image-digest.json
+            ${{ runner.temp }}/postgres-tool/version.txt
+            ${{ runner.temp }}/postgres-tool/SHA256SUMS
+          retention-days: 1
+          if-no-files-found: error
