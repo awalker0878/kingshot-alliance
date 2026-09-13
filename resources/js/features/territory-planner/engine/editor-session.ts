@@ -21,6 +21,7 @@ export class TerritoryRequestError extends Error {
 }
 export type SessionOptions<Layout> = {
   revision: number;
+  layoutChecksum?: string | null;
   read: () => Layout;
   install: (layout: Layout) => void;
   authority: () => string | null;
@@ -32,7 +33,9 @@ export type SessionOptions<Layout> = {
 export function createEditorSession<Layout>(options: SessionOptions<Layout>) {
   let revision = options.revision;
   let acknowledged = JSON.stringify(options.read());
-  let checksum: string | null = null;
+  let checksum: string | null = options.layoutChecksum ?? null;
+  if (checksum !== null && !/^[a-f0-9]{64}$/.test(checksum))
+    throw new TerritoryRequestError('Invalid initial layout checksum.', 502);
   let pending: SaveRequest<Layout> | null = null;
   let active: Promise<void> | null = null;
   let disposed = false;

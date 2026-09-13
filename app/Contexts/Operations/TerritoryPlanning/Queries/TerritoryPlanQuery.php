@@ -16,6 +16,7 @@ use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanGroup;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanObject;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryLayoutAnalyzer;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanSnapshotBuilder;
 
 final readonly class TerritoryPlanQuery
 {
@@ -25,6 +26,7 @@ final readonly class TerritoryPlanQuery
         private KingdomMapDatasetQuery $datasets,
         private PlacementValidator $placement,
         private TerritoryLayoutAnalyzer $analysis,
+        private TerritoryPlanSnapshotBuilder $snapshots,
     ) {}
 
     /** @return list<array<string, mixed>> */
@@ -164,6 +166,7 @@ final readonly class TerritoryPlanQuery
                 'data' => $dataset->data,
             ],
             'revisions' => $revisions,
+            'layout_checksum' => $this->snapshots->checksum($this->snapshots->build($plan)),
         ];
     }
 

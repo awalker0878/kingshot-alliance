@@ -13,6 +13,12 @@ import {
   downloadPngFromSvg,
   downloadText,
 } from '@/features/territory-planner/engine/export';
+import {
+  createEditorSession,
+  TerritoryRequestError,
+  type SaveReceipt,
+  type SaveRequest,
+} from '@/features/territory-planner/engine/editor-session';
 import { analyzeLayout, validatePlacement } from '@/features/territory-planner/engine/geometry';
 import type {
   AllianceAnalysis,
@@ -63,6 +69,7 @@ type TerritoryProp = {
     data: MapData;
   };
   revisions: Revision[];
+  layout_checksum: string;
   governor_options: Record<string, Array<{ id: string; name: string }>>;
 };
 type Tool = 'select' | 'pan' | 'place';
@@ -72,6 +79,28 @@ type RevisionSnapshot = {
   groups: PlanGroup[];
   objects: PlanObject[];
   plan: { planning_preferences?: PlanningPreferences };
+};
+type EditorLayout = {
+  alliances: PlanAlliance[];
+  groups: PlanGroup[];
+  objects: PlanObject[];
+  preferences: PlanningPreferences;
+};
+type ServerSnapshot = {
+  schema_version: number;
+  plan: { planning_preferences?: PlanningPreferences };
+  alliances: PlanAlliance[];
+  groups: PlanGroup[];
+  objects: PlanObject[];
+};
+type ServerMutationReceipt = {
+  plan_id: string;
+  revision: number;
+  status: string;
+  published_revision_id: string | null;
+  snapshot: ServerSnapshot | null;
+  layout_checksum: string | null;
+  mutation_id: string | null;
 };
 type ImportPreview = {
   can_commit: boolean;
@@ -140,7 +169,8 @@ const showCoverage = ref(true);
 const showStructures = ref(true);
 const showZones = ref(true);
 const objectFilter = ref('');
-const draftStorageKey = `territory-draft:${props.territory.plan.id}:${props.territory.plan.revision}`;
+let persistenceSession: ReturnType<typeof createEditorSession<EditorLayout>> | null = null;
+let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
 
 const mapMinX = computed(() => props.territory.map.data.bounds.x);
 const mapMinY = computed(() => props.territory.map.data.bounds.y);
@@ -201,6 +231,46 @@ const hivePreviewValidation = computed(() =>
     preferences.value,
   ),
 );
+
+function currentLayout(): EditorLayout {
+  return {
+    alliances: cloneJson(alliances.value),
+    groups: cloneJson(groups.value),
+    objects: cloneJson(objects.value),
+    preferences: cloneJson(preferences.value),
+  };
+}
+function installLayout(layout: EditorLayout): void {
+  alliances.value = cloneJson(layout.alliances);
+  groups.value = cloneJson(layout.groups);
+  objects.value = cloneJson(layout.objects);
+  preferences.value = cloneJson(layout.preferences);
+  selectedKeys.value = selectedKeys.value.filter((key) =>
+    objects.value.some((object) => object.key === key),
+  );
+}
+function editorReceipt(
+  raw: ServerMutationReceipt,
+  fallbackMutationId = 'replacement',
+): SaveReceipt<EditorLayout> {
+  if (!raw.snapshot || !raw.layout_checksum)
+    throw new TerritoryRequestError('The server returned an incomplete Territory receipt.', 502);
+  return {
+    mutation_id: raw.mutation_id ?? fallbackMutationId,
+    revision: raw.revision,
+    status: raw.status,
+    layout_checksum: raw.layout_checksum,
+    layout: {
+      alliances: raw.snapshot.alliances,
+      groups: raw.snapshot.groups,
+      objects: raw.snapshot.objects,
+      preferences: raw.snapshot.plan.planning_preferences ?? {},
+    },
+  };
+}
+function mutationId(): string {
+  return crypto.randomUUID();
+}
 
 function snapshot(): string {
   return JSON.stringify({
@@ -413,6 +483,7 @@ async function jsonRequest(
   url: string,
   method: string,
   body?: unknown,
+  signal?: AbortSignal,
 ): Promise<Record<string, unknown>> {
   const init: NonNullable<Parameters<typeof fetch>[1]> = {
     method,
@@ -424,45 +495,72 @@ async function jsonRequest(
       'X-Requested-With': 'XMLHttpRequest',
     },
   };
+  if (signal !== undefined) init.signal = signal;
   if (body !== undefined) init.body = JSON.stringify(body);
   const response = await fetch(url, init);
   const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
   if (!response.ok) {
     const errors = payload.errors as Record<string, string[] | string> | undefined;
     const first = errors ? Object.values(errors).flat()[0] : null;
-    throw new Error(
+    throw new TerritoryRequestError(
       typeof first === 'string'
         ? first
         : typeof payload.message === 'string'
           ? payload.message
           : t('territory.requestFailed'),
+      response.status,
     );
   }
   return payload;
 }
 
+function initializePersistence(): void {
+  persistenceSession = createEditorSession<EditorLayout>({
+    revision: revision.value,
+    layoutChecksum: props.territory.layout_checksum,
+    read: currentLayout,
+    install: installLayout,
+    authority: () => `${props.activePlayer.id}:${props.territory.plan.id}`,
+    mutationId,
+    accepted: (receipt) => {
+      revision.value = receipt.revision;
+      status.value = receipt.status;
+    },
+    save: async (request: SaveRequest<EditorLayout>, signal: AbortSignal) => {
+      const payload = await jsonRequest(
+        `/territory/${props.territory.plan.id}`,
+        'PUT',
+        {
+          expected_revision: request.expected_revision,
+          mutation_id: request.mutation_id,
+          alliances: request.layout.alliances,
+          groups: request.layout.groups,
+          objects: request.layout.objects,
+          planning_preferences: request.layout.preferences,
+        },
+        signal,
+      );
+      return editorReceipt(payload.receipt as ServerMutationReceipt, request.mutation_id);
+    },
+  });
+}
+
+async function flushPersistence(successNotice = true): Promise<void> {
+  if (!persistenceSession)
+    throw new TerritoryRequestError('Territory persistence is not ready.', 503);
+  if (validation.value.violations.length)
+    throw new TerritoryRequestError(t('territory.fixViolations'), 422);
+  await persistenceSession.flush();
+  if (successNotice)
+    notice.value = { tone: 'success', message: t('territory.saved', { revision: revision.value }) };
+}
+
 async function save(): Promise<void> {
-  if (!canEdit.value || validation.value.violations.length) {
-    notice.value = { tone: 'danger', message: t('territory.fixViolations') };
-    return;
-  }
+  if (!canEdit.value) return;
   busy.value = true;
   notice.value = null;
   try {
-    const payload = await jsonRequest(`/territory/${props.territory.plan.id}`, 'PUT', {
-      expected_revision: revision.value,
-      alliances: alliances.value,
-      groups: groups.value,
-      objects: objects.value,
-      planning_preferences: preferences.value,
-    });
-    const receipt = payload.receipt as { revision: number; status: string };
-    revision.value = receipt.revision;
-    status.value = receipt.status;
-    history.value = [];
-    future.value = [];
-    localStorage.removeItem(draftStorageKey);
-    notice.value = { tone: 'success', message: t('territory.saved', { revision: revision.value }) };
+    await flushPersistence(true);
   } catch (error) {
     notice.value = {
       tone: 'danger',
@@ -479,10 +577,15 @@ async function publish(): Promise<void> {
   }
   busy.value = true;
   try {
-    const payload = await jsonRequest(`/territory/${props.territory.plan.id}/publish`, 'POST', {
-      expected_revision: revision.value,
-    });
-    const receipt = payload.receipt as { status: string };
+    if (!persistenceSession)
+      throw new TerritoryRequestError('Territory persistence is not ready.', 503);
+    const publication = await persistenceSession.publication();
+    const payload = await jsonRequest(
+      `/territory/${props.territory.plan.id}/publish`,
+      'POST',
+      publication,
+    );
+    const receipt = payload.receipt as ServerMutationReceipt;
     status.value = receipt.status;
     notice.value = { tone: 'success', message: t('territory.published') };
     router.reload({ only: ['territory'] });
@@ -502,7 +605,7 @@ async function archive(): Promise<void> {
       expected_revision: revision.value,
     });
     dialogAction.value = null;
-    localStorage.removeItem(draftStorageKey);
+    persistenceSession?.dispose();
     router.visit('/territory');
   } catch (error) {
     notice.value = {
@@ -540,8 +643,12 @@ async function restoreRevision(item: Revision): Promise<void> {
       'POST',
       { expected_revision: revision.value },
     );
-    const receipt = payload.receipt as { revision: number };
-    revision.value = receipt.revision;
+    const receipt = editorReceipt(payload.receipt as ServerMutationReceipt);
+    if (!persistenceSession)
+      throw new TerritoryRequestError('Territory persistence is not ready.', 503);
+    persistenceSession.replace(receipt);
+    history.value = [];
+    future.value = [];
     dialogAction.value = null;
     notice.value = {
       tone: 'success',
@@ -594,12 +701,31 @@ async function generateHivePreview(): Promise<void> {
   busy.value = true;
   try {
     const payload = await jsonRequest('/territory/hive-preview', 'POST', {
+      map_dataset_id: props.territory.map.id,
+      map_dataset_checksum: props.territory.map.checksum,
+      existing_objects: objects.value.map(({ key, type, alliance_key, x, y, rotation }) => ({
+        key,
+        type,
+        alliance_key,
+        x,
+        y,
+        rotation,
+      })),
       style: hiveStyle.value,
       alliance_key: activeAllianceKey.value,
       center_x: hiveCenterX.value,
       center_y: hiveCenterY.value,
       city_count: hiveCityCount.value,
+      spacing: 1,
+      planning_preferences: preferences.value,
     });
+    if (payload.status !== 'feasible') {
+      const diagnostics = payload.diagnostics as Array<{ message?: string }> | undefined;
+      throw new TerritoryRequestError(
+        diagnostics?.[0]?.message ?? t('territory.hivePreviewBlocked'),
+        422,
+      );
+    }
     const generated = payload.objects as Array<
       Partial<PlanObject> & Pick<PlanObject, 'type' | 'x' | 'y' | 'alliance_key'>
     >;
@@ -716,22 +842,28 @@ async function importFile(event: Event): Promise<void> {
     input.value = '';
   }
 }
+async function sha256(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
 async function applyImport(): Promise<void> {
   if (!importPreview.value || !importPreview.value.can_commit || !importDocument.value) return;
   busy.value = true;
   try {
+    const documentChecksum = await sha256(importDocument.value);
     const payload = await jsonRequest(`/territory/${props.territory.plan.id}/import`, 'POST', {
       expected_revision: revision.value,
       document: importDocument.value,
+      document_checksum: documentChecksum,
     });
-    const receipt = payload.receipt as { revision: number; status: string };
-    revision.value = receipt.revision;
-    status.value = receipt.status;
+    const receipt = editorReceipt(payload.receipt as ServerMutationReceipt);
+    if (!persistenceSession)
+      throw new TerritoryRequestError('Territory persistence is not ready.', 503);
+    persistenceSession.replace(receipt);
     importPreview.value = null;
     importDocument.value = '';
     history.value = [];
     future.value = [];
-    localStorage.removeItem(draftStorageKey);
     notice.value = {
       tone: 'success',
       message: t('territory.imported', { revision: revision.value }),
@@ -799,19 +931,30 @@ function onKey(event: KeyboardEvent): void {
 watch(
   [alliances, groups, objects, preferences],
   () => {
-    if (canEdit.value) localStorage.setItem(draftStorageKey, snapshot());
+    if (!canEdit.value || !persistenceSession) return;
+    if (autosaveTimer) clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(() => {
+      if (!persistenceSession?.dirty() || validation.value.violations.length) return;
+      void flushPersistence(false).catch((error) => {
+        notice.value = {
+          tone:
+            error instanceof TerritoryRequestError && error.status === 409 ? 'warning' : 'danger',
+          message: error instanceof Error ? error.message : t('territory.requestFailed'),
+        };
+      });
+    }, 2000);
   },
   { deep: true },
 );
 onMounted(() => {
+  initializePersistence();
   window.addEventListener('keydown', onKey);
-  const stored = localStorage.getItem(draftStorageKey);
-  if (stored && stored !== snapshot()) {
-    restoreSnapshot(stored);
-    notice.value = { tone: 'info', message: t('territory.localDraftRestored') };
-  }
 });
-onUnmounted(() => window.removeEventListener('keydown', onKey));
+onUnmounted(() => {
+  if (autosaveTimer) clearTimeout(autosaveTimer);
+  persistenceSession?.dispose();
+  window.removeEventListener('keydown', onKey);
+});
 </script>
 
 <template>
@@ -1102,6 +1245,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
           v-model:selected-keys="selectedKeys"
           :label="t('territory.canvasLabel')"
           :map="territory.map.data"
+          :map-checksum="territory.map.checksum"
           :alliances="alliances"
           :objects="objects"
           :tool="tool"

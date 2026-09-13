@@ -10,6 +10,7 @@ import {
 type Layout = { x: number };
 function setup(
   save?: (request: SaveRequest<Layout>, signal: AbortSignal) => Promise<SaveReceipt<Layout>>,
+  layoutChecksum: string | null = null,
 ) {
   let layout = { x: 1 };
   let authority = 'governor-a';
@@ -18,6 +19,7 @@ function setup(
   const receipts: SaveReceipt<Layout>[] = [];
   const session = createEditorSession({
     revision: 1,
+    layoutChecksum,
     read: () => layout,
     install: (next) => {
       layout = next;
@@ -175,4 +177,13 @@ test('an unrelated mutation receipt cannot acknowledge this request', async () =
   f.set(4);
   await assert.rejects(f.session.flush(), /receipt/);
   assert.equal(f.session.dirty(), true);
+});
+
+test('seeded checksum permits publishing an unchanged accepted head without a synthetic save', async () => {
+  const f = setup(undefined, 'b'.repeat(64));
+  assert.deepEqual(await f.session.publication(), {
+    expected_revision: 1,
+    layout_checksum: 'b'.repeat(64),
+  });
+  assert.equal(f.requests.length, 0);
 });
