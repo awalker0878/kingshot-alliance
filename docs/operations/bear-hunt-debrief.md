@@ -63,3 +63,6 @@ No Debrief cache is persisted, so there is no cache invalidation or replay proce
 The Debrief history window is intentionally bounded. Current implementation returns at most 12 run navigation/trend points and the low-level history query rejects unbounded expansion beyond its defensive maximum.
 
 The Intelligence/Evidence unmatched queue returns at most 50 Evidence items. Evidence with no extraction or whose latest extraction already has a saved review is filtered **before** that limit is applied, so semantic-duplicate follow-up cannot consume the unmatched queue or starve older unresolved Governor work. Remaining Evidence/extraction/field data is batch-loaded rather than fetched per Evidence row.
+
+
+Reviewed result intake accepts 1–100 Governors per report and at most 1,000 distinct reviewed Governors per occurrence. Removed reports keep their captured baselines and continue to count toward that work budget. Exceeding it, or exceeding the supported integer total, rejects all result/report changes. Correct the report input through Screenshot Intake; do not delete baseline rows or increase the limit as a recovery shortcut. The stored destination receipt covers only that report's Governors; use the authorized occurrence Results view for the complete current ranking.
