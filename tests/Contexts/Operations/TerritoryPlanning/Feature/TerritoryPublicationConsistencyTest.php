@@ -18,6 +18,7 @@ use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanSnapshotBuil
 use App\Contexts\Operations\TerritoryPlanning\ValueObjects\TerritoryPlanMutationReceipt;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Tests\Support\ScenarioFactory;
 use Tests\TestCase;
@@ -119,7 +120,7 @@ final class TerritoryPublicationConsistencyTest extends TestCase
         $alliance = $factory->alliance($actor);
         $created = app(CreateTerritoryPlan::class)->handle($actor->playerId, TerritoryPlanScope::Alliance,
             $actor->kingdomId, $alliance->allianceId, 'Publication consistency', 'kingshot-evidence-backed-2026-09-06-v2');
-        $saved = app(SaveTerritoryPlan::class)->handle($actor->playerId, $created->planId, 1,
+        $saved = app(SaveTerritoryPlan::class)->handle($actor->playerId, $created->planId, 1, (string) Str::uuid(),
             [['key' => 'owner', 'alliance_id' => $alliance->allianceId, 'display_name' => $alliance->name]], [],
             [['key' => 'city', 'alliance_key' => 'owner', 'type' => 'governor_city', 'x' => 100, 'y' => 100]]);
 

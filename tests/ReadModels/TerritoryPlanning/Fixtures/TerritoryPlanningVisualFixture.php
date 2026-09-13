@@ -11,6 +11,7 @@ use App\Contexts\GameWorld\Players\Models\Player;
 use App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
+use Illuminate\Support\Str;
 
 final class TerritoryPlanningVisualFixture
 {
@@ -50,7 +51,7 @@ final class TerritoryPlanningVisualFixture
         app(SaveTerritoryPlan::class)->handle(
             (string) $player->id,
             $plan->planId,
-            $plan->revision,
+            $plan->revision, (string) Str::uuid(),
             [[
                 'key' => 'owner',
                 'alliance_id' => $allianceId,

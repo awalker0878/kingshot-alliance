@@ -18,6 +18,7 @@ use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
 use App\Contexts\Operations\TerritoryPlanning\Queries\PublishedEventTerritoryRevisionQuery;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\Support\ScenarioFactory;
 use Tests\TestCase;
 
@@ -47,7 +48,7 @@ final class PublishedEventTerritoryRevisionQueryV3Test extends TestCase
         $saved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $created->revision,
+            $created->revision, (string) Str::uuid(),
             $this->layers($alliance),
             [],
             [$this->city(100)],
@@ -69,7 +70,7 @@ final class PublishedEventTerritoryRevisionQueryV3Test extends TestCase
         $newMutableHead = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $saved->revision,
+            $saved->revision, (string) Str::uuid(),
             $this->layers($alliance),
             [],
             [$this->city(250)],
@@ -110,7 +111,7 @@ final class PublishedEventTerritoryRevisionQueryV3Test extends TestCase
         $saved = app(SaveTerritoryPlan::class)->handle(
             $owner->playerId,
             $created->planId,
-            $created->revision,
+            $created->revision, (string) Str::uuid(),
             $this->layers($alliance),
             [],
             [$this->city(150)],

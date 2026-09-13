@@ -21,6 +21,7 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
@@ -115,7 +116,7 @@ final class TerritoryCompositionAtomicityTest extends TestCase
         [$actor, $plan, $revision, $document] = $this->scenario();
         $stalePlan = clone $plan;
         $snapshot = app(TerritoryPlanSnapshotBuilder::class)->build($plan);
-        $receipt = app(SaveTerritoryPlan::class)->handle($actor->playerId, (string) $plan->id, 3,
+        $receipt = app(SaveTerritoryPlan::class)->handle($actor->playerId, (string) $plan->id, 3, (string) Str::uuid(),
             $snapshot['alliances'], $snapshot['groups'], $snapshot['objects']);
         self::assertSame(4, $receipt->revision);
         $before = $this->persistedState();
@@ -149,13 +150,13 @@ final class TerritoryCompositionAtomicityTest extends TestCase
             $alliance->allianceId, 'Atomic source', 'kingshot-evidence-backed-2026-09-06-v2');
         $layers = [['key' => 'owner', 'alliance_id' => $alliance->allianceId, 'display_name' => $alliance->name]];
         $objects = [['key' => 'city', 'alliance_key' => 'owner', 'type' => 'governor_city', 'x' => 100, 'y' => 100]];
-        $saved = app(SaveTerritoryPlan::class)->handle($actor->playerId, $created->planId, 1, $layers, [], $objects);
+        $saved = app(SaveTerritoryPlan::class)->handle($actor->playerId, $created->planId, 1, (string) Str::uuid(), $layers, [], $objects);
         $published = app(PublishTerritoryPlan::class)->handle($actor->playerId, $created->planId, 2, (string) $saved->layoutChecksum);
         self::assertNotNull($published->publishedRevisionId);
         $revision = TerritoryPlanRevision::query()->findOrFail($published->publishedRevisionId);
         $document = json_encode($revision->snapshot, JSON_THROW_ON_ERROR);
         $objects[0]['x'] = 150;
-        app(SaveTerritoryPlan::class)->handle($actor->playerId, $created->planId, 2, $layers, [], $objects);
+        app(SaveTerritoryPlan::class)->handle($actor->playerId, $created->planId, 2, (string) Str::uuid(), $layers, [], $objects);
 
         return [$actor, TerritoryPlan::query()->findOrFail($created->planId), $revision, $document];
     }

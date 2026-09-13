@@ -14,5 +14,6 @@ final readonly class TerritoryPlanMutationReceipt
         public ?string $publishedRevisionId = null,
         public ?array $snapshot = null,
         public ?string $layoutChecksum = null,
+        public ?string $mutationId = null,
     ) {}
 }

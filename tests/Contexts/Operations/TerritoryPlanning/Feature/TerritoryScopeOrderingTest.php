@@ -24,6 +24,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\ScenarioFactory;
@@ -50,7 +51,7 @@ final class TerritoryScopeOrderingTest extends TestCase
         $layers = $this->layers($alliance);
         $run = static fn () => $operation === 'update-alliance'
             ? app(UpdateTerritoryPlanAlliances::class)->handle($actor->playerId, $created->planId, 1, $layers)
-            : app(SaveTerritoryPlan::class)->handle($actor->playerId, $created->planId, 1, $layers, [],
+            : app(SaveTerritoryPlan::class)->handle($actor->playerId, $created->planId, 1, (string) Str::uuid(), $layers, [],
                 $operation === 'save-player' ? [['key' => 'city', 'type' => 'governor_city', 'alliance_key' => 'linked', 'x' => 100, 'y' => 100, 'player_id' => $linkedPlayer->playerId]] : []);
         config()->set('database.connections.territory_competitor', [...DB::connection()->getConfig(), 'name' => 'territory_competitor']);
         $other = DB::connection('territory_competitor');
@@ -118,7 +119,7 @@ final class TerritoryScopeOrderingTest extends TestCase
         $event = app(CreateEvent::class)->handle($actor->playerId, (string) $scope->id, EventScope::Kingdom,
             $actor->kingdomId, CarbonImmutable::now('UTC')->addDay(), durationMinutes: 60, settings: ['preparation_phase_minutes' => 1440]);
         self::assertNotNull($event->firstOccurrenceId);
-        $saved = app(SaveTerritoryPlan::class)->handle($actor->playerId, $created->planId, 1, $this->layers($alliance), [], $this->city());
+        $saved = app(SaveTerritoryPlan::class)->handle($actor->playerId, $created->planId, 1, (string) Str::uuid(), $this->layers($alliance), [], $this->city());
         $published = app(PublishTerritoryPlan::class)->handle($actor->playerId, $created->planId, $saved->revision, (string) $saved->layoutChecksum);
         self::assertNotNull($published->publishedRevisionId);
         foreach ([true, false] as $attach) {
@@ -145,7 +146,7 @@ final class TerritoryScopeOrderingTest extends TestCase
             self::assertLessThan($occurrenceLock, $eventLock);
         }
         $foreign = app(CreateTerritoryPlan::class)->handle($linkedPlayer->playerId, TerritoryPlanScope::Alliance, $actor->kingdomId, $alliance->allianceId, 'Other owner scope', self::DATASET);
-        $saved = app(SaveTerritoryPlan::class)->handle($linkedPlayer->playerId, $foreign->planId, 1, $this->layers($alliance), [], $this->city());
+        $saved = app(SaveTerritoryPlan::class)->handle($linkedPlayer->playerId, $foreign->planId, 1, (string) Str::uuid(), $this->layers($alliance), [], $this->city());
         $published = app(PublishTerritoryPlan::class)->handle($linkedPlayer->playerId, $foreign->planId, $saved->revision, (string) $saved->layoutChecksum);
         self::assertNotNull($published->publishedRevisionId);
         DB::enableQueryLog();

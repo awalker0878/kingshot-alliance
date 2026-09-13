@@ -9,6 +9,7 @@ use App\Contexts\GameWorld\KingdomMaps\Services\PlacementValidator;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanStatus;
 use App\Contexts\Operations\TerritoryPlanning\Exceptions\TerritoryRevisionConflict;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryActivityRecorder;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryLayoutContract;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryLayoutIdentityValidator;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanningAuthorization;
@@ -30,6 +31,7 @@ final readonly class PublishTerritoryPlan
         private TerritoryLayoutIdentityValidator $identities,
         private PlacementValidator $placement,
         private AuditRecorder $audit,
+        private TerritoryActivityRecorder $activities,
     ) {}
 
     public function handle(string $actorPlayerId, string $planId, int $expectedRevision, string $layoutChecksum): TerritoryPlanMutationReceipt
@@ -87,6 +89,8 @@ final readonly class PublishTerritoryPlan
             ]);
 
             $context->plan->forceFill(['status' => TerritoryPlanStatus::Published, 'published_at' => $publishedAt, 'updated_by_player_id' => $actorPlayerId])->save();
+            $this->activities->record($context, 'published', (string) $revision->id);
+
             $this->audit->record('territory.plan.published', $context->actor, $context->plan, $context->plan->owner_alliance_id === null ? null : (string) $context->plan->owner_alliance_id, [
                 'territory_plan_revision_id' => (string) $revision->id,
                 'published_revision_number' => $nextPublishedRevision,

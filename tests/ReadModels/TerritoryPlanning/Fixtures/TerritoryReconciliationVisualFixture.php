@@ -23,6 +23,7 @@ use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 final class TerritoryReconciliationVisualFixture
 {
@@ -60,7 +61,7 @@ final class TerritoryReconciliationVisualFixture
         $saved = app(SaveTerritoryPlan::class)->handle(
             (string) $player->id,
             $plan->planId,
-            $plan->revision,
+            $plan->revision, (string) Str::uuid(),
             [[
                 'key' => 'owner',
                 'alliance_id' => $allianceId,

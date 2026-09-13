@@ -19,6 +19,7 @@ use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use App\ReadModels\TerritoryPlanning\Queries\TerritoryReconciliationQuery;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\Support\ScenarioFactory;
 use Tests\TestCase;
 
@@ -160,7 +161,7 @@ final class TerritoryPlanObservedRealityV3Test extends TestCase
         $saved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $created->revision,
+            $created->revision, (string) Str::uuid(),
             $this->allianceLayers($alliance->allianceId, $alliance->name),
             [],
             $this->plannedObjects(),

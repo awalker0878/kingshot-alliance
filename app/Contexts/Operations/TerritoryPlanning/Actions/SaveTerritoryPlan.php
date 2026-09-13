@@ -12,6 +12,9 @@ use App\Contexts\Operations\TerritoryPlanning\Exceptions\TerritoryRevisionConfli
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanAlliance;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanGroup;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanObject;
+use App\Contexts\Operations\TerritoryPlanning\Models\TerritorySaveReceipt;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryActivityRecorder;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryCollaborationAuthorization;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryLayoutContract;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryLayoutIdentityValidator;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanningAuthorization;
@@ -20,6 +23,7 @@ use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanWriteState;
 use App\Contexts\Operations\TerritoryPlanning\ValueObjects\TerritoryPlanMutationReceipt;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 final readonly class SaveTerritoryPlan
@@ -27,6 +31,8 @@ final readonly class SaveTerritoryPlan
     public function __construct(
         private TerritoryPlanWriteState $writeState,
         private TerritoryPlanningAuthorization $authorization,
+        private TerritoryCollaborationAuthorization $collaboration,
+        private TerritoryActivityRecorder $activities,
         private KingdomMapDatasetQuery $datasets,
         private PlacementValidator $placement,
         private TerritoryLayoutContract $contract,
@@ -45,11 +51,24 @@ final readonly class SaveTerritoryPlan
         string $actorPlayerId,
         string $planId,
         int $expectedRevision,
+        string $mutationId,
         array $alliances,
         array $groups,
         array $objects,
         array $preferences = [],
     ): TerritoryPlanMutationReceipt {
+        if (! Str::isUuid($mutationId) || $expectedRevision < 1) {
+            throw ValidationException::withMessages(['mutation_id' => 'A valid mutation UUID and positive expected revision are required.']);
+        }
+        $mutationId = strtolower($mutationId);
+        // Hash the exact owner command, including actor, operation, plan and base revision.
+        $request = json_encode(['operation' => 'save', 'actor' => $actorPlayerId, 'plan' => $planId,
+            'revision' => $expectedRevision, 'alliances' => $alliances, 'groups' => $groups,
+            'objects' => $objects, 'preferences' => $preferences], JSON_THROW_ON_ERROR);
+        if (strlen($request) > 5_000_000) {
+            throw ValidationException::withMessages(['layout' => 'The save command exceeds the five megabyte limit.']);
+        }
+        $requestChecksum = hash('sha256', $request);
         $layout = $this->contract->normalize($alliances, $groups, $objects, $preferences);
         $normalizedAlliances = $layout['alliances'];
         $normalizedGroups = $layout['groups'];
@@ -60,16 +79,36 @@ final readonly class SaveTerritoryPlan
             $actorPlayerId,
             $planId,
             $expectedRevision,
+            $mutationId,
+            $requestChecksum,
             $normalizedAlliances,
             $normalizedGroups,
             $normalizedObjects,
             $preferences,
         ): TerritoryPlanMutationReceipt {
             $context = $this->writeState->lock($actorPlayerId, $planId);
-            $this->authorization->authorizeManage($context);
+            $this->authorization->authorizeView($context);
             if ($context->plan->status === TerritoryPlanStatus::Archived) {
                 throw ValidationException::withMessages(['plan' => 'Archived plans are read-only. Clone this plan to resume editing.']);
             }
+
+            $receiptQuery = TerritorySaveReceipt::query()->where('territory_plan_id', $planId)
+                ->where('actor_player_id', $actorPlayerId);
+            $stored = (clone $receiptQuery)->where('mutation_id', $mutationId)->where('expires_at', '>', now())->first();
+            if ($stored !== null) {
+                $this->collaboration->authorizeSaveReplay($context, $stored->required_layer_keys, $stored->requires_manage);
+                if (! hash_equals($stored->request_checksum, $requestChecksum)) {
+                    throw ValidationException::withMessages(['mutation_id' => 'This mutation UUID was already used for a different save command.']);
+                }
+                if (! hash_equals($stored->layout_checksum, $this->snapshots->checksum($stored->snapshot))) {
+                    throw new \LogicException('Territory save receipt integrity failed.');
+                }
+
+                return new TerritoryPlanMutationReceipt($planId, $stored->accepted_revision,
+                    TerritoryPlanStatus::Draft->value, snapshot: $stored->snapshot,
+                    layoutChecksum: $stored->layout_checksum, mutationId: $mutationId);
+            }
+            $this->collaboration->authorizeLayout($context, $normalizedAlliances, $normalizedGroups, $normalizedObjects, $preferences);
 
             if ($context->plan->revision !== $expectedRevision) {
                 throw new TerritoryRevisionConflict($expectedRevision, $context->plan->revision);
@@ -108,6 +147,23 @@ final readonly class SaveTerritoryPlan
                 throw ValidationException::withMessages([
                     'layout' => [json_encode($validation->toArray(), JSON_THROW_ON_ERROR)],
                 ]);
+            }
+
+            $previousObjects = $this->snapshots->build($context->plan)['objects'];
+            $requiresManage = $this->collaboration->isManager($context);
+            $previousByKey = array_column($previousObjects, null, 'key');
+            $nextByKey = array_column($normalizedObjects, null, 'key');
+            $requiredLayers = [];
+            foreach (array_unique([...array_keys($previousByKey), ...array_keys($nextByKey)]) as $key) {
+                $before = $previousByKey[$key] ?? null;
+                $after = $nextByKey[$key] ?? null;
+                if ($before !== $after) {
+                    foreach ([$before, $after] as $object) {
+                        if ($object !== null) {
+                            $requiredLayers[$object['alliance_key']] = true;
+                        }
+                    }
+                }
             }
 
             TerritoryPlanObject::query()->where('territory_plan_id', $planId)->delete();
@@ -182,14 +238,28 @@ final readonly class SaveTerritoryPlan
                 ],
             );
 
+            $this->activities->recordAssignments($context, $previousObjects, $normalizedObjects);
             $snapshot = $this->snapshots->build($context->plan);
+            $checksum = $this->snapshots->checksum($snapshot);
+            // Plan locking serializes receipt creation, replay and bounded pruning.
+            (clone $receiptQuery)->where('expires_at', '<=', now())->delete();
+            $keep = (clone $receiptQuery)->orderByDesc('accepted_revision')->limit(19)->pluck('id')->all();
+            (clone $receiptQuery)->whereNotIn('id', $keep)->delete();
+            TerritorySaveReceipt::query()->create([
+                'territory_plan_id' => $planId, 'actor_player_id' => $actorPlayerId,
+                'mutation_id' => $mutationId, 'request_checksum' => $requestChecksum,
+                'accepted_revision' => $expectedRevision + 1, 'layout_checksum' => $checksum,
+                'snapshot' => $snapshot, 'requires_manage' => $requiresManage,
+                'required_layer_keys' => array_keys($requiredLayers), 'expires_at' => now()->addDay(),
+            ]);
 
             return new TerritoryPlanMutationReceipt(
                 $planId,
                 $expectedRevision + 1,
                 TerritoryPlanStatus::Draft->value,
                 snapshot: $snapshot,
-                layoutChecksum: $this->snapshots->checksum($snapshot),
+                layoutChecksum: $checksum,
+                mutationId: $mutationId,
             );
         });
     }

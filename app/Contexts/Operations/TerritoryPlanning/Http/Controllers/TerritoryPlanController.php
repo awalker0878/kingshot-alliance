@@ -63,6 +63,7 @@ final class TerritoryPlanController extends Controller
 
         $data = $request->validate([
             'expected_revision' => ['required', 'integer:strict', 'min:1'],
+            'mutation_id' => ['required', 'uuid'],
             'alliances' => ['required', 'array', 'min:1', 'max:50'],
             'groups' => ['present', 'array', 'max:500'],
             'objects' => ['present', 'array', 'max:5000'],
@@ -72,7 +73,7 @@ final class TerritoryPlanController extends Controller
         $mutation = $save->handle(
             $player->playerId,
             $plan,
-            (int) $data['expected_revision'],
+            (int) $data['expected_revision'], $data['mutation_id'],
             $data['alliances'],
             $data['groups'],
             $data['objects'],
@@ -298,6 +299,7 @@ final class TerritoryPlanController extends Controller
             'published_revision_id' => $mutation->publishedRevisionId,
             'snapshot' => $mutation->snapshot,
             'layout_checksum' => $mutation->layoutChecksum,
+            'mutation_id' => $mutation->mutationId,
         ];
     }
 }

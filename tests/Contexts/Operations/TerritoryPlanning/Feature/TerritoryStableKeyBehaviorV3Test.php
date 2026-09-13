@@ -11,6 +11,7 @@ use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryPlanQuery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\Support\ScenarioFactory;
 use Tests\TestCase;
 
@@ -63,7 +64,7 @@ final class TerritoryStableKeyBehaviorV3Test extends TestCase
         $saved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $created->revision,
+            $created->revision, (string) Str::uuid(),
             $layers,
             $groups,
             $objects,
@@ -91,7 +92,7 @@ final class TerritoryStableKeyBehaviorV3Test extends TestCase
         $resaved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $saved->revision,
+            $saved->revision, (string) Str::uuid(),
             $layers,
             $groups,
             $objects,

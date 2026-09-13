@@ -11,6 +11,7 @@ use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanWriteState;
 use App\Contexts\Operations\TerritoryPlanning\ValueObjects\TerritoryPlanMutationReceipt;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 final readonly class ImportTerritoryPlan
@@ -73,7 +74,7 @@ final readonly class ImportTerritoryPlan
             $receipt = $this->save->handle(
                 $actorPlayerId,
                 $planId,
-                $expectedRevision,
+                $expectedRevision, (string) Str::uuid(),
                 $alliances,
                 $groups,
                 $objects,

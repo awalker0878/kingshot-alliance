@@ -8,6 +8,7 @@ use App\Contexts\Operations\TerritoryPlanning\Actions\ImportTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryLayoutContract;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanSnapshotBuilder;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -27,7 +28,7 @@ final class TerritoryLayoutContractTest extends TestCase
             $object = $this->object();
             $object['x'] = $invalid;
             try {
-                app(SaveTerritoryPlan::class)->handle('unresolved-actor', 'unresolved-plan', 1, $this->alliances(), [], [$object]);
+                app(SaveTerritoryPlan::class)->handle('unresolved-actor', 'unresolved-plan', 1, (string) Str::uuid(), $this->alliances(), [], [$object]);
                 self::fail('A malformed coordinate reached persistence.');
             } catch (ValidationException $exception) {
                 self::assertArrayHasKey('objects', $exception->errors());

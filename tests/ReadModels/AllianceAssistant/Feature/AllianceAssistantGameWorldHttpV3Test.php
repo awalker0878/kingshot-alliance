@@ -36,6 +36,7 @@ use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Tests\Support\ScenarioFactory;
 use Tests\TestCase;
@@ -204,7 +205,7 @@ final class AllianceAssistantGameWorldHttpV3Test extends TestCase
         $saved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $created->revision,
+            $created->revision, (string) Str::uuid(),
             $this->layers($alliance),
             [],
             [$this->city(100)],
@@ -226,7 +227,7 @@ final class AllianceAssistantGameWorldHttpV3Test extends TestCase
         app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $saved->revision,
+            $saved->revision, (string) Str::uuid(),
             $this->layers($alliance),
             [],
             [$this->city(250)],

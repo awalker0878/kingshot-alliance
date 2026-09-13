@@ -19,6 +19,7 @@ use App\ReadModels\TerritoryPlanning\Queries\TerritoryReconciliationQuery;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Support\ScenarioFactory;
@@ -277,7 +278,7 @@ final class TerritoryReconciliationBoundariesV3Test extends TestCase
         $saved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $created->revision,
+            $created->revision, (string) Str::uuid(),
             [[
                 'key' => 'owner',
                 'alliance_id' => $alliance->allianceId,

@@ -9,6 +9,9 @@ use App\Contexts\Alliance\Membership\Enums\MembershipStatus;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\Communications\Delivery\Models\NotificationMessage;
 use App\Contexts\Communications\Delivery\ValueObjects\NotificationSource;
+use App\Contexts\GameWorld\Governance\Actions\AssignKingdomRole;
+use App\Contexts\GameWorld\Governance\Actions\RemoveKingdomRole;
+use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\TerritoryPlanning\Actions\CommentOnTerritoryObject;
 use App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryPlan;
@@ -29,15 +32,16 @@ use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryCollaborationQuer
 use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryNotificationEligibilityQuery;
 use App\Contexts\Operations\TerritoryPlanning\Queries\TerritorySharedRevisionQuery;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryActivityRecorder;
-use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryCollaborationAuthorization;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanSnapshotBuilder;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanWriteState;
+use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
 use App\Workflows\NotificationDelivery\Actions\QueueTerritoryNotifications;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Tests\Support\ScenarioFactory;
@@ -62,14 +66,14 @@ final class TerritoryCollaborationTest extends TestCase
         self::assertArrayNotHasKey('planning_preferences', $result['snapshot']['plan']);
         $snapshot = $this->snapshot($plan);
         $snapshot['objects'][0]['x'] = 140;
-        app(SaveTerritoryPlan::class)->handle($owner->playerId, $plan->id, $plan->revision, $snapshot['alliances'], $snapshot['groups'], $snapshot['objects'], []);
+        app(SaveTerritoryPlan::class)->handle($owner->playerId, $plan->id, $plan->revision, (string) Str::uuid(), $snapshot['alliances'], $snapshot['groups'], $snapshot['objects'], []);
         self::assertSame(100, app(TerritorySharedRevisionQuery::class)->get($member->playerId, $share['id'], $share['token'])['snapshot']['objects'][0]['x']);
         app(RevokeTerritoryShare::class)->handle($owner->playerId, $plan->id, $share['id']);
         $this->expectException(AuthorizationException::class);
         app(TerritorySharedRevisionQuery::class)->get($member->playerId, $share['id'], $share['token']);
     }
 
-    public function test_share_access_rechecks_current_membership_and_never_accepts_another_actor(): void
+    public function test_share_access_rechecks_current_kingdom_role_and_never_accepts_another_actor(): void
     {
         [$owner, $member, $plan] = $this->scenario();
         $published = app(PublishTerritoryPlan::class)->handle($owner->playerId, $plan->id, $plan->revision, app(TerritoryPlanSnapshotBuilder::class)->checksum($this->snapshot($plan)));
@@ -80,7 +84,8 @@ final class TerritoryCollaborationTest extends TestCase
         } catch (AuthorizationException) {
             self::assertTrue(true);
         }
-        AllianceMembership::query()->where('player_id', $member->playerId)->update(['status' => MembershipStatus::Suspended->value]);
+        $assignment = KingdomRoleAssignment::query()->where('player_id', $member->playerId)->whereNull('revoked_at')->firstOrFail();
+        app(RemoveKingdomRole::class)->handle($owner->playerId, $owner->kingdomId, (string) $assignment->id);
         $this->expectException(AuthorizationException::class);
         app(TerritorySharedRevisionQuery::class)->get($member->playerId, $share['id'], $share['token']);
     }
@@ -113,7 +118,7 @@ final class TerritoryCollaborationTest extends TestCase
         self::assertSame(1, TerritoryActivity::query()->where('kind', 'reviewed')->count());
         $snapshot = $this->snapshot($plan);
         $snapshot['objects'] = array_values(array_filter($snapshot['objects'], static fn (array $row): bool => $row['key'] !== 'city'));
-        app(SaveTerritoryPlan::class)->handle($owner->playerId, $plan->id, $plan->revision, $snapshot['alliances'], $snapshot['groups'], $snapshot['objects'], []);
+        app(SaveTerritoryPlan::class)->handle($owner->playerId, $plan->id, $plan->revision, (string) Str::uuid(), $snapshot['alliances'], $snapshot['groups'], $snapshot['objects'], []);
         self::assertSame(100, TerritoryObjectComment::query()->findOrFail($commentId)->object_snapshot['x']);
         self::assertTrue(app(TerritoryCollaborationQuery::class)->get($owner->playerId, $plan->id)['reviews'][0]['stale']);
         $this->expectException(ValidationException::class);
@@ -144,16 +149,13 @@ final class TerritoryCollaborationTest extends TestCase
         app(GrantTerritoryPlanAccess::class)->handle($owner->playerId, $plan->id, $member->playerId, 'owner', 'edit', CarbonImmutable::now()->addDay());
         $snapshot = $this->snapshot($plan);
         $snapshot['objects'][0]['x'] = 102;
-        DB::transaction(function () use ($member, $plan, $snapshot): void {
-            $context = app(TerritoryPlanWriteState::class)->lock($member->playerId, $plan->id);
-            app(TerritoryCollaborationAuthorization::class)->authorizeLayout($context, $snapshot['alliances'], $snapshot['groups'], $snapshot['objects'], []);
-        });
+        $saved = app(SaveTerritoryPlan::class)->handle($member->playerId, $plan->id, $plan->revision,
+            (string) Str::uuid(), $snapshot['alliances'], $snapshot['groups'], $snapshot['objects'], $snapshot['plan']['planning_preferences']);
+        self::assertSame(102, $saved->snapshot['objects'][0]['x']);
         $snapshot['objects'][1]['x'] = 204;
         $this->expectException(AuthorizationException::class);
-        DB::transaction(function () use ($member, $plan, $snapshot): void {
-            $context = app(TerritoryPlanWriteState::class)->lock($member->playerId, $plan->id);
-            app(TerritoryCollaborationAuthorization::class)->authorizeLayout($context, $snapshot['alliances'], $snapshot['groups'], $snapshot['objects'], []);
-        });
+        app(SaveTerritoryPlan::class)->handle($member->playerId, $plan->id, $saved->revision,
+            (string) Str::uuid(), $snapshot['alliances'], $snapshot['groups'], $snapshot['objects'], $snapshot['plan']['planning_preferences']);
     }
 
     public function test_notification_pages_retry_idempotently_and_reauthorize_revoked_review_requests(): void
@@ -216,8 +218,10 @@ final class TerritoryCollaborationTest extends TestCase
         $alliance = $factory->alliance($owner);
         AllianceMembership::query()->create(['alliance_id' => $alliance->allianceId, 'player_id' => $member->playerId,
             'rank' => AllianceRank::R1, 'status' => MembershipStatus::Active, 'joined_at' => now()]);
-        $created = app(CreateTerritoryPlan::class)->handle($owner->playerId, TerritoryPlanScope::Alliance, $owner->kingdomId, $alliance->allianceId, 'Collaboration', 'kingshot-evidence-backed-2026-09-06-v2');
-        app(SaveTerritoryPlan::class)->handle($owner->playerId, $created->planId, 1, [
+        $roles = app(BootstrapKingdomAdministrator::class)->handle($owner->kingdomId, $owner->playerId);
+        app(AssignKingdomRole::class)->handle($owner->playerId, $owner->kingdomId, $member->playerId, $roles->viewerRoleId);
+        $created = app(CreateTerritoryPlan::class)->handle($owner->playerId, TerritoryPlanScope::Kingdom, $owner->kingdomId, null, 'Collaboration', 'kingshot-evidence-backed-2026-09-06-v2');
+        app(SaveTerritoryPlan::class)->handle($owner->playerId, $created->planId, 1, (string) Str::uuid(), [
             ['key' => 'owner', 'alliance_id' => $alliance->allianceId, 'display_name' => $alliance->name, 'presentation_color' => '#225577'],
             ['key' => 'external', 'external_name' => 'External planning identity', 'display_name' => 'External planning identity', 'presentation_color' => '#772255'],
         ], [], [

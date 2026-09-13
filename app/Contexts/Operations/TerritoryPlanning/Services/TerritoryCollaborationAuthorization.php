@@ -63,6 +63,26 @@ final readonly class TerritoryCollaborationAuthorization
         }
     }
 
+    /** A saved receipt is not an authorization capability. Recheck the original write scope.
+     * @param  list<string>  $requiredLayers
+     */
+    public function authorizeSaveReplay(TerritoryPlanMutationContext $context, array $requiredLayers, bool $requiresManage): void
+    {
+        $this->authorization->authorizeView($context);
+        if ($requiresManage) {
+            $this->authorization->authorizeManage($context);
+
+            return;
+        }
+        if ($this->isManager($context)) {
+            return;
+        }
+        $layers = $this->layers($context, ['edit']);
+        if ($layers === [] || array_diff($requiredLayers, $layers) !== []) {
+            throw new AuthorizationException;
+        }
+    }
+
     public function isManager(TerritoryPlanMutationContext $context): bool
     {
         try {

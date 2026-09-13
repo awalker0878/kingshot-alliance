@@ -10,6 +10,7 @@ use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanSnapshotBuil
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanWriteState;
 use App\Contexts\Operations\TerritoryPlanning\ValueObjects\TerritoryPlanMutationReceipt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 final readonly class CloneTerritoryPlan
@@ -59,7 +60,7 @@ final readonly class CloneTerritoryPlan
             return $this->save->handle(
                 $actorPlayerId,
                 $created->planId,
-                $created->revision,
+                $created->revision, (string) Str::uuid(),
                 is_array($snapshot['alliances'] ?? null) ? $snapshot['alliances'] : [],
                 is_array($snapshot['groups'] ?? null) ? $snapshot['groups'] : [],
                 is_array($snapshot['objects'] ?? null) ? $snapshot['objects'] : [],
