@@ -1,5 +1,18 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
+
+import {
+  advanceGesture,
+  completeGesture,
+  distance,
+  fitBounds,
+  gestureDelta,
+  midpoint,
+  panFrom,
+  screenPoint,
+  zoomAt,
+} from '../engine/viewport';
+import type { Point, PointerGesture, Viewport, WorldBounds } from '../engine/viewport';
 
 import type { MapData, PlanAlliance, PlanObject, TerritoryObjectType } from '../engine/types';
 
@@ -36,17 +49,28 @@ const cameraY = ref(props.map.bounds.y + props.map.bounds.height / 2);
 const zoom = ref(0.6);
 const width = ref(900);
 const height = ref(650);
-const drag = ref<null | {
-  kind: 'pan' | 'object' | 'box';
-  startX: number;
-  startY: number;
-  worldX: number;
-  worldY: number;
-  lastWorldX: number;
-  lastWorldY: number;
-}>(null);
-const boxEnd = ref<{ x: number; y: number } | null>(null);
+const drag = shallowRef<PointerGesture | null>(null);
+const pointers = new Map<number, Point>();
+let pinch: { ids: [number, number]; start: [Point, Point]; view: Viewport } | null = null;
 let resizeObserver: ResizeObserver | null = null;
+let animationFrame: number | null = null;
+let fitted = false;
+
+function viewport(): Viewport {
+  return {
+    x: cameraX.value,
+    y: cameraY.value,
+    zoom: zoom.value,
+    width: width.value,
+    height: height.value,
+  };
+}
+function setViewport(view: Viewport): void {
+  cameraX.value = view.x;
+  cameraY.value = view.y;
+  zoom.value = view.zoom;
+  draw();
+}
 
 const allianceColor = computed(
   () => new Map(props.alliances.map((alliance) => [alliance.key, alliance.presentation_color])),
@@ -57,34 +81,61 @@ const visibleAlliances = computed(
 );
 
 function fitMap(): void {
-  const xScale = width.value / props.map.bounds.width;
-  const yScale = height.value / props.map.bounds.height;
-  zoom.value = Math.max(0.08, Math.min(xScale, yScale) * 0.92);
-  cameraX.value = props.map.bounds.x + props.map.bounds.width / 2;
-  cameraY.value = props.map.bounds.y + props.map.bounds.height / 2;
-  draw();
+  cancelGesture();
+  setViewport(fitBounds(props.map.bounds, viewport()));
 }
-
+function focusBounds(bounds: WorldBounds): void {
+  cancelGesture();
+  setViewport(fitBounds(bounds, viewport()));
+}
+function jumpTo(point: Point): void {
+  if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return;
+  cancelGesture();
+  setViewport({ ...viewport(), x: point.x, y: point.y });
+}
 function zoomBy(factor: number): void {
-  zoom.value = Math.min(8, Math.max(0.06, zoom.value * factor));
-  draw();
+  cancelGesture();
+  setViewport(zoomAt(viewport(), factor, { x: width.value / 2, y: height.value / 2 }));
 }
-
 function toScreen(x: number, y: number): [number, number] {
-  return [
-    (x - cameraX.value) * zoom.value + width.value / 2,
-    height.value / 2 - (y - cameraY.value) * zoom.value,
-  ];
+  const point = screenPoint({ x, y }, viewport());
+  return [point.x, point.y];
 }
-function toWorld(screenX: number, screenY: number): [number, number] {
-  return [
-    (screenX - width.value / 2) / zoom.value + cameraX.value,
-    (height.value / 2 - screenY) / zoom.value + cameraY.value,
-  ];
-}
-function eventPoint(event: PointerEvent | WheelEvent): [number, number] {
+function eventPoint(event: PointerEvent | WheelEvent): Point {
   const rect = canvas.value?.getBoundingClientRect();
-  return [event.clientX - (rect?.left ?? 0), event.clientY - (rect?.top ?? 0)];
+  return {
+    x: ((event.clientX - (rect?.left ?? 0)) * width.value) / (rect?.width || width.value),
+    y: ((event.clientY - (rect?.top ?? 0)) * height.value) / (rect?.height || height.value),
+  };
+}
+function movableKeys(keys: string[]): string[] {
+  if (props.readOnly) return [];
+  const allowed = new Set(
+    props.alliances.filter((layer) => layer.visible && !layer.locked).map((layer) => layer.key),
+  );
+  const selected = new Set(keys);
+  return props.objects
+    .filter((object) => selected.has(object.key) && allowed.has(object.alliance_key))
+    .map((object) => object.key);
+}
+function canPlace(): boolean {
+  return (
+    !props.readOnly &&
+    props.alliances.some(
+      (layer) => layer.key === props.activeAllianceKey && layer.visible && !layer.locked,
+    )
+  );
+}
+function releasePointer(pointerId: number): void {
+  if (canvas.value?.hasPointerCapture(pointerId)) canvas.value.releasePointerCapture(pointerId);
+}
+function cancelGesture(): void {
+  drag.value = null;
+  pinch = null;
+  const ids = [...pointers.keys()];
+  pointers.clear();
+  ids.forEach(releasePointer);
+  draw();
 }
 function objectAt(screenX: number, screenY: number): PlanObject | null {
   const visible = props.objects.filter((object) => visibleAlliances.value.has(object.alliance_key));
@@ -107,132 +158,178 @@ function objectAt(screenX: number, screenY: number): PlanObject | null {
 }
 
 function onPointerDown(event: PointerEvent): void {
-  if (!canvas.value) return;
+  if (!canvas.value || ![0, 1, 2].includes(event.button) || pointers.size >= 2) return;
+  const point = eventPoint(event);
+  pointers.set(event.pointerId, point);
   canvas.value.setPointerCapture(event.pointerId);
-  const [screenX, screenY] = eventPoint(event);
-  const [worldX, worldY] = toWorld(screenX, screenY);
-  if (!props.readOnly && props.tool === 'place' && props.activeAllianceKey) {
-    emit('place', { x: Math.round(worldX), y: Math.round(worldY) });
+  canvas.value.focus({ preventScroll: true });
+  if (pointers.size === 2) {
+    const entries = [...pointers.entries()];
+    const first = entries[0];
+    const second = entries[1];
+    if (first && second)
+      pinch = { ids: [first[0], second[0]], start: [first[1], second[1]], view: viewport() };
+    drag.value = null;
+    draw();
     return;
   }
-  if (props.tool === 'pan' || event.button === 1 || event.button === 2) {
-    drag.value = {
-      kind: 'pan',
-      startX: screenX,
-      startY: screenY,
-      worldX,
-      worldY,
-      lastWorldX: worldX,
-      lastWorldY: worldY,
-    };
+  const gesture: PointerGesture = {
+    kind: 'box',
+    pointerId: event.pointerId,
+    start: point,
+    current: point,
+    view: viewport(),
+    keys: [],
+    additive: event.shiftKey,
+    moved: false,
+  };
+  // Navigation buttons must never place objects, even with the placement tool selected.
+  if (props.tool === 'pan' || event.button !== 0) {
+    drag.value = { ...gesture, kind: 'pan' };
     return;
   }
-  const hit = objectAt(screenX, screenY);
+  if (props.tool === 'place' && canPlace()) {
+    // Commit on pointer-up so a cancelled touch or pinch cannot create objects.
+    drag.value = { ...gesture, kind: 'place' };
+    return;
+  }
+  const hit = objectAt(point.x, point.y);
   if (hit) {
     const selected = event.shiftKey
       ? props.selectedKeys.includes(hit.key)
         ? props.selectedKeys.filter((key) => key !== hit.key)
         : [...props.selectedKeys, hit.key]
       : props.selectedKeys.includes(hit.key)
-        ? props.selectedKeys
+        ? [...props.selectedKeys]
         : [hit.key];
     emit('update:selectedKeys', selected);
-    const layer = props.alliances.find((alliance) => alliance.key === hit.alliance_key);
-    if (!props.readOnly && !layer?.locked)
-      drag.value = {
-        kind: 'object',
-        startX: screenX,
-        startY: screenY,
-        worldX,
-        worldY,
-        lastWorldX: worldX,
-        lastWorldY: worldY,
-      };
+    const keys = movableKeys(selected);
+    // Shift-deselecting an object must not start a drag of the remaining selection.
+    if (selected.includes(hit.key) && keys.includes(hit.key))
+      drag.value = { ...gesture, kind: 'object', keys };
     return;
   }
   if (!event.shiftKey) emit('update:selectedKeys', []);
-  drag.value = {
-    kind: 'box',
-    startX: screenX,
-    startY: screenY,
-    worldX,
-    worldY,
-    lastWorldX: worldX,
-    lastWorldY: worldY,
-  };
-  boxEnd.value = { x: screenX, y: screenY };
-}
-function onPointerMove(event: PointerEvent): void {
-  if (!drag.value) return;
-  const [screenX, screenY] = eventPoint(event);
-  const [worldX, worldY] = toWorld(screenX, screenY);
-  if (drag.value.kind === 'pan') {
-    cameraX.value -= worldX - drag.value.lastWorldX;
-    cameraY.value -= worldY - drag.value.lastWorldY;
-  } else if (drag.value.kind === 'box') {
-    boxEnd.value = { x: screenX, y: screenY };
-  }
-  drag.value.lastWorldX = worldX;
-  drag.value.lastWorldY = worldY;
+  drag.value = gesture;
   draw();
 }
+function onPointerMove(event: PointerEvent): void {
+  if (!pointers.has(event.pointerId)) return;
+  const point = eventPoint(event);
+  pointers.set(event.pointerId, point);
+  if (pinch) {
+    const a = pointers.get(pinch.ids[0]);
+    const b = pointers.get(pinch.ids[1]);
+    if (a && b)
+      setViewport(
+        zoomAt(
+          pinch.view,
+          distance(a, b) / Math.max(1, distance(...pinch.start)),
+          midpoint(...pinch.start),
+          midpoint(a, b),
+        ),
+      );
+    return;
+  }
+  if (!drag.value || drag.value.pointerId !== event.pointerId) return;
+  drag.value = advanceGesture(drag.value, point);
+  if (drag.value.kind === 'pan') setViewport(panFrom(drag.value.view, drag.value.start, point));
+  else draw();
+}
 function onPointerUp(event: PointerEvent): void {
-  if (!drag.value) return;
-  const current = drag.value;
-  const [screenX, screenY] = eventPoint(event);
-  const [worldX, worldY] = toWorld(screenX, screenY);
-  if (current.kind === 'object') {
-    const dx = Math.round(worldX - current.worldX);
-    const dy = Math.round(worldY - current.worldY);
-    if (dx || dy) emit('move', { keys: props.selectedKeys, dx, dy });
-  } else if (current.kind === 'box') {
-    const left = Math.min(current.startX, screenX);
-    const right = Math.max(current.startX, screenX);
-    const top = Math.min(current.startY, screenY);
-    const bottom = Math.max(current.startY, screenY);
+  if (!pointers.has(event.pointerId)) return;
+  if (pinch) {
+    cancelGesture();
+    return;
+  }
+  const result = completeGesture(drag.value, event.pointerId, eventPoint(event), false);
+  cancelGesture();
+  if (result?.kind === 'move') {
+    const keys = movableKeys(result.keys);
+    if (keys.length) emit('move', { ...result, keys });
+  } else if (result?.kind === 'place' && canPlace()) {
+    emit('place', result.point);
+  } else if (result?.kind === 'box') {
+    const left = Math.min(result.start.x, result.end.x);
+    const right = Math.max(result.start.x, result.end.x);
+    const top = Math.min(result.start.y, result.end.y);
+    const bottom = Math.max(result.start.y, result.end.y);
     const selected = props.objects
       .filter((object) => {
         if (!visibleAlliances.value.has(object.alliance_key)) return false;
         const definition = props.map.object_types[object.type];
         const [x, yBottom] = toScreen(object.x, object.y);
-        const objectWidth = definition.footprint.width * zoom.value;
-        const objectHeight = definition.footprint.height * zoom.value;
         return (
           x >= left &&
-          x + objectWidth <= right &&
-          yBottom - objectHeight >= top &&
+          x + definition.footprint.width * zoom.value <= right &&
+          yBottom - definition.footprint.height * zoom.value >= top &&
           yBottom <= bottom
         );
       })
       .map((object) => object.key);
     emit(
       'update:selectedKeys',
-      event.shiftKey ? [...new Set([...props.selectedKeys, ...selected])] : selected,
+      result.additive ? [...new Set([...props.selectedKeys, ...selected])] : selected,
     );
   }
-  drag.value = null;
-  boxEnd.value = null;
-  draw();
+}
+function onPointerCancel(event: PointerEvent): void {
+  if (pointers.has(event.pointerId)) cancelGesture();
 }
 function onWheel(event: WheelEvent): void {
   event.preventDefault();
-  const [screenX, screenY] = eventPoint(event);
-  const [beforeX, beforeY] = toWorld(screenX, screenY);
-  zoom.value = Math.min(8, Math.max(0.06, zoom.value * (event.deltaY < 0 ? 1.12 : 0.89)));
-  const [afterX, afterY] = toWorld(screenX, screenY);
-  cameraX.value += beforeX - afterX;
-  cameraY.value += beforeY - afterY;
-  draw();
+  const point = eventPoint(event);
+  const units = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? height.value : 1;
+  cancelGesture();
+  setViewport(
+    zoomAt(
+      viewport(),
+      Math.exp(-Math.max(-500, Math.min(500, event.deltaY * units)) * 0.002),
+      point,
+    ),
+  );
+}
+function onKey(event: KeyboardEvent): void {
+  if (event.key === 'Escape') {
+    cancelGesture();
+    emit('update:selectedKeys', []);
+  } else if (event.key === '+' || event.key === '=' || event.key === 'PageUp') zoomBy(1.25);
+  else if (event.key === '-' || event.key === 'PageDown') zoomBy(0.8);
+  else if (event.key === 'Home') fitMap();
+  else if (props.tool === 'pan' || props.readOnly || props.selectedKeys.length === 0) {
+    const directions: Record<string, Point> = {
+      ArrowLeft: { x: 48, y: 0 },
+      ArrowRight: { x: -48, y: 0 },
+      ArrowUp: { x: 0, y: 48 },
+      ArrowDown: { x: 0, y: -48 },
+    };
+    const delta = directions[event.key];
+    if (!delta) return;
+    cancelGesture();
+    setViewport(panFrom(viewport(), { x: 0, y: 0 }, delta));
+  } else return;
+  event.preventDefault();
+  event.stopPropagation();
 }
 
 function draw(): void {
+  if (animationFrame !== null || !canvas.value) return;
+  animationFrame = requestAnimationFrame(() => {
+    animationFrame = null;
+    render();
+  });
+}
+
+function render(): void {
   const element = canvas.value;
   if (!element) return;
   const context = element.getContext('2d');
   if (!context) return;
   const ratio = window.devicePixelRatio || 1;
-  element.width = Math.round(width.value * ratio);
-  element.height = Math.round(height.value * ratio);
+  const pixelWidth = Math.round(width.value * ratio);
+  const pixelHeight = Math.round(height.value * ratio);
+  if (element.width !== pixelWidth) element.width = pixelWidth;
+  if (element.height !== pixelHeight) element.height = pixelHeight;
   context.setTransform(ratio, 0, 0, ratio, 0, 0);
   context.clearRect(0, 0, width.value, height.value);
   context.fillStyle = '#101821';
@@ -255,7 +352,12 @@ function draw(): void {
       context.fillRect(x, yBottom - structureHeight, structureWidth, structureHeight);
     }
   }
-  for (const object of props.objects) {
+  const previewDelta = drag.value?.kind === 'object' ? gestureDelta(drag.value) : { x: 0, y: 0 };
+  const previewKeys = new Set(drag.value?.kind === 'object' ? drag.value.keys : []);
+  for (const stored of props.objects) {
+    const object = previewKeys.has(stored.key)
+      ? { ...stored, x: stored.x + previewDelta.x, y: stored.y + previewDelta.y }
+      : stored;
     if (!visibleAlliances.value.has(object.alliance_key)) continue;
     const definition = props.map.object_types[object.type];
     const color = allianceColor.value.get(object.alliance_key) ?? '#4da3ff';
@@ -303,45 +405,58 @@ function draw(): void {
       context.fillText(object.label, x + 3, yBottom - objectHeight - 4);
     }
   }
-  if (drag.value?.kind === 'box' && boxEnd.value) {
+  if (drag.value?.kind === 'box') {
     context.strokeStyle = '#e8c978';
     context.setLineDash([5, 4]);
-    const left = Math.min(drag.value.startX, boxEnd.value.x);
-    const top = Math.min(drag.value.startY, boxEnd.value.y);
+    const left = Math.min(drag.value.start.x, drag.value.current.x);
+    const top = Math.min(drag.value.start.y, drag.value.current.y);
     context.strokeRect(
       left,
       top,
-      Math.abs(boxEnd.value.x - drag.value.startX),
-      Math.abs(boxEnd.value.y - drag.value.startY),
+      Math.abs(drag.value.current.x - drag.value.start.x),
+      Math.abs(drag.value.current.y - drag.value.start.y),
     );
     context.setLineDash([]);
   }
 }
 
-defineExpose({ fitMap });
+defineExpose({ fitMap, focusBounds, jumpTo, viewport });
 onMounted(() => {
   resizeObserver = new ResizeObserver(([entry]) => {
     if (!entry) return;
-    width.value = Math.max(320, Math.floor(entry.contentRect.width));
+    cancelGesture();
+    width.value = Math.max(1, Math.floor(entry.contentRect.width));
     height.value = Math.max(420, Math.min(760, Math.floor(window.innerHeight * 0.68)));
-    fitMap();
+    if (!fitted) {
+      fitted = true;
+      fitMap();
+    } else draw();
   });
   if (host.value) resizeObserver.observe(host.value);
-  nextTick(fitMap);
+  nextTick(draw);
+  window.addEventListener('blur', cancelGesture);
 });
-onBeforeUnmount(() => resizeObserver?.disconnect());
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect();
+  cancelGesture();
+  if (animationFrame !== null) cancelAnimationFrame(animationFrame);
+  window.removeEventListener('blur', cancelGesture);
+});
 watch(
   () => [
     props.objects,
     props.alliances,
-    props.selectedKeys,
-    props.showCoverage,
-    props.showStructures,
-    props.showZones,
+    props.map,
+    props.readOnly,
+    props.tool,
+    props.activeAllianceKey,
   ],
-  draw,
+  cancelGesture,
   { deep: true },
 );
+watch(() => [props.selectedKeys, props.showCoverage, props.showStructures, props.showZones], draw, {
+  deep: true,
+});
 </script>
 
 <template>
@@ -358,7 +473,9 @@ watch(
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
-      @pointercancel="onPointerUp"
+      @pointercancel="onPointerCancel"
+      @lostpointercapture="onPointerCancel"
+      @keydown="onKey"
       @wheel="onWheel"
       @contextmenu.prevent
     />
