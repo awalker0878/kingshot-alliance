@@ -13,3 +13,5 @@ Operations owns live Event execution. Platform `EventAdministration` owns system
 Event writes use capability Actions and current Operations authorization. `EventCore` is not a V3 capability name.
 
 Bulk cancellation accepts at most 50 explicit Event IDs rather than a filter expression. Preview checks current lifecycle and management authority, while commit delegates each eligible item to `CancelEvent`, which reacquires target and authority facts inside its own transaction. Completed and already-cancelled Events remain explicit per-item outcomes; successful cancellation retains its normal audit and outbox evidence, complemented by one aggregate bulk receipt.
+
+Schedule creation and reconciliation use the existing 64-occurrence generation budget. Edits retain unrelated cancelled history without hydration, reactivate requested identities with their attached state and preserve completed occurrences. Capacity checks return the exact database maximum across all retained registrations. See [ADR-0075](../../adr/0075-bounded-event-schedule-reconciliation.md).

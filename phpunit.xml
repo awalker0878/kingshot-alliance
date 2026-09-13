@@ -44,6 +44,7 @@
             <directory suffix="Test.php">tests/Contexts/Operations/BattlePlans/Feature</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/Events/Feature</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/Participation/Feature</directory>
+            <directory suffix="Test.php">tests/Contexts/Operations/Polls/Feature</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/Rallies/Feature</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/Results/Feature</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/TerritoryPlanning/Feature</directory>

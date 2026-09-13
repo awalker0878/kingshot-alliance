@@ -42,7 +42,7 @@ final class BearHuntRallyParticipationSummaryV3Test extends TestCase
         $this->assignment($occurrence, $alliance, $actor, RallyAssignmentRole::Joiner, RallyAssignmentStatus::Assigned, false, 'Joiner assigned');
         $this->assignment($occurrence, $alliance, $actor, RallyAssignmentRole::Joiner, RallyAssignmentStatus::Confirmed, false, 'Joiner confirmed');
 
-        $summary = app(RallyParticipationSummaryQuery::class)->forOccurrence((string) $occurrence->id);
+        $summary = app(RallyParticipationSummaryQuery::class)->forOccurrence((string) $occurrence->id, [$actor->playerId]);
 
         self::assertTrue($summary['available']);
         self::assertSame(6, $summary['recordedAssignments']);

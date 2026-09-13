@@ -30,7 +30,7 @@ final readonly class ScreenshotIntakeWorkspaceQuery
     ) {}
 
     /** @return array<string, mixed> */
-    public function forBearHunt(string $actorPlayerId, string $occurrenceId): array
+    public function forBearHunt(string $actorPlayerId, string $occurrenceId, ?string $selectedEvidenceId = null): array
     {
         $target = $this->targets->authorizeManage($actorPlayerId, $occurrenceId);
         $playerReferences = $this->players->byIds($this->roster->activePlayerIds($target->allianceId));
@@ -43,18 +43,20 @@ final readonly class ScreenshotIntakeWorkspaceQuery
         }
         usort($playerOptions, static fn (array $left, array $right): int => strcasecmp($left['name'], $right['name']));
 
-        $evidence = [];
-        foreach (GameEvidence::query()
+        $query = GameEvidence::query()
             ->where('alliance_id', $target->allianceId)
-            ->where('occurrence_id', $target->occurrenceId)
-            ->orderByDesc('created_at')
-            ->limit(100)
-            ->get() as $item) {
+            ->where('occurrence_id', $target->occurrenceId);
+        $items = $selectedEvidenceId === null
+            ? $query->orderByDesc('created_at')->orderByDesc('id')->limit(100)->get()
+            : collect([$query->whereKey($selectedEvidenceId)->firstOrFail()]);
+        $evidence = [];
+        foreach ($items as $item) {
             $evidence[] = $this->evidence($item);
         }
 
         return [
             'occurrenceId' => $target->occurrenceId,
+            'selectedEvidenceId' => $selectedEvidenceId,
             'allianceId' => $target->allianceId,
             'acceptedReportCount' => $this->results->acceptedReportCount($target->occurrenceId),
             'players' => $playerOptions,

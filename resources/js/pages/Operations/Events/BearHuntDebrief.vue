@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import EventCataloguePager from '@/components/events/EventCataloguePager.vue';
+import type { EventCataloguePage } from '@/types/event-command';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
+type Score = number | string;
 type Delta = {
-  current: number | null;
-  previous: number | null;
-  delta: number | null;
+  current: Score | null;
+  previous: Score | null;
+  delta: Score | null;
   percentChange: number | null;
   state: 'available' | 'previous_zero' | 'unavailable';
 };
@@ -28,7 +31,7 @@ type RallySummary = {
 type Governor = {
   playerId: string;
   playerName: string | null;
-  damage: number;
+  damage: Score;
   rank: number | null;
   acceptedReportCount: number;
   recordedAt: string | null;
@@ -40,9 +43,9 @@ type HistoryRun = {
   startsAt: string;
   endsAt: string;
   status: string;
-  totalDamage: number | null;
+  totalDamage: Score | null;
   governorCount: number;
-  personalDamage: number | null;
+  personalDamage: Score | null;
   personalRank: number | null;
   attendance: {
     available: boolean;
@@ -67,12 +70,12 @@ type HistoryRun = {
 type TrendPoint = {
   occurrenceId: string;
   startsAt: string;
-  damage?: number | null;
+  damage?: Score | null;
   rank?: number | null;
   attendanceStatus?: string | null;
   rallies?: number | null;
   ralliesAvailable?: boolean;
-  totalDamage?: number | null;
+  totalDamage?: Score | null;
   governorCount?: number;
   attendanceRatePercent?: number | null;
   attendanceAvailable?: boolean;
@@ -91,7 +94,7 @@ type Debrief = {
   };
   summary: {
     resultsAvailable: boolean;
-    totalDamage: number | null;
+    totalDamage: Score | null;
     governorCount: number;
     acceptedReportCount: number;
     attendance: {
@@ -110,6 +113,7 @@ type Debrief = {
     unmatchedGovernorCount: number;
   };
   governors: Governor[];
+  governorPage: EventCataloguePage;
   personal: {
     playerId: string;
     playerName: string;
@@ -118,6 +122,7 @@ type Debrief = {
     rallies: RallySummary;
   };
   unmatchedGovernors: Array<{
+    rowCount: number;
     evidenceId: string;
     receivedAt: string | null;
     reviewHref: string;
@@ -125,7 +130,7 @@ type Debrief = {
       ordinal: number;
       observedName: string | null;
       reportedRank: number | null;
-      damage: number | null;
+      damage: Score | null;
       confidence: number | null;
     }>;
   }>;
@@ -165,10 +170,10 @@ const props = defineProps<{
 const { t, formatDate, formatNumber } = useLocale();
 const title = computed(() => props.debrief.run.title || t('debrief.title'));
 const personalMax = computed(() =>
-  Math.max(1, ...props.debrief.personalTrend.map((point) => point.damage ?? 0)),
+  Math.max(1, ...props.debrief.personalTrend.map((point) => Number(point.damage ?? 0))),
 );
 const allianceMax = computed(() =>
-  Math.max(1, ...props.debrief.allianceTrend.map((point) => point.totalDamage ?? 0)),
+  Math.max(1, ...props.debrief.allianceTrend.map((point) => Number(point.totalDamage ?? 0))),
 );
 
 function runDate(value: string): string {
@@ -183,9 +188,11 @@ function runDate(value: string): string {
 function shortDate(value: string): string {
   return formatDate(value, { month: 'short', day: 'numeric' });
 }
-function damage(value: number | null | undefined): string {
+function damage(value: Score | null | undefined): string {
   if (value === null || value === undefined) return t('debrief.notRecorded');
-  return formatNumber(value, { notation: 'compact', maximumFractionDigits: 2 });
+  return typeof value === 'string'
+    ? formatNumber(BigInt(value))
+    : formatNumber(value, { notation: 'compact', maximumFractionDigits: 2 });
 }
 function count(value: number | null | undefined, available = true): string {
   return available && value !== null && value !== undefined
@@ -213,14 +220,15 @@ function deltaText(
     return t('debrief.notComparable');
   }
   if (value.delta === 0) return t('debrief.noChange');
-  const direction = value.delta > 0 ? t('debrief.increased') : t('debrief.decreased');
-  const absolute = Math.abs(value.delta);
+  const direction = Number(value.delta) > 0 ? t('debrief.increased') : t('debrief.decreased');
+  const absolute =
+    typeof value.delta === 'string' ? value.delta.replace(/^-/, '') : Math.abs(value.delta);
   const amount =
     unit === 'damage'
       ? damage(absolute)
       : unit === 'rate'
-        ? `${formatNumber(absolute, { maximumFractionDigits: 2 })}%`
-        : formatNumber(absolute);
+        ? `${formatNumber(Number(absolute), { maximumFractionDigits: 2 })}%`
+        : formatNumber(typeof absolute === 'string' ? BigInt(absolute) : absolute);
   if (value.percentChange !== null && unit !== 'rate') {
     return t('debrief.changeWithPercent', {
       direction,
@@ -243,9 +251,9 @@ function attendanceComparisonText(): string {
   if (!comparison || comparison.state === 'unavailable') return t('debrief.notComparable');
   return `${t('debrief.previousHunt')}: ${attendance(comparison.previous)}`;
 }
-function barWidth(value: number | null | undefined, max: number): string {
+function barWidth(value: Score | null | undefined, max: number): string {
   if (value === null || value === undefined) return '0%';
-  return `${Math.max(3, Math.round((value / max) * 100))}%`;
+  return `${Math.max(3, Math.round((Number(value) / max) * 100))}%`;
 }
 function direction(value: Debrief['signals']['personalDamage']): string {
   return t(`debrief.signals.directions.${value}`);
@@ -488,7 +496,18 @@ function direction(value: Debrief['signals']['personalDamage']): string {
               </tbody>
             </table>
           </div>
-          <p v-else class="mt-4 text-sm text-[var(--ks-muted)]">{{ t('debrief.noResults') }}</p>
+          <EventCataloguePager
+            v-if="debrief.governorPage.hasMore || !debrief.governorPage.isFirstPage"
+            :page="debrief.governorPage"
+            kind="governor"
+            :label="t('debrief.governors')"
+            :scope="debrief.run.occurrenceId"
+            :occurrence="null"
+            :only="['debrief']"
+          />
+          <p v-if="!debrief.governors.length" class="mt-4 text-sm text-[var(--ks-muted)]">
+            {{ t('debrief.noResults') }}
+          </p>
         </section>
 
         <section
@@ -521,6 +540,13 @@ function direction(value: Debrief['signals']['personalDamage']): string {
                   {{ t('debrief.reviewImport') }}
                 </Link>
               </div>
+              <p
+                v-if="item.rowCount > item.rows.length"
+                class="mt-2 text-sm text-[var(--ks-muted)]"
+              >
+                {{ formatNumber(item.rows.length) }} / {{ formatNumber(item.rowCount) }}
+                {{ t('debrief.governors') }}
+              </p>
               <ul class="mt-3 grid gap-2 sm:grid-cols-2">
                 <li
                   v-for="row in item.rows"

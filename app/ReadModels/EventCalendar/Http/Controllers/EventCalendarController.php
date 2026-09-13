@@ -97,6 +97,7 @@ final class EventCalendarController extends Controller
         $user = $this->user($request);
         $actor = $this->player();
         $eventOccurrence = $query->occurrence($actor, $occurrence);
+        $input = $request->validate(['phase_cursor' => ['nullable', 'string', 'max:2048'], 'poll_cursor' => ['nullable', 'string', 'max:2048']]);
         $event = $eventOccurrence->event;
         if (! $event instanceof Event) {
             throw new LogicException('An event occurrence must reference an event.');
@@ -154,7 +155,7 @@ final class EventCalendarController extends Controller
                 'recurrenceUntil' => $event->recurrence_until?->toIso8601String(),
                 'canManage' => $canManage,
                 'participation' => $playerParticipation,
-                'operations' => $phasePolls->forOccurrence($eventOccurrence, $eligibleActivePlayer),
+                'operations' => $phasePolls->forOccurrence($eventOccurrence, $actor->playerId, $eligibleActivePlayer, phaseCursor: $input['phase_cursor'] ?? null, pollCursor: $input['poll_cursor'] ?? null),
                 'battlePlan' => $this->supports($workflowDimensions, EventWorkflowDimension::BattleAssignments)
                     ? $objectives->forOccurrence($eventOccurrence, $eligibleActivePlayer)
                     : ['objectives' => [], 'myAssignmentIds' => []],

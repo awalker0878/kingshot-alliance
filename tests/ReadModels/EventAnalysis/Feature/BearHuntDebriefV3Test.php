@@ -109,7 +109,7 @@ final class BearHuntDebriefV3Test extends TestCase
             'assigned_at' => now(),
         ]);
 
-        $results = app(BearHuntDebriefResultQuery::class)->forOccurrence((string) $occurrence->id);
+        $results = app(BearHuntDebriefResultQuery::class)->forOccurrence((string) $occurrence->id, $actor->playerId);
         self::assertTrue($results['available']);
         self::assertSame(300, $results['totalDamage']);
         self::assertSame(2, $results['governorCount']);
@@ -125,7 +125,7 @@ final class BearHuntDebriefV3Test extends TestCase
         self::assertSame(1, $attendance['byStatus']['absent']);
         self::assertSame(50.0, $attendance['ratePercent']);
 
-        $rallies = app(RallyParticipationSummaryQuery::class)->forOccurrence((string) $occurrence->id);
+        $rallies = app(RallyParticipationSummaryQuery::class)->forOccurrence((string) $occurrence->id, [$actor->playerId]);
         self::assertTrue($rallies['available']);
         self::assertSame(1, $rallies['recordedAssignments']);
         self::assertSame(1, $rallies['participated']);
@@ -167,7 +167,7 @@ final class BearHuntDebriefV3Test extends TestCase
             'recorded_at' => now(),
         ]);
 
-        $rallies = app(RallyParticipationSummaryQuery::class)->forOccurrence((string) $occurrence->id);
+        $rallies = app(RallyParticipationSummaryQuery::class)->forOccurrence((string) $occurrence->id, [$actor->playerId]);
         self::assertTrue($rallies['available']);
         self::assertSame(0, $rallies['participated']);
         self::assertSame(0, $rallies['players'][$actor->playerId]['participated']);
@@ -177,7 +177,7 @@ final class BearHuntDebriefV3Test extends TestCase
             'recorded_at' => null,
             'recorded_by_player_id' => null,
         ]);
-        $unrecorded = app(RallyParticipationSummaryQuery::class)->forOccurrence((string) $occurrence->id);
+        $unrecorded = app(RallyParticipationSummaryQuery::class)->forOccurrence((string) $occurrence->id, [$actor->playerId]);
         self::assertFalse($unrecorded['available']);
         self::assertSame(0, $unrecorded['participated']);
     }
@@ -272,7 +272,7 @@ final class BearHuntDebriefV3Test extends TestCase
             $entries,
         );
         self::assertFalse($first->idempotentReplay);
-        $before = app(BearHuntDebriefResultQuery::class)->forOccurrence((string) $occurrence->id);
+        $before = app(BearHuntDebriefResultQuery::class)->forOccurrence((string) $occurrence->id, $actor->playerId);
 
         $replay = $record->handle(
             $actor->playerId,
@@ -285,7 +285,7 @@ final class BearHuntDebriefV3Test extends TestCase
             $entries,
         );
         self::assertTrue($replay->idempotentReplay);
-        $after = app(BearHuntDebriefResultQuery::class)->forOccurrence((string) $occurrence->id);
+        $after = app(BearHuntDebriefResultQuery::class)->forOccurrence((string) $occurrence->id, $actor->playerId);
 
         self::assertSame($first->reportId, $replay->reportId);
         self::assertSame(500, $before['totalDamage']);

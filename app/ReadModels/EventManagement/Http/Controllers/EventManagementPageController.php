@@ -11,6 +11,7 @@ use App\Contexts\Operations\BattlePlans\Queries\EventObjectiveQuery;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\Event;
+use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Queries\EventCalendarQuery;
 use App\Contexts\Operations\Events\Services\EventTypeProfileResolver;
 use App\Contexts\Operations\Participation\Queries\EventParticipationQuery;
@@ -25,6 +26,7 @@ use App\ReadModels\EventAnalysis\Queries\EventPlayerIntelligenceQuery;
 use App\ReadModels\EventManagement\Queries\EventCommandQuery;
 use App\ReadModels\EventManagement\Queries\RallyRosterBuilderQuery;
 use App\Shared\Infrastructure\Http\Controller;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -52,6 +54,11 @@ final class EventManagementPageController extends Controller
         $user = $this->user($request);
         $actor = $this->player();
         $record = $query->eventForManage($actor, $event);
+        $input = $request->validate(['occurrence' => ['nullable', 'ulid'], 'occurrence_cursor' => ['nullable', 'string', 'max:2048'], 'phase_cursor' => ['nullable', 'string', 'max:2048'], 'poll_cursor' => ['nullable', 'string', 'max:2048']]);
+        $command = $eventCommand->forEvent($actor, $record, $input['occurrence'] ?? null, $input['occurrence_cursor'] ?? null);
+        $selected = $command['selectedOccurrenceId'];
+        $record->setRelation('occurrences', $selected === null ? new Collection : EventOccurrence::query()
+            ->where('event_id', $record->id)->whereKey($selected)->get());
         $profile = $profiles->resolve($record->eventType);
         $workflowDimensions = $profile['profile_enabled'] === true
             ? $profile['workflow_dimensions']
@@ -93,14 +100,10 @@ final class EventManagementPageController extends Controller
 
         return Inertia::render('Operations/Events/Manage', [
             'user' => $this->identity($user),
-            'event' => $this->managementPayload($record, $profile),
-            'eventCommand' => $eventCommand->forEvent(
-                $actor,
-                $record,
-                $request->string('occurrence')->toString(),
-            ),
+            'event' => $this->managementPayload($record, $profile, (int) $command['occurrencePage']['total']),
+            'eventCommand' => $command,
             'participants' => $participantOperations,
-            'operations' => $phasePolls->management($record),
+            'operations' => $phasePolls->management($record, $actor->playerId, $input['phase_cursor'] ?? null, $input['poll_cursor'] ?? null),
             'battlePlan' => $this->supports($workflowDimensions, EventWorkflowDimension::BattleAssignments)
                 ? $objectives->management($record)
                 : [],
@@ -138,7 +141,7 @@ final class EventManagementPageController extends Controller
      * @param  array<string,mixed>  $profile
      * @return array<string,mixed>
      */
-    private function managementPayload(Event $event, array $profile): array
+    private function managementPayload(Event $event, array $profile, int $occurrenceCount): array
     {
         return [
             'id' => (string) $event->id,
@@ -173,6 +176,7 @@ final class EventManagementPageController extends Controller
                 : [],
             'createdByPlayerId' => $event->created_by_player_id,
             'updatedByPlayerId' => $event->updated_by_player_id,
+            'occurrenceCount' => $occurrenceCount,
             'occurrences' => $event->occurrences
                 ->sortBy('starts_at')
                 ->map(static fn ($occurrence): array => [

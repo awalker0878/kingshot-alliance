@@ -8,26 +8,31 @@ use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\Events\Models\Event;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Models\EventPhase;
+use App\Contexts\Operations\Events\Queries\EventPhaseCatalogueQuery;
 use App\Contexts\Operations\Events\Services\EventPhaseService;
 use App\Contexts\Operations\Polls\Enums\EventPollStatus;
 use App\Contexts\Operations\Polls\Models\EventPoll;
-use App\Contexts\Operations\Polls\Models\EventPollVote;
+use App\Contexts\Operations\Polls\Models\EventPollOption;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final readonly class EventPhasePollQuery
 {
-    public function __construct(private EventPhaseService $phases) {}
+    public function __construct(
+        private EventPhaseService $phases,
+        private EventPhaseCatalogueQuery $phaseCatalogue,
+        private EventPollCatalogueQuery $pollCatalogue,
+    ) {}
 
-    /** @return array{phases:list<array<string,mixed>>,polls:list<array<string,mixed>>} */
-    public function forOccurrence(EventOccurrence $occurrence, ?PlayerReference $player = null, bool $manager = false): array
+    /** @return array<string,mixed> */
+    public function forOccurrence(EventOccurrence $occurrence, string $actorId, ?PlayerReference $player = null, bool $manager = false, ?string $phaseCursor = null, ?string $pollCursor = null): array
     {
         $occurrence->loadMissing('event');
         $timezone = (string) $occurrence->event->timezone;
-        $phaseRows = array_values(EventPhase::query()
-            ->where('occurrence_id', $occurrence->id)
-            ->orderBy('sort_order')
-            ->orderBy('starts_at')
-            ->get()
+        $phasePage = $this->phaseCatalogue->forOccurrence($occurrence, $actorId, $phaseCursor);
+        $phaseRows = array_values($phasePage['items']
             ->map(fn (EventPhase $phase): array => [
                 'id' => (string) $phase->id,
                 'key' => (string) $phase->key,
@@ -43,18 +48,26 @@ final readonly class EventPhasePollQuery
                 'sortOrder' => (int) $phase->sort_order,
             ])->all());
 
-        $pollQuery = EventPoll::query()
-            ->where('occurrence_id', $occurrence->id)
-            ->with(['options', 'votes']);
-        if (! $manager) {
-            $pollQuery->whereIn('status', [EventPollStatus::Open->value, EventPollStatus::Closed->value]);
+        $pollPage = $this->pollCatalogue->forOccurrence($occurrence, $actorId, $manager, $pollCursor);
+        $pollIds = $pollPage['items']->modelKeys();
+        $options = EventPollOption::query()->whereIn('poll_id', $pollIds)->orderBy('poll_id')->orderBy('sort_order')->orderBy('id')
+            ->limit(1251)->get();
+        $optionsByPoll = $options->groupBy('poll_id');
+        if ($options->count() > 1250 || $optionsByPoll->contains(static fn (Collection $rows): bool => $rows->count() > 50)) {
+            throw ValidationException::withMessages(['poll' => 'Stored poll options exceed the supported owner budget.']);
         }
-
-        $pollRows = array_values($pollQuery->orderBy('created_at')->get()->map(function (EventPoll $poll) use ($player, $manager, $timezone): array {
-            $selected = $player instanceof PlayerReference
-                ? EventPollVote::query()->where('poll_id', $poll->id)->where('player_id', $player->playerId)->pluck('option_id')->map(static fn ($id): string => (string) $id)->all()
-                : [];
-            $counts = $poll->votes->groupBy('option_id')->map->count();
+        // Aggregate every retained vote in the database; only one row per bounded option returns.
+        $votes = DB::table('event_poll_votes as vote')
+            ->join('event_poll_options as option', static fn ($join) => $join
+                ->on('option.id', '=', 'vote.option_id')->on('option.poll_id', '=', 'vote.poll_id'))
+            ->whereIn('vote.poll_id', $pollIds)
+            ->selectRaw('vote.poll_id, vote.option_id, COUNT(*) AS aggregate, MAX(CASE WHEN vote.player_id = ? THEN 1 ELSE 0 END) AS selected', [$player->playerId ?? ''])
+            ->groupBy('vote.poll_id', 'vote.option_id')->get()
+            ->keyBy(static fn (object $vote): string => $vote->poll_id.':'.$vote->option_id);
+        $pollRows = array_values($pollPage['items']->map(function (EventPoll $poll) use ($optionsByPoll, $votes, $manager, $timezone): array {
+            $options = $optionsByPoll->get((string) $poll->id, new Collection);
+            $selected = $options->filter(static fn (EventPollOption $option): bool => (int) ($votes->get($poll->id.':'.$option->id)->selected ?? 0) === 1)
+                ->map(static fn (EventPollOption $option): string => (string) $option->id)->values()->all();
             $votingOpen = $poll->status === EventPollStatus::Open
                 && ($poll->opens_at === null || CarbonImmutable::now('UTC')->greaterThanOrEqualTo(CarbonImmutable::instance($poll->opens_at)->utc()))
                 && ($poll->closes_at === null || CarbonImmutable::now('UTC')->lessThan(CarbonImmutable::instance($poll->closes_at)->utc()));
@@ -75,17 +88,19 @@ final readonly class EventPhasePollQuery
                 'maxChoices' => (int) $poll->max_choices,
                 'selectedOptionIds' => $selected,
                 'settings' => $poll->settings ?? [],
-                'options' => $poll->options->map(static fn ($option): array => [
+                'options' => $options->map(static fn (EventPollOption $option): array => [
                     'id' => (string) $option->id,
                     'label' => (string) $option->label,
                     'value' => (string) $option->value,
                     'metadata' => $option->metadata ?? [],
-                    'votes' => $showResults ? (int) ($counts[$option->id] ?? 0) : null,
+                    'votes' => $showResults ? (int) ($votes->get($poll->id.':'.$option->id)->aggregate ?? 0) : null,
                 ])->all(),
             ];
         })->all());
 
-        return ['phases' => $phaseRows, 'polls' => $pollRows];
+        return ['phases' => $phaseRows, 'polls' => $pollRows,
+            'phasePage' => array_diff_key($phasePage, ['items' => true]),
+            'pollPage' => array_diff_key($pollPage, ['items' => true])];
     }
 
     /**
@@ -119,7 +134,7 @@ final readonly class EventPhasePollQuery
     }
 
     /** @return list<array<string,mixed>> */
-    public function management(Event $event): array
+    public function management(Event $event, string $actorId, ?string $phaseCursor = null, ?string $pollCursor = null): array
     {
         return array_values($event->occurrences
             ->sortBy('starts_at')
@@ -127,7 +142,7 @@ final readonly class EventPhasePollQuery
             ->map(fn (EventOccurrence $occurrence): array => [
                 'occurrenceId' => (string) $occurrence->id,
                 'startsAt' => $occurrence->starts_at->toIso8601String(),
-                ...$this->forOccurrence($occurrence, manager: true),
+                ...$this->forOccurrence($occurrence, $actorId, manager: true, phaseCursor: $phaseCursor, pollCursor: $pollCursor),
             ])
             ->all());
     }

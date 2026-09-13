@@ -138,6 +138,7 @@ const props = defineProps<{
   userTimezone: string;
   workspace: {
     occurrenceId: string;
+    selectedEvidenceId: string | null;
     allianceId: string;
     acceptedReportCount: number;
     players: Array<{ id: string; name: string }>;
@@ -325,6 +326,13 @@ function refresh(): void {
           </p>
         </div>
         <div class="flex flex-wrap gap-2">
+          <Link
+            v-if="workspace.selectedEvidenceId"
+            :href="`/events/${workspace.occurrenceId}/screenshot-intake`"
+            class="ks-command-link"
+          >
+            ← {{ t('evidence.title') }}
+          </Link>
           <Link :href="`/events/${workspace.occurrenceId}`" class="ks-command-link">
             ← {{ t('evidence.back') }}
           </Link>

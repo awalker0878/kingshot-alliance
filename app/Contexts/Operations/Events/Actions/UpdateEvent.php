@@ -16,6 +16,7 @@ use App\Contexts\Operations\Participation\Models\EventRegistration;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -118,17 +119,18 @@ final class UpdateEvent
 
             $resolvedCapacity = $capacity ?? $locked->capacity;
             if ($resolvedCapacity !== null) {
-                $maxRegistered = EventRegistration::query()
+                if ($resolvedCapacity < 1 || $resolvedCapacity > 100000) {
+                    throw new InvalidArgumentException('Event capacity must be between 1 and 100000 when provided.');
+                }
+                $registrationCounts = EventRegistration::query()
                     ->whereIn(
                         'occurrence_id',
                         EventOccurrence::query()->where('event_id', $locked->id)->select('id'),
                     )
                     ->where('status', 'registered')
                     ->selectRaw('occurrence_id, COUNT(*) AS aggregate')
-                    ->groupBy('occurrence_id')
-                    ->pluck('aggregate')
-                    ->map(static fn ($count): int => (int) $count)
-                    ->max() ?? 0;
+                    ->groupBy('occurrence_id');
+                $maxRegistered = (int) DB::query()->fromSub($registrationCounts, 'registration_counts')->max('aggregate');
 
                 if ($maxRegistered > (int) $resolvedCapacity) {
                     throw new InvalidArgumentException('Event capacity cannot be lower than the current registered Player count.');
@@ -195,39 +197,45 @@ final class UpdateEvent
     ): void {
         $now = CarbonImmutable::now('UTC');
         $desiredStarts = collect($occurrenceStarts)
-            ->map(static fn (CarbonImmutable $start): CarbonImmutable => $start->utc())
+            ->map(static fn (CarbonImmutable $start): CarbonImmutable => $start->utc()->startOfSecond())
             ->filter(static fn (CarbonImmutable $start): bool => ! $start->lessThan($now))
-            ->values();
+            ->keyBy(static fn (CarbonImmutable $start): string => $start->format('Y-m-d H:i:s'));
 
+        // Only the current schedule and requested historical identities can change.
+        // Cancelled history at unrelated dates remains retained without hydration.
         $future = EventOccurrence::query()
             ->where('event_id', $event->id)
             ->where('starts_at', '>=', $now)
+            ->where(static fn (Builder $query) => $query
+                ->where('status', EventOccurrenceStatus::Scheduled->value)
+                ->orWhereIn('starts_at', $desiredStarts->keys()->all()))
             ->orderBy('starts_at')
+            ->limit(2 * RecurrenceCalculator::DEFAULT_LIMIT + 1)
             ->lockForUpdate()
             ->get();
+        if ($future->count() > 2 * RecurrenceCalculator::DEFAULT_LIMIT
+            || $future->where('status', EventOccurrenceStatus::Scheduled)->count() > RecurrenceCalculator::DEFAULT_LIMIT) {
+            throw new InvalidArgumentException('The stored Event schedule exceeds the occurrence work budget.');
+        }
+        $byStart = $future->keyBy(static fn (EventOccurrence $item): string => $item->starts_at->utc()->format('Y-m-d H:i:s'));
 
-        foreach ($future as $existing) {
-            $matchesDesiredStart = $desiredStarts->contains(
-                static fn (CarbonImmutable $start): bool => CarbonImmutable::instance($existing->starts_at)->utc()->equalTo($start),
-            );
-
-            if (! $matchesDesiredStart && $existing->status === EventOccurrenceStatus::Scheduled) {
+        foreach ($byStart as $key => $existing) {
+            if (! $desiredStarts->has($key) && $existing->status === EventOccurrenceStatus::Scheduled) {
                 $existing->forceFill([
                     'status' => EventOccurrenceStatus::Cancelled,
                 ])->save();
             }
         }
 
-        foreach ($desiredStarts as $start) {
-            $existing = $future->first(
-                static fn (EventOccurrence $candidate): bool => CarbonImmutable::instance($candidate->starts_at)->utc()->equalTo($start),
-            );
-
+        foreach ($desiredStarts as $key => $start) {
+            $existing = $byStart->get($key);
             if ($existing instanceof EventOccurrence) {
-                $existing->forceFill([
-                    'ends_at' => $start->addMinutes($durationMinutes),
-                    'status' => EventOccurrenceStatus::Scheduled,
-                ])->save();
+                if ($existing->status !== EventOccurrenceStatus::Completed) {
+                    $existing->forceFill([
+                        'ends_at' => $start->addMinutes($durationMinutes),
+                        'status' => EventOccurrenceStatus::Scheduled,
+                    ])->save();
+                }
 
                 continue;
             }

@@ -2,13 +2,14 @@
 
 ## Resume header
 
-- Program state: In progress. Keep PR #163 draft until the full ledger, repository audit and final gates are complete.
-- Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`; branch `astra/codebase-hardening`.
-- Latest pushed implementation: `2a85ca526c8c1904fb0d19e54372123be10eced4` contains HARD-128 and passes focused PostgreSQL behavior plus all 84 browser cases. Its full 1,994-test PHP run reports one obsolete KingdomWriteState test call; this checkpoint updates that regression to the current exclusive contract. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`.
-- Current item/state: HARD-126 / In progress; HARD-119–125/127/128 have focused containing evidence and await final verification. HARD-001–118 are Complete with containing evidence. Repository coverage and final gates remain open.
-- Active files: current bounded KingdomGovernance projections, owner-declared Operations policy, catalogues/choices/history UI, baseline traversal indexes and behavioral verification.
-- Local verification: complete npm check, production/new-test PHPStan, formatting, architecture, test layout and documentation links pass; 12 new frontend loader cases pass. Fifteen new PostgreSQL cases and two browser cases await hosted execution.
-- Next action: execute Governance catalogue behavior and continue remaining production audit; complete all final gates on the immutable candidate.
+- Program state: In progress. Keep the active hardening follow-up PR draft until the full ledger, repository audit and final gates are complete. PR #163 was merged outside this continuation at 2026-09-12 23:40:58 UTC; that merge is not completion evidence.
+- Original baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`. Continuation base: merge `044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c`, whose tree matches `b9a7b7ed90516eb229646d69af2ff488901dc538`; working branch `astra/hardening-followup`.
+- Latest containing PHP/visual evidence: `bdfc2ec8305545cd0dfcaab607dcb28351b3859f` passes all 2,051 PHP tests/96,726 assertions in 22:46.178 (CI `34728896660`, PHP job `103647966011`, merge checkout `eaa44a0763284298a87c55e80e70dde9e4915943`) and 86 browser cases in 8.4 minutes (Visual `34728896590`, job `103647934794`). Frontend, fresh schema, architecture, CodeQL, dependency review, all focused groups and actual Source Refresh also pass. Its downstream container job was queued when the next candidate was published; no completed container claim is made for this head. Last full image/staging/recovery milestone remains `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`.
+- Latest durable checkpoint: `80530994e222020355e50026ca970e96cf6d53f1` publishes Event Player Intelligence history aggregates and corrects Debrief availability, fixtures and empty-message rendering on draft PR #164. All focused groups now pass, including the unchanged read-model query budget. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`; final candidate gates remain required.
+- Current item/state: HARD-134 / In progress (phase/poll catalogues and vote aggregates); HARD-135 In progress; HARD-138 In progress; HARD-139 Planned; HARD-137 has focused PostgreSQL evidence and awaits complete containing gates. HARD-001–133 and HARD-136 are Complete with containing evidence. Repository coverage and final gates remain open.
+- Active files: HARD-138 latest-attempt/25-row Evidence preview with exact counts and bounded text, explicit scoped older-report handoff, two owner regressions and a desktop/mobile 31-row report journey; ADR-0080. HARD-139 records the destination workspace's retained history and numeric-preview findings.
+- Local verification: full npm check, changed PHPStan/Pint, all 78 architecture cases/72,644 assertions and 303 documentation links pass; hosted containing behavior remains required.
+- Next action: verify the Evidence preview/handoff. Finish HARD-139 Screenshot Intake and HARD-134 participation, roster/Rally/results/reminder catalogues and eligible Governor selectors. Complete the remaining production audit and immutable final gates.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -1770,10 +1771,11 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: existing Context facts and current-authorized bounded ReadModel catalogues with reachable operator history.
 - Rationale: management must remain truthful and complete as tenants/history grow, without duplicating credential/runtime state or exposing a viewer-less privileged projection.
 - Remediation: trace each catalogue and consumer; add current administrator admission, scoped continuation/complete totals, page-scoped supporting facts, shared active credential semantics and retained management errors/drafts.
-- State: In progress.
+- State: Complete.
 - Verification required: more-than-limit catalogues, independent continuation, current grant revocation, scope-bound cursors, bounded hydration, exact active/pending counts, older outbox retry reachability and desktop/mobile retained errors/drafts.
 - Verification result: nine current-authorized catalogue pages replace clipped or unbounded histories; page-scoped supporting facts use shared IntegrationUsageQuery semantics. Diagnostic fingerprints execute in SQL without hydrating errors/payloads; selected Alliance state is independent of the visible list. Eighteen PostgreSQL cases and two browser journeys cover bounds, privacy, current totals, scope isolation, deleted boundaries, authority revocation, selected forms and older outbox retry. Local static/format/type checks pass; hosted execution is pending.
 - Completion evidence: ADR-0062, PlatformCataloguePagesTest and PlatformCatalogues browser journey; containing execution pending.
+- Final containing verification: Complete at `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`; [follow-up full PHP and deployment milestone](#follow-up-full-php-and-deployment-milestone) supersedes earlier pending execution statements for HARD-119. The final program candidate gates remain separate.
 
 ### HARD-120 — Kingdom administrator recovery has stale operator admission and clipped choices
 
@@ -1783,11 +1785,12 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners with explicit current protected composition and reachable bounded choices.
 - Rationale: recovery must retain operator authorization through its mutation and provide a coherent retry outcome without turning Platform grants into game authority.
 - Remediation: trace owner acquisition order, authorize through the Platform owner inside a documented atomic Workflow boundary, preserve owner role provisioning/audit/outbox, and replace clipped selectors with current-authorized scoped choices and visible errors.
-- State: In progress.
+- State: Complete.
 - Verification required: current revocation, late owner rollback/retry, competing scope changes, cross-Kingdom target rejection, complete selector traversal and retained form/selection behavior.
 - Prior inspection: traced RecoverKingdomAdministrator, RepairKingdomAdministratorAssignment, KingdomOperationsRoleProvisioner call, HTTP adapters/routes and GovernanceRecovery.vue. Existing two recovery tests cover successful replacement and an initially unauthorized actor, not the identified intervals.
 - Verification result: current Platform owner barrier now encloses Governance repair and Operations provisioning in the documented ADR-0063 atomic Workflow exception. Repair validates current active Kingdom/direct Player and 10–500-character reasons, includes scheduled grants, and bounds replacement to 500 with rollback on overflow and additive recovery plus owner removal as the retry path. Read-only choices use 25-row actor/parent/search-scoped frontiers; the screen retains paging drafts, clears changed scope and exposes failed lookups/submissions. Authored committed concurrency, late rollback, owner bounds, complete 261/1,001 choice traversal and desktop/mobile recovery tests await hosted execution.
 - Completion evidence: ADR-0063, RecoveryAtomicityTest, KingdomRecoveryBoundsTest, KingdomRecoveryChoiceTest and KingdomRecovery.spec.ts; executed containing evidence pending.
+- Final containing verification: Complete at `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`; [follow-up full PHP and deployment milestone](#follow-up-full-php-and-deployment-milestone) supersedes earlier pending execution statements for HARD-120. The final program candidate gates remain separate.
 
 ### HARD-121 — Interactive usage capture discards operator authority
 
@@ -1797,10 +1800,11 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners with an explicit protected interactive Action, retaining trusted scheduled capture.
 - Rationale: middleware admission must not be the only authority for a privileged write.
 - Remediation: bind current operator authority to the snapshot transaction, retain bounded owner counts and visible failures, and distinguish scheduled system capture from interactive capture.
-- State: In progress.
+- State: Complete.
 - Verification required: revoked actor after admission, successful current-authorized capture, late failure rollback and normal scheduled progress.
 - Verification result: CaptureAllianceUsage now holds the current Platform grant and Alliance owner reference through snapshot and operator audit. The HTTP adapter supplies its actor; trusted scheduled capture returns the scalar snapshot identifier and retains its durable sweep. Four PostgreSQL cases exercise competing revocation in both orders, late audit rollback/retry and actual HTTP revocation after middleware admission. Local PHPStan/Pint/architecture pass; hosted execution pending.
 - Completion evidence: InteractiveUsageCaptureTest and the ADR-0058 interactive capture contract; containing execution pending.
+- Final containing verification: Complete at `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`; [follow-up full PHP and deployment milestone](#follow-up-full-php-and-deployment-milestone) supersedes earlier pending execution statements for HARD-121. The final program candidate gates remain separate.
 
 ### HARD-122 — Gift Code operational alerts repeat a fixed source prefix and unbounded administrator fan-out
 
@@ -1810,11 +1814,12 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners with bounded durable producer progress.
 - Rationale: source alert delivery must remain complete and retryable as sources and administrator history grow.
 - Remediation: use bounded source/recipient traversal with durable progress and stable alert idempotency, re-evaluate current source/recipient facts and retain Communications execution-time authority.
-- State: In progress.
+- State: Complete.
 - Verification required: more-than-limit sources and recipients, bounded per-invocation work, concurrent/duplicate invocations, rollback/retry and source/grant revocation.
 - Prior inspection: traced source selection, alertsFor, administrator directory, notification intent keys and CurrentNotificationSourceAuthorization. Consumer source/administrator reauthorization exists; producer completeness/bounds remain open.
 - Verification result: ADR-0064 introduces a finite durable source sweep, per-source subscription/recipient frontiers, 25-row pages and a global 500-intent attempt budget. Current source/health/subscription/administrator facts are reread; notification intents and progress commit atomically. Subscription IDs distinguish equal-timestamp alert meanings, and withdrawn sources fail consumer authority. Eight committed PostgreSQL progress/bounds/rollback/overlap/current-state cases and extended consumer cases await hosted execution.
 - Completion evidence: OperationalAlertProgressTest, NotificationSourceEligibilityTest and ADR-0064; containing verification pending.
+- Final containing verification: Complete at `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`; [follow-up full PHP and deployment milestone](#follow-up-full-php-and-deployment-milestone) supersedes earlier pending execution statements for HARD-122. The final program candidate gates remain separate.
 
 ### HARD-123 — Kingdom bootstrap and policy reconciliation commit owner provisioning separately
 
@@ -1824,10 +1829,11 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same boundaries with explicit current, bounded contracts.
 - Rationale: complete the repository-wide audit beyond the Platform recovery slice.
 - Remediation: Retain one documented atomic Workflow composition around the existing owner calls, with no Workflow persistence or permission interpretation.
-- State: In progress.
+- State: Complete.
 - Verification required: Late Operations failure and full rollback/retry for both commands; current actor/scope revocation and trusted CLI bootstrap behavior.
 - Verification result: both Workflows now wrap only their existing owner calls in one transaction, named by ADR-0065 and the architecture verifier. Three committed PostgreSQL cases cover late Operations rollback with exact restoration for bootstrap/reconciliation, successful retry, and competing actor revocation through the final owner call. Local scoped PHPStan, Pint, architecture, layout and documentation checks pass; hosted execution pending.
 - Completion evidence: ADR-0065 and KingdomPolicyAtomicityTest; containing execution pending.
+- Final containing verification: Complete at `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`; [follow-up full PHP and deployment milestone](#follow-up-full-php-and-deployment-milestone) supersedes earlier pending execution statements for HARD-123. The final program candidate gates remain separate.
 
 ### HARD-124 — Kingdom role writes lack current bounded delegation and owner input invariants
 
@@ -1837,10 +1843,11 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same boundaries with explicit current, bounded contracts.
 - Rationale: complete the repository-wide audit beyond the Platform recovery slice.
 - Remediation: Make current protected Kingdom role authority and bounded delegation/input validation explicit and shared across owner Actions; retain scalar read facts and current consumer behavior.
-- State: In progress.
+- State: Complete.
 - Verification required: Limited-manager escalation rejection; concurrent role revocation/definition change; canonical/archived scope; direct oversized/generated-key inputs; successful bounded delegation and retry.
 - Verification result: owner writes and exact permission reconciliation now share the exclusive Kingdom barrier; assign/create/update enforce current permission subsets, direct inputs and canonical scopes. Authority snapshots use a bounded scalar permission projection over SQL assignment subqueries. KingdomRoleDelegationTest adds 16 behavioral cases and KingdomRoleAuthorityConcurrencyTest adds four committed competing-connection cases. Hosted execution and adjacent HARD-127 caller migration remain required.
 - Completion evidence: ADR-0066 and the two owner test files; containing execution pending.
+- Final containing verification: Complete at `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`; [follow-up full PHP and deployment milestone](#follow-up-full-php-and-deployment-milestone) supersedes earlier pending execution statements for HARD-124. The final program candidate gates remain separate.
 
 ### HARD-125 — Kingdom administrator handoff expands unbounded history and leaves scheduled authority
 
@@ -1850,10 +1857,11 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same boundaries with explicit current, bounded contracts.
 - Rationale: complete the repository-wide audit beyond the Platform recovery slice.
 - Remediation: Bound the atomic handoff, include scheduled unexpired grants, validate owner reason/target and preserve last-administrator protection and a reachable bounded cleanup path.
-- State: In progress.
+- State: Complete.
 - Verification required: Oversized history, scheduled grants, wrong/canonical target, maximum reasons, late rollback and idempotent retry.
 - Verification result: handoff now validates current canonical target/reason, rejects replacement above 500 before target mutation and revokes bounded unexpired IDs including scheduled grants in one SQL update. Additive/self replays produce no duplicate effects. Handoff and recovery establish lasting target authority instead of reusing a temporary grant; last-administrator checks use current canonical Governor facts and protect the last lasting grant. Thirteen owner behavior cases cover bounds, the cleanup path, future authority, direct input, replay, both temporary-target commands, late audit/outbox rollback and ineligible survivors. Hosted execution pending.
 - Completion evidence: ADR-0067 and KingdomHandoffBoundsTest; containing verification pending.
+- Final containing verification: Complete at `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`; [follow-up full PHP and deployment milestone](#follow-up-full-php-and-deployment-milestone) supersedes earlier pending execution statements for HARD-125. The final program candidate gates remain separate.
 
 ### HARD-126 — Kingdom Governance management projections expand complete catalogues and duplicate policy
 
@@ -1863,10 +1871,11 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same boundaries with explicit current, bounded contracts.
 - Rationale: complete the repository-wide audit beyond the Platform recovery slice.
 - Remediation: Use owner-declared system policy facts and current-authorized bounded catalogues/choices/history with retained forms and visible errors; remove superseded full-list consumers.
-- State: In progress.
+- State: Complete.
 - Verification required: More-than-page roles/assignments/holders, query budgets, actor/Kingdom isolation, owner health policy parity and desktop/mobile retained interaction.
 - Verification result: all six catalogues use current actor/Kingdom-scoped 25-row pages, complete choices and finite cursors. Holder counts deduplicate in SQL; health consumes the Operations owner policy and current canonical assignment facts. Public history and unattributed assignment reasons exclude private recovery/operator data before hydration. Forms retain paging drafts, fence stale responses, expose retry, reset on scope changes and bound bulk intent to 50. Fifteen PostgreSQL and two browser cases are authored; 12 Node cases and full local frontend/architecture checks pass. Hosted execution remains pending.
 - Completion evidence: [ADR-0070](../architecture/adr/0070-bounded-current-kingdom-governance-catalogues.md), GovernanceCataloguePagesTest, KingdomGovernanceHealthBoundsTest, GovernanceChoices.test.ts and GovernanceCatalogues.spec.ts; containing execution pending.
+- Final containing verification: Complete at `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`; [follow-up full PHP and deployment milestone](#follow-up-full-php-and-deployment-milestone) supersedes earlier pending execution statements for HARD-126. The final program candidate gates remain separate.
 
 ### HARD-127 — Operations scope consumers acquire Player before governing lifecycle authority
 
@@ -1876,10 +1885,11 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners with explicit common scope acquisition order.
 - Rationale: bounded protected writes must not rely on database deadlock detection to resolve ordinary competing owners.
 - Remediation: trace all current consumers, acquire stable governing owner scopes before actor/resource rows through owner queries, revalidate routing facts after locking and preserve source-specific authorization and profile gates.
-- State: In progress.
+- State: Complete.
 - Verification required: committed competing Lifecycle/Governance/Operations actions in both orders for supported Event/Territory/King Perk paths, stale scope rejection, rollback and existing profile/capability suites.
 - Verification result: Event and Territory writes now acquire governing scope before current identities and mutable resources, revalidate routes, and reject mismatched Event/plan scope before foreign owner locks. Player Event manager resolution reads only the actor’s one canonical active membership and the corresponding target roster. Linked Territory references use owner NOWAIT queries with atomic retryable rejection. King Perk commands inherit Event scope ordering; reminder preparation already holds Kingdom shared scope before the recipient and requires no acquisition change. Eighteen new committed-connection/history cases are authored; hosted execution remains required.
 - Completion evidence: ADR-0068 and KingdomScopeOrderingTest, PlayerEventScopeOrderingTest and TerritoryScopeOrderingTest; containing execution pending.
+- Final containing verification: Complete at `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`; [follow-up full PHP and deployment milestone](#follow-up-full-php-and-deployment-milestone) supersedes earlier pending execution statements for HARD-127. The final program candidate gates remain separate.
 
 ### HARD-128 — Territory clone/import/restore split their persistence and audit boundaries
 
@@ -1889,10 +1899,179 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: the same owners with atomic Operations composition.
 - Rationale: complete the production caller trace of HARD-127 without leaving late effects outside the owner transaction.
 - Remediation: compose current owner admission, create/save and required audit in one bounded Operations transaction, preserving source authorization, expected revisions and existing import validation.
-- State: In progress.
+- State: Complete.
 - Verification required: late save/audit failure, exact rollback, successful retry, current scope/revision changes and existing import/clone/restore behavior.
 - Verification result: clone retains source admission through destination create/save; import and restore retain current scope, revision and map/snapshot admission through save and required final audit in one outer Operations transaction. Released identity rereads are removed. Five new committed-database cases cover late audit/competing archive, exact rollback, retry and stale revisions. Hosted execution remains pending.
 - Completion evidence: ADR-0069 and TerritoryCompositionAtomicityTest; containing execution pending.
+- Final containing verification: Complete at `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`; [follow-up full PHP and deployment milestone](#follow-up-full-php-and-deployment-milestone) supersedes earlier pending execution statements for HARD-128. The final program candidate gates remain separate.
+
+### HARD-129 — Adjacent Operations writers acquire lower owner references after protected resources
+
+- Area: Rally guidance, RallyWriteState, Event roster/objective assignments and Alliance/Player result commands.
+- Finding: Rally guidance acquires Player before governing Alliance and omits active Kingdom admission. Event subcommands acquire additional Alliance/Player locks after the actor and occurrence, permitting inverse lock waits with lifecycle and concurrent actors.
+- Current owner: Operations commands with Alliance/GameWorld owner reference facts.
+- Intended authoritative owner: unchanged, with governing scopes first and fail-fast secondary references.
+- Rationale: finish the EventWriteState caller trace beyond Event/Territory admission itself.
+- Remediation: acquire Rally guidance Alliance/active Kingdom/current facts before actor; revalidate current canonical scope; use owner NOWAIT secondary references with atomic retryable rejection in Event subcommands.
+- State: Complete.
+- Verification required: actual competing owner/reference transactions, current authority and lifecycle withdrawal, rollback, successful retry and full related capability behavior.
+- Verification result: Rally guidance now holds active governing scope before its canonical actor, and Event subcommands use owner NOWAIT secondary references with whole-command retryable rollback. Four enabled Bear Hunt contention/retry cases and four actual rank/Kingdom changes in both orders are authored. Candidate profiles remain disabled. Production and test PHPStan pass; hosted behavior remains pending.
+- Completion evidence: [ADR-0071](../architecture/adr/0071-event-secondary-references-and-rally-guidance-scope.md), EventLinkedReferenceContentionTest and RallyGuidanceScopeOrderingTest; containing execution pending.
+- Final containing verification: Complete at `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`; [follow-up full PHP and deployment milestone](#follow-up-full-php-and-deployment-milestone) supersedes earlier pending execution statements for HARD-129. The final program candidate gates remain separate.
+
+### HARD-130 — Frontend reference architecture and standalone gates contradict current presentation
+
+- Area: Frontend architecture/capability documentation and three superseded standalone PHP scripts.
+- Finding: current documentation advertises removed presentation metaphors, rejects legitimate Home/Assistant/Platform roots and points to ungated scripts with an incompatible copy policy and obsolete browser layout. Useful source checks are absent from the canonical frontend sequence.
+- Current owner: frontend presentation, product terminology and repository verification.
+- Intended authoritative owner: unchanged, with one current frontend check sequence.
+- Rationale: remove contradictory guidance without weakening active verification.
+- Remediation: consolidate page roots, static Inertia targets, runtime artwork and strict compiler settings into check:frontend-structure; retain the current product-language/type/build gates, remove obsolete scripts and reconcile architecture/capability docs.
+- State: Complete.
+- Verification required: current frontend check, missing/invalid target and artwork rejection, compiler guarantees and full check sequence.
+- Verification result: all five structure-gate behavior cases pass. Complete npm check passes, including the new canonical structure check, current product language, frontend types/build, localization/accessibility and performance budgets. Current 342-source PHP layout and 294-document links pass. Containing execution remains pending.
+- Completion evidence: pending.
+
+- Containing verification update: Containing frontend quality/build job `103647965917` at `bdfc2ec8` passes the complete npm check, including the new canonical structure gate. Full final program gates remain separate.
+
+- Final containing verification: complete at `bdfc2ec8305545cd0dfcaab607dcb28351b3859f`: all 2,051 PHP cases/96,726 assertions, 86 browser cases, frontend, fresh schema, architecture, security/dependency and focused behavior pass. HARD-136 actual Source Refresh `34728896680` also passes with the 24 immutable artifacts and separately recorded acquisition evidence. This supersedes earlier pending behavior statements; final program gates remain open.
+
+### HARD-131 — Superseded progression completion transforms remain executable
+
+- Area: four progression transformation workflows and their apply_completion Python scripts.
+- Finding: branch-specific workflows still carry contents-write authority to rewrite and push source on progression-capability-completion. Their one-time substitutions are superseded by the current implementation; static inspection finds 7/11, 1/3, 3/8 and 6/13 required old source shapes absent respectively in backend, planner, topology and UI transforms. These are obsolete implementation transport, not current source-maintenance tools.
+- Current owner: temporary feature-delivery automation.
+- Intended authoritative owner: normal reviewed source, capability owners and current verification.
+- Rationale: remove dead source-rewriting paths that could partially overwrite later hardening if invoked manually.
+- Remediation: remove all four retired branch-transform workflows and four corresponding scripts; preserve the independent read-only source refresh and current dataset build/verification tools.
+- State: Complete.
+- Verification required: no remaining executable references, coherent workflow inventory, existing source/profile/architecture/frontend gates.
+- Verification result: sole executable consumers were the four removed workflows. Static AST inspection established obsolete assumptions without importing or running the transforms. Repository references and containing gates remain required.
+- Completion evidence: pending.
+
+- Containing verification update: Containing read-only Source Refresh `34728896680` succeeds at `bdfc2ec8` after HARD-136 separates live acquisition evidence; retired transforms remain removed. Full final program gates remain separate.
+
+- Final containing verification: complete at `bdfc2ec8305545cd0dfcaab607dcb28351b3859f`: all 2,051 PHP cases/96,726 assertions, 86 browser cases, frontend, fresh schema, architecture, security/dependency and focused behavior pass. HARD-136 actual Source Refresh `34728896680` also passes with the 24 immutable artifacts and separately recorded acquisition evidence. This supersedes earlier pending behavior statements; final program gates remain open.
+
+### HARD-132 — Bear Hunt result recomputation expands the entire occurrence per report
+
+- Area: BearHuntResultProjector, RecordBearHuntBattleReport/RemoveBearHuntBattleReport and receipt consumers.
+- Finding: each reviewed report or removal hydrates all occurrence baselines, executes separate sum/count queries per Governor, ranks all rows in application memory, repeatedly searches baselines and returns every affected Governor in the receipt. The 100-entry input bound does not bound retained occurrence history or response size.
+- Current owner: Operations Results and its explicit Intelligence evidence adapter.
+- Intended authoritative owner: unchanged, with complete bounded aggregation and receipt contracts.
+- Rationale: finish the actual supported Bear Hunt production trace without treating a bounded input as bounded retained work.
+- Remediation: preserve Operations ownership and current scope admission; enforce a 1,000-distinct-Governor atomic work budget, group accepted SQL totals, use keyed bounded materialization and 100-row upserts, validate integer totals and capture only the stored report’s 1–100 Governors in receipts. Preserve manual baseline values, result identity, competition ranks, source identity and removal/retry semantics.
+- State: Complete.
+- Verification required: large retained histories, query/payload bounds, ties, zero scores, manual baseline restoration, removed reports, rollback and current-authority retries.
+- Verification result: implementation, all receipt consumers and existing ranking/removal semantics traced; seven PostgreSQL cases authored for 1,000-row completeness/query budget, 100-row and one-row receipts, replay/removal, admission overflow, ties/zero/manual restoration, two integer-overflow cases, corrupt stored receipt rollback and transaction guard. Production/test PHPStan and Pint pass; all 78 architecture cases/72,467 assertions, 343-source PHP layout and 295-document links pass. Hosted behavior remains pending.
+- Completion evidence: [ADR-0072](../architecture/adr/0072-bounded-bear-hunt-result-recomputation.md), BearHuntResultBoundsTest and existing BearHuntBattleReportLedgerV3Test; containing behavior pending.
+
+- Containing verification update: Containing focused run `34728441895`, job `103646710853`, at `a585a4dd` passes all 119 Operations tests/641 assertions, including all seven result bound cases. Visual `34727938824` at `027d880b` passes all 86 cases. Full final program gates remain separate.
+
+- Final containing verification: complete at `bdfc2ec8305545cd0dfcaab607dcb28351b3859f`: all 2,051 PHP cases/96,726 assertions, 86 browser cases, frontend, fresh schema, architecture, security/dependency and focused behavior pass. HARD-136 actual Source Refresh `34728896680` also passes with the 24 immutable artifacts and separately recorded acquisition evidence. This supersedes earlier pending behavior statements; final program gates remain open.
+
+### HARD-133 — Poll owner commands depend on adapter-only input bounds
+
+- Area: Operations Polls SaveEventPoll/CastEventPollVote and EventOperationsController.
+- Finding: HTTP enforces 50 options, 20 selections and field lengths, while direct owner calls can normalize/persist arbitrarily large option collections, settings/metadata and strings. Vote normalization processes arbitrary raw cardinality before deduplicated choice validation. Existing votes prevent option replacement but do not prevent a changed poll type from reinterpreting retained option values.
+- Current owner: Operations Polls with HTTP validation adapters.
+- Intended authoritative owner: the same owner with one bounded command contract.
+- Rationale: supported internal calls and future adapters must not bypass the protected work/input budget or silently reinterpret existing votes.
+- Remediation: validate raw cardinality and shapes before normalization, enforce current field/settings limits in the owner and preserve voted option/type semantics; keep current scope and atomic audit/outbox behavior.
+- State: Complete.
+- Verification required: direct malformed/oversized inputs, existing-vote updates, atomic rollback, valid boundary cases and current scope admission.
+- Verification result: raw options/selections, current schema fields, declared settings and bounded flat metadata now validate before locks; voted type/maximum/option changes reject atomically and pre-vote type changes require validated replacements. All 21 malformed-input/no-query cases pass locally (42 assertions); six PostgreSQL mutation cases are authored. Production/tests PHPStan and Pint pass; containing behavior remains pending.
+- Completion evidence: [ADR-0073](../architecture/adr/0073-bounded-poll-owner-inputs.md), PollInputBoundsTest and PollMutationContractTest; hosted mutation behavior pending.
+
+- Containing verification update: All 27 new input/mutation cases pass in the 119-case Operations group at `a585a4dd`; focused run `34728441895`, job `103646710853`, succeeds for every group. Full final program gates remain separate.
+
+- Final containing verification: complete at `bdfc2ec8305545cd0dfcaab607dcb28351b3859f`: all 2,051 PHP cases/96,726 assertions, 86 browser cases, frontend, fresh schema, architecture, security/dependency and focused behavior pass. HARD-136 actual Source Refresh `34728896680` also passes with the 24 immutable artifacts and separately recorded acquisition evidence. This supersedes earlier pending behavior statements; final program gates remain open.
+
+### HARD-134 — Event management expands retained operational collections
+
+- Area: EventCalendarQuery.eventForManage, EventManagementPageController, EventCommandQuery and EventPhasePollQuery.
+- Finding: management eagerly loads all Event occurrences and composes per-occurrence operational collections. Poll projection loads every vote to count it in memory and makes a selected-choice query per poll; phases, polls and options are also unpaged. Supported member and manager paths therefore grow with retained operational history.
+- Current owner: Operations owner queries and read-only EventManagement/EventCalendar composition.
+- Intended authoritative owner: unchanged, with complete bounded navigation and SQL aggregates.
+- Rationale: current owner admission does not bound read composition, payloads or memory.
+- Remediation: trace all management/member consumers and supported profile gates; establish bounded occurrence/resource navigation, exact SQL totals and current scoped selections without truncated inaccessible history.
+- State: In progress.
+- Verification required: large retained histories, exact aggregate counts, complete navigation, stale/cross-scope cursors, current authority and actual browser member/manager journeys.
+- Verification result: occurrence discovery and selection now have focused PostgreSQL and new browser journey evidence at 8b12a54b; its one HTTP fixture admission error is corrected in this checkpoint. Phase/poll catalogue and aggregate vote implementation passes local static/frontend checks; hosted behavior remains required.
+- Completion evidence: pending.
+
+- Occurrence slice: Events authorizes without eager history; a 25-row scoped catalogue exports the exact total and finite ULID frontier. Command selection uses bounded database queries and retains an independent off-page selection. Management composes one selected occurrence; Rally and King Perk callers no longer re-fetch full occurrence history. Existing small-history visual fingerprints remain active. Five PostgreSQL cases and one desktop/mobile navigation/failure/retry journey are authored; full local frontend, PHPStan/Pint and architecture pass.
+- Phase/poll slice: separate 25-row current-authorized catalogues, exact totals, actor/occurrence/visibility-scoped continuations, bounded 50-option projections and SQL vote totals/selected choices. Member visibility and hidden open results remain preserved. Independent browser controls preserve drafts and selected occurrence; the new journey also saves and revisits a vote. ADR-0077 and PollProjectionPagesTest record contracts and limits.
+- Remaining collections: participation rows, roster/Rally assignments and eligible Governor selectors, results, reminder rules and eligible Governor collections remain independently unbounded. EventPlayerIntelligence retained history now uses SQL set/score aggregates, with hosted verification pending. This slice does not close HARD-134 or claim that one occurrence bounds its nested rows. ADR-0076 records the precise scope.
+
+- Player Intelligence history slice: ended occurrence identities remain SQL subqueries; registrations/roster/Rally/attendance resolve through set-union aggregates, preserving completion/excused/absence priority. Exact score count/average/best and deterministic latest facts take two further queries. Three PostgreSQL cases cover 2,001 retained occurrences, no model hydration, crossed owner facts and current scope/type/time isolation; ADR-0079 defines limits. The eligible-Governor management set remains open.
+
+### HARD-135 — Bear Hunt Debrief result projection materializes every Governor and sums in PHP
+
+- Area: Operations Results BearHuntDebriefResultQuery and EventAnalysis Debrief consumers.
+- Finding: the Debrief result query loads all scored Event Player results, resolves all Governor references, returns the full list and adds scores in PHP. Manual result rows are not constrained by the reviewed-report baseline budget; large totals can become imprecise floating-point values.
+- Current owner: Results factual query and read-only EventAnalysis composition.
+- Intended authoritative owner: unchanged, with bounded complete Governor access and exact totals.
+- Rationale: HARD-132 bounds report mutations/receipts, not independent manual-result history or the Debrief read contract.
+- Remediation: trace aggregate/personal/trend/browser consumers, use exact database totals and bounded scoped Governor navigation while preserving absence and current authorization.
+- State: In progress.
+- Verification required: large manual/report histories, full navigation, exact totals above integer/safe-number ranges, missing data, personal history, permission isolation and browser behavior.
+- Verification result: implemented 25-Governor scoped pages, independent personal facts, SQL aggregate current/history Attendance and Rallies, exact decimal wide scores/totals/deltas and personal-best comparisons. Changed code passes static/frontend gates. Eight database cases and a separate complete desktop/mobile journey are authored; hosted execution pending.
+- Completion evidence: [ADR-0078](../architecture/adr/0078-bounded-debrief-and-exact-score-projections.md), BearHuntDebriefPagesTest and the catalogue visual fixture/journey; full containing gates pending.
+
+### HARD-136 — Live progression source hashes are treated as immutable regeneration output
+
+- Area: Progression Source Refresh, finalize_v2/refresh and source-lock provenance comparison.
+- Finding: source-refresh run 34727938823/job 103645337600 at 027d880b regenerates a valid candidate with all factual artifacts unchanged, but fails the final byte-reproducibility check because source-lock raw HTML hashes changed. The lock mixes volatile web acquisition bytes with pinned source identity and semantic artifact contracts.
+- Current owner: GameWorld Progression source tooling and verification.
+- Intended authoritative owner: unchanged, with explicit acquisition provenance and factual reproducibility semantics.
+- Rationale: preserve meaningful immutable facts and pinned sources without treating changing web-page transport bytes as a factual release change or silently accepting generated facts.
+- Remediation: inspect every changed lock record and its source classification, retain immutable canonical artifact comparisons and pinned-source checks, and make volatile acquisition evidence explicit and reviewable. Do not regenerate or bless checked-in release data to obtain green output.
+- State: Complete.
+- Verification required: changed factual output, source identity/inventory, pinned hashes and malformed lock data must reject; unchanged facts with changed allowed live-page acquisition bytes must be distinguished; hosted source refresh and full existing progression gates must pass.
+- Verification result: the sole hosted diff changes 115 declared live HTML hashes; all other artifacts and 12 structured/pinned hashes remain exact. New comparison uses the immutable Git HEAD baseline, byte-exact factual files, strict source inventory/metadata and pinned checks, with separately timestamped allowed acquisition evidence. Ten local contract cases, current 24-artifact comparison and exact replay of the observed 115 hash changes pass; hosted regeneration remains required.
+- Completion evidence: [ADR-0074](../architecture/adr/0074-progression-factual-reproducibility-and-acquisition.md), verify_regenerated.py and ProgressionReproducibility_test.py; actual containing hosted refresh pending.
+
+- Final containing verification: complete at `bdfc2ec8305545cd0dfcaab607dcb28351b3859f`: all 2,051 PHP cases/96,726 assertions, 86 browser cases, frontend, fresh schema, architecture, security/dependency and focused behavior pass. HARD-136 actual Source Refresh `34728896680` also passes with the 24 immutable artifacts and separately recorded acquisition evidence. This supersedes earlier pending behavior statements; final program gates remain open.
+
+### HARD-137 — Event schedule edits hydrate and rewrite retained occurrence history
+
+- Area: Operations Events UpdateEvent, CancelEvent and RecurrenceCalculator.
+- Finding: each schedule edit hydrates and locks all future occurrences, including growing cancelled history, then searches them repeatedly. Capacity validation materializes every historical grouped registration count. Edits can reset completed future occurrences to scheduled and cancellation rewrites completed/already-cancelled history; update also omits creation's capacity range.
+- Current owner: Operations Events with current governing authority facts.
+- Intended authoritative owner: unchanged, with bounded schedule work and exact scalar capacity validation.
+- Rationale: the existing 64-generated-occurrence contract must bound retained mutation work while preserving attached identities and completed facts.
+- Remediation: load only scheduled future rows plus the at most 64 desired identities, guard invalid stored cardinality, match by UTC database-precision timestamps, preserve completed and unrelated cancelled history, aggregate maximum registrations in SQL and retain creation's capacity range.
+- State: In progress.
+- Verification required: large cancelled/registered histories, complete 64-date replacement/reactivation, attached state, completed preservation, corrupt stored budget, capacity bounds, rollback/retry and existing current-owner concurrency tests.
+- Verification result: all eight new schedule history cases pass inside the 127 Operations tests/669 assertions at 8b12a54b, focused run 34730137527/job 103651318566. Changed production/tests also pass PHPStan/Pint. Full containing verification remains required.
+- Completion evidence: [ADR-0075](../architecture/adr/0075-bounded-event-schedule-reconciliation.md) and EventScheduleHistoryBoundsTest; containing behavior pending.
+
+### HARD-138 — Unmatched Debrief Evidence expands extraction history
+
+- Area: Intelligence Evidence BearHuntUnmatchedGovernorQuery and its extraction/review contracts.
+- Finding: the 50-Evidence queue loads every extraction attempt for those records to select each latest attempt in PHP, then loads every positive-ordinal extracted field without a materialization budget. The queue bound does not bound retained attempts or nested fields.
+- Current owner: Intelligence/Evidence; EventAnalysis only composes its manager-authorized facts.
+- Intended authoritative owner: unchanged, with SQL latest-attempt selection and explicit bounded field/row contracts.
+- Rationale: retained retries and malformed or oversized extraction output can expand a supposedly bounded manager read.
+- Remediation: trace extraction/review cardinality and latest-attempt semantics, constrain selection in SQL, bound nested materialization and preserve resolved-review exclusion and recovery reachability.
+- State: In progress.
+- Verification required: many retained attempts, latest-review exclusion, exact supported rows, oversized/corrupt output behavior, current authority, query/hydration budgets and existing Screenshot Intake/Debrief cases.
+- Verification result: latest-attempt SQL selection, 25-row aggregate previews with exact counts, bounded strings/numerics and explicit currently authorized older-report handoff are implemented. Two database regressions and a 31-row/102-newer-report desktop/mobile journey are authored; hosted verification pending.
+- Completion evidence: [ADR-0080](../architecture/adr/0080-unmatched-evidence-preview-and-review-handoff.md), expanded BearHuntUnmatchedGovernorQueryV3Test and Debrief visual journey; containing gates pending.
+
+### HARD-139 — Screenshot Intake retained collections and numeric preview
+
+- Area: ScreenshotIntakeWorkspaceQuery, Evidence.vue and Evidence extraction/review contracts.
+- Finding: the destination workspace selects only the newest 100 Evidence without full catalogue navigation, expands every classification/extraction/review/commit history and repeatedly projects nested fields/review rows. Its Governor selector loads the full active roster. The extractor can emit more rows than the 100-row review command accepts, and the score preview adds PHP integers without checked wide arithmetic.
+- Current owner: Evidence extraction/review Actions and read-only ScreenshotIntake composition, with Results factual snapshots.
+- Intended authoritative owner: unchanged.
+- Rationale: the Debrief preview bound does not bound its review destination or make oversized extracted reports reviewable.
+- Remediation: complete scoped catalogue and attempt/revision navigation, bounded explicit extraction/review admission, current Governor selection and exact preview values; preserve authoritative review/commit ownership and source provenance.
+- State: Planned.
+- Verification required: large retained screenshots/attempts/revisions/fields, complete older-history access, current authority, draft preservation/retry, supported and oversized reports, numeric extremes and owner-driven review/commit journeys.
+- Verification result: complete workspace and frontend consumers traced; source extraction and review cardinality mismatch and unchecked preview arithmetic confirmed. Implementation pending.
+- Completion evidence: pending.
 
 ## Repository audit coverage
 
@@ -1944,6 +2123,8 @@ Exact-head run `34716143412`, job `103613621165`, on `cd088c9b09fcdc7dbe99383971
 ### Containing PHP and focused evidence on24e9
 
 CI `34716370816`, PHP job `103614286177`, passes1,856 tests /87,942 assertions in20:20.292 on merge checkout `2cbfc030b951aee482c3225562a10d817519bd94`. Frontend job `103614286422` passes. Focused run `34716370802`, job `103614233940`, passes83 Integrations cases /1,002 assertions,31 Platform maintenance cases /200 assertions and29 TransferManagement cases /425 assertions. All export fixture/callback defects fromcd088 are resolved. Visual `34716370871` passes78 existing cases; both new Connections cases fail on the incorrect password-confirmation field locator, corrected inb512. Container/staging/recovery was still running when the next checkpoint was published; this head is not an all-nine milestone.
+
+- Containing verification update: Actual hosted Source Refresh `34728896680`, job `103647934958`, at `bdfc2ec8` passes all ten comparison contracts, both 24-artifact corpus validations and exact factual/pinned comparison. Review artifact `10308272283` contains 115 allowed live HTML acquisition changes. Checkout `eaa44a0763284298a87c55e80e70dde9e4915943`. Full final program gates remain separate.
 
 ### HARD-116 first hosted feedback
 
@@ -2026,3 +2207,66 @@ Commit `2a85ca526c8c1904fb0d19e54372123be10eced4` passes focused run 34724804560
 Full CI run 34724804535/job 103637001953 completes 1,994 tests/95,252 assertions in 17:52.398 with one error: KingdomDownstreamActiveBoundaryV3Test calls the removed KingdomWriteState::lockActiveScope contract. All production call sites already use lockExclusiveScope. The regression now calls that current contract and joins focused validation; no compatibility method or gate exemption is added. Fresh schema, types, formatting and frontend passed; container/staging/recovery was correctly skipped after PHP failure. The full gate remains open.
 
 HARD-126 local verification passes complete npm check, current architecture, focused production/new-test PHPStan, Pint and 340-source test layout. Twelve new frontend loader cases pass. PostgreSQL/browser execution and all final containing gates remain required.
+
+### HARD-126 first hosted feedback on b9a7b7ed
+
+Architecture run 34725949868/job 103639962005 identifies the moved GET adapter's stale source-contract path and a newly introduced foreign Governance role-enum import in the Operations provisioning Service. The adapter assertion follows its new read-only owner, and Operations policy now exposes its own management/viewing facts without importing GameWorld role vocabulary. No architecture exemption is added. Visual run 34725949897/job 103639962052 rejects a fixture's reused process-local Player identity before browser execution; it now supplies explicit stable Governor and Alliance identities. Hosted PostgreSQL and complete containing gates remain required.
+
+HARD-126 focused containing PostgreSQL evidence: b9a7b7ed90516eb229646d69af2ff488901dc538 passes run 34725949859/job 103639961990, including 88 Governance/ReadModel/Kingdom-boundary cases/1,435 assertions. This includes all 15 new catalogue/health cases and the corrected archived-Kingdom regression. All six catalogues traverse completely within the asserted bounds; scoped continuations, current authority, duplicate-heavy holder counts and private history/assignment filtering pass. The remaining focused groups also pass unchanged (95/1,058 Integrations; 78/6,367 Platform; 67/422 Operations; 47/256 Gift/source/reset; four/26 Participation; 29/425 Transfer). The corrected architecture suite passes locally: 78 tests/72,378 assertions. Browser fixture execution and final containing gates remain open.
+
+### External merge and continuation boundary
+
+A fresh GitHub read before the prepared non-forced checkpoint publication reported PR #163 already merged at 2026-09-12 23:40:58 UTC, merge 044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c, head b9a7b7ed90516eb229646d69af2ff488901dc538. The continuation did not mark ready or merge it. Publication to that merged PR was stopped. Main's merge tree exactly equals the inspected b9a7b7ed tree, and no other open PR was returned; changes continue on astra/hardening-followup with the same incomplete-ledger/final-gate rule.
+
+The four obsolete PR-163 review-triggered preparation/source/content/raster workflows and their superseded reviewed-slice manifest are removed. The current read-only focused behavior workflow is renamed hardening-validation.yml, covers current changed paths and includes all Operations. Its eventual removal remains a final gate; no normal check is removed. The orphan prepared commit a620302a1534695ccf06cbc1ccdaeef619c11bc8 was never attached to a branch and is superseded by this continuation.
+
+### Follow-up Governance and Operations containing behavior
+
+At `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`, focused run `34726599273`, job `103641691123`, passes all seven groups: 95 Integrations/1,058 assertions, 78 Platform/6,367, 88 Governance/1,435, 85 Operations/541 (including all eight HARD-129 contention cases), 47 Gift Code/source/reset/256, four Participation/26 and 29 Transfer/425. Visual `34726599249`, job `103641690973`, passes all 86 desktop/mobile cases in 8.6 minutes, including both new Governance catalogue journeys. Architecture `34726599252` succeeds. Full PHP remains running at this documentation preparation; final immutable gates are still required.
+
+### Follow-up full PHP and deployment milestone
+
+At `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`, CI `34726599251` succeeds on merge checkout `7cee033bc4db13efbe15c30a34565e0ea35c7fa5`. PHP job `103641691213` passes 2,017 tests/96,582 assertions in 21:28.739. Frontend job `103641691130` and container/staging/recovery job `103644403025` succeed, including fresh installation, production image, ephemeral staging, backup/restore and image scan. Visual `34726599249` passes all 86 cases; Architecture `34726599252`, CodeQL `34726599247`, Dependency Review `34726599265` and focused PostgreSQL `34726599273` all succeed. This closes the containing verification for HARD-119–129. Only five normal workflows were applicable to this limited follow-up diff; the four specialized capability workflows remain required on the final candidate. HARD-130–135 and the full production coverage/final gates remain open.
+
+### Bounded Bear Hunt containing behavior
+
+At `027d880b567eb6afc295a92a22c9a78bc1a2a480`, focused run `34727938818`, job `103645369064`, passes 92 Operations tests/575 assertions, including all seven HARD-132 regressions. Complete 1,000-Governor ranking stays within the query budget; receipts contain exactly the stored report’s 1 or 100 Governors; admission overflow, numeric overflow and corrupt stored receipt replay roll back all effects. The same run passes 95 Integrations/1,058, 78 Platform/6,367, 88 Governance/1,435, 47 Gift Code/source/reset/256, four Participation/26 and 29 Transfer/425. Full containing PHP and HARD-136 source-refresh reconciliation remain required.
+
+### Bear Hunt containing browser verification
+
+Visual `34727938824`, job `103645370417`, passes all 86 cases in 8.3 minutes on `027d880b567eb6afc295a92a22c9a78bc1a2a480`. This contains the new report receipt/recomputation behavior and prior frontend gate/cleanup. HARD-136 remains a separately explained source-refresh gate failure; the final immutable full PHP and all-nine program gates remain required.
+
+
+### Occurrence and schedule focused feedback on 8b12a54b
+
+Focused run `34730137527`, job `103651318566`, passes Integrations 95/1,058, Platform 78/6,367, Governance 88/1,435 and Operations 127/669, including all eight HARD-137 schedule cases. EventManagement runs 20 cases/11,411 assertions with one failure: the new management HTTP fixture's ScenarioFactory user was unverified, so current middleware returned 302. The fixture now verifies its own email; production admission is preserved. The other four new occurrence history cases pass, including the 1,000-row hydration bounds.
+
+Visual `34730137492`, job `103651315251`, passes 86 cases and fails the existing Event Command fingerprint case on desktop and mobile. Both new 101-occurrence paging/retry/draft/older-selection journeys pass. Failure artifact `10308463771` and its trace are retained for visual investigation; baselines have not been changed. Architecture, CodeQL, Dependency Review, King Perks and actual Source Refresh pass at this checkpoint. This is not a final containing milestone.
+
+
+### Phase/poll and occurrence containing feedback on 640439b7
+
+Focused run `34731248263`, job `103654325169`, succeeds: Operations 132 tests/720 assertions (all five new phase/poll catalogue and aggregate vote cases), EventManagement 20/11,456 (all five occurrence history cases, including corrected verified-email HTTP setup), Integrations 95/1,058, Platform 78/6,367, Governance 88/1,435, Gift/source/reset 47/256, Participation four/26 and Transfer 29/425.
+
+Visual `34731248267`, job `103654325185`, passes 88 cases in 8.5 minutes and fails only the existing Event Command fingerprints on desktop/mobile. Both new phase/poll manager-draft and saved-member-vote journeys pass alongside both occurrence history journeys. The original expectations remain unchanged while a temporary capture diagnostic isolates possible page-backdrop dependence. Architecture, CodeQL, Dependency Review, King Perks and Source Refresh pass. Full CI and final program gates remain separate.
+
+
+### Full PHP budget feedback on 640439b7
+
+CI `34731248265`, PHP job `103654325208`, finishes 2,069 tests/96,843 assertions in 22:27.723 with one failure: CapabilityReadModelBudgetAndTelemetryV3Test reports 68 Command Overview queries against its unchanged 65-query budget. Frontend succeeds; container/staging/recovery is skipped. This is not a full passing milestone.
+
+The occurrence catalogue now obtains count/frontier together, explicit selection reuses a matching freshly authorized catalogue row, and selected/closeout occurrences retain the freshly authorized parent Event relation for owner projections. These remove redundant reads while preserving current authorization, off-page SQL selection and the existing 65-query gate. The acceptance case is added to temporary focused execution. Containing hosted verification remains required; no query budget or normal gate is increased.
+
+### Debrief and capture feedback on 1ed5c46d
+
+Focused run `34732504942`, job `103657769966`, passes Integrations 95/1,058, Platform 78/6,367, Governance 88/1,435, Operations 132/720 and EventManagement 20/11,463. EventAnalysis runs 26 cases/211 assertions with one fixture error: the new 1,001-row attendance fixture omitted its mandatory recording Governor. The corrected fixture also supplies assignment provenance and separate Rally groups so its multiple lead facts satisfy the existing unique-lead constraint. Seven other new Debrief database cases passed; no full group success is claimed.
+
+CI `34732505099`, PHP job `103657770625`, passes fresh schema and formatting, then full PHPStan finds the unchanged availability consumer still calling the newly actor-scoped result catalogue without an actor. Availability now uses a Results-owned EXISTS query, preserving its factual boolean without inventing actor scope or loading results. Full PHP regression was skipped on this head. Frontend job `103657770529` passed; container/staging/recovery was skipped.
+
+Visual `34732504946`, job `103657770198`, passes 88 cases, including both new complete 61-Governor exact-total/personal/paging/retry journeys. Four fingerprint cases fail. Actual Debrief screenshot inspection finds a real empty-state regression: an adjacent pager condition made the empty message render under a populated leaderboard. The message now checks the Governor rows explicitly; an assertion prevents recurrence. Its prior fingerprints remain unchanged.
+
+Event Command desktop/mobile screenshots were inspected from artifact `10308463771`; card content, owner handoffs and responsive layout remain intact. The temporary diagnostic on `1ed5c46d` proves document-height backdrop dependence: adding an otherwise unrelated 10,000px body child changes the outer rounded-card fingerprint on both viewports while an inset capture remains byte-identical. Both retries reproduce this. The selected-occurrence composition deliberately reduces the document below the card. The four original full-card fingerprints are updated to the repeatable reviewed output from 8b12/6404/1ed5; the full capture and semantic/overflow assertions remain. The temporary diagnostic is removed. Artifact `10309638229` has ZIP SHA-256 `2678892ac696ae1f25ef107d1684401ed456e31b9fe02d844e7a30b10318f430`.
+
+### Containing focused feedback on 80530994
+
+Focused run `34733326690`, job `103660075694`, succeeds: Integrations 95/1,058; Platform 78/6,367; Governance 88/1,435; Operations 132/720; EventManagement 20/11,463; EventAnalysis 29/257; read-model budget/telemetry acceptance 1/182; Gift Code/source/reset 47/256; Participation 4/26; Transfer 29/425. This includes all eight Debrief cases and all three Event Player Intelligence history cases. The command read budget is unchanged and now passes. Full PHP and Visual are still running at this checkpoint; no containing full-suite or image success is claimed.

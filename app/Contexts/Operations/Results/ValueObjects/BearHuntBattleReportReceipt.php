@@ -6,7 +6,12 @@ namespace App\Contexts\Operations\Results\ValueObjects;
 
 final readonly class BearHuntBattleReportReceipt
 {
-    /** @param list<array{playerId:string,score:int,rank:?int}> $playerResults */
+    /**
+     * Results for this report's 1–100 Governors, captured at receipt time.
+     * Complete occurrence results remain with the authorized Results queries.
+     *
+     * @param  list<array{playerId:string,score:int,rank:?int}>  $playerResults
+     */
     public function __construct(
         public string $reportId,
         public int $entryCount,

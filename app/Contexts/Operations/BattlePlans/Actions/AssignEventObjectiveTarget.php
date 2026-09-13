@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\BattlePlans\Actions;
 
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\BattlePlans\Models\EventObjective;
 use App\Contexts\Operations\BattlePlans\Models\EventObjectiveAssignment;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventLinkedReferenceState;
 use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Services\EventParticipantAuthorization;
@@ -24,11 +24,11 @@ use Illuminate\Validation\ValidationException;
 final readonly class AssignEventObjectiveTarget
 {
     public function __construct(
+        private EventLinkedReferenceState $references,
         private EventWriteState $eventWriteState,
         private EventAuthorization $authorization,
         private EventParticipantAuthorization $participants,
         private EventWorkflowGuard $workflows,
-        private PlayerReferenceQuery $players,
         private RosterEntryQuery $roster,
         private AuditRecorder $audit,
         private OutboxRecorder $outbox,
@@ -62,7 +62,7 @@ final readonly class AssignEventObjectiveTarget
                 ->whereKey($rosterId)->where('occurrence_id', $occurrence->id)->sharedLock()->firstOrFail();
             $targetPlayerId = null;
             if ($playerId !== null) {
-                $player = $this->players->lockCurrent($playerId);
+                $player = $this->references->player($playerId);
                 $activeRosterPresence = $context->target->scope === EventScope::Alliance
                     && $context->target->allianceId !== null
                     && $this->roster->lockActiveRosterPresence($context->target->allianceId, $playerId);

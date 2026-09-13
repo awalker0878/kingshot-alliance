@@ -187,3 +187,8 @@ A count changing upstream is not automatically an error in the product. It is a 
 ## Completion rule
 
 This source inventory is complete for the release cutoff only when every selected source surface above is either reproduced in the immutable release or has a concrete row/family disposition that explains why reproduction is impossible without guessing or violating the source policy. "Another site has the table" is not a valid completion state. Conversely, "community-maintained" is not a valid reason to refuse a complete open/inspectable factual table.
+
+
+## Reproducibility and fresh acquisition evidence
+
+The source-refresh workflow verifies the checked-in corpus before regeneration and compares regenerated factual artifacts exactly against Git HEAD. Source identity, inventory, coverage, cutoff, structured API hashes, commit-pinned hashes and semantic snapshots remain immutable checks. Existing live KingshotData HTML acquisitions may yield different raw page hashes while all factual output remains identical; those changes are recorded with the current check time in a separate acquisition report, uploaded alongside the candidate for review. They never update the checked-in release automatically. Any factual, source-policy or pinned-input change still fails. See [ADR-0074](../architecture/adr/0074-progression-factual-reproducibility-and-acquisition.md).

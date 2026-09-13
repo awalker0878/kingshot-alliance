@@ -23,11 +23,12 @@ final class ScreenshotIntakeController extends Controller
         abort_unless($user instanceof User, 401);
         $actor = $this->playerContext->playerOrNull();
         abort_unless($actor instanceof PlayerReference, 409, 'Select a Player before importing battle reports.');
+        $input = $request->validate(['evidence' => ['nullable', 'ulid']]);
 
         return Inertia::render('Operations/Events/Evidence', [
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],
             'userTimezone' => (string) ($user->timezone ?: 'UTC'),
-            'workspace' => $workspace->forBearHunt($actor->playerId, $occurrence),
+            'workspace' => $workspace->forBearHunt($actor->playerId, $occurrence, $input['evidence'] ?? null),
         ]);
     }
 }

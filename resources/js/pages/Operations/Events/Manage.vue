@@ -2,6 +2,8 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
+import EventCataloguePager from '@/components/events/EventCataloguePager.vue';
+import type { EventCataloguePage } from '@/types/event-command';
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
@@ -68,6 +70,8 @@ type Poll = {
   options: PollOption[];
 };
 type OccurrenceOperations = {
+  phasePage: EventCataloguePage;
+  pollPage: EventCataloguePage;
   occurrenceId: string;
   startsAt: string;
   phases: Phase[];
@@ -286,9 +290,9 @@ type PlayerIntelligence = {
   unresolved: number;
   reliabilityPercent: number | null;
   resultCount: number;
-  averageScore: number | null;
-  bestScore: number | null;
-  latestScore: number | null;
+  averageScore: number | string | null;
+  bestScore: number | string | null;
+  latestScore: number | string | null;
 };
 
 type TerritoryPlanningOperations = {
@@ -338,6 +342,7 @@ const props = defineProps<{
     workflowDimensions: string[];
     createdByPlayerId: string | null;
     updatedByPlayerId: string | null;
+    occurrenceCount: number;
     occurrences: Array<{ id: string; startsAt: string; endsAt: string; status: string }>;
   };
   participants: Array<{
@@ -1002,11 +1007,7 @@ function cancel(): void {
         class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4"
         :aria-label="t('events.manage.title')"
       >
-        <StatSeal
-          :label="t('events.manage.occurrences')"
-          :value="event.occurrences.length"
-          icon="▦"
-        />
+        <StatSeal :label="t('events.manage.occurrences')" :value="event.occurrenceCount" icon="▦" />
         <StatSeal
           :label="t('events.manage.participants')"
           :value="participants.length"
@@ -1265,6 +1266,15 @@ function cancel(): void {
                   {{ t('events.phases.none') }}
                 </p>
               </div>
+              <EventCataloguePager
+                v-if="group.phasePage.hasMore || !group.phasePage.isFirstPage"
+                :page="group.phasePage"
+                kind="phase"
+                :label="t('events.phases.title')"
+                :scope="event.id + ':' + group.occurrenceId"
+                :occurrence="group.occurrenceId"
+                :only="['operations']"
+              />
             </div>
           </div>
           <form class="ks-surface space-y-3 p-4" @submit.prevent="savePhase">
@@ -1390,6 +1400,15 @@ function cancel(): void {
               <p v-if="!group.polls.length" class="text-xs text-[var(--ks-text-muted)]">
                 {{ t('events.polls.none') }}
               </p>
+              <EventCataloguePager
+                v-if="group.pollPage.hasMore || !group.pollPage.isFirstPage"
+                :page="group.pollPage"
+                kind="poll"
+                :label="t('events.show.polls')"
+                :scope="event.id + ':' + group.occurrenceId"
+                :occurrence="group.occurrenceId"
+                :only="['operations']"
+              />
             </div>
           </div>
           <form class="ks-surface space-y-3 p-4" @submit.prevent="savePoll">

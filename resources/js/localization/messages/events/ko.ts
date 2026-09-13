@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    pagination: {
+      recordCount: '기록 {count}개',
+      unavailable: '이 페이지를 불러오지 못했습니다. 변경 내용은 유지됩니다.',
+      retry: '다시 시도',
+    },
     history: {
       title: '이벤트 기록',
       subtitle:

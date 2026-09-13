@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    pagination: {
+      recordCount: '{count} bản ghi',
+      unavailable: 'Không thể tải trang này. Các thay đổi của bạn vẫn được giữ lại.',
+      retry: 'Thử lại',
+    },
     history: {
       title: 'Lịch sử sự kiện',
       subtitle:

@@ -28,7 +28,9 @@ use App\Contexts\Operations\Rallies\Models\RallyGroup;
 use App\Contexts\Operations\Rosters\Enums\EventRosterType;
 use App\Contexts\Operations\Rosters\Models\EventRoster;
 use App\Contexts\Operations\Rosters\Models\EventRosterMember;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Tests\System\Acceptance\Fixtures\CapabilityAcceptanceVisualFixture;
 
 final class EventCommandVisualFixture
@@ -113,7 +115,42 @@ final class EventCommandVisualFixture
             'updated_by_player_id' => (string) $player->id,
         ]);
 
+        $historyEvent = app(CreateEvent::class)->handle(
+            (string) $player->id, (string) $configuration->id, EventScope::Alliance, $allianceId,
+            now('UTC')->addDay()->startOfMinute()->toImmutable(), title: 'Event History Visual', durationMinutes: 60,
+        );
+        $history = [];
+        for ($i = 0; $i < 100; $i++) {
+            $start = now('UTC')->subDays($i + 2)->startOfMinute();
+            $history[] = ['id' => strtolower((string) Str::ulid()), 'event_id' => $historyEvent->eventId,
+                'starts_at' => $start, 'ends_at' => $start->copy()->addHour(), 'status' => 'cancelled',
+                'created_at' => now(), 'updated_at' => now()];
+        }
+        DB::table('event_occurrences')->insert($history);
+        self::seedOperationalPages((string) $historyEvent->firstOccurrenceId, (string) $player->id);
+
         CapabilityAcceptanceVisualFixture::seed();
+    }
+
+    private static function seedOperationalPages(string $occurrenceId, string $playerId): void
+    {
+        $phases = $polls = $options = [];
+        for ($i = 0; $i < 61; $i++) {
+            $phases[] = ['id' => strtolower((string) Str::ulid()), 'occurrence_id' => $occurrenceId,
+                'key' => 'history-phase-'.$i, 'name' => 'History phase '.$i, 'phase_type' => 'custom',
+                'status' => 'scheduled', 'sort_order' => $i];
+            $pollId = strtolower((string) Str::ulid());
+            $polls[] = ['id' => $pollId, 'occurrence_id' => $occurrenceId, 'key' => 'history-poll-'.$i,
+                'question' => 'History poll '.$i, 'poll_type' => 'choice', 'status' => $i === 60 ? 'draft' : 'open',
+                'max_choices' => 1, 'created_by_player_id' => $playerId, 'created_at' => now(), 'updated_at' => now()];
+            for ($j = 0; $j < 2; $j++) {
+                $options[] = ['id' => strtolower((string) Str::ulid()), 'poll_id' => $pollId,
+                    'label' => 'History option '.$j, 'value' => (string) $j, 'sort_order' => $j];
+            }
+        }
+        DB::table('event_phases')->insert($phases);
+        DB::table('event_polls')->insert($polls);
+        DB::table('event_poll_options')->insert($options);
     }
 
     private static function recordReadyOwnerFacts(

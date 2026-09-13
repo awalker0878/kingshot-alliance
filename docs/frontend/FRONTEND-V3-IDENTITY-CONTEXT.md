@@ -143,7 +143,7 @@ A context-bound form must never be submitted under a different active Governor t
 
 Navigation visibility is usability, not authorization.
 
-The shell should use server-projected effective capabilities for destinations that are permission-gated by their owning backend context. For example, Recruitment Hall is available only when the active Governor has `recruitment.manage`.
+The shell should use server-projected effective capabilities for destinations that are permission-gated by their owning backend context. For example, Recruitment is available only when the active Governor has `recruitment.manage`.
 
 The frontend must not infer effective permission from rank with logic such as `rank === 'r5'`. Rank is presentation data. Effective capabilities shape the UI; backend authorization independently enforces access.
 

@@ -3,7 +3,8 @@
 Status: In progress — repository-wide implementation program
 
 Baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49` (2026-09-08).
-Working branch: `astra/codebase-hardening`.
+Working branch: `astra/hardening-followup`.
+Continuation base: `main` merge `044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c`. GitHub records PR #163 merged on 2026-09-12 at 23:40:58 UTC while the full ledger/final gates remained incomplete. The follow-up draft retains those completion requirements and the original baseline history.
 Continuation authority: [delivery ledger](codebase-hardening-delivery-ledger.md), branch history, architectural decisions and draft PR checks.
 
 ## Purpose and deployment assumptions
@@ -58,7 +59,7 @@ Never weaken a meaningful gate to obtain green output. Remove obsolete tests onl
 
 ## Durable execution
 
-After every independently coherent slice: verify narrowly; update the ledger and affected current architecture/product/reference/operations/frontend documentation; commit implementation, tests and documentation together using the `HARD-*` identifier; push to `astra/codebase-hardening`; record the durable checkpoint before starting another slice. If interrupted, push a clearly labelled checkpoint with incomplete work and exact next action recorded.
+After every independently coherent slice: verify narrowly; update the ledger and affected current architecture/product/reference/operations/frontend documentation; commit implementation, tests and documentation together using the `HARD-*` identifier; push to `astra/hardening-followup`; record the durable checkpoint before starting another slice. If interrupted, push a clearly labelled checkpoint with incomplete work and exact next action recorded.
 
 The ledger header must record baseline, working branch, latest pushed durable checkpoint, current item/state, latest gates, active files, remaining work, known failures, blockers, exact next action and remaining repository-wide gates. Its checkpoint SHA identifies the preceding pushed implementation commit; a subsequent documentation-only checkpoint records that SHA without a circular self-reference. Confirm ancestry against branch HEAD when resuming.
 

@@ -5,16 +5,18 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Results\Services;
 
 use App\Contexts\Operations\Results\Enums\BearHuntBattleReportStatus;
-use App\Contexts\Operations\Results\Models\BearHuntBattleReportEntry;
 use App\Contexts\Operations\Results\Models\BearHuntResultBaseline;
 use App\Contexts\Operations\Results\Models\EventPlayerResult;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use LogicException;
 
 final class BearHuntResultProjector
 {
-    /** @return list<array{playerId:string,score:int,rank:?int}> */
-    public function recompute(string $occurrenceId, string $actorPlayerId): array
+    // An atomic application work budget, not an asserted game population limit.
+    public const int MAX_GOVERNORS = 1000;
+
+    public function recompute(string $occurrenceId, string $actorPlayerId): void
     {
         if (DB::transactionLevel() < 1) {
             throw new LogicException('Bear Hunt result projection must run inside the owner transaction.');
@@ -23,29 +25,41 @@ final class BearHuntResultProjector
         $baselines = BearHuntResultBaseline::query()
             ->where('occurrence_id', $occurrenceId)
             ->orderBy('player_id')
+            ->limit(self::MAX_GOVERNORS + 1)
             ->lockForUpdate()
             ->get();
+        if ($baselines->count() > self::MAX_GOVERNORS) {
+            throw ValidationException::withMessages(['entries' => 'A Bear Hunt occurrence supports at most 1000 distinct reviewed Governors. No report or result changes were saved.']);
+        }
+        if ($baselines->isEmpty()) {
+            return;
+        }
+
+        $playerIds = $baselines->pluck('player_id')->all();
+        $totals = DB::table('bear_hunt_battle_report_entries as entry')
+            ->join('bear_hunt_battle_reports as report', 'report.id', '=', 'entry.report_id')
+            ->where('report.occurrence_id', $occurrenceId)
+            ->where('report.status', BearHuntBattleReportStatus::Accepted->value)
+            ->whereIn('entry.player_id', $playerIds)
+            ->groupBy('entry.player_id')
+            ->selectRaw('entry.player_id, SUM(entry.damage_points) AS damage, COUNT(*) AS accepted_count')
+            ->get()->keyBy('player_id');
+        $existing = EventPlayerResult::query()->where('occurrence_id', $occurrenceId)
+            ->whereIn('player_id', $playerIds)->orderBy('player_id')->lockForUpdate()->get()->keyBy('player_id');
 
         $rows = [];
         foreach ($baselines as $baseline) {
-            $damage = (int) BearHuntBattleReportEntry::query()
-                ->join('bear_hunt_battle_reports', 'bear_hunt_battle_reports.id', '=', 'bear_hunt_battle_report_entries.report_id')
-                ->where('bear_hunt_battle_reports.occurrence_id', $occurrenceId)
-                ->where('bear_hunt_battle_reports.status', BearHuntBattleReportStatus::Accepted->value)
-                ->where('bear_hunt_battle_report_entries.player_id', $baseline->player_id)
-                ->sum('bear_hunt_battle_report_entries.damage_points');
-            $acceptedCount = BearHuntBattleReportEntry::query()
-                ->join('bear_hunt_battle_reports', 'bear_hunt_battle_reports.id', '=', 'bear_hunt_battle_report_entries.report_id')
-                ->where('bear_hunt_battle_reports.occurrence_id', $occurrenceId)
-                ->where('bear_hunt_battle_reports.status', BearHuntBattleReportStatus::Accepted->value)
-                ->where('bear_hunt_battle_report_entries.player_id', $baseline->player_id)
-                ->count();
-            $baselineScore = $baseline->baseline_score === null ? 0 : (int) $baseline->baseline_score;
-            $rows[] = [
-                'playerId' => (string) $baseline->player_id,
+            $playerId = (string) $baseline->player_id;
+            $total = $totals->get($playerId);
+            $damage = filter_var($total->damage ?? 0, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+            $baselineScore = (int) ($baseline->baseline_score ?? 0);
+            if ($damage === false || $baselineScore < 0 || $damage > PHP_INT_MAX - $baselineScore) {
+                throw ValidationException::withMessages(['entries' => 'The combined Bear Hunt score exceeds the supported integer range. No report or result changes were saved.']);
+            }
+            $rows[$playerId] = [
+                'playerId' => $playerId,
                 'score' => $baselineScore + $damage,
-                'hasAccepted' => $acceptedCount > 0,
-                'baselineRank' => $baseline->baseline_rank === null ? null : (int) $baseline->baseline_rank,
+                'hasAccepted' => (int) ($total->accepted_count ?? 0) > 0,
             ];
         }
 
@@ -61,55 +75,25 @@ final class BearHuntResultProjector
             $lastRank = $rank;
         }
 
-        $projected = [];
-        foreach ($rows as $row) {
-            $baseline = $baselines->firstWhere('player_id', $row['playerId']);
-            if (! $baseline instanceof BearHuntResultBaseline) {
+        $writes = [];
+        $recordedAt = now();
+        foreach ($baselines as $baseline) {
+            $playerId = (string) $baseline->player_id;
+            $row = $rows[$playerId];
+            if (! $row['hasAccepted'] && ! $existing->has($playerId) && $baseline->source_event_player_result_id === null) {
                 continue;
             }
-            $result = EventPlayerResult::query()
-                ->where('occurrence_id', $occurrenceId)
-                ->where('player_id', $row['playerId'])
-                ->lockForUpdate()
-                ->first();
-
-            if (! $row['hasAccepted']) {
-                if (! $result instanceof EventPlayerResult && $baseline->source_event_player_result_id === null) {
-                    continue;
-                }
-                if (! $result instanceof EventPlayerResult) {
-                    $result = new EventPlayerResult(['occurrence_id' => $occurrenceId, 'player_id' => $row['playerId']]);
-                }
-                $result->forceFill([
-                    'score' => $baseline->baseline_score,
-                    'rank' => $baseline->baseline_rank,
-                    'recorded_by_player_id' => $actorPlayerId,
-                    'recorded_at' => now(),
-                ])->save();
-                $projected[] = [
-                    'playerId' => $row['playerId'],
-                    'score' => (int) ($baseline->baseline_score ?? 0),
-                    'rank' => $baseline->baseline_rank === null ? null : (int) $baseline->baseline_rank,
-                ];
-
-                continue;
-            }
-
-            if (! $result instanceof EventPlayerResult) {
-                $result = new EventPlayerResult(['occurrence_id' => $occurrenceId, 'player_id' => $row['playerId']]);
-            }
-            $rank = $ranks[$row['playerId']] ?? null;
-            $result->forceFill([
-                'score' => $row['score'],
-                'rank' => $rank,
+            $writes[] = [
+                'occurrence_id' => $occurrenceId,
+                'player_id' => $playerId,
+                'score' => $row['hasAccepted'] ? $row['score'] : $baseline->baseline_score,
+                'rank' => $row['hasAccepted'] ? ($ranks[$playerId] ?? null) : $baseline->baseline_rank,
                 'recorded_by_player_id' => $actorPlayerId,
-                'recorded_at' => now(),
-            ])->save();
-            $projected[] = ['playerId' => $row['playerId'], 'score' => $row['score'], 'rank' => $rank];
+                'recorded_at' => $recordedAt,
+            ];
         }
-
-        usort($projected, static fn (array $a, array $b): int => ($a['rank'] ?? PHP_INT_MAX) <=> ($b['rank'] ?? PHP_INT_MAX) ?: strcmp($a['playerId'], $b['playerId']));
-
-        return $projected;
+        foreach (array_chunk($writes, 100) as $batch) {
+            EventPlayerResult::query()->upsert($batch, ['occurrence_id', 'player_id'], ['score', 'rank', 'recorded_by_player_id', 'recorded_at']);
+        }
     }
 }

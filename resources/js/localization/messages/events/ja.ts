@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    pagination: {
+      recordCount: '{count} 件',
+      unavailable: 'このページを読み込めませんでした。変更内容は保持されています。',
+      retry: '再試行',
+    },
     history: {
       title: 'イベント履歴',
       subtitle:

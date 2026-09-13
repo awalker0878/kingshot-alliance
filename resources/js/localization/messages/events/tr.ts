@@ -2,6 +2,11 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    pagination: {
+      recordCount: '{count} kayıt',
+      unavailable: 'Bu sayfa yüklenemedi. Değişiklikleriniz korunuyor.',
+      retry: 'Yeniden dene',
+    },
     history: {
       title: 'Etkinlik geçmişi',
       subtitle:

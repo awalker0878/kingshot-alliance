@@ -142,7 +142,9 @@ final class BearHuntDebriefReadModelV3Test extends TestCase
         $largeQueryCount = count(DB::getQueryLog());
         DB::disableQueryLog();
 
-        self::assertCount(100, $debrief['governors']);
+        self::assertCount(25, $debrief['governors']);
+        self::assertSame(100, $debrief['summary']['governorCount']);
+        self::assertTrue($debrief['governorPage']['hasMore']);
         self::assertLessThanOrEqual(
             $smallQueryCount + 3,
             $largeQueryCount,

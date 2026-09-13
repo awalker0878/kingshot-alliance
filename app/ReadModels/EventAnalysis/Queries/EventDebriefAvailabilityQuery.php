@@ -33,11 +33,9 @@ final readonly class EventDebriefAvailabilityQuery
             ];
         }
 
-        $results = $this->bearHuntResults->forOccurrence((string) $occurrence->id);
-
         return [
             'supported' => true,
-            'available' => (bool) $results['available'],
+            'available' => $this->bearHuntResults->availableForOccurrence((string) $occurrence->id),
             'href' => '/events/'.(string) $occurrence->id.'/debrief',
         ];
     }

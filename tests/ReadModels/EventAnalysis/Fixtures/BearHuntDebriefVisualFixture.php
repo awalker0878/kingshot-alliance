@@ -33,6 +33,7 @@ use App\Contexts\Operations\Rallies\Models\RallyAssignment;
 use App\Contexts\Operations\Rallies\Models\RallyGroup;
 use App\Contexts\Operations\Results\Actions\RecordBearHuntBattleReport;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -217,6 +218,41 @@ final class BearHuntDebriefVisualFixture
         self::rallyAssignment($rally, (string) $third->id, RallyAssignmentRole::Joiner, RallyAssignmentStatus::Absent, (string) $actor->id);
 
         self::unmatchedEvidence($allianceId, $current->firstOccurrenceId, (string) $actor->id);
+
+        $catalogue = app(CreateEvent::class)->handle((string) $actor->id, (string) $configuration->id,
+            EventScope::Alliance, $allianceId, $nextStart->addDay(), title: 'Bear Hunt · Catalogue Visual', durationMinutes: 30);
+        if ($catalogue->firstOccurrenceId === null) {
+            throw new \RuntimeException('The catalogue fixture requires an occurrence.');
+        }
+        $players = $results = [];
+        for ($i = 0; $i < 60; $i++) {
+            $id = strtolower((string) Str::ulid());
+            $players[] = ['id' => $id, 'current_kingdom_id' => (string) $kingdom->id, 'current_name' => 'History Debrief Governor '.$i];
+            $results[] = ['id' => strtolower((string) Str::ulid()), 'occurrence_id' => $catalogue->firstOccurrenceId,
+                'player_id' => $id, 'score' => PHP_INT_MAX, 'rank' => $i + 1, 'recorded_at' => now()];
+        }
+        $results[] = ['id' => strtolower((string) Str::ulid()), 'occurrence_id' => $catalogue->firstOccurrenceId,
+            'player_id' => (string) $actor->id, 'score' => PHP_INT_MAX, 'rank' => 61, 'recorded_at' => now()];
+        DB::table('players')->insert($players);
+        DB::table('event_player_results')->insert($results);
+        $oldEvidence = self::unmatchedEvidence($allianceId, $catalogue->firstOccurrenceId, (string) $actor->id);
+        $oldEvidence->forceFill(['original_name' => 'older-preview-report.png', 'created_at' => now()->subDays(2)])->save();
+        $attempt = EvidenceExtractionAttempt::query()->where('evidence_id', $oldEvidence->id)->firstOrFail();
+        for ($ordinal = 2; $ordinal <= 31; $ordinal++) {
+            foreach (['player_name' => 'Preview Governor '.$ordinal, 'rank' => (string) $ordinal, 'damage' => '1200'] as $key => $value) {
+                EvidenceExtractedField::query()->create(['extraction_attempt_id' => $attempt->id,
+                    'field_key' => $key, 'row_ordinal' => $ordinal, 'raw_text' => $value,
+                    'normalized_value' => $value, 'data_type' => 'string', 'confidence' => 0.8]);
+            }
+        }
+        $attempt->forceFill(['field_count' => 93])->save();
+        for ($i = 0; $i < 102; $i++) {
+            $newer = $oldEvidence->replicate();
+            $newer->forceFill(['sha256' => hash('sha256', 'newer-preview-'.$i),
+                'original_name' => 'newer-preview-'.$i.'.png', 'lifecycle_status' => EvidenceLifecycleStatus::Approved,
+                'created_at' => now(), 'updated_at' => now()])->save();
+        }
+
     }
 
     private static function attendance(
@@ -253,11 +289,11 @@ final class BearHuntDebriefVisualFixture
         ]);
     }
 
-    private static function unmatchedEvidence(string $allianceId, string $occurrenceId, string $actorPlayerId): void
+    private static function unmatchedEvidence(string $allianceId, string $occurrenceId, string $actorPlayerId): GameEvidence
     {
         $binary = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/l3MB9QAAAABJRU5ErkJggg==', true);
         if (! is_string($binary)) {
-            return;
+            throw new \RuntimeException('Invalid visual fixture image.');
         }
         $path = 'evidence/visual/bear-hunt-debrief-unmatched.png';
         Storage::disk('local')->put($path, $binary);
@@ -323,5 +359,7 @@ final class BearHuntDebriefVisualFixture
                 'confidence' => $confidence,
             ]);
         }
+
+        return $evidence;
     }
 }

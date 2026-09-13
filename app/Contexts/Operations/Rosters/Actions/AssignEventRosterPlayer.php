@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Rosters\Actions;
 
 use App\Contexts\Alliance\Membership\Queries\RosterEntryQuery;
-use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Operations\Events\Enums\EventScope;
 use App\Contexts\Operations\Events\Enums\EventWorkflowDimension;
 use App\Contexts\Operations\Events\Models\EventOccurrence;
 use App\Contexts\Operations\Events\Services\EventAuthorization;
+use App\Contexts\Operations\Events\Services\EventLinkedReferenceState;
 use App\Contexts\Operations\Events\Services\EventWorkflowGuard;
 use App\Contexts\Operations\Events\Services\EventWriteState;
 use App\Contexts\Operations\Participation\Services\EventParticipantAuthorization;
@@ -26,11 +26,11 @@ use Illuminate\Validation\ValidationException;
 final readonly class AssignEventRosterPlayer
 {
     public function __construct(
+        private EventLinkedReferenceState $references,
         private EventWriteState $eventWriteState,
         private EventAuthorization $mutations,
         private EventParticipantAuthorization $participants,
         private EventWorkflowGuard $workflows,
-        private PlayerReferenceQuery $players,
         private RosterEntryQuery $rosterEntries,
         private EventRosterAvailabilityService $availability,
         private EventRosterAllianceSnapshotResolver $allianceSnapshots,
@@ -70,7 +70,7 @@ final readonly class AssignEventRosterPlayer
                 throw ValidationException::withMessages(['roster' => 'Assign Players to a leaf roster, not a roster that contains child rosters.']);
             }
 
-            $player = $this->players->lockCurrent($playerId);
+            $player = $this->references->player($playerId);
             $activeRosterPresence = $context->target->scope === EventScope::Alliance
                 && $context->target->allianceId !== null
                 && $this->rosterEntries->lockActiveRosterPresence($context->target->allianceId, $playerId);

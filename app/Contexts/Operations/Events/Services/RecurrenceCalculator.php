@@ -10,13 +10,15 @@ use InvalidArgumentException;
 
 final class RecurrenceCalculator
 {
+    public const DEFAULT_LIMIT = 64;
+
     /** @return list<CarbonImmutable> */
     public function calculate(
         CarbonImmutable $firstLocalStart,
         RecurrenceFrequency $frequency,
         int $interval = 1,
         ?CarbonImmutable $untilLocal = null,
-        int $limit = 64,
+        int $limit = self::DEFAULT_LIMIT,
     ): array {
         if ($interval < 1 || $interval > 52) {
             throw new InvalidArgumentException('Recurrence interval must be between 1 and 52.');

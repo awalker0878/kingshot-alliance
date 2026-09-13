@@ -62,7 +62,7 @@ final readonly class KingPerkScheduleQuery
     /** @phpstan-return array<string, mixed> */
     public function player(PlayerReference $actor, string $eventId, ?string $occurrenceId = null): array
     {
-        $route = Event::query()->whereKey($eventId)->with('occurrences')->firstOrFail();
+        $route = Event::query()->whereKey($eventId)->firstOrFail();
         $occurrence = $this->selectOccurrence($route, $occurrenceId);
         $authorized = $this->events->occurrence($actor, (string) $occurrence->id);
         $event = $authorized->event;
@@ -102,10 +102,10 @@ final readonly class KingPerkScheduleQuery
 
     private function selectOccurrence(Event $event, ?string $occurrenceId): EventOccurrence
     {
-        $event->loadMissing('occurrences');
+        $query = EventOccurrence::query()->where('event_id', $event->id);
         $occurrence = $occurrenceId === null
-            ? $event->occurrences->sortBy('starts_at')->first()
-            : $event->occurrences->firstWhere('id', $occurrenceId);
+            ? $query->orderBy('starts_at')->orderBy('id')->first()
+            : $query->whereKey($occurrenceId)->first();
 
         if (! $occurrence instanceof EventOccurrence) {
             throw ValidationException::withMessages(['occurrence' => 'No matching Kingdom of Power occurrence was found.']);
