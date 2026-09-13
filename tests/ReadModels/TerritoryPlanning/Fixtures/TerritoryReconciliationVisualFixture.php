@@ -57,7 +57,7 @@ final class TerritoryReconciliationVisualFixture
             'Observed Hive Alpha',
             'kingshot-evidence-backed-2026-09-06-v2',
         );
-        app(SaveTerritoryPlan::class)->handle(
+        $saved = app(SaveTerritoryPlan::class)->handle(
             (string) $player->id,
             $plan->planId,
             $plan->revision,
@@ -91,6 +91,7 @@ final class TerritoryReconciliationVisualFixture
             (string) $player->id,
             $plan->planId,
             (int) $savedPlan->revision,
+            (string) $saved->layoutChecksum,
         );
         if ($published->publishedRevisionId !== null) {
             TerritoryPlanRevision::query()

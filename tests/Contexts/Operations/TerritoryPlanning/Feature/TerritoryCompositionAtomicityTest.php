@@ -133,7 +133,7 @@ final class TerritoryCompositionAtomicityTest extends TestCase
     {
         return match ($operation) {
             'clone' => app(CloneTerritoryPlan::class)->handle($actor->playerId, (string) $plan->id, 'Atomic clone'),
-            'import' => app(ImportTerritoryPlan::class)->handle($actor->playerId, (string) $plan->id, $plan->revision, $document),
+            'import' => app(ImportTerritoryPlan::class)->handle($actor->playerId, (string) $plan->id, $plan->revision, $document, hash('sha256', $document)),
             'restore' => app(RestoreTerritoryPlanRevision::class)->handle($actor->playerId, (string) $plan->id, (string) $revision->id, $plan->revision),
             default => throw new \LogicException,
         };
@@ -149,8 +149,8 @@ final class TerritoryCompositionAtomicityTest extends TestCase
             $alliance->allianceId, 'Atomic source', 'kingshot-evidence-backed-2026-09-06-v2');
         $layers = [['key' => 'owner', 'alliance_id' => $alliance->allianceId, 'display_name' => $alliance->name]];
         $objects = [['key' => 'city', 'alliance_key' => 'owner', 'type' => 'governor_city', 'x' => 100, 'y' => 100]];
-        app(SaveTerritoryPlan::class)->handle($actor->playerId, $created->planId, 1, $layers, [], $objects);
-        $published = app(PublishTerritoryPlan::class)->handle($actor->playerId, $created->planId, 2);
+        $saved = app(SaveTerritoryPlan::class)->handle($actor->playerId, $created->planId, 1, $layers, [], $objects);
+        $published = app(PublishTerritoryPlan::class)->handle($actor->playerId, $created->planId, 2, (string) $saved->layoutChecksum);
         self::assertNotNull($published->publishedRevisionId);
         $revision = TerritoryPlanRevision::query()->findOrFail($published->publishedRevisionId);
         $document = json_encode($revision->snapshot, JSON_THROW_ON_ERROR);

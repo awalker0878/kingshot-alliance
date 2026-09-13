@@ -6,6 +6,7 @@ namespace Tests\Contexts\GameWorld\KingdomMaps\Unit;
 
 use App\Contexts\GameWorld\KingdomMaps\Services\PlacementValidator;
 use App\Contexts\GameWorld\KingdomMaps\Services\TerritoryCoverageGeometry;
+use App\Contexts\GameWorld\KingdomMaps\ValueObjects\Rectangle;
 use JsonException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -63,6 +64,25 @@ final class KingdomMapPlacementParityTest extends TestCase
                 (string) ($case['name'] ?? 'unnamed').' suggestion contract drifted.',
             );
         }
+    }
+
+    public function test_rectangular_rotation_and_nonzero_origins_match_shared_geometry(): void
+    {
+        $fixture = $this->fixture();
+        $geometry = new TerritoryCoverageGeometry;
+        foreach ($fixture['geometry_cases'] as $case) {
+            $custom = $fixture;
+            $custom['dataset']['data']['object_types']['headquarters'] = ['footprint' => $case['footprint'], 'coverage' => $case['coverage']];
+            $dataset = $this->dataset($custom);
+            $footprint = $geometry->footprint($dataset, 'headquarters', $case['x'], $case['y'], $case['rotation']);
+            $coverage = $geometry->coverage($dataset, 'headquarters', $case['x'], $case['y'], $case['rotation']);
+            self::assertSame($case['expected_footprint'], (array) $footprint);
+            self::assertSame($case['expected_coverage'], (array) $coverage);
+        }
+        self::assertSame(14, $geometry->unionArea([
+            new Rectangle(0, 0, 3, 3),
+            new Rectangle(1, 1, 3, 3),
+        ]));
     }
 
     /**

@@ -5,12 +5,12 @@
 - Status: **In progress; not merge-ready.** Keep this implementation's pull request draft until every required scope and final gate is evidenced.
 - Branch: `astra/kingdom-map-workspace`.
 - Baseline: `main` at `044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c`.
-- Current work: obtain an exact local checkout and locked Node 24/PHP 8.5 verification tools; audit existing behavior and implement dependency-ordered vertical slices.
+- Current work: integrate canonical contracts, renderer, Explorer/editor, collaboration and analysis from isolated worktrees. Exact checkout and locked Node 24/PHP 8.5 dependencies are installed.
 - Durable setup: `3197248b7cd2e74f4543098ee1e98f2c9ecb40fb` adds read-only, branch-scoped source/tooling transport. It exports only tracked Git objects and lockfile-selected tools, not runtime environment files or credentials. Remove this temporary workflow before completion.
 - Verification: no application checks have yet been executed for this delivery. Existing passing commits do not certify the current candidate.
-- External source reconciliation: the requested shared conversation could not be fetched through the available web reader. Its body and any decisions unique to it remain unverified. The fully retrieved original planning prompt and supplied execution instructions establish the independently verified scope below. No unseen work-package identifiers or renderer decisions are claimed.
+- External source reconciliation: the requested shared conversation could not be fetched through the available web reader. Its body and any decisions unique to it remain unverified. The original planning prompt and execution instructions establish independently verified scope. Visible conversation planning package names KM00–KM18 are mapped in the acceptance matrix; this does not certify decisions unique to the inaccessible shared URL.
 - Concurrent ownership: draft PR #164 (`astra/hardening-followup`) continues repository-wide hardening separately. Do not overwrite that branch, its ledger, or its owners. Resolve or integrate necessary inherited release blockers with exact evidence; do not declare the separate hardening program complete.
-- Next action: inspect map/editor/server/test/asset contracts from the exact source artifact and implement the first missing complete workflow, preserving V2-only facts and authority.
+- Next action: integrate coherent commits, run focused verification and PostgreSQL CI, finish all remaining scope, then audit the exact candidate.
 
 Checkpoint SHAs name preceding durable work. Git history and the PR verification receipt identify the exact current candidate without circular self-reference.
 
@@ -26,7 +26,7 @@ The user supplied authorization for Kingshot artwork. Record actual source files
 
 ## Complete acceptance queue
 
-These `KMAP` identifiers are newly assigned delivery identifiers, not claimed identifiers from the unread shared conversation. Every requirement must receive concrete implementation paths and executed evidence as work proceeds.
+These `KMAP` identifiers are newly assigned delivery identifiers, not claimed identifiers from the unread shared conversation. The [acceptance matrix](kingdom-map-workspace-acceptance.md) maps these to visible source packages, owners, implementation areas and required evidence. [Implementation](kingdom-map-workspace-implementation.md) and [asset catalogue](kingdom-map-workspace-assets.md) are canonical design/coverage references.
 
 | ID | Required outcome | Current state | Acceptance / remaining evidence |
 | --- | --- | --- | --- |
@@ -53,3 +53,13 @@ Implementation, narrow validation, full validation, merge readiness, merge, and 
 Final gates include applicable PHP/style/static analysis/architecture, frontend/lint/types/build, geometry and dataset/artifact contracts, authorization/integration, browser/visual, dependency/security, fresh-schema, container/staging/recovery, and source/artwork/data completeness. Review screenshots; do not blindly bless baseline changes. Repair root causes rather than disabling or weakening gates.
 
 Missing external sources, artwork, or permissions require exact unblock information and continued independent work. A hard execution limit permits a durable **NOT COMPLETE** checkpoint, never a fabricated completion claim.
+
+## Inspected defects and delivery constraints
+
+- SVG export ignored nonzero map origins; pointer cancellation could commit a move; browser rendering ignored saved rotation. Renderer/geometry owners are replacing these paths under one scene contract.
+- Publish could omit unsaved work. Save/publication now being connected through normalized snapshot and checksum receipts; schema 2 is the sole plan contract.
+- Browser drafts used plan/revision-only localStorage keys; authority-bound recovery must replace that private-data retention.
+- Facility catalogue contains 90 records while old Canvas rendered only fixed structures. Resource/terrain corpus counts do not supply actual coordinates. See the asset catalogue for exact inspected coverage.
+- Archive did not prevent subsequent saves/publication; stale mutations must fail closed.
+- No local PostgreSQL service is available; deployment-representative HTTP/concurrency checks run in PostgreSQL CI. No SQLite substitution or persistent database reset is authorized.
+- Inherited Architecture run 34732445211 at setup SHA 9f4b2f8c999d8603b9a19f704d7c4bc5f14eda7f failed current-Kingdom controller and foreign permission-vocabulary boundaries. Resolve these required gates while preserving PR #164 ownership.

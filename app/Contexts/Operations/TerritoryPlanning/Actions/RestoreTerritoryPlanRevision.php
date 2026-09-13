@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\TerritoryPlanning\Actions;
 
+use App\Contexts\Operations\TerritoryPlanning\Exceptions\TerritoryRevisionConflict;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryLayoutContract;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanningAuthorization;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanSnapshotBuilder;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanWriteState;
 use App\Contexts\Operations\TerritoryPlanning\ValueObjects\TerritoryPlanMutationReceipt;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
@@ -18,6 +21,8 @@ final readonly class RestoreTerritoryPlanRevision
         private TerritoryPlanWriteState $writeState,
         private TerritoryPlanningAuthorization $authorization,
         private SaveTerritoryPlan $save,
+        private TerritoryLayoutContract $contract,
+        private TerritoryPlanSnapshotBuilder $snapshots,
         private AuditRecorder $audit,
     ) {}
 
@@ -31,20 +36,30 @@ final readonly class RestoreTerritoryPlanRevision
             $context = $this->writeState->lock($actorPlayerId, $planId);
             $this->authorization->authorizeManage($context);
             if ($context->plan->revision !== $expectedRevision) {
-                throw ValidationException::withMessages([
-                    'revision' => 'This plan changed before the revision could be restored.',
-                ]);
+                throw new TerritoryRevisionConflict($expectedRevision, $context->plan->revision);
             }
 
             $revision = TerritoryPlanRevision::query()
                 ->where('territory_plan_id', $planId)
                 ->sharedLock()->findOrFail($revisionId);
             $snapshot = $revision->snapshot;
+            if ($revision->schema_version !== TerritoryLayoutContract::SCHEMA_VERSION
+                || ($snapshot['schema_version'] ?? null) !== TerritoryLayoutContract::SCHEMA_VERSION
+                || ! hash_equals($revision->snapshot_checksum, $this->snapshots->checksum($snapshot))
+                || $revision->map_dataset_id !== $context->plan->map_dataset_id
+                || $revision->map_dataset_checksum !== $context->plan->map_dataset_checksum) {
+                throw $this->invalidSnapshot();
+            }
+            $snapshot = $this->contract->decode(json_encode($snapshot, JSON_THROW_ON_ERROR));
             $alliances = $this->rows($snapshot['alliances'] ?? null);
             $groups = $this->rows($snapshot['groups'] ?? null);
             $objects = $this->rows($snapshot['objects'] ?? null);
             $planData = $snapshot['plan'] ?? null;
             if (! is_array($planData)) {
+                throw $this->invalidSnapshot();
+            }
+            if (($planData['map_dataset_id'] ?? null) !== $revision->map_dataset_id
+                || ($planData['map_dataset_checksum'] ?? null) !== $revision->map_dataset_checksum) {
                 throw $this->invalidSnapshot();
             }
             $preferences = $planData['planning_preferences'] ?? [];

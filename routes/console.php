@@ -46,6 +46,7 @@ Schedule::command('events:queue-reminders --limit=100')->everyMinute()->onOneSer
 Schedule::command('notifications:queue-officer-briefs --group=daily --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:queue-officer-briefs --group=event --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:queue-intelligence-changes --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
+Schedule::command('notifications:queue-territory --pages=10 --page-size=50')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:deliver --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:build-digests --limit=500')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:deliver-digests --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);

@@ -119,7 +119,7 @@ final class TerritoryScopeOrderingTest extends TestCase
             $actor->kingdomId, CarbonImmutable::now('UTC')->addDay(), durationMinutes: 60, settings: ['preparation_phase_minutes' => 1440]);
         self::assertNotNull($event->firstOccurrenceId);
         $saved = app(SaveTerritoryPlan::class)->handle($actor->playerId, $created->planId, 1, $this->layers($alliance), [], $this->city());
-        $published = app(PublishTerritoryPlan::class)->handle($actor->playerId, $created->planId, $saved->revision);
+        $published = app(PublishTerritoryPlan::class)->handle($actor->playerId, $created->planId, $saved->revision, (string) $saved->layoutChecksum);
         self::assertNotNull($published->publishedRevisionId);
         foreach ([true, false] as $attach) {
             DB::enableQueryLog();
@@ -146,7 +146,7 @@ final class TerritoryScopeOrderingTest extends TestCase
         }
         $foreign = app(CreateTerritoryPlan::class)->handle($linkedPlayer->playerId, TerritoryPlanScope::Alliance, $actor->kingdomId, $alliance->allianceId, 'Other owner scope', self::DATASET);
         $saved = app(SaveTerritoryPlan::class)->handle($linkedPlayer->playerId, $foreign->planId, 1, $this->layers($alliance), [], $this->city());
-        $published = app(PublishTerritoryPlan::class)->handle($linkedPlayer->playerId, $foreign->planId, $saved->revision);
+        $published = app(PublishTerritoryPlan::class)->handle($linkedPlayer->playerId, $foreign->planId, $saved->revision, (string) $saved->layoutChecksum);
         self::assertNotNull($published->publishedRevisionId);
         DB::enableQueryLog();
         DB::flushQueryLog();

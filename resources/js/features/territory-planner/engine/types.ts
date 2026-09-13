@@ -120,6 +120,21 @@ export type MarchAnalysis = {
 };
 
 export type AllianceAnalysis = {
+  algorithm_version: 'territory-analysis-v2';
+  territory_area_tiles: number;
+  hq_anchored_components: number;
+  disconnected_components: number;
+  useful_banner_area_tiles: number;
+  redundant_banner_count: number;
+  hive_density_percent: number | null;
+  density_bounds_area_tiles: number | null;
+  assumptions: {
+    city_coverage: 'entire_footprint';
+    distance: 'euclidean_southwest_anchor';
+    march_time: 'user_calibration_no_pathfinding';
+    banner_efficiency: 'covered_cities_per_banner';
+    density: 'city_footprint_union_over_city_bounds';
+  };
   counts: Record<string, number>;
   governor_cities: number;
   covered_governor_cities: number;
