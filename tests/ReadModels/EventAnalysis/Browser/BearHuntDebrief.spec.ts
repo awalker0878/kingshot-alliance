@@ -162,3 +162,23 @@ test('Bear Hunt complete Governor pages retain exact totals and independent pers
   await expect(personal.getByText('#61', { exact: true })).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
+
+test('Debrief previews bounded unmatched rows and opens the complete older report for review', async ({
+  page,
+}) => {
+  await openBearHuntDebrief(page, 'Bear Hunt · Catalogue Visual', false);
+  const queue = page.locator('section[aria-labelledby="needs-review-heading"]');
+  await expect(queue.getByRole('heading', { name: '31 Governors need matching' })).toBeVisible();
+  await expect(queue.locator('ul li')).toHaveCount(25);
+  await expect(queue.getByText('25 / 31 Governors', { exact: true })).toBeVisible();
+  await expect(queue.getByText('Preview Governor 31', { exact: true })).toHaveCount(0);
+  await queue.getByRole('link', { name: 'Review imported report' }).click();
+  await page.waitForURL('**/screenshot-intake?evidence=**');
+  await expect(page.getByRole('heading', { name: 'Screenshot Intake', level: 1 })).toBeVisible();
+  await expect(page.getByText('older-preview-report.png')).toBeVisible();
+  await expect(page.locator('fieldset')).toHaveCount(31);
+  await expect(page.locator('fieldset').last().locator('input[maxlength="128"]')).toHaveValue(
+    'Preview Governor 31',
+  );
+  await expectNoHorizontalOverflow(page);
+});

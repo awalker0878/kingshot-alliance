@@ -194,7 +194,7 @@ final readonly class BearHuntDebriefQuery
                     'joined' => $currentRallies['available'] ? (int) $currentRallies['joined'] : null,
                 ],
                 'unmatchedGovernorCount' => array_sum(array_map(
-                    static fn (array $item): int => count($item['rows'] ?? []),
+                    static fn (array $item): int => $item['rowCount'],
                     $unmatched,
                 )),
             ],

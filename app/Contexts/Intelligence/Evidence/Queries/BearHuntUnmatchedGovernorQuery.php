@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace App\Contexts\Intelligence\Evidence\Queries;
 
 use App\Contexts\Intelligence\Evidence\Enums\EvidenceLifecycleStatus;
-use App\Contexts\Intelligence\Evidence\Models\EvidenceExtractedField;
 use App\Contexts\Intelligence\Evidence\Models\EvidenceExtractionAttempt;
 use App\Contexts\Intelligence\Evidence\Models\GameEvidence;
 use App\Contexts\Operations\Results\Queries\BearHuntEvidenceTargetQuery;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 final readonly class BearHuntUnmatchedGovernorQuery
 {
     private const MAX_EVIDENCE = 50;
+
+    private const MAX_PREVIEW_ROWS = 25;
 
     public function __construct(private BearHuntEvidenceTargetQuery $targets) {}
 
@@ -33,6 +34,7 @@ final readonly class BearHuntUnmatchedGovernorQuery
      *   evidenceId:string,
      *   receivedAt:?string,
      *   reviewHref:string,
+     *   rowCount:int,
      *   rows:list<array{ordinal:int,observedName:?string,reportedRank:?int,damage:?int,confidence:?float}>
      * }>
      */
@@ -73,82 +75,45 @@ final readonly class BearHuntUnmatchedGovernorQuery
             ->values()
             ->all();
 
-        /** @var array<string,EvidenceExtractionAttempt> $latestAttempts */
-        $latestAttempts = [];
-        foreach (EvidenceExtractionAttempt::query()
+        $latestAttempts = EvidenceExtractionAttempt::query()
             ->whereIn('evidence_id', $evidenceIds)
-            ->orderBy('evidence_id')
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->get() as $attempt) {
-            $evidenceId = (string) $attempt->evidence_id;
-            $latestAttempts[$evidenceId] ??= $attempt;
-        }
-
-        /** @var list<string> $unreviewedAttemptIds */
-        $unreviewedAttemptIds = array_values(array_map(
-            static fn (EvidenceExtractionAttempt $attempt): string => (string) $attempt->id,
-            $latestAttempts,
-        ));
-        if ($unreviewedAttemptIds === []) {
-            return [];
-        }
-
-        $fieldsByAttempt = EvidenceExtractedField::query()
-            ->whereIn('extraction_attempt_id', $unreviewedAttemptIds)
-            ->where('row_ordinal', '>', 0)
-            ->orderBy('extraction_attempt_id')
-            ->orderBy('row_ordinal')
-            ->orderBy('field_key')
-            ->get()
-            ->groupBy(static fn (EvidenceExtractedField $field): string => (string) $field->extraction_attempt_id);
+            ->selectRaw('DISTINCT ON (evidence_id) id, evidence_id')
+            ->orderBy('evidence_id')->orderByDesc('created_at')->orderByDesc('id')
+            ->get()->keyBy('evidence_id');
+        $attemptIds = $latestAttempts->pluck('id')->all();
+        // Aggregate fields before paging rows. Retained attempts, extra fields and
+        // long OCR strings never expand the preview's materialized payload.
+        $ranked = DB::table('evidence_extracted_fields')->whereIn('extraction_attempt_id', $attemptIds)
+            ->where('row_ordinal', '>', 0)->groupBy('extraction_attempt_id', 'row_ordinal')
+            ->selectRaw("extraction_attempt_id, row_ordinal,
+                LEFT(MAX(CASE WHEN field_key = 'player_name' THEN normalized_value END), 513) AS observed_name,
+                LEFT(MAX(CASE WHEN field_key = 'rank' THEN normalized_value END), 32) AS reported_rank,
+                LEFT(MAX(CASE WHEN field_key = 'damage' THEN normalized_value END), 32) AS damage,
+                AVG(confidence) AS confidence,
+                COUNT(*) OVER (PARTITION BY extraction_attempt_id) AS row_count,
+                ROW_NUMBER() OVER (PARTITION BY extraction_attempt_id ORDER BY row_ordinal) AS row_position");
+        $rowsByAttempt = DB::query()->fromSub($ranked, 'preview')
+            ->where('row_position', '<=', self::MAX_PREVIEW_ROWS)
+            ->orderBy('extraction_attempt_id')->orderBy('row_ordinal')->get()->groupBy('extraction_attempt_id');
 
         $queue = [];
         foreach ($items as $evidence) {
             $evidenceId = (string) $evidence->id;
-            $attempt = $latestAttempts[$evidenceId] ?? null;
+            $attempt = $latestAttempts->get($evidenceId);
             if (! $attempt instanceof EvidenceExtractionAttempt) {
                 continue;
             }
 
-            $attemptFields = $fieldsByAttempt->get((string) $attempt->id);
-            if (! $attemptFields instanceof Collection) {
-                continue;
-            }
-            $fields = $attemptFields->groupBy(
-                static fn (EvidenceExtractedField $field): int => (int) $field->row_ordinal,
-            );
-
+            $preview = $rowsByAttempt->get((string) $attempt->id, collect());
             $rows = [];
-            foreach ($fields as $ordinal => $rowFields) {
-                if (! $rowFields instanceof Collection) {
-                    continue;
-                }
-                $byKey = $rowFields->keyBy(
-                    static fn (EvidenceExtractedField $field): string => (string) $field->field_key,
-                );
-                $name = $byKey->get('player_name');
-                $rank = $byKey->get('rank');
-                $damage = $byKey->get('damage');
-                $confidenceValues = $rowFields->pluck('confidence')
-                    ->filter(static fn ($value): bool => is_numeric($value));
-
+            foreach ($preview as $row) {
+                $name = $row->observed_name;
                 $rows[] = [
-                    'ordinal' => (int) $ordinal,
-                    'observedName' => $name instanceof EvidenceExtractedField
-                        ? (string) $name->normalized_value
-                        : null,
-                    'reportedRank' => $rank instanceof EvidenceExtractedField
-                        && is_numeric($rank->normalized_value)
-                        ? (int) $rank->normalized_value
-                        : null,
-                    'damage' => $damage instanceof EvidenceExtractedField
-                        && is_numeric($damage->normalized_value)
-                        ? (int) $damage->normalized_value
-                        : null,
-                    'confidence' => $confidenceValues->isEmpty()
-                        ? null
-                        : round((float) $confidenceValues->avg(), 4),
+                    'ordinal' => (int) $row->row_ordinal,
+                    'observedName' => is_string($name) ? (mb_strlen($name) > 512 ? mb_substr($name, 0, 512).'…' : $name) : null,
+                    'reportedRank' => $this->nonnegativeInteger($row->reported_rank),
+                    'damage' => $this->nonnegativeInteger($row->damage),
+                    'confidence' => is_numeric($row->confidence) ? round((float) $row->confidence, 4) : null,
                 ];
             }
             if ($rows === []) {
@@ -158,11 +123,22 @@ final readonly class BearHuntUnmatchedGovernorQuery
             $queue[] = [
                 'evidenceId' => $evidenceId,
                 'receivedAt' => $evidence->created_at?->toIso8601String(),
-                'reviewHref' => '/events/'.$target->occurrenceId.'/screenshot-intake#evidence-'.$evidenceId,
+                'reviewHref' => '/events/'.$target->occurrenceId.'/screenshot-intake?evidence='.$evidenceId.'#evidence-'.$evidenceId,
+                'rowCount' => (int) ($preview->first()->row_count ?? 0),
                 'rows' => $rows,
             ];
         }
 
         return $queue;
+    }
+
+    private function nonnegativeInteger(mixed $value): ?int
+    {
+        if (! is_string($value) || preg_match('/^(0|[1-9][0-9]{0,18})$/D', $value) !== 1
+            || (strlen($value) === 19 && strcmp($value, (string) PHP_INT_MAX) > 0)) {
+            return null;
+        }
+
+        return (int) $value;
     }
 }

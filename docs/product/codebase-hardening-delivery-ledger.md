@@ -5,11 +5,11 @@
 - Program state: In progress. Keep the active hardening follow-up PR draft until the full ledger, repository audit and final gates are complete. PR #163 was merged outside this continuation at 2026-09-12 23:40:58 UTC; that merge is not completion evidence.
 - Original baseline: `main` at `7e780521295e868005ecfee5bd38b33e8215ec49`. Continuation base: merge `044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c`, whose tree matches `b9a7b7ed90516eb229646d69af2ff488901dc538`; working branch `astra/hardening-followup`.
 - Latest containing PHP/visual evidence: `bdfc2ec8305545cd0dfcaab607dcb28351b3859f` passes all 2,051 PHP tests/96,726 assertions in 22:46.178 (CI `34728896660`, PHP job `103647966011`, merge checkout `eaa44a0763284298a87c55e80e70dde9e4915943`) and 86 browser cases in 8.4 minutes (Visual `34728896590`, job `103647934794`). Frontend, fresh schema, architecture, CodeQL, dependency review, all focused groups and actual Source Refresh also pass. Its downstream container job was queued when the next candidate was published; no completed container claim is made for this head. Last full image/staging/recovery milestone remains `2f87c6bdf96db2aa69c7e3f81a567a6f6f6004d3`.
-- Latest durable checkpoint: `1ed5c46dfd65460eeefa5704a1118302bd1519c9` publishes HARD-135 bounded/exact Debrief composition and HARD-134 redundant-read reductions on draft PR #164. Its failed gates are recorded below; this checkpoint corrects the reported fixture, availability caller and empty-message regressions. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`; the final candidate must repeat all applicable gates.
-- Current item/state: HARD-134 / In progress (phase/poll catalogues and vote aggregates); HARD-135 In progress; HARD-138 Planned; HARD-137 has focused PostgreSQL evidence and awaits complete containing gates. HARD-001–133 and HARD-136 are Complete with containing evidence. Repository coverage and final gates remain open.
-- Active files: Event Player Intelligence SQL history/count/score projection and three PostgreSQL cases; Debrief fixture and availability/empty-message corrections; reviewed Event Command fingerprints with the temporary capture diagnostic removed; ADR-0079.
-- Local verification: full npm check, complete PHPStan, changed-test PHPStan/Pint, all 78 architecture cases/72,644 assertions, 350-source test layout and 302 documentation links pass; hosted containing behavior remains required.
-- Next action: verify these corrections and history aggregates on PostgreSQL/browser gates. Resolve HARD-138 unmatched-Evidence nested hydration; finish HARD-134 participation, roster/Rally/results/reminder lists and eligible Governor selectors. Complete the remaining production audit and immutable final gates.
+- Latest durable checkpoint: `80530994e222020355e50026ca970e96cf6d53f1` publishes Event Player Intelligence history aggregates and corrects Debrief availability, fixtures and empty-message rendering on draft PR #164. All focused groups now pass, including the unchanged read-model query budget. Last all-nine milestone remains `7d87deef78af513b7526f94d08d0dc0ed5bf73a4`; final candidate gates remain required.
+- Current item/state: HARD-134 / In progress (phase/poll catalogues and vote aggregates); HARD-135 In progress; HARD-138 In progress; HARD-139 Planned; HARD-137 has focused PostgreSQL evidence and awaits complete containing gates. HARD-001–133 and HARD-136 are Complete with containing evidence. Repository coverage and final gates remain open.
+- Active files: HARD-138 latest-attempt/25-row Evidence preview with exact counts and bounded text, explicit scoped older-report handoff, two owner regressions and a desktop/mobile 31-row report journey; ADR-0080. HARD-139 records the destination workspace's retained history and numeric-preview findings.
+- Local verification: full npm check, changed PHPStan/Pint, all 78 architecture cases/72,644 assertions and 303 documentation links pass; hosted containing behavior remains required.
+- Next action: verify the Evidence preview/handoff. Finish HARD-139 Screenshot Intake and HARD-134 participation, roster/Rally/results/reminder catalogues and eligible Governor selectors. Complete the remaining production audit and immutable final gates.
 - Remaining gates: all applicable PHP, architecture, capability, frontend, browser, fresh-schema, security, dependency, image, staging and recovery gates on the final immutable candidate. Remove temporary validation/publication/diagnostic workflows and stale publication manifests before final completion.
 
 Checkpoint SHAs identify preceding durable implementations; Git history supplies each documentation checkpoint without circular self-reference.
@@ -2055,9 +2055,22 @@ The first containing PHP run confirms all remaining history/privacy behavior apa
 - Intended authoritative owner: unchanged, with SQL latest-attempt selection and explicit bounded field/row contracts.
 - Rationale: retained retries and malformed or oversized extraction output can expand a supposedly bounded manager read.
 - Remediation: trace extraction/review cardinality and latest-attempt semantics, constrain selection in SQL, bound nested materialization and preserve resolved-review exclusion and recovery reachability.
-- State: Planned.
+- State: In progress.
 - Verification required: many retained attempts, latest-review exclusion, exact supported rows, oversized/corrupt output behavior, current authority, query/hydration budgets and existing Screenshot Intake/Debrief cases.
-- Verification result: complete unmatched query and extraction/review entry points traced; implementation pending.
+- Verification result: latest-attempt SQL selection, 25-row aggregate previews with exact counts, bounded strings/numerics and explicit currently authorized older-report handoff are implemented. Two database regressions and a 31-row/102-newer-report desktop/mobile journey are authored; hosted verification pending.
+- Completion evidence: [ADR-0080](../architecture/adr/0080-unmatched-evidence-preview-and-review-handoff.md), expanded BearHuntUnmatchedGovernorQueryV3Test and Debrief visual journey; containing gates pending.
+
+### HARD-139 — Screenshot Intake retained collections and numeric preview
+
+- Area: ScreenshotIntakeWorkspaceQuery, Evidence.vue and Evidence extraction/review contracts.
+- Finding: the destination workspace selects only the newest 100 Evidence without full catalogue navigation, expands every classification/extraction/review/commit history and repeatedly projects nested fields/review rows. Its Governor selector loads the full active roster. The extractor can emit more rows than the 100-row review command accepts, and the score preview adds PHP integers without checked wide arithmetic.
+- Current owner: Evidence extraction/review Actions and read-only ScreenshotIntake composition, with Results factual snapshots.
+- Intended authoritative owner: unchanged.
+- Rationale: the Debrief preview bound does not bound its review destination or make oversized extracted reports reviewable.
+- Remediation: complete scoped catalogue and attempt/revision navigation, bounded explicit extraction/review admission, current Governor selection and exact preview values; preserve authoritative review/commit ownership and source provenance.
+- State: Planned.
+- Verification required: large retained screenshots/attempts/revisions/fields, complete older-history access, current authority, draft preservation/retry, supported and oversized reports, numeric extremes and owner-driven review/commit journeys.
+- Verification result: complete workspace and frontend consumers traced; source extraction and review cardinality mismatch and unchecked preview arithmetic confirmed. Implementation pending.
 - Completion evidence: pending.
 
 ## Repository audit coverage
@@ -2253,3 +2266,7 @@ CI `34732505099`, PHP job `103657770625`, passes fresh schema and formatting, th
 Visual `34732504946`, job `103657770198`, passes 88 cases, including both new complete 61-Governor exact-total/personal/paging/retry journeys. Four fingerprint cases fail. Actual Debrief screenshot inspection finds a real empty-state regression: an adjacent pager condition made the empty message render under a populated leaderboard. The message now checks the Governor rows explicitly; an assertion prevents recurrence. Its prior fingerprints remain unchanged.
 
 Event Command desktop/mobile screenshots were inspected from artifact `10308463771`; card content, owner handoffs and responsive layout remain intact. The temporary diagnostic on `1ed5c46d` proves document-height backdrop dependence: adding an otherwise unrelated 10,000px body child changes the outer rounded-card fingerprint on both viewports while an inset capture remains byte-identical. Both retries reproduce this. The selected-occurrence composition deliberately reduces the document below the card. The four original full-card fingerprints are updated to the repeatable reviewed output from 8b12/6404/1ed5; the full capture and semantic/overflow assertions remain. The temporary diagnostic is removed. Artifact `10309638229` has ZIP SHA-256 `2678892ac696ae1f25ef107d1684401ed456e31b9fe02d844e7a30b10318f430`.
+
+### Containing focused feedback on 80530994
+
+Focused run `34733326690`, job `103660075694`, succeeds: Integrations 95/1,058; Platform 78/6,367; Governance 88/1,435; Operations 132/720; EventManagement 20/11,463; EventAnalysis 29/257; read-model budget/telemetry acceptance 1/182; Gift Code/source/reset 47/256; Participation 4/26; Transfer 29/425. This includes all eight Debrief cases and all three Event Player Intelligence history cases. The command read budget is unchanged and now passes. Full PHP and Visual are still running at this checkpoint; no containing full-suite or image success is claimed.

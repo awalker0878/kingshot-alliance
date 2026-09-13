@@ -24,6 +24,9 @@ use App\Contexts\Operations\Events\Models\EventTypeScope;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Support\ScenarioFactory;
 use Tests\TestCase;
 
@@ -257,6 +260,88 @@ final class BearHuntUnmatchedGovernorQueryV3Test extends TestCase
             $outsider->playerId,
             (string) $occurrence->id,
         );
+    }
+
+    public function test_retained_attempts_and_thousands_of_fields_produce_one_bounded_exact_preview(): void
+    {
+        $scenario = app(ScenarioFactory::class);
+        $account = $scenario->authUser();
+        $actor = $scenario->player((int) $account->id, 62737);
+        $alliance = $scenario->alliance($actor);
+        $scenario->roster($actor, $alliance);
+        $occurrence = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC'));
+        $evidence = $this->evidence($alliance->allianceId, (string) $occurrence->id, $actor->playerId,
+            EvidenceLifecycleStatus::NeedsReview, 'Latest', 'bounded-preview');
+        $latest = EvidenceExtractionAttempt::query()->where('evidence_id', $evidence->id)->firstOrFail();
+        $attempts = [];
+        for ($i = 0; $i < 2001; $i++) {
+            $attempts[] = ['id' => strtolower((string) Str::ulid()), 'evidence_id' => $evidence->id,
+                'classification_attempt_id' => $latest->classification_attempt_id, 'status' => 'completed',
+                'extractor_key' => 'fixture', 'extractor_version' => '1', 'schema_version' => '1',
+                'input_sha256' => $evidence->sha256, 'started_at' => now()->subDay(), 'created_at' => now()->subDay()];
+        }
+        foreach (array_chunk($attempts, 500) as $rows) {
+            DB::table('evidence_extraction_attempts')->insert($rows);
+        }
+        $fields = [];
+        for ($ordinal = 2; $ordinal <= 1001; $ordinal++) {
+            foreach (['player_name' => 'Governor '.$ordinal, 'rank' => (string) $ordinal, 'damage' => '1200', 'extra' => 'unused'] as $key => $value) {
+                $fields[] = ['id' => strtolower((string) Str::ulid()), 'extraction_attempt_id' => $latest->id,
+                    'field_key' => $key, 'row_ordinal' => $ordinal, 'raw_text' => str_repeat('x', 1024),
+                    'normalized_value' => $value, 'data_type' => 'string', 'confidence' => 0.8];
+            }
+        }
+        foreach (array_chunk($fields, 500) as $rows) {
+            DB::table('evidence_extracted_fields')->insert($rows);
+        }
+        EvidenceExtractedField::query()->where('extraction_attempt_id', $latest->id)->where('row_ordinal', 1)
+            ->where('field_key', 'player_name')->update(['normalized_value' => str_repeat('界', 10000)]);
+        EvidenceExtractedField::query()->where('extraction_attempt_id', $latest->id)->where('row_ordinal', 1)
+            ->where('field_key', 'damage')->update(['normalized_value' => '9223372036854775808']);
+        $attemptModels = $fieldModels = 0;
+        EvidenceExtractionAttempt::retrieved(static function () use (&$attemptModels): void {
+            $attemptModels++;
+        });
+        EvidenceExtractedField::retrieved(static function () use (&$fieldModels): void {
+            $fieldModels++;
+        });
+        $queue = app(BearHuntUnmatchedGovernorQuery::class)->forOccurrence($actor->playerId, (string) $occurrence->id);
+        self::assertCount(1, $queue);
+        self::assertSame(1001, $queue[0]['rowCount']);
+        self::assertCount(25, $queue[0]['rows']);
+        self::assertSame(range(1, 25), array_column($queue[0]['rows'], 'ordinal'));
+        self::assertSame(str_repeat('界', 512).'…', $queue[0]['rows'][0]['observedName']);
+        self::assertNull($queue[0]['rows'][0]['damage']);
+        self::assertSame(1200, $queue[0]['rows'][24]['damage']);
+        self::assertSame(1, $attemptModels);
+        self::assertSame(0, $fieldModels);
+        self::assertStringContainsString('?evidence='.$evidence->id.'#evidence-', $queue[0]['reviewHref']);
+    }
+
+    public function test_review_handoff_selects_older_evidence_outside_recent_workspace_and_preserves_scope(): void
+    {
+        $scenario = app(ScenarioFactory::class);
+        $account = $scenario->authUser();
+        $account->forceFill(['email_verified_at' => now()])->save();
+        $actor = $scenario->player((int) $account->id, 62738);
+        $alliance = $scenario->alliance($actor);
+        $scenario->roster($actor, $alliance);
+        $occurrence = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC'));
+        $old = $this->evidence($alliance->allianceId, (string) $occurrence->id, $actor->playerId,
+            EvidenceLifecycleStatus::NeedsReview, 'Old Governor', 'old-handoff');
+        $old->forceFill(['created_at' => now()->subDays(2)])->save();
+        for ($i = 0; $i < 102; $i++) {
+            $item = $old->replicate();
+            $item->forceFill(['sha256' => hash('sha256', 'newer-'.$i), 'lifecycle_status' => EvidenceLifecycleStatus::Approved,
+                'created_at' => now(), 'updated_at' => now()])->save();
+        }
+        $this->actingAs($account)->withSession([(string) config('game_world.active_player_session_key') => $actor->playerId]);
+        $url = '/events/'.$occurrence->id.'/screenshot-intake?evidence='.$old->id;
+        $this->get($url)->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('workspace.selectedEvidenceId', (string) $old->id)
+            ->has('workspace.evidence', 1)->where('workspace.evidence.0.id', (string) $old->id));
+        $other = $this->occurrence($actor, $alliance, CarbonImmutable::now('UTC')->addDays(3));
+        $this->get('/events/'.$other->id.'/screenshot-intake?evidence='.$old->id)->assertNotFound();
     }
 
     private function occurrence(

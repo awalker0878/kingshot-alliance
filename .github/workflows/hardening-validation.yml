@@ -88,7 +88,7 @@ jobs:
       - name: Run EventManagement history behavior
         run: php vendor/bin/phpunit tests/ReadModels/EventManagement --log-junit storage/logs/event-management-junit.xml
       - name: Run EventAnalysis Debrief behavior
-        run: php vendor/bin/phpunit tests/ReadModels/EventAnalysis --log-junit storage/logs/event-analysis-junit.xml
+        run: php vendor/bin/phpunit tests/ReadModels/EventAnalysis tests/Contexts/Intelligence/Evidence/Feature/BearHuntUnmatchedGovernorQueryV3Test.php tests/Contexts/Intelligence/Evidence/Feature/BearHuntUnmatchedGovernorExclusionV3Test.php --log-junit storage/logs/event-analysis-junit.xml
       - name: Run read-model budget and telemetry acceptance
         run: php vendor/bin/phpunit tests/System/Acceptance/Feature/CapabilityReadModelBudgetAndTelemetryV3Test.php --log-junit storage/logs/read-model-budget-junit.xml
       - name: Run Gift Code operational alert progress

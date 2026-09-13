@@ -122,6 +122,7 @@ type Debrief = {
     rallies: RallySummary;
   };
   unmatchedGovernors: Array<{
+    rowCount: number;
     evidenceId: string;
     receivedAt: string | null;
     reviewHref: string;
@@ -539,6 +540,13 @@ function direction(value: Debrief['signals']['personalDamage']): string {
                   {{ t('debrief.reviewImport') }}
                 </Link>
               </div>
+              <p
+                v-if="item.rowCount > item.rows.length"
+                class="mt-2 text-sm text-[var(--ks-muted)]"
+              >
+                {{ formatNumber(item.rows.length) }} / {{ formatNumber(item.rowCount) }}
+                {{ t('debrief.governors') }}
+              </p>
               <ul class="mt-3 grid gap-2 sm:grid-cols-2">
                 <li
                   v-for="row in item.rows"
