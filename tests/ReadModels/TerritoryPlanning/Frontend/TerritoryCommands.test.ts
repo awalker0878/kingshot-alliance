@@ -137,7 +137,10 @@ test('bulk coordinates are atomic, integer-only and reject duplicate or unknown 
     /duplicate/,
   );
   assert.throws(
-    () => setObjectCoordinatesAtomic(objects, [{ key: 'missing', x: 1, y: 2 }], editable),
+    () => setObjectCoordinatesAtomic(objects, [
+      { key: 'a', x: 1, y: 2 },
+      { key: 'missing', x: 3, y: 4 },
+    ], editable),
     /unknown object key/,
   );
 });
