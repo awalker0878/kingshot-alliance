@@ -8,6 +8,9 @@ export type TerritoryCommandRefusal = {
 export type TerritoryCommandResult =
   TerritoryCommandRefusal | { ok: true; objects: PlanObject[]; affectedKeys: string[] };
 
+export type TerritoryAlignment = 'left' | 'center_x' | 'right' | 'top' | 'center_y' | 'bottom';
+export type TerritoryDistribution = 'horizontal' | 'vertical';
+
 export function objectIsLocked(object: PlanObject, allianceLocked = false): boolean {
   return allianceLocked || object.metadata.locked === true;
 }
@@ -51,6 +54,20 @@ function footprint(map: MapData, object: PlanObject): { width: number; height: n
   return object.rotation === 90 || object.rotation === 270
     ? { width: base.height, height: base.width }
     : base;
+}
+
+function bounds(map: MapData, object: PlanObject) {
+  const size = footprint(map, object);
+  return {
+    left: object.x,
+    top: object.y,
+    right: object.x + size.width,
+    bottom: object.y + size.height,
+    centerX: object.x + size.width / 2,
+    centerY: object.y + size.height / 2,
+    width: size.width,
+    height: size.height,
+  };
 }
 
 export function selectionPivot(map: MapData, selected: PlanObject[]): { x: number; y: number } {
@@ -104,6 +121,135 @@ export function rotateObjectsAtomic(
         x: Math.round(rotatedCenterX - after.width / 2),
         y: Math.round(rotatedCenterY - after.height / 2),
       };
+    }),
+  };
+}
+
+/**
+ * Aligns a complete editable selection to its own outer bounds. Alignment is footprint-aware and
+ * atomic: one locked object refuses the whole operation. Half-tile centers are rounded so the
+ * persisted coordinate contract remains integer-only.
+ */
+export function alignObjectsAtomic(
+  map: MapData,
+  objects: PlanObject[],
+  keys: string[],
+  alignment: TerritoryAlignment,
+  isEditable: (object: PlanObject) => boolean,
+): TerritoryCommandResult {
+  const selection = requireAtomicEditableSelection(objects, keys, isEditable);
+  if (!selection.ok) return selection;
+  const selectedBounds = selection.selected.map((object) => bounds(map, object));
+  const target = {
+    left: Math.min(...selectedBounds.map((item) => item.left)),
+    right: Math.max(...selectedBounds.map((item) => item.right)),
+    top: Math.min(...selectedBounds.map((item) => item.top)),
+    bottom: Math.max(...selectedBounds.map((item) => item.bottom)),
+  };
+  const centerX = (target.left + target.right) / 2;
+  const centerY = (target.top + target.bottom) / 2;
+  const affected = new Set(selection.selected.map((object) => object.key));
+
+  return {
+    ok: true,
+    affectedKeys: [...affected],
+    objects: objects.map((object) => {
+      if (!affected.has(object.key)) return object;
+      const box = bounds(map, object);
+      switch (alignment) {
+        case 'left':
+          return { ...object, x: target.left };
+        case 'center_x':
+          return { ...object, x: Math.round(centerX - box.width / 2) };
+        case 'right':
+          return { ...object, x: target.right - box.width };
+        case 'top':
+          return { ...object, y: target.top };
+        case 'center_y':
+          return { ...object, y: Math.round(centerY - box.height / 2) };
+        case 'bottom':
+          return { ...object, y: target.bottom - box.height };
+        default: {
+          const neverAlignment: never = alignment;
+          throw new TypeError(`Unsupported Territory alignment: ${String(neverAlignment)}`);
+        }
+      }
+    }),
+  };
+}
+
+/**
+ * Evenly distributes object centres between the two outer selected centres. The first and last
+ * object stay anchored, making the command deterministic and predictable for undo/redo history.
+ */
+export function distributeObjectsAtomic(
+  map: MapData,
+  objects: PlanObject[],
+  keys: string[],
+  direction: TerritoryDistribution,
+  isEditable: (object: PlanObject) => boolean,
+): TerritoryCommandResult {
+  const selection = requireAtomicEditableSelection(objects, keys, isEditable);
+  if (!selection.ok) return selection;
+  const axis = direction === 'horizontal' ? 'centerX' : 'centerY';
+  const selected = [...selection.selected].sort((a, b) => bounds(map, a)[axis] - bounds(map, b)[axis]);
+  const affected = new Set(selected.map((object) => object.key));
+  if (selected.length < 3)
+    return { ok: true, affectedKeys: [...affected], objects: [...objects] };
+
+  const first = bounds(map, selected[0])[axis];
+  const last = bounds(map, selected[selected.length - 1])[axis];
+  const step = (last - first) / (selected.length - 1);
+  const coordinateByKey = new Map<string, number>();
+  selected.forEach((object, index) => coordinateByKey.set(object.key, first + step * index));
+
+  return {
+    ok: true,
+    affectedKeys: [...affected],
+    objects: objects.map((object) => {
+      const coordinate = coordinateByKey.get(object.key);
+      if (coordinate === undefined) return object;
+      const box = bounds(map, object);
+      return direction === 'horizontal'
+        ? { ...object, x: Math.round(coordinate - box.width / 2) }
+        : { ...object, y: Math.round(coordinate - box.height / 2) };
+    }),
+  };
+}
+
+/** Applies an explicit bulk coordinate table as one atomic command. */
+export function setObjectCoordinatesAtomic(
+  objects: PlanObject[],
+  coordinates: ReadonlyArray<{ key: string; x: number; y: number }>,
+  isEditable: (object: PlanObject) => boolean,
+): TerritoryCommandResult {
+  const duplicateKeys = new Set<string>();
+  const seen = new Set<string>();
+  for (const row of coordinates) {
+    if (!Number.isInteger(row.x) || !Number.isInteger(row.y))
+      throw new TypeError('Territory bulk coordinates must use integer tile coordinates.');
+    if (seen.has(row.key)) duplicateKeys.add(row.key);
+    seen.add(row.key);
+  }
+  if (duplicateKeys.size)
+    throw new TypeError(`Territory bulk coordinates contain duplicate keys: ${[...duplicateKeys].join(', ')}`);
+
+  const selection = requireAtomicEditableSelection(
+    objects,
+    coordinates.map((row) => row.key),
+    isEditable,
+  );
+  if (!selection.ok) return selection;
+  if (selection.selected.length !== coordinates.length)
+    throw new TypeError('Territory bulk coordinates reference an unknown object key.');
+
+  const byKey = new Map(coordinates.map((row) => [row.key, row]));
+  return {
+    ok: true,
+    affectedKeys: coordinates.map((row) => row.key),
+    objects: objects.map((object) => {
+      const row = byKey.get(object.key);
+      return row ? { ...object, x: row.x, y: row.y } : object;
     }),
   };
 }
