@@ -19,7 +19,7 @@
     "audit": "npm audit --audit-level=high",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
-    "test:source-contracts": "node --test 'tests/**/Unit/*.test.ts' 'tests/**/Frontend/*.test.ts'",
+    "test:source-contracts": "node --test \"tests/**/Unit/*.test.ts\" \"tests/**/Frontend/*.test.ts\"",
     "check:accessibility": "node scripts/check-accessible-confirmations.mjs",
     "check:documentation": "node scripts/check-documentation-links.mjs",
     "check:page-localization-coverage": "node scripts/check-page-localization-coverage.mjs",
