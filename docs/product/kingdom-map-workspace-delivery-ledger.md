@@ -2,21 +2,23 @@
 
 ## Resume header
 
-- Status: **In progress; not merge-ready.** Keep this implementation's pull request draft until every required scope and final gate is evidenced.
-- Branch: `astra/kingdom-map-workspace`.
-- Baseline: `main` at `044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c`.
-- Current work: integrate canonical contracts, renderer, Explorer/editor, collaboration and analysis from isolated worktrees. Exact checkout and locked Node 24/PHP 8.5 dependencies are installed.
-- Durable setup: `3197248b7cd2e74f4543098ee1e98f2c9ecb40fb` adds read-only, branch-scoped source/tooling transport. It exports only tracked Git objects and lockfile-selected tools, not runtime environment files or credentials. Remove this temporary workflow before completion.
-- Verification: no application checks have yet been executed for this delivery. Existing passing commits do not certify the current candidate.
-- External source reconciliation: the requested shared conversation could not be fetched through the available web reader. Its body and any decisions unique to it remain unverified. The original planning prompt and execution instructions establish independently verified scope. Visible conversation planning package names KM00–KM18 are mapped in the acceptance matrix; this does not certify decisions unique to the inaccessible shared URL.
-- Concurrent ownership: draft PR #164 (`astra/hardening-followup`) continues repository-wide hardening separately. Do not overwrite that branch, its ledger, or its owners. Resolve or integrate necessary inherited release blockers with exact evidence; do not declare the separate hardening program complete.
-- Next action: integrate coherent commits, run focused verification and PostgreSQL CI, finish all remaining scope, then audit the exact candidate.
+- Status: **In progress; not merge-ready.** PR #165 remains draft.
+- Branch: `astra/kingdom-map-workspace`; audited checkpoint `aa88d4d11d7dc786b0d262ff16e038d8098c6ee8` (108 commits, 188 changed files).
+- Baseline/current main: `044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c`.
+- Source plan: the full user-supplied attachment is now reconciled and preserved as a [source reference](../reference/kingdom-map-workspace-source-plan.md). The prior inaccessible-share gate is resolved by this supplied content. No legacy schema adapters will be introduced.
+- Ownership: GameWorld owns facts; Operations owns intent/publication/recovery; Intelligence owns evidence; ReadModels compose reads; NotificationDelivery composes delivery. PR #164 remains separately owned at `7b1eb1ad7685b47f4c69440c1b4041454b906997`; only necessary, attributed dependencies may be incorporated.
+- Local toolchain: Node 24.19/npm 11.9 and PHP 8.5.10; both lockfile hashes match regenerated dependency artifact `10330572839` from run `34732389289`. Browser 1.62.1 binaries are available. PostgreSQL 18.6 binaries were recovered, but this execution profile maps only UID 0 and cannot run the server as its required unprivileged user. Use isolated PostgreSQL CI for database checks; no SQLite substitution, executable patch, or persistent database reset.
+- Executed baseline: 49 focused Node tests, 12-case geometry/analysis parity, export source contract, 17-locale key contract, Vue types and ESLint pass (two inherited lint warnings). These do not prove browser journeys, translated content, imagery or export fidelity.
+- Failing baseline: test suite registry omits the new TerritoryPlanning Unit directory; architecture reports recovery HTTP mutation shape and undocumented notification transaction composition, plus inherited Governance/Operations boundaries. Visual Regression run `34797169139` fails fixture preparation with an active-membership Kingdom-change exception. Six current workflows report `action_required`; none is recorded as passing.
+- Current work: repair ownership/verification defects, deliver real artwork plus the shared renderer, and complete source-plan gaps. Saved artwork source artifact `10311600117` has been recovered and inspected; imagery availability is distinct from implemented coverage.
+- Next actions: register all tests, fix owned boundary defects, complete asset/scene/export contracts and accessible Explorer, run focused verification, push coherent commits, then finish editing/analysis/integration and exact-candidate gates.
+- Temporary source/apply workflows and encoded transport chunks remain cleanup items; they are not product functionality and must be removed before readiness.
 
 Checkpoint SHAs name preceding durable work. Git history and the PR verification receipt identify the exact current candidate without circular self-reference.
 
 ## Sources and boundaries
 
-The delivery implements the user's **Kingshot Kingdom Map — Complete Implementation Planning Prompt** and **Kingshot Kingdom Map — Execute to Completion** instructions. The shared plan reference is <https://chatgpt.com/share/6aa60306-ebe0-83ea-b549-676c3f7b7c3e>; inaccessible content remains an explicit source gate, not an excuse to stop independent implementation.
+The delivery implements the user's **Kingshot Kingdom Map — Complete Implementation Planning Prompt** and **Kingshot Kingdom Map — Execute to Completion** instructions. The formerly inaccessible shared source is reconciled by the full attachment supplied in this conversation; see the preserved source reference above.
 
 Architecture ownership remains defined by [ADR 0009](../architecture/adr/0009-versioned-map-truth-and-territory-planning.md), [KingdomMaps](../architecture/contexts/game-world/kingdom-maps.md), and [TerritoryPlanning](../architecture/contexts/operations/territory-planning.md). GameWorld owns immutable facts; Operations owns plans and publication; Intelligence owns observations/evidence; ReadModels compose authorized reads. Artwork is presentation, not collision geometry or evidence of mechanics.
 
@@ -26,7 +28,7 @@ The user supplied authorization for Kingshot artwork. Record actual source files
 
 ## Complete acceptance queue
 
-These `KMAP` identifiers are newly assigned delivery identifiers, not claimed identifiers from the unread shared conversation. The [acceptance matrix](kingdom-map-workspace-acceptance.md) maps these to visible source packages, owners, implementation areas and required evidence. [Implementation](kingdom-map-workspace-implementation.md) and [asset catalogue](kingdom-map-workspace-assets.md) are canonical design/coverage references.
+These `KMAP` identifiers are newly assigned delivery identifiers, distinct from the source plan KM-00 through KM-18 identifiers. The [acceptance matrix](kingdom-map-workspace-acceptance.md) maps these to visible source packages, owners, implementation areas and required evidence. [Implementation](kingdom-map-workspace-implementation.md) and [asset catalogue](kingdom-map-workspace-assets.md) are canonical design/coverage references.
 
 | ID | Required outcome | Current state | Acceptance / remaining evidence |
 | --- | --- | --- | --- |
@@ -61,5 +63,5 @@ Missing external sources, artwork, or permissions require exact unblock informat
 - Browser drafts used plan/revision-only localStorage keys; authority-bound recovery must replace that private-data retention.
 - Facility catalogue contains 90 records while old Canvas rendered only fixed structures. Resource/terrain corpus counts do not supply actual coordinates. See the asset catalogue for exact inspected coverage.
 - Archive did not prevent subsequent saves/publication; stale mutations must fail closed.
-- No local PostgreSQL service is available; deployment-representative HTTP/concurrency checks run in PostgreSQL CI. No SQLite substitution or persistent database reset is authorized.
+- This execution profile cannot start PostgreSQL under a non-root identity. Database behavior/concurrency evidence must come from the isolated PostgreSQL CI service. No SQLite substitution or persistent database reset is authorized.
 - Inherited Architecture run 34732445211 at setup SHA 9f4b2f8c999d8603b9a19f704d7c4bc5f14eda7f failed current-Kingdom controller and foreign permission-vocabulary boundaries. Resolve these required gates while preserving PR #164 ownership.
