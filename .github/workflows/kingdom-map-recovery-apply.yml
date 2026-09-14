@@ -30,8 +30,8 @@ jobs:
               old=out.split()[2] if out else None
               if old!=f['old_sha']: raise SystemExit('base blob mismatch: '+f['path'])
           parts=sorted((root/'.github/kingdom-map-recovery-chunks').glob('part-*.b64'))
-          encoded=''.join(p.read_text().strip() for p in parts)
-          patch=gzip.decompress(base64.b64decode(encoded, validate=True))
+          compressed=b''.join(base64.b64decode(p.read_text().strip(), validate=True) for p in parts)
+          patch=gzip.decompress(compressed)
           if hashlib.sha256(patch).hexdigest()!=manifest['patch_sha256']: raise SystemExit('patch digest mismatch')
           subprocess.run(['git','apply','--check','--binary','-'],input=patch,check=True)
           subprocess.run(['git','apply','--index','--binary','-'],input=patch,check=True)
