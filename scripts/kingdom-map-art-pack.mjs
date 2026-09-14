@@ -28,7 +28,7 @@
  * reviewed on its own; `--approve <reviewer>` is a separate, named human action.
  */
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve, win32 } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -66,7 +66,10 @@ function isRecord(value) {
 export function resolvePackFile(packDir, filename) {
   if (typeof filename !== 'string' || filename.trim().length === 0)
     throw new ArtworkPackError('pack source filename must be a non-empty string');
-  if (isAbsolute(filename))
+  // Reject absolute paths by both host-native and Windows semantics. A Linux CI runner must not
+  // accept a Windows drive/UNC path that would become absolute when the same pack is handled on
+  // Windows.
+  if (isAbsolute(filename) || win32.isAbsolute(filename))
     throw new ArtworkPackError(`pack source ${filename} must be relative to the pack directory`);
   const root = resolve(packDir);
   const target = resolve(root, filename);
