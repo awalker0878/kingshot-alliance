@@ -39,6 +39,14 @@ export default defineConfig({
       name: 'mobile',
       use: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true },
     },
+    {
+      // Tablet is intentionally scoped to the Kingdom Map evidence suites. Older visual
+      // specifications use explicit desktop/mobile fingerprint maps and should not silently
+      // acquire a third baseline without a separate visual review.
+      name: 'tablet',
+      testMatch: '**/Territory{Accessibility,Performance}.spec.ts',
+      use: { viewport: { width: 1024, height: 1366 }, deviceScaleFactor: 1, hasTouch: true },
+    },
   ],
   outputDir: 'test-results/visual',
 });

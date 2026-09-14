@@ -28,7 +28,7 @@
  * reviewed on its own; `--approve <reviewer>` is a separate, named human action.
  */
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve, win32 } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -62,16 +62,21 @@ function isRecord(value) {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** Reject absolute paths using both POSIX/native and Windows semantics on every CI host. */
+function isAbsolutePackPath(value) {
+  return isAbsolute(value) || win32.isAbsolute(value);
+}
+
 /** Resolves a pack-relative source filename, rejecting absolute and directory-escaping paths. */
 export function resolvePackFile(packDir, filename) {
   if (typeof filename !== 'string' || filename.trim().length === 0)
     throw new ArtworkPackError('pack source filename must be a non-empty string');
-  if (isAbsolute(filename))
+  if (isAbsolutePackPath(filename))
     throw new ArtworkPackError(`pack source ${filename} must be relative to the pack directory`);
   const root = resolve(packDir);
   const target = resolve(root, filename);
   const rel = relative(root, target);
-  if (rel.length === 0 || rel.startsWith('..') || isAbsolute(rel))
+  if (rel.length === 0 || rel.startsWith('..') || isAbsolutePackPath(rel))
     throw new ArtworkPackError(`pack source ${filename} escapes the pack directory`);
   return target;
 }
