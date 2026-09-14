@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\ReadModels\KingdomGovernance\Fixtures;
 
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\Alliance\Lifecycle\Actions\CreateAlliance;
 use Illuminate\Support\Facades\Hash;
 use Tests\ReadModels\KingdomGovernance\Support\GovernanceCatalogueFixture;
 use Tests\Support\ScenarioFactory;
@@ -19,7 +20,7 @@ final class GovernanceCatalogueVisualFixture
                 'email' => 'governance-catalogues-'.$project.'@example.test', 'password' => Hash::make('password'),
                 'email_verified_at' => now(), 'timezone' => 'UTC']);
             $player = $factory->player((int) $user->id, $kingdom, 'governance-catalogues-'.$project);
-            $factory->alliance($player);
+            app(CreateAlliance::class)->handle((int) $user->id, $player->playerId, 'Governance Catalogues '.$project, 'governance-catalogues-'.$project);
             GovernanceCatalogueFixture::seed($player);
         }
     }

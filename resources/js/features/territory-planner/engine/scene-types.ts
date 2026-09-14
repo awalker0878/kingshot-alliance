@@ -22,6 +22,8 @@ export type TerritorySceneEntity = {
   layer: TerritorySceneLayer;
   label: string;
   bounds: MapWorldRectangle;
+  /** Exact occupied terrain cells, encoded as [x, y, horizontal width]. */
+  spans?: ReadonlyArray<readonly [number, number, number]>;
   assetKey: string | null;
   color: string | null;
   opacity: number;

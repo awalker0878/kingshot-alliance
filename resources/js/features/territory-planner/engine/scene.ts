@@ -46,6 +46,7 @@ function facilityAssetKey(category: string, name: string): string | null {
   if (category !== 'outpost') return null;
   const slug = name
     .toLocaleLowerCase('en')
+    .replace(/['’]/g, '')
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '');
   return slug ? `outpost.${slug}` : 'outpost.unknown';
@@ -121,6 +122,7 @@ export function buildTerritoryScene(input: BuildTerritorySceneInput): TerritoryS
       layer: 'terrain',
       label: feature.family === 'lake' ? 'Lake' : 'Mountain',
       bounds: feature.bounds,
+      spans: feature.spans,
       assetKey: `terrain.${feature.family}`,
       color: null,
       opacity: 1,
@@ -293,6 +295,7 @@ export function buildTerritoryScene(input: BuildTerritorySceneInput): TerritoryS
         object_type: object.type,
         rotation: object.rotation,
         alliance_key: object.alliance_key,
+        locked: object.metadata.locked === true,
       },
     });
   }
@@ -313,10 +316,26 @@ export function sceneEntitiesForQuery(
   query: string,
   limit = 200,
 ): TerritorySceneEntity[] {
+  return sceneSearchPage(scene, query, { limit }).items;
+}
+
+export function sceneSearchPage(
+  scene: TerritorySceneDocument,
+  query: string,
+  options: { limit?: number; offset?: number; layers?: readonly string[] } = {},
+): {
+  items: TerritorySceneEntity[];
+  total: number;
+  offset: number;
+  nextOffset: number | null;
+  previousOffset: number | null;
+} {
+  const limit = Number.isInteger(options.limit) ? Math.max(1, Math.min(200, options.limit!)) : 100;
+  const requested = Number.isInteger(options.offset) ? Math.max(0, options.offset!) : 0;
   const normalized = query.trim().toLocaleLowerCase();
-  const result: TerritorySceneEntity[] = [];
+  const matches: TerritorySceneEntity[] = [];
   for (const entity of scene.entities) {
-    if (!entity.selectable) continue;
+    if (!entity.selectable || (options.layers && !options.layers.includes(entity.layer))) continue;
     if (
       normalized &&
       ![entity.label, entity.sourceKey, entity.layer, entity.assetKey ?? '']
@@ -325,10 +344,16 @@ export function sceneEntitiesForQuery(
         .includes(normalized)
     )
       continue;
-    result.push(entity);
-    if (result.length === limit) break;
+    matches.push(entity);
   }
-  return result;
+  const offset = Math.min(requested, Math.max(0, Math.ceil(matches.length / limit) - 1) * limit);
+  return {
+    items: matches.slice(offset, offset + limit),
+    total: matches.length,
+    offset,
+    nextOffset: offset + limit < matches.length ? offset + limit : null,
+    previousOffset: offset > 0 ? Math.max(0, offset - limit) : null,
+  };
 }
 
 export function sceneEntityForPlannedObject(

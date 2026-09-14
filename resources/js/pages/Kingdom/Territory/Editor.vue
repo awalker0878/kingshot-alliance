@@ -9,11 +9,6 @@ import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import MarchAnalysisPanel from '@/features/territory-planner/components/MarchAnalysisPanel.vue';
 import TerritoryCanvas from '@/features/territory-planner/components/TerritoryCanvas.vue';
 import {
-  buildSvg,
-  downloadPngFromSvg,
-  downloadText,
-} from '@/features/territory-planner/engine/export';
-import {
   createEditorSession,
   TerritoryRequestError,
   type SaveReceipt,
@@ -48,6 +43,7 @@ import type {
   TerritoryObjectType,
   ValidationIssue,
 } from '@/features/territory-planner/engine/types';
+import { buildLayoutDocument } from '@/features/territory-planner/engine/interchange';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -1188,26 +1184,19 @@ function applyHivePreview(): void {
   hivePreview.value = [];
 }
 
-function exportDocument(): {
-  schema_version: 1;
-  plan: Record<string, unknown>;
-  alliances: PlanAlliance[];
-  groups: PlanGroup[];
-  objects: PlanObject[];
-} {
-  return {
-    schema_version: 1,
-    plan: {
-      ...props.territory.plan,
-      revision: revision.value,
-      map_dataset_id: props.territory.map.id,
-      map_dataset_checksum: props.territory.map.checksum,
-      planning_preferences: preferences.value,
+function exportDocument() {
+  return buildLayoutDocument(
+    props.territory.plan,
+    revision.value,
+    props.territory.map.id,
+    props.territory.map.checksum,
+    {
+      alliances: alliances.value,
+      groups: groups.value,
+      objects: objects.value,
+      preferences: preferences.value,
     },
-    alliances: alliances.value,
-    groups: groups.value,
-    objects: objects.value,
-  };
+  );
 }
 function exportMetadata() {
   return {
@@ -1216,27 +1205,52 @@ function exportMetadata() {
     observedAt: props.territory.map.observed_at,
     confidence: props.territory.map.confidence,
     exportedAt: new Date().toISOString(),
+    mapChecksum: props.territory.map.checksum,
+    planRevision: revision.value,
+    workingDraft: persistenceSession?.dirty() ?? false,
   };
 }
-function exportJson(): void {
-  downloadText(
-    `${props.territory.plan.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.json`,
-    JSON.stringify(exportDocument(), null, 2),
-    'application/json',
-  );
+async function runExport(kind: 'json' | 'svg' | 'png'): Promise<void> {
+  if (busy.value) return;
+  busy.value = true;
+  try {
+    // Capture one working revision before the optional export module is loaded.
+    const documentJson = JSON.stringify(exportDocument(), null, 2);
+    if (new Blob([documentJson]).size > 5_000_000) throw new Error(t('territory.requestFailed'));
+    const snapshot = JSON.parse(documentJson) as ReturnType<typeof exportDocument>;
+    const metadata = exportMetadata();
+    const options = canvas.value?.exportOptions();
+    const { buildSvg, downloadText, downloadPngFromSvg } =
+      await import('@/features/territory-planner/engine/export');
+    if (kind === 'json') downloadText(`${metadata.title}.json`, documentJson, 'application/json');
+    else {
+      const svg = buildSvg(
+        props.territory.map.data,
+        snapshot.alliances,
+        snapshot.objects,
+        metadata,
+        options,
+      );
+      if (kind === 'svg') downloadText(`${metadata.title}.svg`, svg, 'image/svg+xml');
+      else await downloadPngFromSvg(`${metadata.title}.png`, svg);
+    }
+  } catch (error) {
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : t('territory.requestFailed'),
+    };
+  } finally {
+    busy.value = false;
+  }
 }
-function exportSvg(): void {
-  downloadText(
-    `${props.territory.plan.name}.svg`,
-    buildSvg(props.territory.map.data, alliances.value, objects.value, exportMetadata()),
-    'image/svg+xml',
-  );
+function exportJson(): Promise<void> {
+  return runExport('json');
 }
-async function exportPng(): Promise<void> {
-  await downloadPngFromSvg(
-    `${props.territory.plan.name}.png`,
-    buildSvg(props.territory.map.data, alliances.value, objects.value, exportMetadata()),
-  );
+function exportSvg(): Promise<void> {
+  return runExport('svg');
+}
+function exportPng(): Promise<void> {
+  return runExport('png');
 }
 async function importFile(event: Event): Promise<void> {
   const input = event.target as HTMLInputElement;

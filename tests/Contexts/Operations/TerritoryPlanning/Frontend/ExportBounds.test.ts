@@ -62,6 +62,14 @@ test('translating the entire world preserves exported fixed structures, footprin
     structure.x += 117;
     structure.y -= 83;
   }
+  for (const zone of Object.values(shifted.zones)) {
+    zone.x += 117;
+    zone.y -= 83;
+  }
+  for (const facility of shifted.facilities ?? []) {
+    facility.x += 117;
+    facility.y -= 83;
+  }
   assert.equal(
     buildSvg(shifted, [alliance], [{ ...object, x: object.x + 117, y: object.y - 83 }], metadata),
     original,

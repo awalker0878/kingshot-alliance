@@ -14,6 +14,14 @@ use Tests\TestCase;
 
 final class TerritoryLayoutContractTest extends TestCase
 {
+    public function test_canonical_browser_export_round_trips_without_ui_fields_or_legacy_schema(): void
+    {
+        $json = file_get_contents(__DIR__.'/../Fixtures/browser-layout-v2.json');
+        self::assertIsString($json);
+        $expected = json_decode($json, true, 32, JSON_THROW_ON_ERROR);
+        self::assertSame($expected, app(TerritoryLayoutContract::class)->decode($json));
+    }
+
     public function test_import_rejects_changed_preview_content_before_attempting_persistence(): void
     {
         $document = json_encode($this->document(), JSON_THROW_ON_ERROR);

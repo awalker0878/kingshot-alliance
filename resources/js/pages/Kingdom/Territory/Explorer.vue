@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { authorityContextKey, AUTHORITY_CONTEXT_STALE_EVENT } from '@/identity/authority-context';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import ActionNotice from '@/components/ui/ActionNotice.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import TerritoryCanvas from '@/features/territory-planner/components/TerritoryCanvas.vue';
-import {
-  buildTerritoryScene,
-  sceneEntitiesForQuery,
-} from '@/features/territory-planner/engine/scene';
+import { buildTerritoryScene, sceneSearchPage } from '@/features/territory-planner/engine/scene';
 import type { TerritorySceneEntity } from '@/features/territory-planner/engine/scene-types';
 import type { MapData } from '@/features/territory-planner/engine/types';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -48,6 +46,16 @@ const props = defineProps<{
 const { t, formatNumber } = useLocale();
 const canvas = ref<InstanceType<typeof TerritoryCanvas> | null>(null);
 const query = ref('');
+const pageOffset = ref(0);
+const showGrid = ref(false);
+const showLabels = ref(true);
+const editingViewKey = ref<string | null>(null);
+const viewsLoaded = ref(false);
+const mobilePanel = ref<'map' | 'tools' | 'objects'>('map');
+const mapHost = ref<HTMLElement | null>(null);
+const isFullscreen = ref(false);
+let requestController = new AbortController();
+let disposed = false;
 const selectedReference = ref<string | null>(null);
 const coordinateX = ref(
   Math.round(props.territory.map.data.bounds.x + props.territory.map.data.bounds.width / 2),
@@ -74,7 +82,23 @@ const scene = computed(() =>
     mapChecksum: props.territory.map.checksum,
   }),
 );
-const results = computed(() => sceneEntitiesForQuery(scene.value, query.value, 200));
+const visibleLayers = computed(() => [
+  ...(showTerrain.value ? ['terrain'] : []),
+  ...(showFacilities.value ? ['facilities'] : []),
+  ...(showResources.value ? ['resources'] : []),
+  ...(showStructures.value ? ['structures'] : []),
+]);
+const resultPage = computed(() =>
+  sceneSearchPage(scene.value, query.value, {
+    offset: pageOffset.value,
+    limit: 100,
+    layers: visibleLayers.value,
+  }),
+);
+const results = computed(() => resultPage.value.items);
+watch([query, visibleLayers], () => {
+  pageOffset.value = 0;
+});
 const selected = computed<TerritorySceneEntity | null>(() => {
   if (!selectedReference.value) return null;
   return scene.value.entities.find((entity) => entity.key === selectedReference.value) ?? null;
@@ -96,7 +120,11 @@ async function jsonRequest(
   method = 'GET',
   body?: unknown,
 ): Promise<Record<string, unknown>> {
+  const authority = `${props.activePlayer.id}:${props.territory.map.id}:${authorityContextKey()}`;
+  const signal = requestController.signal;
   const init: NonNullable<Parameters<typeof fetch>[1]> = {
+    signal,
+    cache: 'no-store',
     method,
     credentials: 'same-origin',
     headers: {
@@ -109,6 +137,12 @@ async function jsonRequest(
   if (body !== undefined) init.body = JSON.stringify(body);
   const response = await fetch(url, init);
   const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+  if (
+    disposed ||
+    signal.aborted ||
+    authority !== `${props.activePlayer.id}:${props.territory.map.id}:${authorityContextKey()}`
+  )
+    throw new Error(t('territory.requestFailed'));
   if (!response.ok)
     throw new Error(
       typeof payload.message === 'string' ? payload.message : t('territory.requestFailed'),
@@ -117,7 +151,8 @@ async function jsonRequest(
 }
 function inspect(entity: TerritorySceneEntity): void {
   selectedReference.value = entity.key;
-  canvas.value?.focusBounds(entity.bounds);
+  mobilePanel.value = 'map';
+  void nextTick(() => canvas.value?.focusBounds(entity.bounds));
 }
 function inspectReference(key: string): void {
   const entity = scene.value.entities.find((candidate) => candidate.key === key);
@@ -125,6 +160,8 @@ function inspectReference(key: string): void {
 }
 function jump(): void {
   if (
+    !Number.isInteger(coordinateX.value) ||
+    !Number.isInteger(coordinateY.value) ||
     coordinateX.value < mapMinX.value ||
     coordinateX.value > mapMaxX.value ||
     coordinateY.value < mapMinY.value ||
@@ -166,6 +203,7 @@ async function loadViews(): Promise<void> {
     const payload = await jsonRequest(`/territory/workspace-views?${query.toString()}`);
     workspaceRevision.value = Number(payload.revision ?? 0);
     savedViews.value = Array.isArray(payload.views) ? (payload.views as WorkspaceView[]) : [];
+    viewsLoaded.value = true;
   } catch (error) {
     notice.value = {
       tone: 'warning',
@@ -173,26 +211,10 @@ async function loadViews(): Promise<void> {
     };
   }
 }
-async function saveCurrentView(): Promise<void> {
-  const name = viewName.value.trim();
-  const camera = canvas.value?.viewport();
-  if (!name || !camera) return;
+async function persistViews(views: WorkspaceView[]): Promise<void> {
+  if (!viewsLoaded.value || busy.value) return;
   busy.value = true;
   try {
-    const key = `view-${crypto.randomUUID()}`;
-    const views = [
-      ...savedViews.value,
-      {
-        key,
-        name,
-        center_x: camera.x,
-        center_y: camera.y,
-        zoom: camera.zoom,
-        layers: layerSnapshot(),
-        show_grid: true,
-        show_labels: true,
-      },
-    ].slice(-20);
     const payload = await jsonRequest('/territory/workspace-views', 'PUT', {
       map_dataset_id: props.territory.map.id,
       map_dataset_checksum: props.territory.map.checksum,
@@ -201,26 +223,105 @@ async function saveCurrentView(): Promise<void> {
     });
     workspaceRevision.value = Number(payload.revision);
     savedViews.value = payload.views as WorkspaceView[];
+    editingViewKey.value = null;
     viewName.value = '';
     notice.value = {
       tone: 'success',
       message: t('territory.saved', { revision: workspaceRevision.value }),
     };
   } catch (error) {
-    notice.value = {
-      tone: 'danger',
-      message: error instanceof Error ? error.message : t('territory.requestFailed'),
-    };
+    if (!disposed && !requestController.signal.aborted)
+      notice.value = {
+        tone: 'danger',
+        message: error instanceof Error ? error.message : t('territory.requestFailed'),
+      };
   } finally {
     busy.value = false;
   }
 }
+async function saveCurrentView(): Promise<void> {
+  const name = viewName.value.trim();
+  const camera = canvas.value?.viewport();
+  if (!name || !camera) return;
+  if (editingViewKey.value) {
+    await persistViews(
+      savedViews.value.map((view) =>
+        view.key === editingViewKey.value ? { ...view, name } : view,
+      ),
+    );
+    return;
+  }
+  if (savedViews.value.length >= 20) {
+    notice.value = { tone: 'warning', message: t('territory.explorer.viewLimit') };
+    return;
+  }
+  await persistViews([
+    ...savedViews.value,
+    {
+      key: `view-${crypto.randomUUID()}`,
+      name,
+      center_x: camera.x,
+      center_y: camera.y,
+      zoom: camera.zoom,
+      layers: layerSnapshot(),
+      show_grid: showGrid.value,
+      show_labels: showLabels.value,
+    },
+  ]);
+}
+function renameView(view: WorkspaceView): void {
+  editingViewKey.value = view.key;
+  viewName.value = view.name;
+}
+async function removeView(view: WorkspaceView): Promise<void> {
+  await persistViews(savedViews.value.filter((item) => item.key !== view.key));
+}
+async function toggleFullscreen(): Promise<void> {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await mapHost.value?.requestFullscreen();
+  } catch {
+    notice.value = { tone: 'warning', message: t('territory.requestFailed') };
+  }
+}
+function fullscreenChanged(): void {
+  isFullscreen.value = document.fullscreenElement === mapHost.value;
+}
+function clearPrivateViews(): void {
+  requestController.abort();
+  requestController = new AbortController();
+  savedViews.value = [];
+  viewsLoaded.value = false;
+  workspaceRevision.value = 0;
+  editingViewKey.value = null;
+  viewName.value = '';
+}
 function openView(view: WorkspaceView): void {
   applyLayers(view.layers);
+  showGrid.value = view.show_grid;
+  showLabels.value = view.show_labels;
   canvas.value?.setCamera({ x: view.center_x, y: view.center_y, zoom: view.zoom });
 }
 
-onMounted(() => void loadViews());
+watch(
+  () => [props.activePlayer.id, props.territory.map.id, props.territory.map.checksum],
+  () => {
+    clearPrivateViews();
+    void loadViews();
+  },
+);
+onMounted(() => {
+  void loadViews();
+  window.addEventListener(AUTHORITY_CONTEXT_STALE_EVENT, clearPrivateViews);
+  document.addEventListener('fullscreenchange', fullscreenChanged);
+});
+onBeforeUnmount(() => {
+  disposed = true;
+  clearPrivateViews();
+  requestController.abort();
+  window.removeEventListener(AUTHORITY_CONTEXT_STALE_EVENT, clearPrivateViews);
+  document.removeEventListener('fullscreenchange', fullscreenChanged);
+});
 </script>
 
 <template>
@@ -241,8 +342,23 @@ onMounted(() => void loadViews());
 
     <ActionNotice v-if="notice" class="mt-4" :tone="notice.tone" :message="notice.message" />
 
+    <nav class="mt-4 flex gap-2 xl:hidden" :aria-label="t('territory.mapLayers')">
+      <AppButton :aria-pressed="mobilePanel === 'map'" @click="mobilePanel = 'map'">{{
+        t('territory.explorer.map')
+      }}</AppButton>
+      <AppButton :aria-pressed="mobilePanel === 'tools'" @click="mobilePanel = 'tools'">{{
+        t('territory.mapLayers')
+      }}</AppButton>
+      <AppButton :aria-pressed="mobilePanel === 'objects'" @click="mobilePanel = 'objects'">{{
+        t('territory.explorer.objects')
+      }}</AppButton>
+    </nav>
     <div class="mt-4 grid gap-4 xl:grid-cols-[14rem_minmax(0,1fr)_19rem]">
-      <aside class="ks-surface p-4" :aria-label="t('territory.mapLayers')">
+      <aside
+        class="ks-surface p-4 xl:block"
+        :class="{ hidden: mobilePanel !== 'tools' }"
+        :aria-label="t('territory.mapLayers')"
+      >
         <p class="ks-kicker">{{ t('territory.mapLayers') }}</p>
         <label class="mt-3 block text-sm font-semibold">
           {{ t('territory.filterObjects') }}
@@ -250,7 +366,17 @@ onMounted(() => void loadViews());
         </label>
         <div class="mt-4 space-y-2 text-sm">
           <label class="flex min-h-11 items-center gap-2"
-            ><input v-model="showTerrain" type="checkbox" />Terrain</label
+            ><input v-model="showGrid" type="checkbox" />{{ t('territory.explorer.grid') }}</label
+          >
+          <label class="flex min-h-11 items-center gap-2"
+            ><input v-model="showLabels" type="checkbox" />{{
+              t('territory.explorer.labels')
+            }}</label
+          >
+          <label class="flex min-h-11 items-center gap-2"
+            ><input v-model="showTerrain" type="checkbox" />{{
+              t('territory.explorer.terrain')
+            }}</label
           >
           <label class="flex min-h-11 items-center gap-2"
             ><input v-model="showStructures" type="checkbox" />{{
@@ -258,10 +384,14 @@ onMounted(() => void loadViews());
             }}</label
           >
           <label class="flex min-h-11 items-center gap-2"
-            ><input v-model="showFacilities" type="checkbox" />Facilities</label
+            ><input v-model="showFacilities" type="checkbox" />{{
+              t('territory.explorer.facilities')
+            }}</label
           >
           <label class="flex min-h-11 items-center gap-2"
-            ><input v-model="showResources" type="checkbox" />Resources</label
+            ><input v-model="showResources" type="checkbox" />{{
+              t('territory.explorer.resources')
+            }}</label
           >
           <label class="flex min-h-11 items-center gap-2"
             ><input v-model="showZones" type="checkbox" />{{ t('territory.showZones') }}</label
@@ -269,7 +399,7 @@ onMounted(() => void loadViews());
         </div>
 
         <div class="mt-5 border-t border-[var(--ks-border)] pt-4">
-          <p class="ks-kicker">Coordinates</p>
+          <p class="ks-kicker">{{ t('territory.explorer.coordinates') }}</p>
           <div class="mt-2 grid grid-cols-2 gap-2">
             <input
               v-model.number="coordinateX"
@@ -277,7 +407,7 @@ onMounted(() => void loadViews());
               type="number"
               :min="mapMinX"
               :max="mapMaxX"
-              aria-label="X coordinate"
+              :aria-label="t('territory.explorer.xCoordinate')"
             />
             <input
               v-model.number="coordinateY"
@@ -285,41 +415,75 @@ onMounted(() => void loadViews());
               type="number"
               :min="mapMinY"
               :max="mapMaxY"
-              aria-label="Y coordinate"
+              :aria-label="t('territory.explorer.yCoordinate')"
             />
           </div>
-          <AppButton class="mt-2 w-full" @click="jump">Jump</AppButton>
-          <AppButton class="mt-2 w-full" @click="canvas?.fitMap()">Fit map</AppButton>
+          <AppButton class="mt-2 w-full" @click="jump">{{
+            t('territory.explorer.jump')
+          }}</AppButton>
+          <AppButton class="mt-2 w-full" @click="canvas?.fitMap()">{{
+            t('territory.explorer.fitMap')
+          }}</AppButton>
         </div>
 
         <div class="mt-5 border-t border-[var(--ks-border)] pt-4">
-          <p class="ks-kicker">Saved views</p>
+          <p class="ks-kicker">{{ t('territory.explorer.savedViews') }}</p>
           <input
             v-model="viewName"
             maxlength="80"
             class="ks-input mt-2 w-full"
-            placeholder="View name"
+            :placeholder="t('territory.explorer.viewName')"
+            :aria-label="t('territory.explorer.viewName')"
           />
           <AppButton
             class="mt-2 w-full"
             :busy="busy"
-            :disabled="!viewName.trim()"
+            :disabled="!viewName.trim() || !viewsLoaded || busy"
             @click="saveCurrentView"
-            >{{ t('territory.save') }}</AppButton
+            >{{
+              editingViewKey ? t('territory.explorer.renameView') : t('territory.save')
+            }}</AppButton
           >
-          <button
+          <div
             v-for="view in savedViews"
             :key="view.key"
-            type="button"
-            class="ks-command-link mt-2 w-full text-left"
-            @click="openView(view)"
+            class="mt-2 border-t border-[var(--ks-border)] pt-2"
           >
-            {{ view.name }}
-          </button>
+            <button type="button" class="ks-command-link w-full text-left" @click="openView(view)">
+              {{ view.name }}
+            </button>
+            <div class="flex flex-wrap gap-2">
+              <button
+                type="button"
+                class="min-h-11 text-xs underline"
+                :disabled="busy"
+                @click="renameView(view)"
+              >
+                {{ t('territory.explorer.renameView') }}
+              </button>
+              <button
+                type="button"
+                class="min-h-11 text-xs underline"
+                :disabled="busy"
+                @click="removeView(view)"
+              >
+                {{ t('territory.explorer.removeView') }}
+              </button>
+            </div>
+          </div>
         </div>
       </aside>
 
-      <main class="min-w-0">
+      <main
+        ref="mapHost"
+        class="min-w-0 bg-[#101821] xl:block"
+        :class="{ hidden: mobilePanel !== 'map' }"
+      >
+        <div class="flex justify-end p-2">
+          <AppButton @click="toggleFullscreen">{{
+            t(isFullscreen ? 'territory.explorer.exitFullscreen' : 'territory.explorer.fullscreen')
+          }}</AppButton>
+        </div>
         <TerritoryCanvas
           ref="canvas"
           :label="t('territory.canvasLabel')"
@@ -332,6 +496,8 @@ onMounted(() => void loadViews());
           placement-type="governor_city"
           :active-alliance-key="null"
           read-only
+          :show-grid="showGrid"
+          :show-labels="showLabels"
           :show-terrain="showTerrain"
           :show-structures="showStructures"
           :show-facilities="showFacilities"
@@ -341,8 +507,10 @@ onMounted(() => void loadViews());
         />
         <section class="ks-surface mt-4 p-4" aria-live="polite">
           <p class="text-sm text-[var(--ks-muted)]">
-            {{ formatNumber(scene.entities.length) }} scene entities ·
-            {{ territory.map.observed_at }} ·
+            {{
+              t('territory.explorer.entityCount', { count: formatNumber(scene.entities.length) })
+            }}
+            · {{ territory.map.observed_at }} ·
             {{ t(`territory.confidence.${territory.map.confidence}`) }}
           </p>
           <p
@@ -361,8 +529,12 @@ onMounted(() => void loadViews());
         </section>
       </main>
 
-      <aside class="ks-surface p-4" aria-label="Object inspector">
-        <p class="ks-kicker">Inspector</p>
+      <aside
+        class="ks-surface p-4 xl:block"
+        :class="{ hidden: mobilePanel !== 'objects' }"
+        :aria-label="t('territory.explorer.inspector')"
+      >
+        <p class="ks-kicker">{{ t('territory.explorer.inspector') }}</p>
         <template v-if="selected">
           <h2 class="ks-display mt-2 text-xl font-semibold">{{ selected.label }}</h2>
           <p class="mt-2 text-sm text-[var(--ks-muted)]">
@@ -373,11 +545,9 @@ onMounted(() => void loadViews());
             <dd>{{ selected.bounds.x }}</dd>
             <dt>Y</dt>
             <dd>{{ selected.bounds.y }}</dd>
-            <dt>Size</dt>
+            <dt>{{ t('territory.explorer.size') }}</dt>
             <dd>{{ selected.bounds.width }}×{{ selected.bounds.height }}</dd>
-            <dt>Asset</dt>
-            <dd class="break-all">{{ selected.assetKey ?? '—' }}</dd>
-            <dt>Confidence</dt>
+            <dt>{{ t('territory.explorer.confidence') }}</dt>
             <dd>{{ selected.confidence ?? territory.map.confidence }}</dd>
           </dl>
           <a
@@ -390,15 +560,35 @@ onMounted(() => void loadViews());
           >
         </template>
         <p v-else class="mt-2 text-sm text-[var(--ks-muted)]">
-          Select a map object or choose one from search results.
+          {{ t('territory.explorer.selectObject') }}
         </p>
 
         <div class="mt-5 border-t border-[var(--ks-border)] pt-4">
-          <p class="ks-kicker">Objects</p>
+          <p class="ks-kicker">{{ t('territory.explorer.objects') }}</p>
+          <p class="mt-2 text-xs" aria-live="polite">
+            {{
+              t('territory.explorer.results', {
+                start: resultPage.total ? resultPage.offset + 1 : 0,
+                end: resultPage.offset + results.length,
+                total: resultPage.total,
+              })
+            }}
+          </p>
+          <nav class="mt-2 flex gap-2" :aria-label="t('territory.explorer.searchableObjects')">
+            <AppButton
+              :disabled="resultPage.previousOffset === null"
+              @click="pageOffset = resultPage.previousOffset ?? 0"
+              >{{ t('territory.explorer.previous') }}</AppButton
+            >
+            <AppButton
+              :disabled="resultPage.nextOffset === null"
+              @click="pageOffset = resultPage.nextOffset ?? 0"
+              >{{ t('territory.explorer.next') }}</AppButton
+            >
+          </nav>
           <div
             class="mt-2 max-h-[32rem] overflow-auto"
-            role="list"
-            aria-label="Searchable map objects"
+            :aria-label="t('territory.explorer.searchableObjects')"
           >
             <button
               v-for="entity in results"

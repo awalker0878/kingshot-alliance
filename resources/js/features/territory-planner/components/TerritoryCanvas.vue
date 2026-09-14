@@ -15,6 +15,11 @@ import {
 import type { Point, PointerGesture, Viewport, WorldBounds } from '../engine/viewport';
 
 import { buildTerritoryScene } from '../engine/scene';
+import { buildPresentation, layerIsVisible, paintPresentation } from '../engine/presentation';
+import type { PresentationOptions } from '../engine/presentation';
+import { sceneEntitiesInBounds, sceneEntityContains } from '../engine/scene-index';
+import { requireAtomicEditableSelection } from '../engine/commands';
+import { MAX_ZOOM, MIN_ZOOM, worldPoint } from '../engine/viewport';
 import type { ObservedSceneObject } from '../engine/scene';
 import type { TerritorySceneEntity } from '../engine/scene-types';
 import type { MapData, PlanAlliance, PlanObject, TerritoryObjectType } from '../engine/types';
@@ -41,6 +46,8 @@ const props = withDefaults(
     showFacilities?: boolean;
     showResources?: boolean;
     showObserved?: boolean;
+    showGrid?: boolean;
+    showLabels?: boolean;
   }>(),
   {
     mapChecksum: '',
@@ -53,6 +60,8 @@ const props = withDefaults(
     showFacilities: true,
     showResources: true,
     showObserved: true,
+    showGrid: false,
+    showLabels: true,
   },
 );
 
@@ -93,9 +102,6 @@ function setViewport(view: Viewport): void {
   draw();
 }
 
-const allianceColor = computed(
-  () => new Map(props.alliances.map((alliance) => [alliance.key, alliance.presentation_color])),
-);
 const visibleAlliances = computed(
   () =>
     new Set(props.alliances.filter((alliance) => alliance.visible).map((alliance) => alliance.key)),
@@ -109,6 +115,22 @@ const scene = computed(() =>
     observedObjects: props.observedObjects ?? [],
   }),
 );
+
+const presentationOptions = computed<PresentationOptions>(() => ({
+  selectedKeys: props.selectedKeys,
+  showGrid: props.showGrid,
+  showLabels: props.showLabels,
+  layers: {
+    regions: { visible: props.showZones, opacity: 1 },
+    restrictions: { visible: props.showZones, opacity: 1 },
+    terrain: { visible: props.showTerrain, opacity: 0.62 },
+    structures: { visible: props.showStructures, opacity: 1 },
+    resources: { visible: props.showResources, opacity: 0.8 },
+    facilities: { visible: props.showFacilities, opacity: 1 },
+    observed: { visible: props.showObserved, opacity: 1 },
+    coverage: { visible: props.showCoverage, opacity: 1 },
+  },
+}));
 
 function fitMap(): void {
   cancelGesture();
@@ -130,7 +152,7 @@ function setCamera(view: { x: number; y: number; zoom: number }): void {
     ...viewport(),
     x: view.x,
     y: view.y,
-    zoom: Math.max(0.1, Math.min(100, view.zoom)),
+    zoom: Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, view.zoom)),
   });
 }
 function zoomBy(factor: number): void {
@@ -153,10 +175,12 @@ function movableKeys(keys: string[]): string[] {
   const allowed = new Set(
     props.alliances.filter((layer) => layer.visible && !layer.locked).map((layer) => layer.key),
   );
-  const selected = new Set(keys);
-  return props.objects
-    .filter((object) => selected.has(object.key) && allowed.has(object.alliance_key))
-    .map((object) => object.key);
+  const selection = requireAtomicEditableSelection(
+    props.objects,
+    keys,
+    (object) => allowed.has(object.alliance_key) && object.metadata.locked !== true,
+  );
+  return selection.ok ? selection.selected.map((object) => object.key) : [];
 }
 function canPlace(): boolean {
   return (
@@ -187,46 +211,41 @@ function rotatedRectangle(
     : rectangle;
 }
 
-function objectAt(screenX: number, screenY: number): PlanObject | null {
-  const visible = props.objects.filter((object) => visibleAlliances.value.has(object.alliance_key));
-  for (let index = visible.length - 1; index >= 0; index -= 1) {
-    const object = visible[index];
-    if (!object) continue;
-    const definition = props.map.object_types[object.type];
-    const [x, yBottom] = toScreen(object.x, object.y);
-    const footprint = rotatedRectangle(definition.footprint, object.rotation);
-    const objectWidth = footprint.width * zoom.value;
-    const objectHeight = footprint.height * zoom.value;
-    if (
-      screenX >= x &&
-      screenX <= x + objectWidth &&
-      screenY <= yBottom &&
-      screenY >= yBottom - objectHeight
+function entitiesAt(screenX: number, screenY: number): TerritorySceneEntity[] {
+  const point = worldPoint({ x: screenX, y: screenY }, viewport());
+  const tolerance = 4 / zoom.value;
+  return sceneEntitiesInBounds(scene.value, {
+    x: point.x - tolerance,
+    y: point.y - tolerance,
+    width: tolerance * 2,
+    height: tolerance * 2,
+  })
+    .filter(
+      (entity) => entity.selectable && layerIsVisible(entity.layer, presentationOptions.value),
     )
-      return object;
-  }
-  return null;
+    .filter((entity) =>
+      entity.spans
+        ? sceneEntityContains(entity, point.x, point.y)
+        : point.x >= entity.bounds.x - tolerance &&
+          point.x < entity.bounds.x + entity.bounds.width + tolerance &&
+          point.y >= entity.bounds.y - tolerance &&
+          point.y < entity.bounds.y + entity.bounds.height + tolerance,
+    );
 }
-
+function objectAt(screenX: number, screenY: number): PlanObject | null {
+  const entity = entitiesAt(screenX, screenY)
+    .filter((candidate) => candidate.layer === 'planned')
+    .at(-1);
+  return entity
+    ? (props.objects.find((object) => object.key === entity.planObjectKey) ?? null)
+    : null;
+}
 function referenceAt(screenX: number, screenY: number): TerritorySceneEntity | null {
-  const references = scene.value.entities.filter(
-    (entity) => entity.kind === 'factual' && entity.selectable,
+  return (
+    entitiesAt(screenX, screenY)
+      .filter((entity) => entity.kind === 'factual')
+      .at(-1) ?? null
   );
-  for (let index = references.length - 1; index >= 0; index -= 1) {
-    const entity = references[index];
-    if (!entity) continue;
-    const [x, yBottom] = toScreen(entity.bounds.x, entity.bounds.y);
-    const entityWidth = Math.max(4, entity.bounds.width * zoom.value);
-    const entityHeight = Math.max(4, entity.bounds.height * zoom.value);
-    if (
-      screenX >= x &&
-      screenX <= x + entityWidth &&
-      screenY <= yBottom &&
-      screenY >= yBottom - entityHeight
-    )
-      return entity;
-  }
-  return null;
 }
 
 function onPointerDown(event: PointerEvent): void {
@@ -405,7 +424,7 @@ function render(): void {
   if (!element) return;
   const context = element.getContext('2d');
   if (!context) return;
-  const ratio = window.devicePixelRatio || 1;
+  const ratio = Math.min(2, window.devicePixelRatio || 1);
   const pixelWidth = Math.round(width.value * ratio);
   const pixelHeight = Math.round(height.value * ratio);
   if (element.width !== pixelWidth) element.width = pixelWidth;
@@ -415,141 +434,27 @@ function render(): void {
   context.fillStyle = '#101821';
   context.fillRect(0, 0, width.value, height.value);
 
-  for (const entity of scene.value.entities) {
-    if (entity.kind !== 'factual') continue;
-    if ((entity.layer === 'regions' || entity.layer === 'restrictions') && !props.showZones)
-      continue;
-    if (entity.layer === 'terrain' && !props.showTerrain) continue;
-    if (entity.layer === 'resources' && !props.showResources) continue;
-    if (entity.layer === 'facilities' && !props.showFacilities) continue;
-    if (entity.layer === 'structures' && !props.showStructures) continue;
-    const [x, yBottom] = toScreen(entity.bounds.x, entity.bounds.y);
-    const entityWidth = Math.max(
-      entity.layer === 'facilities' ? 4 : 1,
-      entity.bounds.width * zoom.value,
-    );
-    const entityHeight = Math.max(
-      entity.layer === 'facilities' ? 4 : 1,
-      entity.bounds.height * zoom.value,
-    );
-    if (
-      x > width.value + 32 ||
-      x + entityWidth < -32 ||
-      yBottom > height.value + entityHeight + 32 ||
-      yBottom - entityHeight < -32
-    )
-      continue;
-    if (entity.layer === 'regions' || entity.layer === 'restrictions') {
-      context.strokeStyle =
-        entity.layer === 'restrictions' ? 'rgba(239, 138, 113, .34)' : 'rgba(225, 195, 120, .18)';
-      if (entity.layer === 'restrictions') context.setLineDash([5, 4]);
-      context.strokeRect(x, yBottom - entityHeight, entityWidth, entityHeight);
-      context.setLineDash([]);
-      continue;
-    }
-    context.globalAlpha =
-      entity.layer === 'terrain' ? 0.62 : entity.layer === 'resources' ? 0.8 : 0.9;
-    context.fillStyle =
-      entity.layer === 'terrain'
-        ? entity.assetKey === 'terrain.lake'
-          ? '#335f78'
-          : '#485564'
-        : entity.layer === 'resources'
-          ? '#c49a58'
-          : entity.layer === 'facilities'
-            ? '#b39a72'
-            : '#8b7d6b';
-    context.fillRect(x, yBottom - entityHeight, entityWidth, entityHeight);
-    context.globalAlpha = 1;
-    if (zoom.value > 1.4 && (entity.layer === 'structures' || entity.layer === 'facilities')) {
-      context.fillStyle = '#dbe4ea';
-      context.font = '10px sans-serif';
-      context.fillText(entity.label, x + 2, yBottom - entityHeight - 3);
-    }
-  }
-  if (props.showObserved) {
-    for (const entity of scene.value.entities) {
-      if (entity.kind !== 'observed') continue;
-      const [x, yBottom] = toScreen(entity.bounds.x, entity.bounds.y);
-      const entityWidth = Math.max(4, entity.bounds.width * zoom.value);
-      const entityHeight = Math.max(4, entity.bounds.height * zoom.value);
-      if (
-        x > width.value + 32 ||
-        x + entityWidth < -32 ||
-        yBottom > height.value + entityHeight + 32 ||
-        yBottom - entityHeight < -32
-      )
-        continue;
-      context.save();
-      context.globalAlpha = entity.opacity;
-      context.fillStyle = entity.color ?? '#f3d36a';
-      context.fillRect(x, yBottom - entityHeight, entityWidth, entityHeight);
-      context.globalAlpha = 1;
-      context.strokeStyle = '#ffffff';
-      context.lineWidth = Math.max(1, Math.min(2, zoom.value));
-      context.setLineDash([4, 3]);
-      context.strokeRect(x, yBottom - entityHeight, entityWidth, entityHeight);
-      context.setLineDash([]);
-      if (zoom.value > 1.4) {
-        context.fillStyle = '#ffffff';
-        context.font = '10px sans-serif';
-        context.fillText(entity.label, x + 2, yBottom - entityHeight - 3);
-      }
-      context.restore();
-    }
-  }
-
-  const previewDelta = drag.value?.kind === 'object' ? gestureDelta(drag.value) : { x: 0, y: 0 };
-  const previewKeys = new Set(drag.value?.kind === 'object' ? drag.value.keys : []);
-  for (const stored of props.objects) {
-    const object = previewKeys.has(stored.key)
-      ? { ...stored, x: stored.x + previewDelta.x, y: stored.y + previewDelta.y }
-      : stored;
-    if (!visibleAlliances.value.has(object.alliance_key)) continue;
-    const definition = props.map.object_types[object.type];
-    const footprint = rotatedRectangle(definition.footprint, object.rotation);
-    const color = allianceColor.value.get(object.alliance_key) ?? '#4da3ff';
-    const [x, yBottom] = toScreen(object.x, object.y);
-    const objectWidth = footprint.width * zoom.value;
-    const objectHeight = footprint.height * zoom.value;
-    if (props.showCoverage && definition.coverage) {
-      const coverage = rotatedRectangle(definition.coverage, object.rotation);
-      const coverageOffsetX = Math.trunc((coverage.width - footprint.width) / 2);
-      const coverageOffsetY = Math.trunc((coverage.height - footprint.height) / 2);
-      const [coverageX, coverageBottom] = toScreen(
-        object.x - coverageOffsetX,
-        object.y - coverageOffsetY,
-      );
-      const coverageWidth = coverage.width * zoom.value;
-      const coverageHeight = coverage.height * zoom.value;
-      context.globalAlpha = 0.12;
-      context.fillStyle = color;
-      context.fillRect(coverageX, coverageBottom - coverageHeight, coverageWidth, coverageHeight);
-      context.globalAlpha = 1;
-    }
-    context.fillStyle = color;
-    context.fillRect(
-      x,
-      yBottom - objectHeight,
-      Math.max(objectWidth, 2),
-      Math.max(objectHeight, 2),
-    );
-    context.strokeStyle = props.selectedKeys.includes(object.key)
-      ? '#fff4b8'
-      : 'rgba(255,255,255,.55)';
-    context.lineWidth = props.selectedKeys.includes(object.key) ? 2 : 1;
-    context.strokeRect(
-      x,
-      yBottom - objectHeight,
-      Math.max(objectWidth, 2),
-      Math.max(objectHeight, 2),
-    );
-    if (zoom.value > 1.2 && object.label) {
-      context.fillStyle = '#f8fafc';
-      context.font = '11px sans-serif';
-      context.fillText(object.label, x + 3, yBottom - objectHeight - 4);
-    }
-  }
+  const options = {
+    ...presentationOptions.value,
+    ...(drag.value?.kind === 'object'
+      ? { preview: { keys: drag.value.keys, delta: gestureDelta(drag.value) } }
+      : {}),
+  };
+  context.save();
+  context.beginPath();
+  const northwest = screenPoint(
+    { x: props.map.bounds.x, y: props.map.bounds.y + props.map.bounds.height },
+    viewport(),
+  );
+  context.rect(
+    northwest.x,
+    northwest.y,
+    props.map.bounds.width * zoom.value,
+    props.map.bounds.height * zoom.value,
+  );
+  context.clip();
+  paintPresentation(context, buildPresentation(scene.value, viewport(), options));
+  context.restore();
   if (drag.value?.kind === 'box') {
     context.strokeStyle = '#e8c978';
     context.setLineDash([5, 4]);
@@ -565,13 +470,18 @@ function render(): void {
   }
 }
 
-defineExpose({ fitMap, focusBounds, jumpTo, setCamera, viewport });
+function exportOptions(): PresentationOptions {
+  return { ...presentationOptions.value, selectedKeys: [] };
+}
+defineExpose({ fitMap, focusBounds, jumpTo, setCamera, viewport, exportOptions });
 onMounted(() => {
   resizeObserver = new ResizeObserver(([entry]) => {
     if (!entry) return;
     cancelGesture();
     width.value = Math.max(1, Math.floor(entry.contentRect.width));
-    height.value = Math.max(420, Math.min(760, Math.floor(window.innerHeight * 0.68)));
+    height.value = document.fullscreenElement?.contains(host.value)
+      ? Math.max(420, window.innerHeight - 100)
+      : Math.max(320, Math.min(760, Math.floor(window.innerHeight * 0.68)));
     if (!fitted) {
       fitted = true;
       fitMap();
@@ -609,6 +519,8 @@ watch(
     props.showFacilities,
     props.showResources,
     props.showObserved,
+    props.showGrid,
+    props.showLabels,
     props.observedObjects,
   ],
   draw,

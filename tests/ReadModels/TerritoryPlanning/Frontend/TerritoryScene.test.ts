@@ -5,7 +5,10 @@ import {
   buildTerritoryScene,
   rotatedFootprint,
   sceneEntitiesForQuery,
+  sceneSearchPage,
 } from '../../../../resources/js/features/territory-planner/engine/scene.ts';
+import { buildPresentation } from '../../../../resources/js/features/territory-planner/engine/presentation.ts';
+import { sceneEntityContains } from '../../../../resources/js/features/territory-planner/engine/scene-index.ts';
 import type {
   MapData,
   PlanAlliance,
@@ -183,4 +186,64 @@ test('observed reality is projected as a distinct shared-scene layer without cha
   assert.deepEqual(observed?.bounds, { x: 163, y: 261, width: 2, height: 3 });
   assert.equal(observed?.metadata.identity_state, 'resolved_player');
   assert.equal(scene.entities.find((entity) => entity.key === 'planned:planned-city')?.kind, 'planned');
+});
+
+test('terrain painting and inspection preserve empty cells inside a feature bound', () => {
+  const source = structuredClone(map);
+  source.terrain_features![0]!.spans = [[140, 240, 2], [140, 241, 1]];
+  source.terrain_features![0]!.cell_count = 3;
+  const before = JSON.stringify(source);
+  const scene = buildTerritoryScene({ map: source, mapChecksum: 'd'.repeat(64) });
+  const lake = scene.entities.find(entity => entity.sourceKey === 'lake-1')!;
+  const drawing = buildPresentation(scene, { x: 150, y: 250, width: 100, height: 100, zoom: 1 });
+  const shape = drawing.find(command => command.key === lake.key)!;
+  assert.equal(shape.kind, 'path');
+  if (shape.kind === 'path') assert.deepEqual(shape.rectangles, [
+    { x: 40, y: 59, width: 2, height: 1 }, { x: 40, y: 58, width: 1, height: 1 },
+  ]);
+  assert.equal(sceneEntityContains(lake, 141.5, 241.5), false);
+  assert.equal(sceneEntityContains(lake, 140.5, 241.5), true);
+  assert.equal(JSON.stringify(source), before);
+});
+
+test('viewport culling includes moved previews and respects hidden layers without mutating sources', () => {
+  const object = { ...objects[0]!, x: 10000, y: 10000 };
+  const scene = buildTerritoryScene({ map, mapChecksum: 'd'.repeat(64), alliances, objects: [object] });
+  const view = { x: 150, y: 250, width: 100, height: 100, zoom: 4 };
+  assert.ok(!buildPresentation(scene, view).some(command => command.key === 'planned:city'));
+  const preview = buildPresentation(scene, view, { preview: { keys: ['city'], delta: { x: -9850, y: -9750 } }, layers: { terrain: { visible: false, opacity: 1 } } });
+  assert.ok(preview.some(command => command.key === 'planned:city'));
+  assert.ok(!preview.some(command => command.key.startsWith('terrain:')));
+  assert.equal(scene.entities.find(entity => entity.key === 'planned:city')!.bounds.x, 10000);
+});
+
+test('every semantic object remains reachable through bounded pages', () => {
+  const source = structuredClone(map);
+  source.resource_nodes = Array.from({ length: 1001 }, (_, index) => ({
+    key: `bread-${index}`, resource_type: 'bread', x: 150, y: 250, footprint: { width: 2, height: 2 },
+  }));
+  const scene = buildTerritoryScene({ map: source, mapChecksum: 'd'.repeat(64) });
+  const reached = new Set<string>();
+  let offset: number | null = 0;
+  while (offset !== null) {
+    const page = sceneSearchPage(scene, 'bread', { offset, limit: 100, layers: ['resources'] });
+    assert.equal(page.total, 1001);
+    assert.ok(page.items.length <= 100);
+    page.items.forEach(item => reached.add(item.key));
+    offset = page.nextOffset;
+  }
+  assert.equal(reached.size, 1001);
+  assert.equal(sceneSearchPage(scene, 'bread', { layers: ['terrain'] }).total, 0);
+  assert.equal(sceneSearchPage(scene, 'bread', { limit: 0 }).items.length, 1);
+});
+
+test('coverage paints below all planned objects and selected labels survive collisions', () => {
+  const scene = buildTerritoryScene({ map, mapChecksum: 'd'.repeat(64), alliances,
+    objects: [{ ...objects[0]!, key: 'hq', type: 'headquarters' }, { ...objects[0]!, key: 'banner', type: 'banner' }] });
+  const commands = buildPresentation(scene, { x: 160, y: 260, width: 100, height: 100, zoom: 4 }, { selectedKeys: ['hq', 'banner'], showLabels: false });
+  const coverage = commands.map((command, index) => command.key.startsWith('coverage:') ? index : -1).filter(index => index >= 0);
+  const planned = commands.findIndex(command => command.key.startsWith('planned:'));
+  assert.ok(Math.max(...coverage) < planned);
+  assert.ok(commands.some(command => command.key === 'planned:hq:label'));
+  assert.ok(commands.some(command => command.key === 'planned:banner:label'));
 });
