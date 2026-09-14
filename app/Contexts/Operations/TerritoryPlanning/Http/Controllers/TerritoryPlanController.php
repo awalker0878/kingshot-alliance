@@ -20,6 +20,7 @@ use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
 use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryPlanRevisionQuery;
 use App\Contexts\Operations\TerritoryPlanning\Services\HiveLayoutGenerator;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanImport;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryRecoveryDrafts;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritorySuggestionGenerator;
 use App\Contexts\Operations\TerritoryPlanning\ValueObjects\TerritoryPlanMutationReceipt;
 use App\Shared\Infrastructure\Http\Controller;
@@ -81,6 +82,49 @@ final class TerritoryPlanController extends Controller
         );
 
         return response()->json(['receipt' => $this->mutationReceipt($mutation)]);
+    }
+
+    public function recovery(string $plan, PlayerContext $players, TerritoryRecoveryDrafts $recovery): JsonResponse
+    {
+        $player = $players->playerOrNull();
+        abort_unless($player !== null, 403);
+
+        return response()->json(['recovery' => $recovery->read($player->playerId, $plan)])
+            ->header('Cache-Control', 'private, no-store');
+    }
+
+    public function saveRecovery(Request $request, string $plan, PlayerContext $players, TerritoryRecoveryDrafts $recovery): JsonResponse
+    {
+        $player = $players->playerOrNull();
+        abort_unless($player !== null, 403);
+        $data = $request->validate([
+            'base_revision' => ['required', 'integer:strict', 'min:1'],
+            'map_dataset_id' => ['required', 'string', 'max:120'],
+            'map_dataset_checksum' => ['required', 'string', 'regex:/^[a-f0-9]{64}$/'],
+            'document' => ['required', 'array:alliances,groups,objects,preferences'],
+            'document.alliances' => ['present', 'array', 'max:50'],
+            'document.groups' => ['present', 'array', 'max:500'],
+            'document.objects' => ['present', 'array', 'max:5000'],
+            'document.preferences' => ['present', 'array'],
+        ]);
+
+        return response()->json(['recovery' => $recovery->store(
+            $player->playerId,
+            $plan,
+            (int) $data['base_revision'],
+            $data['map_dataset_id'],
+            $data['map_dataset_checksum'],
+            $data['document'],
+        )])->header('Cache-Control', 'private, no-store');
+    }
+
+    public function discardRecovery(string $plan, PlayerContext $players, TerritoryRecoveryDrafts $recovery): JsonResponse
+    {
+        $player = $players->playerOrNull();
+        abort_unless($player !== null, 403);
+
+        return response()->json(['discarded' => $recovery->delete($player->playerId, $plan)])
+            ->header('Cache-Control', 'private, no-store');
     }
 
     public function updateAlliances(

@@ -38,6 +38,15 @@ final class TerritoryPlanningServiceProvider extends ServiceProvider
             Route::put('/territory/{plan}/alliances', [TerritoryPlanController::class, 'updateAlliances'])
                 ->whereUlid('plan')
                 ->name('territory.alliances.update');
+            Route::get('/territory/{plan}/recovery', [TerritoryPlanController::class, 'recovery'])
+                ->whereUlid('plan')
+                ->name('territory.recovery.show');
+            Route::put('/territory/{plan}/recovery', [TerritoryPlanController::class, 'saveRecovery'])
+                ->whereUlid('plan')
+                ->name('territory.recovery.update');
+            Route::delete('/territory/{plan}/recovery', [TerritoryPlanController::class, 'discardRecovery'])
+                ->whereUlid('plan')
+                ->name('territory.recovery.destroy');
             Route::put('/territory/{plan}', [TerritoryPlanController::class, 'save'])
                 ->whereUlid('plan')
                 ->name('territory.save');

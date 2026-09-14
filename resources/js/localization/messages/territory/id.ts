@@ -8,6 +8,16 @@ const messages = {
       'Rencanakan peta Kerajaan sebagai {governor}, lalu terbitkan tata letak yang benar-benar dapat dikoordinasikan oleh para perwira.',
     editorSubtitle:
       '{governor} sedang mengedit tata letak kerja. Revisi yang diterbitkan tetap tidak berubah.',
+    recoveryAvailable: 'Draf pemulihan tersedia',
+    recoveryAvailableStale: 'Pekerjaan yang dipulihkan berdasarkan revisi {base}; rencana tervalidasi sekarang revisi {current}. Tinjau sebelum menyimpan.',
+    recoveryAvailableCurrent: 'Pekerjaan belum tersimpan dari revisi {revision} tersedia untuk dipulihkan.',
+    recoverDraft: 'Pulihkan draf',
+    discardDraft: 'Buang draf',
+    recoverySaveFailed: 'Draf pemulihan tidak dapat disimpan.',
+    recoveryDiscarded: 'Draf pemulihan dibuang.',
+    recoveryMapMismatch: 'Draf ini milik peta tersemat yang berbeda dan tidak dapat diterapkan.',
+    recoveryRestoredStale: 'Pekerjaan dari revisi {base} dipulihkan. Rencana tervalidasi adalah revisi {current}; tinjau konflik sebelum menyimpan.',
+    recoveryRestored: 'Draf dipulihkan. Tinjau tata letak sebelum menyimpan.',
     savedPlans: 'Tata letak tersimpan',
     plansHeading: 'Rencana wilayah',
     noPlans:

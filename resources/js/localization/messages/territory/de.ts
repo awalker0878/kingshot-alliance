@@ -8,6 +8,16 @@ const messages = {
       'Plane die Königreichskarte als {governor} und veröffentliche ein Layout, mit dem deine Offiziere wirklich koordinieren können.',
     editorSubtitle:
       '{governor} bearbeitet das Arbeitslayout. Veröffentlichte Revisionen bleiben unverändert.',
+    recoveryAvailable: 'Wiederherstellungsentwurf verfügbar',
+    recoveryAvailableStale: 'Der wiederhergestellte Stand basiert auf Revision {base}; der validierte Plan ist jetzt Revision {current}. Vor dem Speichern prüfen.',
+    recoveryAvailableCurrent: 'Nicht gespeicherte Arbeit aus Revision {revision} kann wiederhergestellt werden.',
+    recoverDraft: 'Entwurf wiederherstellen',
+    discardDraft: 'Entwurf verwerfen',
+    recoverySaveFailed: 'Der Wiederherstellungsentwurf konnte nicht gespeichert werden.',
+    recoveryDiscarded: 'Wiederherstellungsentwurf verworfen.',
+    recoveryMapMismatch: 'Dieser Entwurf gehört zu einer anderen fixierten Karte und kann nicht angewendet werden.',
+    recoveryRestoredStale: 'Arbeit aus Revision {base} wiederhergestellt. Der validierte Plan ist Revision {current}; Konflikte vor dem Speichern prüfen.',
+    recoveryRestored: 'Wiederherstellungsentwurf geladen. Layout vor dem Speichern prüfen.',
     savedPlans: 'Gespeicherte Layouts',
     plansHeading: 'Gebietspläne',
     noPlans:

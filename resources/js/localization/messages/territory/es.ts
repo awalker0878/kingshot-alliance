@@ -8,6 +8,16 @@ const messages = {
       'Planifica el mapa del Reino como {governor} y publica un diseño que tus oficiales puedan coordinar de verdad.',
     editorSubtitle:
       '{governor} está editando el diseño de trabajo. Las revisiones publicadas permanecen fijas.',
+    recoveryAvailable: 'Borrador de recuperación disponible',
+    recoveryAvailableStale: 'El trabajo recuperado se basaba en la revisión {base}; el plan validado está ahora en la revisión {current}. Revísalo antes de guardar.',
+    recoveryAvailableCurrent: 'Hay trabajo sin guardar de la revisión {revision} disponible para recuperar.',
+    recoverDraft: 'Recuperar borrador',
+    discardDraft: 'Descartar borrador',
+    recoverySaveFailed: 'No se pudo guardar el borrador de recuperación.',
+    recoveryDiscarded: 'Borrador de recuperación descartado.',
+    recoveryMapMismatch: 'Este borrador pertenece a otro mapa fijado y no se puede aplicar.',
+    recoveryRestoredStale: 'Se recuperó trabajo de la revisión {base}. El plan validado está en la revisión {current}; revisa los conflictos antes de guardar.',
+    recoveryRestored: 'Borrador recuperado. Revisa el diseño antes de guardar.',
     savedPlans: 'Diseños guardados',
     plansHeading: 'Planes de territorio',
     noPlans:

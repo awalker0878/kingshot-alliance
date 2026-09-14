@@ -121,6 +121,18 @@ type ImportPreview = {
     suggestions: ValidationIssue[];
   };
 };
+type RecoveryDraft = {
+  id: string;
+  base_revision: number;
+  current_revision: number;
+  stale: boolean;
+  map_dataset_id: string;
+  map_dataset_checksum: string;
+  document_checksum: string;
+  document: EditorLayout;
+  updated_at: string | null;
+  expires_at: string | null;
+};
 
 function cloneJson<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -176,8 +188,11 @@ const showCoverage = ref(true);
 const showStructures = ref(true);
 const showZones = ref(true);
 const objectFilter = ref('');
+const recoveryDraft = ref<RecoveryDraft | null>(null);
+const recoveryBusy = ref(false);
 let persistenceSession: ReturnType<typeof createEditorSession<EditorLayout>> | null = null;
 let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
+let recoveryTimer: ReturnType<typeof setTimeout> | null = null;
 
 const mapMinX = computed(() => props.territory.map.data.bounds.x);
 const mapMinY = computed(() => props.territory.map.data.bounds.y);
@@ -545,6 +560,75 @@ async function jsonRequest(
   return payload;
 }
 
+async function loadRecoveryDraft(): Promise<void> {
+  if (!canEdit.value) return;
+  const payload = await jsonRequest(`/territory/${props.territory.plan.id}/recovery`, 'GET');
+  recoveryDraft.value = (payload.recovery as RecoveryDraft | null) ?? null;
+}
+
+async function persistRecoveryDraft(): Promise<void> {
+  if (!canEdit.value || !persistenceSession?.dirty()) return;
+  recoveryBusy.value = true;
+  try {
+    const payload = await jsonRequest(`/territory/${props.territory.plan.id}/recovery`, 'PUT', {
+      base_revision: revision.value,
+      map_dataset_id: props.territory.map.id,
+      map_dataset_checksum: props.territory.map.checksum,
+      document: currentLayout(),
+    });
+    recoveryDraft.value = (payload.recovery as RecoveryDraft | null) ?? null;
+  } catch (error) {
+    notice.value = {
+      tone: 'warning',
+      message: error instanceof Error ? error.message : t('territory.recoverySaveFailed'),
+    };
+  } finally {
+    recoveryBusy.value = false;
+  }
+}
+
+async function discardRecoveryDraft(silent = false): Promise<void> {
+  if (!canEdit.value) return;
+  try {
+    await jsonRequest(`/territory/${props.territory.plan.id}/recovery`, 'DELETE');
+    recoveryDraft.value = null;
+    if (!silent) notice.value = { tone: 'info', message: t('territory.recoveryDiscarded') };
+  } catch (error) {
+    if (!silent) {
+      notice.value = {
+        tone: 'danger',
+        message: error instanceof Error ? error.message : t('territory.requestFailed'),
+      };
+    }
+  }
+}
+
+function recoverDraft(): void {
+  const draft = recoveryDraft.value;
+  if (!draft) return;
+  if (
+    draft.map_dataset_id !== props.territory.map.id ||
+    draft.map_dataset_checksum !== props.territory.map.checksum
+  ) {
+    notice.value = { tone: 'danger', message: t('territory.recoveryMapMismatch') };
+    return;
+  }
+  remember();
+  installLayout(cloneJson(draft.document));
+  history.value = [];
+  future.value = [];
+  recoveryDraft.value = null;
+  notice.value = {
+    tone: draft.stale ? 'warning' : 'info',
+    message: draft.stale
+      ? t('territory.recoveryRestoredStale', {
+          base: draft.base_revision,
+          current: draft.current_revision,
+        })
+      : t('territory.recoveryRestored'),
+  };
+}
+
 function initializePersistence(): void {
   persistenceSession = createEditorSession<EditorLayout>({
     revision: revision.value,
@@ -582,6 +666,7 @@ async function flushPersistence(successNotice = true): Promise<void> {
   if (validation.value.violations.length)
     throw new TerritoryRequestError(t('territory.fixViolations'), 422);
   await persistenceSession.flush();
+  await discardRecoveryDraft(true);
   if (successNotice)
     notice.value = { tone: 'success', message: t('territory.saved', { revision: revision.value }) };
 }
@@ -963,6 +1048,10 @@ watch(
   [alliances, groups, objects, preferences],
   () => {
     if (!canEdit.value || !persistenceSession) return;
+    if (recoveryTimer) clearTimeout(recoveryTimer);
+    recoveryTimer = setTimeout(() => {
+      void persistRecoveryDraft();
+    }, 900);
     if (autosaveTimer) clearTimeout(autosaveTimer);
     autosaveTimer = setTimeout(() => {
       if (!persistenceSession?.dirty() || validation.value.violations.length) return;
@@ -979,10 +1068,17 @@ watch(
 );
 onMounted(() => {
   initializePersistence();
+  void loadRecoveryDraft().catch((error) => {
+    notice.value = {
+      tone: 'warning',
+      message: error instanceof Error ? error.message : t('territory.requestFailed'),
+    };
+  });
   window.addEventListener('keydown', onKey);
 });
 onUnmounted(() => {
   if (autosaveTimer) clearTimeout(autosaveTimer);
+  if (recoveryTimer) clearTimeout(recoveryTimer);
   persistenceSession?.dispose();
   window.removeEventListener('keydown', onKey);
 });
@@ -1020,6 +1116,40 @@ onUnmounted(() => {
     </header>
 
     <ActionNotice v-if="notice" class="mt-4" :tone="notice.tone" :message="notice.message" />
+
+    <section
+      v-if="recoveryDraft"
+      class="ks-surface mt-4 border border-amber-500/40 p-4"
+      role="status"
+      aria-live="polite"
+    >
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p class="ks-kicker">{{ t('territory.recoveryAvailable') }}</p>
+          <p class="mt-1 text-sm text-[var(--ks-muted)]">
+            {{
+              recoveryDraft.stale
+                ? t('territory.recoveryAvailableStale', {
+                    base: recoveryDraft.base_revision,
+                    current: recoveryDraft.current_revision,
+                  })
+                : t('territory.recoveryAvailableCurrent', { revision: recoveryDraft.base_revision })
+            }}
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <AppButton :busy="recoveryBusy" @click="recoverDraft">{{
+            t('territory.recoverDraft')
+          }}</AppButton>
+          <AppButton
+            data-variant="secondary"
+            :busy="recoveryBusy"
+            @click="discardRecoveryDraft(false)"
+            >{{ t('territory.discardDraft') }}</AppButton
+          >
+        </div>
+      </div>
+    </section>
 
     <section class="ks-surface mt-4 p-4" :aria-label="t('territory.planStatus')">
       <div class="flex flex-wrap items-center gap-3 text-sm">

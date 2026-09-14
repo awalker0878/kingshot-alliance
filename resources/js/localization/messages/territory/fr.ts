@@ -8,6 +8,16 @@ const messages = {
       'Planifiez la carte du Royaume en tant que {governor}, puis publiez une disposition que vos officiers peuvent réellement coordonner.',
     editorSubtitle:
       '{governor} modifie la disposition de travail. Les révisions publiées restent figées.',
+    recoveryAvailable: 'Brouillon de récupération disponible',
+    recoveryAvailableStale: 'Le travail récupéré était basé sur la révision {base}; le plan validé est maintenant à la révision {current}. Vérifiez-le avant d’enregistrer.',
+    recoveryAvailableCurrent: 'Un travail non enregistré de la révision {revision} peut être récupéré.',
+    recoverDraft: 'Récupérer le brouillon',
+    discardDraft: 'Supprimer le brouillon',
+    recoverySaveFailed: 'Le brouillon de récupération n’a pas pu être enregistré.',
+    recoveryDiscarded: 'Brouillon de récupération supprimé.',
+    recoveryMapMismatch: 'Ce brouillon appartient à une autre carte épinglée et ne peut pas être appliqué.',
+    recoveryRestoredStale: 'Travail de la révision {base} récupéré. Le plan validé est à la révision {current}; vérifiez les conflits avant d’enregistrer.',
+    recoveryRestored: 'Brouillon récupéré. Vérifiez le plan avant d’enregistrer.',
     savedPlans: 'Dispositions enregistrées',
     plansHeading: 'Plans de territoire',
     noPlans:

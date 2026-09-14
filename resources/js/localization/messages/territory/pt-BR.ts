@@ -9,6 +9,16 @@ const messages = {
       'Planeje o mapa do Reino como {governor} e publique um layout que seus oficiais possam coordenar de verdade.',
     editorSubtitle:
       '{governor} está editando o layout de trabalho. Revisões publicadas permanecem fixas.',
+    recoveryAvailable: 'Rascunho de recuperação disponível',
+    recoveryAvailableStale: 'O trabalho recuperado foi baseado na revisão {base}; o plano validado agora está na revisão {current}. Revise antes de salvar.',
+    recoveryAvailableCurrent: 'Há trabalho não salvo da revisão {revision} disponível para recuperação.',
+    recoverDraft: 'Recuperar rascunho',
+    discardDraft: 'Descartar rascunho',
+    recoverySaveFailed: 'Não foi possível salvar o rascunho de recuperação.',
+    recoveryDiscarded: 'Rascunho de recuperação descartado.',
+    recoveryMapMismatch: 'Este rascunho pertence a outro mapa fixado e não pode ser aplicado.',
+    recoveryRestoredStale: 'Trabalho da revisão {base} recuperado. O plano validado está na revisão {current}; revise os conflitos antes de salvar.',
+    recoveryRestored: 'Rascunho recuperado. Revise o layout antes de salvar.',
     savedPlans: 'Layouts salvos',
     plansHeading: 'Planos de território',
     noPlans:

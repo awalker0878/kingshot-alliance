@@ -7,6 +7,16 @@ const messages = {
     indexSubtitle:
       'Krallık haritasını {governor} olarak planlayın ve subayların gerçekten koordine edebileceği bir düzen yayınlayın.',
     editorSubtitle: '{governor} çalışma düzenini düzenliyor. Yayınlanan sürümler sabit kalır.',
+    recoveryAvailable: 'Kurtarma taslağı mevcut',
+    recoveryAvailableStale: 'Kurtarılan çalışma {base} revizyonuna dayanıyor; doğrulanmış plan artık {current} revizyonunda. Kaydetmeden önce gözden geçirin.',
+    recoveryAvailableCurrent: '{revision} revizyonundaki kaydedilmemiş çalışma kurtarılabilir.',
+    recoverDraft: 'Taslağı kurtar',
+    discardDraft: 'Taslağı sil',
+    recoverySaveFailed: 'Kurtarma taslağı kaydedilemedi.',
+    recoveryDiscarded: 'Kurtarma taslağı silindi.',
+    recoveryMapMismatch: 'Bu taslak farklı bir sabitlenmiş haritaya ait ve uygulanamaz.',
+    recoveryRestoredStale: '{base} revizyonundaki çalışma kurtarıldı. Doğrulanmış plan {current} revizyonunda; kaydetmeden önce çakışmaları inceleyin.',
+    recoveryRestored: 'Taslak kurtarıldı. Kaydetmeden önce düzeni inceleyin.',
     savedPlans: 'Kaydedilen düzenler',
     plansHeading: 'Bölge planları',
     noPlans:

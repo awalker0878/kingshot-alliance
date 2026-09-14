@@ -7,6 +7,16 @@ const messages = {
     indexSubtitle:
       'Zaplanuj mapę Królestwa jako {governor}, a potem opublikuj układ, który oficerowie mogą rzeczywiście koordynować.',
     editorSubtitle: '{governor} edytuje układ roboczy. Opublikowane wersje pozostają niezmienne.',
+    recoveryAvailable: 'Dostępna wersja robocza odzyskiwania',
+    recoveryAvailableStale: 'Odzyskana praca bazuje na rewizji {base}; zatwierdzony plan ma teraz rewizję {current}. Sprawdź przed zapisaniem.',
+    recoveryAvailableCurrent: 'Można odzyskać niezapisaną pracę z rewizji {revision}.',
+    recoverDraft: 'Odzyskaj wersję roboczą',
+    discardDraft: 'Odrzuć wersję roboczą',
+    recoverySaveFailed: 'Nie udało się zapisać wersji roboczej odzyskiwania.',
+    recoveryDiscarded: 'Wersja robocza odzyskiwania została odrzucona.',
+    recoveryMapMismatch: 'Ta wersja robocza należy do innej przypiętej mapy i nie może zostać zastosowana.',
+    recoveryRestoredStale: 'Odzyskano pracę z rewizji {base}. Zatwierdzony plan to rewizja {current}; sprawdź konflikty przed zapisaniem.',
+    recoveryRestored: 'Odzyskano wersję roboczą. Sprawdź układ przed zapisaniem.',
     savedPlans: 'Zapisane układy',
     plansHeading: 'Plany terytorium',
     noPlans:
