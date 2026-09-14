@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  alignObjectsAtomic,
   assignCanonicalGovernorIdentity,
   assignExternalGovernorIdentity,
+  distributeObjectsAtomic,
   materializeHiveProposal,
   objectIsLocked,
   rotateObjectsAtomic,
   selectionPivot,
+  setObjectCoordinatesAtomic,
   translateObjectsAtomic,
 } from '../../../../resources/js/features/territory-planner/engine/commands.ts';
 import type { MapData, PlanObject } from '../../../../resources/js/features/territory-planner/engine/types.ts';
@@ -68,6 +71,77 @@ test('rectangular footprint uses its post-rotation dimensions and remains intege
   assert.equal(Number.isInteger(result.objects[0]!.x) && Number.isInteger(result.objects[0]!.y), true);
 });
 
+test('alignment is footprint-aware and refuses a mixed locked selection atomically', () => {
+  const objects = [
+    object('a', 2, 4, 'banner'),
+    object('b', 8, 8, 'governor_city'),
+    object('c', 14, 12, 'headquarters'),
+  ];
+  const aligned = alignObjectsAtomic(map, objects, ['a', 'b', 'c'], 'right', editable);
+  assert.equal(aligned.ok, true);
+  if (!aligned.ok) return;
+  assert.deepEqual(aligned.objects.map(({ key, x }) => ({ key, x })), [
+    { key: 'a', x: 16 },
+    { key: 'b', x: 15 },
+    { key: 'c', x: 14 },
+  ]);
+
+  const locked = { ...objects[1]!, metadata: { locked: true } };
+  assert.deepEqual(
+    alignObjectsAtomic(map, [objects[0]!, locked], ['a', 'b'], 'top', editable),
+    { ok: false, reason: 'locked_selection', blockedKeys: ['b'] },
+  );
+});
+
+test('distribution keeps outer objects anchored and spaces centres deterministically', () => {
+  const objects = [
+    object('a', 0, 0, 'banner'),
+    object('b', 2, 4, 'governor_city'),
+    object('c', 10, 8, 'banner'),
+  ];
+  const result = distributeObjectsAtomic(map, objects, ['a', 'b', 'c'], 'horizontal', editable);
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.deepEqual(result.objects.map(({ key, x }) => ({ key, x })), [
+    { key: 'a', x: 0 },
+    { key: 'b', x: 5 },
+    { key: 'c', x: 10 },
+  ]);
+});
+
+test('bulk coordinates are atomic, integer-only and reject duplicate or unknown keys', () => {
+  const objects = [object('a', 1, 1), object('b', 2, 2)];
+  const result = setObjectCoordinatesAtomic(
+    objects,
+    [
+      { key: 'a', x: 100, y: 200 },
+      { key: 'b', x: 300, y: 400 },
+    ],
+    editable,
+  );
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.deepEqual(result.objects.map(({ key, x, y }) => ({ key, x, y })), [
+    { key: 'a', x: 100, y: 200 },
+    { key: 'b', x: 300, y: 400 },
+  ]);
+  assert.throws(
+    () => setObjectCoordinatesAtomic(objects, [{ key: 'a', x: 1.5, y: 2 }], editable),
+    /integer/,
+  );
+  assert.throws(
+    () => setObjectCoordinatesAtomic(objects, [
+      { key: 'a', x: 1, y: 2 },
+      { key: 'a', x: 3, y: 4 },
+    ], editable),
+    /duplicate/,
+  );
+  assert.throws(
+    () => setObjectCoordinatesAtomic(objects, [{ key: 'missing', x: 1, y: 2 }], editable),
+    /unknown object key/,
+  );
+});
+
 test('Governor identity transitions preserve slot-state invariants', () => {
   const city = object('city', 10, 10, 'governor_city', { slot_state: 'open' });
   const canonical = assignCanonicalGovernorIdentity(city, '01PLAYER');
@@ -100,4 +174,3 @@ test('hive proposal materialization preserves deterministic keys, groups and slo
   assert.equal(installed[0]?.metadata.slot_state, 'open');
   assert.throws(() => materializeHiveProposal([proposal[0]!, proposal[0]!], 0), /unique/);
 });
-
