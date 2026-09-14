@@ -8,14 +8,16 @@ const messages = {
       '{governor}로 왕국 지도를 계획하고 장교들이 실제로 협업할 수 있는 배치를 게시하세요.',
     editorSubtitle: '{governor}가 작업 배치를 편집 중입니다. 게시된 리비전은 고정됩니다.',
     recoveryAvailable: '복구 초안을 사용할 수 있습니다',
-    recoveryAvailableStale: '복구 작업은 리비전 {base} 기준입니다. 검증된 계획은 현재 리비전 {current}입니다. 저장 전에 검토하세요.',
+    recoveryAvailableStale:
+      '복구 작업은 리비전 {base} 기준입니다. 검증된 계획은 현재 리비전 {current}입니다. 저장 전에 검토하세요.',
     recoveryAvailableCurrent: '리비전 {revision}의 저장되지 않은 작업을 복구할 수 있습니다.',
     recoverDraft: '초안 복구',
     discardDraft: '초안 폐기',
     recoverySaveFailed: '복구 초안을 저장하지 못했습니다.',
     recoveryDiscarded: '복구 초안을 폐기했습니다.',
     recoveryMapMismatch: '이 복구 초안은 다른 고정 지도에 속해 적용할 수 없습니다.',
-    recoveryRestoredStale: '리비전 {base}의 작업을 복구했습니다. 검증된 계획은 리비전 {current}입니다. 저장 전에 충돌을 검토하세요.',
+    recoveryRestoredStale:
+      '리비전 {base}의 작업을 복구했습니다. 검증된 계획은 리비전 {current}입니다. 저장 전에 충돌을 검토하세요.',
     recoveryRestored: '복구 초안을 불러왔습니다. 저장 전에 배치를 검토하세요.',
     savedPlans: '저장된 배치',
     plansHeading: '영토 계획',
@@ -181,7 +183,8 @@ const messages = {
     collaboration: 'Collaboration',
     collaborationTitle: 'Review, comments and access',
     refreshCollaboration: 'Refresh collaboration',
-    collaborationHelp: 'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
+    collaborationHelp:
+      'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
     objectComments: 'Object comments',
     selectOneObjectForComment: 'Select one object to comment on it.',
     commentPlaceholder: 'Add a revision-bound planning comment…',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\TerritoryPlanning\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $meaning_key
  * @property list<string> $recipient_player_ids
  * @property string|null $after_player_id
- * @property \Carbon\CarbonImmutable|null $completed_at
+ * @property CarbonImmutable|null $completed_at
  */
 final class TerritoryActivity extends Model
 {

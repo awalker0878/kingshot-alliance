@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\Access\Services;
 
 use App\Contexts\GameWorld\Governance\Actions\ReconcileKingdomRolePermissions;
-use App\Contexts\GameWorld\Governance\Enums\DefaultKingdomRole;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Access\Queries\KingdomOperationsRolePolicy;
 use App\Shared\Infrastructure\Access\Models\Permission;
@@ -18,9 +17,9 @@ final readonly class KingdomOperationsRoleProvisioner
     public function provision(string $kingdomId, string $administratorRoleId, string $eventCoordinatorRoleId, string $viewerRoleId): void
     {
         $grants = [
-            $administratorRoleId => $this->policy->permissions(DefaultKingdomRole::Administrator),
-            $eventCoordinatorRoleId => $this->policy->permissions(DefaultKingdomRole::EventCoordinator),
-            $viewerRoleId => $this->policy->permissions(DefaultKingdomRole::Viewer),
+            $administratorRoleId => $this->policy->management(),
+            $eventCoordinatorRoleId => $this->policy->management(),
+            $viewerRoleId => $this->policy->viewing(),
         ];
 
         $requiredPermissions = [];

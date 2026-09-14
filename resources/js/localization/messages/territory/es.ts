@@ -9,14 +9,17 @@ const messages = {
     editorSubtitle:
       '{governor} está editando el diseño de trabajo. Las revisiones publicadas permanecen fijas.',
     recoveryAvailable: 'Borrador de recuperación disponible',
-    recoveryAvailableStale: 'El trabajo recuperado se basaba en la revisión {base}; el plan validado está ahora en la revisión {current}. Revísalo antes de guardar.',
-    recoveryAvailableCurrent: 'Hay trabajo sin guardar de la revisión {revision} disponible para recuperar.',
+    recoveryAvailableStale:
+      'El trabajo recuperado se basaba en la revisión {base}; el plan validado está ahora en la revisión {current}. Revísalo antes de guardar.',
+    recoveryAvailableCurrent:
+      'Hay trabajo sin guardar de la revisión {revision} disponible para recuperar.',
     recoverDraft: 'Recuperar borrador',
     discardDraft: 'Descartar borrador',
     recoverySaveFailed: 'No se pudo guardar el borrador de recuperación.',
     recoveryDiscarded: 'Borrador de recuperación descartado.',
     recoveryMapMismatch: 'Este borrador pertenece a otro mapa fijado y no se puede aplicar.',
-    recoveryRestoredStale: 'Se recuperó trabajo de la revisión {base}. El plan validado está en la revisión {current}; revisa los conflictos antes de guardar.',
+    recoveryRestoredStale:
+      'Se recuperó trabajo de la revisión {base}. El plan validado está en la revisión {current}; revisa los conflictos antes de guardar.',
     recoveryRestored: 'Borrador recuperado. Revisa el diseño antes de guardar.',
     savedPlans: 'Diseños guardados',
     plansHeading: 'Planes de territorio',
@@ -190,7 +193,8 @@ const messages = {
     collaboration: 'Collaboration',
     collaborationTitle: 'Review, comments and access',
     refreshCollaboration: 'Refresh collaboration',
-    collaborationHelp: 'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
+    collaborationHelp:
+      'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
     objectComments: 'Object comments',
     selectOneObjectForComment: 'Select one object to comment on it.',
     commentPlaceholder: 'Add a revision-bound planning comment…',

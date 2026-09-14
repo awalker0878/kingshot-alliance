@@ -30,7 +30,6 @@ final readonly class SpatialObservationQuery
             ->all());
     }
 
-
     /**
      * One authorization snapshot for reconciliation history and selected/latest detail.
      *

@@ -12,6 +12,7 @@
             <directory suffix="Test.php">tests/Contexts/Intelligence/Evidence/Unit</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/Events/Unit</directory>
             <directory suffix="Test.php">tests/Contexts/Operations/KingPerks/Unit</directory>
+            <directory suffix="Test.php">tests/Contexts/Operations/TerritoryPlanning/Unit</directory>
             <directory suffix="Test.php">tests/ReadModels/AllianceAssistant/Unit</directory>
             <directory suffix="Test.php">tests/Shared/Infrastructure/Http/Unit</directory>
             <directory suffix="Test.php">tests/Shared/Infrastructure/Pagination/Unit</directory>

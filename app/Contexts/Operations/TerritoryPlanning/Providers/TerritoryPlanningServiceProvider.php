@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\TerritoryPlanning\Providers;
 
+use App\Contexts\Operations\TerritoryPlanning\Console\Commands\PruneTerritoryRecoveryDraftsCommand;
 use App\Contexts\Operations\TerritoryPlanning\Http\Controllers\TerritoryCollaborationController;
 use App\Contexts\Operations\TerritoryPlanning\Http\Controllers\TerritoryPlanController;
 use App\Contexts\Operations\TerritoryPlanning\Http\Controllers\TerritoryWorkspaceViewController;
@@ -14,6 +15,10 @@ final class TerritoryPlanningServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        if ($this->app->runningInConsole()) {
+            $this->commands([PruneTerritoryRecoveryDraftsCommand::class]);
+        }
+
         Route::middleware(['web', 'auth', 'auth.session', 'verified'])->group(function (): void {
             Route::get('/territory/workspace-views', [TerritoryWorkspaceViewController::class, 'show'])->name('territory.workspace-views.show');
             Route::put('/territory/workspace-views', [TerritoryWorkspaceViewController::class, 'update'])->name('territory.workspace-views.update');

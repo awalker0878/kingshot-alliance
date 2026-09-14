@@ -7,14 +7,16 @@ const messages = {
     indexSubtitle: '{governor} として王国マップを計画し、将校が実際に連携できる配置を公開します。',
     editorSubtitle: '{governor} が作業中の配置を編集中です。公開済みリビジョンは固定されます。',
     recoveryAvailable: '復元用ドラフトがあります',
-    recoveryAvailableStale: '復元対象はリビジョン {base} を基準にしています。検証済みプランは現在リビジョン {current} です。保存前に確認してください。',
+    recoveryAvailableStale:
+      '復元対象はリビジョン {base} を基準にしています。検証済みプランは現在リビジョン {current} です。保存前に確認してください。',
     recoveryAvailableCurrent: 'リビジョン {revision} の未保存作業を復元できます。',
     recoverDraft: 'ドラフトを復元',
     discardDraft: 'ドラフトを破棄',
     recoverySaveFailed: '復元用ドラフトを保存できませんでした。',
     recoveryDiscarded: '復元用ドラフトを破棄しました。',
     recoveryMapMismatch: 'このドラフトは別の固定マップに属しているため適用できません。',
-    recoveryRestoredStale: 'リビジョン {base} の作業を復元しました。検証済みプランはリビジョン {current} です。保存前に競合を確認してください。',
+    recoveryRestoredStale:
+      'リビジョン {base} の作業を復元しました。検証済みプランはリビジョン {current} です。保存前に競合を確認してください。',
     recoveryRestored: 'ドラフトを復元しました。保存前にレイアウトを確認してください。',
     savedPlans: '保存済み配置',
     plansHeading: '領地計画',
@@ -181,7 +183,8 @@ const messages = {
     collaboration: 'Collaboration',
     collaborationTitle: 'Review, comments and access',
     refreshCollaboration: 'Refresh collaboration',
-    collaborationHelp: 'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
+    collaborationHelp:
+      'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
     objectComments: 'Object comments',
     selectOneObjectForComment: 'Select one object to comment on it.',
     commentPlaceholder: 'Add a revision-bound planning comment…',

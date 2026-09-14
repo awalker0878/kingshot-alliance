@@ -7,14 +7,16 @@ const messages = {
     indexSubtitle: '以 {governor} 的身份规划王国地图，并发布军官能够真正协同执行的布局。',
     editorSubtitle: '{governor} 正在编辑工作布局。已发布的版本保持固定。',
     recoveryAvailable: '有可恢复的草稿',
-    recoveryAvailableStale: '恢复内容基于修订版 {base}；已验证计划现在是修订版 {current}。保存前请检查。',
+    recoveryAvailableStale:
+      '恢复内容基于修订版 {base}；已验证计划现在是修订版 {current}。保存前请检查。',
     recoveryAvailableCurrent: '可恢复修订版 {revision} 的未保存内容。',
     recoverDraft: '恢复草稿',
     discardDraft: '丢弃草稿',
     recoverySaveFailed: '无法保存恢复草稿。',
     recoveryDiscarded: '已丢弃恢复草稿。',
     recoveryMapMismatch: '此恢复草稿属于另一份固定地图，无法应用。',
-    recoveryRestoredStale: '已恢复修订版 {base} 的内容。已验证计划为修订版 {current}；保存前请检查冲突。',
+    recoveryRestoredStale:
+      '已恢复修订版 {base} 的内容。已验证计划为修订版 {current}；保存前请检查冲突。',
     recoveryRestored: '已恢复草稿。保存前请检查布局。',
     savedPlans: '已保存布局',
     plansHeading: '领地计划',
@@ -178,7 +180,8 @@ const messages = {
     collaboration: 'Collaboration',
     collaborationTitle: 'Review, comments and access',
     refreshCollaboration: 'Refresh collaboration',
-    collaborationHelp: 'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
+    collaborationHelp:
+      'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
     objectComments: 'Object comments',
     selectOneObjectForComment: 'Select one object to comment on it.',
     commentPlaceholder: 'Add a revision-bound planning comment…',

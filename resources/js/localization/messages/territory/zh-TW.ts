@@ -7,14 +7,16 @@ const messages = {
     indexSubtitle: '以 {governor} 的身分規劃王國地圖，並發布軍官真正能協同執行的配置。',
     editorSubtitle: '{governor} 正在編輯工作配置。已發布的版本保持固定。',
     recoveryAvailable: '有可復原的草稿',
-    recoveryAvailableStale: '復原內容以修訂版 {base} 為基礎；已驗證計畫目前為修訂版 {current}。儲存前請檢查。',
+    recoveryAvailableStale:
+      '復原內容以修訂版 {base} 為基礎；已驗證計畫目前為修訂版 {current}。儲存前請檢查。',
     recoveryAvailableCurrent: '可復原修訂版 {revision} 的未儲存內容。',
     recoverDraft: '復原草稿',
     discardDraft: '捨棄草稿',
     recoverySaveFailed: '無法儲存復原草稿。',
     recoveryDiscarded: '已捨棄復原草稿。',
     recoveryMapMismatch: '此復原草稿屬於另一份固定地圖，無法套用。',
-    recoveryRestoredStale: '已復原修訂版 {base} 的內容。已驗證計畫為修訂版 {current}；儲存前請檢查衝突。',
+    recoveryRestoredStale:
+      '已復原修訂版 {base} 的內容。已驗證計畫為修訂版 {current}；儲存前請檢查衝突。',
     recoveryRestored: '已復原草稿。儲存前請檢查配置。',
     savedPlans: '已儲存配置',
     plansHeading: '領地計畫',
@@ -178,7 +180,8 @@ const messages = {
     collaboration: 'Collaboration',
     collaborationTitle: 'Review, comments and access',
     refreshCollaboration: 'Refresh collaboration',
-    collaborationHelp: 'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
+    collaborationHelp:
+      'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
     objectComments: 'Object comments',
     selectOneObjectForComment: 'Select one object to comment on it.',
     commentPlaceholder: 'Add a revision-bound planning comment…',

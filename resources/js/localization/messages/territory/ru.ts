@@ -9,14 +9,17 @@ const messages = {
     editorSubtitle:
       '{governor} редактирует рабочую схему. Опубликованные версии остаются неизменными.',
     recoveryAvailable: 'Доступен черновик восстановления',
-    recoveryAvailableStale: 'Восстановленная работа основана на редакции {base}; проверенный план уже имеет редакцию {current}. Проверьте перед сохранением.',
+    recoveryAvailableStale:
+      'Восстановленная работа основана на редакции {base}; проверенный план уже имеет редакцию {current}. Проверьте перед сохранением.',
     recoveryAvailableCurrent: 'Доступна несохранённая работа из редакции {revision}.',
     recoverDraft: 'Восстановить черновик',
     discardDraft: 'Удалить черновик',
     recoverySaveFailed: 'Не удалось сохранить черновик восстановления.',
     recoveryDiscarded: 'Черновик восстановления удалён.',
-    recoveryMapMismatch: 'Этот черновик относится к другой закреплённой карте и не может быть применён.',
-    recoveryRestoredStale: 'Работа из редакции {base} восстановлена. Проверенный план — редакция {current}; проверьте конфликты перед сохранением.',
+    recoveryMapMismatch:
+      'Этот черновик относится к другой закреплённой карте и не может быть применён.',
+    recoveryRestoredStale:
+      'Работа из редакции {base} восстановлена. Проверенный план — редакция {current}; проверьте конфликты перед сохранением.',
     recoveryRestored: 'Черновик восстановлен. Проверьте раскладку перед сохранением.',
     savedPlans: 'Сохранённые схемы',
     plansHeading: 'Планы территории',
@@ -188,7 +191,8 @@ const messages = {
     collaboration: 'Collaboration',
     collaborationTitle: 'Review, comments and access',
     refreshCollaboration: 'Refresh collaboration',
-    collaborationHelp: 'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
+    collaborationHelp:
+      'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
     objectComments: 'Object comments',
     selectOneObjectForComment: 'Select one object to comment on it.',
     commentPlaceholder: 'Add a revision-bound planning comment…',

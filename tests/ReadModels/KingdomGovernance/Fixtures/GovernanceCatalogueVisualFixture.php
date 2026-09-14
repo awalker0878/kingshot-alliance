@@ -18,7 +18,7 @@ final class GovernanceCatalogueVisualFixture
             $user = User::factory()->create(['name' => 'Governance catalogue '.$project,
                 'email' => 'governance-catalogues-'.$project.'@example.test', 'password' => Hash::make('password'),
                 'email_verified_at' => now(), 'timezone' => 'UTC']);
-            $player = $factory->player((int) $user->id, $kingdom);
+            $player = $factory->player((int) $user->id, $kingdom, 'governance-catalogues-'.$project);
             $factory->alliance($player);
             GovernanceCatalogueFixture::seed($player);
         }

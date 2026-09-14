@@ -36,6 +36,17 @@ final readonly class TerritoryRecoveryDrafts
         if ($baseRevision < 1) {
             throw ValidationException::withMessages(['base_revision' => 'Recovery base revision must be positive.']);
         }
+        try {
+            json_encode($document, JSON_THROW_ON_ERROR, 32);
+        } catch (\JsonException) {
+            throw ValidationException::withMessages(['document' => 'Recovery document must contain valid JSON with a bounded nesting depth.']);
+        }
+        foreach (['alliances' => 50, 'groups' => 500, 'objects' => 5000] as $field => $limit) {
+            $items = $document[$field] ?? null;
+            if (! is_array($items) || ! array_is_list($items) || count($items) > $limit) {
+                throw ValidationException::withMessages(['document.'.$field => "Recovery {$field} must be a list of at most {$limit} entries."]);
+            }
+        }
         $encoded = $this->canonicalJson($document);
         if (strlen($encoded) > self::MAX_BYTES) {
             throw ValidationException::withMessages(['document' => 'Recovery document exceeds the five megabyte limit.']);
@@ -55,6 +66,9 @@ final readonly class TerritoryRecoveryDrafts
             $this->authorization->authorizeManage($context);
             if ($context->plan->status === TerritoryPlanStatus::Archived) {
                 throw ValidationException::withMessages(['plan' => 'Archived plans cannot store recovery drafts.']);
+            }
+            if ($baseRevision > (int) $context->plan->revision) {
+                throw ValidationException::withMessages(['base_revision' => 'Recovery cannot refer to a future plan revision.']);
             }
             if ($context->plan->map_dataset_id !== $mapDatasetId
                 || ! hash_equals((string) $context->plan->map_dataset_checksum, $mapDatasetChecksum)) {
@@ -89,14 +103,10 @@ final readonly class TerritoryRecoveryDrafts
         return DB::transaction(function () use ($actorPlayerId, $planId): ?array {
             $context = $this->writeState->lock($actorPlayerId, $planId);
             $this->authorization->authorizeManage($context);
-            TerritoryRecoveryDraft::query()
-                ->where('territory_plan_id', $planId)
-                ->where('actor_player_id', $actorPlayerId)
-                ->where('expires_at', '<=', now())
-                ->delete();
             $draft = TerritoryRecoveryDraft::query()
                 ->where('territory_plan_id', $planId)
                 ->where('actor_player_id', $actorPlayerId)
+                ->where('expires_at', '>', now())
                 ->first();
             if ($draft === null) {
                 return null;

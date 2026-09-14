@@ -474,9 +474,12 @@ function render(): void {
       const entityWidth = Math.max(4, entity.bounds.width * zoom.value);
       const entityHeight = Math.max(4, entity.bounds.height * zoom.value);
       if (
-        x > width.value + 32 || x + entityWidth < -32 ||
-        yBottom > height.value + entityHeight + 32 || yBottom - entityHeight < -32
-      ) continue;
+        x > width.value + 32 ||
+        x + entityWidth < -32 ||
+        yBottom > height.value + entityHeight + 32 ||
+        yBottom - entityHeight < -32
+      )
+        continue;
       context.save();
       context.globalAlpha = entity.opacity;
       context.fillStyle = entity.color ?? '#f3d36a';

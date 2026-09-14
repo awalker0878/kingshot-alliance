@@ -32,7 +32,7 @@ final class TerritoryActivityRecorder
     }
 
     /** @param list<array<string,mixed>> $previousObjects
-     * @param list<array<string,mixed>> $objects
+     * @param  list<array<string,mixed>>  $objects
      */
     public function recordAssignments(TerritoryPlanMutationContext $context, array $previousObjects, array $objects): void
     {
@@ -53,5 +53,4 @@ final class TerritoryActivityRecorder
             $this->record($context, 'assigned', $context->plan->revision.':'.$page.':'.hash('sha256', implode('|', $playerIds)), $playerIds);
         }
     }
-
 }

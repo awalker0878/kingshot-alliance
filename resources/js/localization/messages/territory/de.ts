@@ -9,14 +9,18 @@ const messages = {
     editorSubtitle:
       '{governor} bearbeitet das Arbeitslayout. Veröffentlichte Revisionen bleiben unverändert.',
     recoveryAvailable: 'Wiederherstellungsentwurf verfügbar',
-    recoveryAvailableStale: 'Der wiederhergestellte Stand basiert auf Revision {base}; der validierte Plan ist jetzt Revision {current}. Vor dem Speichern prüfen.',
-    recoveryAvailableCurrent: 'Nicht gespeicherte Arbeit aus Revision {revision} kann wiederhergestellt werden.',
+    recoveryAvailableStale:
+      'Der wiederhergestellte Stand basiert auf Revision {base}; der validierte Plan ist jetzt Revision {current}. Vor dem Speichern prüfen.',
+    recoveryAvailableCurrent:
+      'Nicht gespeicherte Arbeit aus Revision {revision} kann wiederhergestellt werden.',
     recoverDraft: 'Entwurf wiederherstellen',
     discardDraft: 'Entwurf verwerfen',
     recoverySaveFailed: 'Der Wiederherstellungsentwurf konnte nicht gespeichert werden.',
     recoveryDiscarded: 'Wiederherstellungsentwurf verworfen.',
-    recoveryMapMismatch: 'Dieser Entwurf gehört zu einer anderen fixierten Karte und kann nicht angewendet werden.',
-    recoveryRestoredStale: 'Arbeit aus Revision {base} wiederhergestellt. Der validierte Plan ist Revision {current}; Konflikte vor dem Speichern prüfen.',
+    recoveryMapMismatch:
+      'Dieser Entwurf gehört zu einer anderen fixierten Karte und kann nicht angewendet werden.',
+    recoveryRestoredStale:
+      'Arbeit aus Revision {base} wiederhergestellt. Der validierte Plan ist Revision {current}; Konflikte vor dem Speichern prüfen.',
     recoveryRestored: 'Wiederherstellungsentwurf geladen. Layout vor dem Speichern prüfen.',
     savedPlans: 'Gespeicherte Layouts',
     plansHeading: 'Gebietspläne',
@@ -189,7 +193,8 @@ const messages = {
     collaboration: 'Collaboration',
     collaborationTitle: 'Review, comments and access',
     refreshCollaboration: 'Refresh collaboration',
-    collaborationHelp: 'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
+    collaborationHelp:
+      'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
     objectComments: 'Object comments',
     selectOneObjectForComment: 'Select one object to comment on it.',
     commentPlaceholder: 'Add a revision-bound planning comment…',
@@ -227,7 +232,8 @@ const messages = {
     revisionIdShort: 'revision {id}',
     privateShareViewer: 'Private Gebietsfreigabe',
     sharedLinkInvalid: 'Dieser private Freigabelink ist ungültig.',
-    sharedLinkUnavailable: 'Diese private Freigabe ist nicht verfügbar oder Sie haben keinen Zugriff mehr.',
+    sharedLinkUnavailable:
+      'Diese private Freigabe ist nicht verfügbar oder Sie haben keinen Zugriff mehr.',
     shareExpires: 'Läuft am {date} ab',
     invalidExpiry: 'Choose a valid future expiry.',
     status: { draft: 'Entwurf', published: 'Veröffentlicht', archived: 'Archiviert' },

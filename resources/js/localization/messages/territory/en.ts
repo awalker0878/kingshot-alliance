@@ -9,14 +9,17 @@ const messages = {
       'Plan the Kingdom map as {governor}, then publish a layout your officers can actually coordinate from.',
     editorSubtitle: '{governor} is editing the working layout. Published revisions remain fixed.',
     recoveryAvailable: 'Recovery draft available',
-    recoveryAvailableStale: 'Recovered work was based on revision {base}; the validated plan is now revision {current}. Review it before saving.',
+    recoveryAvailableStale:
+      'Recovered work was based on revision {base}; the validated plan is now revision {current}. Review it before saving.',
     recoveryAvailableCurrent: 'Unsaved work from revision {revision} is available for recovery.',
     recoverDraft: 'Recover draft',
     discardDraft: 'Discard draft',
     recoverySaveFailed: 'The recovery draft could not be saved.',
     recoveryDiscarded: 'Recovery draft discarded.',
-    recoveryMapMismatch: 'This recovery draft belongs to a different pinned map and cannot be applied.',
-    recoveryRestoredStale: 'Recovered work from revision {base}. The validated plan is revision {current}; review conflicts before saving.',
+    recoveryMapMismatch:
+      'This recovery draft belongs to a different pinned map and cannot be applied.',
+    recoveryRestoredStale:
+      'Recovered work from revision {base}. The validated plan is revision {current}; review conflicts before saving.',
     recoveryRestored: 'Recovery draft restored. Review the layout before saving.',
     savedPlans: 'Saved layouts',
     plansHeading: 'Territory plans',
@@ -187,7 +190,8 @@ const messages = {
     collaboration: 'Collaboration',
     collaborationTitle: 'Review, comments and access',
     refreshCollaboration: 'Refresh collaboration',
-    collaborationHelp: 'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
+    collaborationHelp:
+      'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
     objectComments: 'Object comments',
     selectOneObjectForComment: 'Select one object to comment on it.',
     commentPlaceholder: 'Add a revision-bound planning comment…',

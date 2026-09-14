@@ -239,9 +239,10 @@ export function buildTerritoryScene(input: BuildTerritorySceneInput): TerritoryS
       opacity: 0.9,
       selectable: true,
       planObjectKey: null,
-      confidence: object.confidence === null || object.confidence === undefined
-        ? null
-        : String(object.confidence),
+      confidence:
+        object.confidence === null || object.confidence === undefined
+          ? null
+          : String(object.confidence),
       provenance: [],
       metadata: {
         object_type: object.type,

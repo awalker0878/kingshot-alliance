@@ -8,6 +8,7 @@ use App\Contexts\Alliance\Membership\Enums\AllianceRank;
 use App\Contexts\Alliance\Membership\Models\AllianceMembership;
 use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryPlan;
+use App\Contexts\Operations\TerritoryPlanning\Actions\PruneExpiredTerritoryRecoveryDrafts;
 use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlan;
@@ -139,6 +140,48 @@ final class TerritoryRecoveryDraftTest extends TestCase
             str_repeat('0', 64),
             $this->document(),
         );
+    }
+
+    public function test_expired_read_does_not_mutate_and_pruning_is_bounded(): void
+    {
+        [$actor, $plan] = $this->scenario();
+        $model = TerritoryPlan::query()->findOrFail($plan);
+        $stored = app(TerritoryRecoveryDrafts::class)->store(
+            $actor->playerId, $plan, 1, $model->map_dataset_id, $model->map_dataset_checksum, $this->document(),
+        );
+        self::assertIsString($stored['expires_at']);
+        self::assertIsString($stored['updated_at']);
+        $expired = TerritoryRecoveryDraft::query()->findOrFail($stored['id']);
+        $expired->update(['expires_at' => now()->subMinute()]);
+        $second = $expired->replicate();
+        $second->territory_plan_id = $this->scenario()[1];
+        $second->save();
+        $live = $expired->replicate();
+        $live->territory_plan_id = $this->scenario()[1];
+        $live->expires_at = now()->addDay();
+        $live->save();
+
+        self::assertNull(app(TerritoryRecoveryDrafts::class)->read($actor->playerId, $plan));
+        self::assertSame(3, TerritoryRecoveryDraft::query()->count());
+        self::assertSame(1, app(PruneExpiredTerritoryRecoveryDrafts::class)->handle(1));
+        self::assertSame(2, TerritoryRecoveryDraft::query()->count());
+        self::assertSame(1, app(PruneExpiredTerritoryRecoveryDrafts::class)->handle(250));
+        self::assertTrue(TerritoryRecoveryDraft::query()->whereKey($live->id)->exists());
+    }
+
+    public function test_future_revision_is_not_a_recovery_base(): void
+    {
+        [$actor, $plan] = $this->scenario();
+        $model = TerritoryPlan::query()->findOrFail($plan);
+        try {
+            app(TerritoryRecoveryDrafts::class)->store(
+                $actor->playerId, $plan, 2, $model->map_dataset_id, $model->map_dataset_checksum, $this->document(),
+            );
+            self::fail('A future revision was accepted.');
+        } catch (ValidationException $error) {
+            self::assertArrayHasKey('base_revision', $error->errors());
+        }
+        self::assertSame(0, TerritoryRecoveryDraft::query()->count());
     }
 
     /** @return array{PlayerReference,string,list<array<string,mixed>>} */

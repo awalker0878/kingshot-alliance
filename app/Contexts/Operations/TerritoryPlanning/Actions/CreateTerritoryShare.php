@@ -22,7 +22,7 @@ final readonly class CreateTerritoryShare
         private TerritoryPlanWriteState $players, private TerritoryPlanQuery $plans, private AuditRecorder $audit) {}
 
     /**
-     * @param list<string> $allianceKeys
+     * @param  list<string>  $allianceKeys
      * @return array{id:string,token:string,expires_at:string}
      */
     public function handle(string $actorPlayerId, string $planId, string $revisionId, string $recipientPlayerId, array $allianceKeys, CarbonImmutable $expiresAt): array

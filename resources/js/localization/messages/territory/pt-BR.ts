@@ -10,14 +10,17 @@ const messages = {
     editorSubtitle:
       '{governor} está editando o layout de trabalho. Revisões publicadas permanecem fixas.',
     recoveryAvailable: 'Rascunho de recuperação disponível',
-    recoveryAvailableStale: 'O trabalho recuperado foi baseado na revisão {base}; o plano validado agora está na revisão {current}. Revise antes de salvar.',
-    recoveryAvailableCurrent: 'Há trabalho não salvo da revisão {revision} disponível para recuperação.',
+    recoveryAvailableStale:
+      'O trabalho recuperado foi baseado na revisão {base}; o plano validado agora está na revisão {current}. Revise antes de salvar.',
+    recoveryAvailableCurrent:
+      'Há trabalho não salvo da revisão {revision} disponível para recuperação.',
     recoverDraft: 'Recuperar rascunho',
     discardDraft: 'Descartar rascunho',
     recoverySaveFailed: 'Não foi possível salvar o rascunho de recuperação.',
     recoveryDiscarded: 'Rascunho de recuperação descartado.',
     recoveryMapMismatch: 'Este rascunho pertence a outro mapa fixado e não pode ser aplicado.',
-    recoveryRestoredStale: 'Trabalho da revisão {base} recuperado. O plano validado está na revisão {current}; revise os conflitos antes de salvar.',
+    recoveryRestoredStale:
+      'Trabalho da revisão {base} recuperado. O plano validado está na revisão {current}; revise os conflitos antes de salvar.',
     recoveryRestored: 'Rascunho recuperado. Revise o layout antes de salvar.',
     savedPlans: 'Layouts salvos',
     plansHeading: 'Planos de território',
@@ -191,7 +194,8 @@ const messages = {
     collaboration: 'Collaboration',
     collaborationTitle: 'Review, comments and access',
     refreshCollaboration: 'Refresh collaboration',
-    collaborationHelp: 'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
+    collaborationHelp:
+      'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
     objectComments: 'Object comments',
     selectOneObjectForComment: 'Select one object to comment on it.',
     commentPlaceholder: 'Add a revision-bound planning comment…',
@@ -229,7 +233,8 @@ const messages = {
     revisionIdShort: 'revision {id}',
     privateShareViewer: 'Compartilhamento privado de território',
     sharedLinkInvalid: 'Este link privado é inválido.',
-    sharedLinkUnavailable: 'Este compartilhamento privado está indisponível ou você não tem mais acesso.',
+    sharedLinkUnavailable:
+      'Este compartilhamento privado está indisponível ou você não tem mais acesso.',
     shareExpires: 'Expira em {date}',
     invalidExpiry: 'Choose a valid future expiry.',
     status: { draft: 'Rascunho', published: 'Publicado', archived: 'Arquivado' },

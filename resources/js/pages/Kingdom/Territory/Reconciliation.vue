@@ -5,7 +5,12 @@ import { computed, reactive, ref } from 'vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import TerritoryCanvas from '@/features/territory-planner/components/TerritoryCanvas.vue';
 import type { ObservedSceneObject } from '@/features/territory-planner/engine/scene';
-import type { MapData, PlanAlliance, PlanObject, TerritoryObjectType } from '@/features/territory-planner/engine/types';
+import type {
+  MapData,
+  PlanAlliance,
+  PlanObject,
+  TerritoryObjectType,
+} from '@/features/territory-planner/engine/types';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -270,50 +275,56 @@ const visibleUnexpected = computed(() =>
 const reconciliationAlliance = computed<PlanAlliance[]>(() => {
   const alliance = props.reconciliation.alliance;
   if (!alliance) return [];
-  return [{
-    key: alliance.key,
-    alliance_id: alliance.id,
-    external_name: null,
-    external_tag: null,
-    display_name: alliance.name,
-    presentation_color: '#4da3ff',
-    sort_order: 0,
-    visible: true,
-    locked: true,
-  }];
+  return [
+    {
+      key: alliance.key,
+      alliance_id: alliance.id,
+      external_name: null,
+      external_tag: null,
+      display_name: alliance.name,
+      presentation_color: '#4da3ff',
+      sort_order: 0,
+      visible: true,
+      locked: true,
+    },
+  ];
 });
 const plannedSceneObjects = computed<PlanObject[]>(() => {
   const allianceKey = props.reconciliation.alliance?.key ?? '';
   return (props.reconciliation.planned_objects ?? []).flatMap((object, index) => {
     if (!['headquarters', 'banner', 'governor_city', 'bear_trap'].includes(object.type)) return [];
-    return [{
-      key: object.key,
-      alliance_key: allianceKey,
-      group_key: null,
-      type: object.type as TerritoryObjectType,
-      player_id: object.player_id ?? null,
-      external_player_name: object.external_player_name ?? null,
-      label: object.observed_label ?? null,
-      x: object.x,
-      y: object.y,
-      rotation: 0,
-      sort_order: index,
-      metadata: {},
-    }];
+    return [
+      {
+        key: object.key,
+        alliance_key: allianceKey,
+        group_key: null,
+        type: object.type as TerritoryObjectType,
+        player_id: object.player_id ?? null,
+        external_player_name: object.external_player_name ?? null,
+        label: object.observed_label ?? null,
+        x: object.x,
+        y: object.y,
+        rotation: 0,
+        sort_order: index,
+        metadata: {},
+      },
+    ];
   });
 });
 const observedSceneObjects = computed<ObservedSceneObject[]>(() =>
   (props.reconciliation.observed_objects ?? []).flatMap((object) => {
     if (!['headquarters', 'banner', 'governor_city', 'bear_trap'].includes(object.type)) return [];
-    return [{
-      key: object.key,
-      type: object.type as TerritoryObjectType,
-      x: object.x,
-      y: object.y,
-      label: object.observed_label ?? object.external_player_name ?? null,
-      confidence: object.confidence ?? null,
-      identity_state: object.identity_state ?? null,
-    }];
+    return [
+      {
+        key: object.key,
+        type: object.type as TerritoryObjectType,
+        x: object.x,
+        y: object.y,
+        label: object.observed_label ?? object.external_player_name ?? null,
+        confidence: object.confidence ?? null,
+        identity_state: object.identity_state ?? null,
+      },
+    ];
   }),
 );
 

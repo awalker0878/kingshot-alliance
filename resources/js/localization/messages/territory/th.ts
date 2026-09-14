@@ -8,14 +8,16 @@ const messages = {
       'วางแผนแผนที่ราชอาณาจักรในฐานะ {governor} แล้วเผยแพร่เลย์เอาต์ที่เหล่าเจ้าหน้าที่สามารถใช้ประสานงานได้จริง',
     editorSubtitle: '{governor} กำลังแก้ไขเลย์เอาต์ที่ใช้งานอยู่ เวอร์ชันที่เผยแพร่แล้วจะคงที่',
     recoveryAvailable: 'มีแบบร่างกู้คืน',
-    recoveryAvailableStale: 'งานที่กู้คืนอ้างอิงรุ่น {base} แต่แผนที่ผ่านการตรวจสอบปัจจุบันเป็นรุ่น {current} โปรดตรวจสอบก่อนบันทึก',
+    recoveryAvailableStale:
+      'งานที่กู้คืนอ้างอิงรุ่น {base} แต่แผนที่ผ่านการตรวจสอบปัจจุบันเป็นรุ่น {current} โปรดตรวจสอบก่อนบันทึก',
     recoveryAvailableCurrent: 'มีงานที่ยังไม่ได้บันทึกจากรุ่น {revision} ให้กู้คืน',
     recoverDraft: 'กู้คืนแบบร่าง',
     discardDraft: 'ทิ้งแบบร่าง',
     recoverySaveFailed: 'ไม่สามารถบันทึกแบบร่างกู้คืนได้',
     recoveryDiscarded: 'ทิ้งแบบร่างกู้คืนแล้ว',
     recoveryMapMismatch: 'แบบร่างนี้เป็นของแผนที่ที่ปักหมุดคนละชุดและไม่สามารถนำมาใช้ได้',
-    recoveryRestoredStale: 'กู้คืนงานจากรุ่น {base} แล้ว แผนที่ผ่านการตรวจสอบเป็นรุ่น {current}; โปรดตรวจสอบความขัดแย้งก่อนบันทึก',
+    recoveryRestoredStale:
+      'กู้คืนงานจากรุ่น {base} แล้ว แผนที่ผ่านการตรวจสอบเป็นรุ่น {current}; โปรดตรวจสอบความขัดแย้งก่อนบันทึก',
     recoveryRestored: 'กู้คืนแบบร่างแล้ว โปรดตรวจสอบเลย์เอาต์ก่อนบันทึก',
     savedPlans: 'เลย์เอาต์ที่บันทึก',
     plansHeading: 'แผนอาณาเขต',
@@ -183,7 +185,8 @@ const messages = {
     collaboration: 'Collaboration',
     collaborationTitle: 'Review, comments and access',
     refreshCollaboration: 'Refresh collaboration',
-    collaborationHelp: 'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
+    collaborationHelp:
+      'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
     objectComments: 'Object comments',
     selectOneObjectForComment: 'Select one object to comment on it.',
     commentPlaceholder: 'Add a revision-bound planning comment…',

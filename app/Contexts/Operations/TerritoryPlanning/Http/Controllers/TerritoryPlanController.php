@@ -11,10 +11,12 @@ use App\Contexts\Operations\TerritoryPlanning\Actions\AttachTerritoryPlanRevisio
 use App\Contexts\Operations\TerritoryPlanning\Actions\CloneTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\DetachTerritoryPlanRevisionFromEvent;
+use App\Contexts\Operations\TerritoryPlanning\Actions\DiscardTerritoryRecoveryDraft;
 use App\Contexts\Operations\TerritoryPlanning\Actions\ImportTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\PublishTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\RestoreTerritoryPlanRevision;
 use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryPlan;
+use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryRecoveryDraft;
 use App\Contexts\Operations\TerritoryPlanning\Actions\UpdateTerritoryPlanAlliances;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
 use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryPlanRevisionQuery;
@@ -93,7 +95,7 @@ final class TerritoryPlanController extends Controller
             ->header('Cache-Control', 'private, no-store');
     }
 
-    public function saveRecovery(Request $request, string $plan, PlayerContext $players, TerritoryRecoveryDrafts $recovery): JsonResponse
+    public function saveRecovery(Request $request, string $plan, PlayerContext $players, SaveTerritoryRecoveryDraft $recovery): JsonResponse
     {
         $player = $players->playerOrNull();
         abort_unless($player !== null, 403);
@@ -108,7 +110,7 @@ final class TerritoryPlanController extends Controller
             'document.preferences' => ['present', 'array'],
         ]);
 
-        return response()->json(['recovery' => $recovery->store(
+        return response()->json(['recovery' => $recovery->handle(
             $player->playerId,
             $plan,
             (int) $data['base_revision'],
@@ -118,12 +120,12 @@ final class TerritoryPlanController extends Controller
         )])->header('Cache-Control', 'private, no-store');
     }
 
-    public function discardRecovery(string $plan, PlayerContext $players, TerritoryRecoveryDrafts $recovery): JsonResponse
+    public function discardRecovery(string $plan, PlayerContext $players, DiscardTerritoryRecoveryDraft $recovery): JsonResponse
     {
         $player = $players->playerOrNull();
         abort_unless($player !== null, 403);
 
-        return response()->json(['discarded' => $recovery->delete($player->playerId, $plan)])
+        return response()->json(['discarded' => $recovery->handle($player->playerId, $plan)])
             ->header('Cache-Control', 'private, no-store');
     }
 

@@ -8,6 +8,7 @@ use App\Contexts\Alliance\Lifecycle\Services\AllianceContext;
 use App\Contexts\GameWorld\Governance\Actions\AssignKingdomRole;
 use App\Contexts\GameWorld\Governance\Actions\RemoveKingdomRole;
 use App\Contexts\GameWorld\Governance\Models\KingdomRoleAssignment;
+use App\Contexts\GameWorld\Kingdoms\Queries\KingdomReferenceQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,9 +16,10 @@ use Illuminate\Validation\Rule;
 
 final class KingdomRoleController extends Controller
 {
-    public function store(Request $request, AllianceContext $context, AssignKingdomRole $assign): RedirectResponse
+    public function store(Request $request, AllianceContext $context, AssignKingdomRole $assign, KingdomReferenceQuery $kingdoms): RedirectResponse
     {
         $scope = $context->scope();
+        $kingdoms->requireActive($scope->kingdomId);
         $validated = $request->validate([
             'player_id' => ['required', 'string', 'size:26', Rule::exists('players', 'id')->where('current_kingdom_id', $scope->kingdomId)],
             'role_id' => ['required', 'string', 'size:26', Rule::exists('kingdom_roles', 'id')->where('kingdom_id', $scope->kingdomId)],
@@ -30,9 +32,10 @@ final class KingdomRoleController extends Controller
         return back()->with('actionReceipt', $this->receipt('kingdom-role-assigned'));
     }
 
-    public function destroy(Request $request, AllianceContext $context, KingdomRoleAssignment $assignment, RemoveKingdomRole $remove): RedirectResponse
+    public function destroy(Request $request, AllianceContext $context, KingdomRoleAssignment $assignment, RemoveKingdomRole $remove, KingdomReferenceQuery $kingdoms): RedirectResponse
     {
         $scope = $context->scope();
+        $kingdoms->requireActive($scope->kingdomId);
         $validated = $request->validate(['reason' => ['nullable', 'string', 'max:500']]);
         $remove->handle($scope->playerId, $scope->kingdomId, (string) $assignment->id, $validated['reason'] ?? null);
 

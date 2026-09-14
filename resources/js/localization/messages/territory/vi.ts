@@ -9,14 +9,16 @@ const messages = {
     editorSubtitle:
       '{governor} đang chỉnh sửa bố cục làm việc. Các phiên bản đã xuất bản vẫn cố định.',
     recoveryAvailable: 'Có bản nháp khôi phục',
-    recoveryAvailableStale: 'Công việc khôi phục dựa trên bản sửa đổi {base}; kế hoạch đã xác thực hiện là bản {current}. Hãy xem lại trước khi lưu.',
+    recoveryAvailableStale:
+      'Công việc khôi phục dựa trên bản sửa đổi {base}; kế hoạch đã xác thực hiện là bản {current}. Hãy xem lại trước khi lưu.',
     recoveryAvailableCurrent: 'Có thể khôi phục công việc chưa lưu từ bản sửa đổi {revision}.',
     recoverDraft: 'Khôi phục bản nháp',
     discardDraft: 'Bỏ bản nháp',
     recoverySaveFailed: 'Không thể lưu bản nháp khôi phục.',
     recoveryDiscarded: 'Đã bỏ bản nháp khôi phục.',
     recoveryMapMismatch: 'Bản nháp này thuộc một bản đồ ghim khác nên không thể áp dụng.',
-    recoveryRestoredStale: 'Đã khôi phục công việc từ bản sửa đổi {base}. Kế hoạch đã xác thực là bản {current}; hãy xem lại xung đột trước khi lưu.',
+    recoveryRestoredStale:
+      'Đã khôi phục công việc từ bản sửa đổi {base}. Kế hoạch đã xác thực là bản {current}; hãy xem lại xung đột trước khi lưu.',
     recoveryRestored: 'Đã khôi phục bản nháp. Hãy xem lại bố cục trước khi lưu.',
     savedPlans: 'Bố cục đã lưu',
     plansHeading: 'Kế hoạch lãnh thổ',
@@ -188,7 +190,8 @@ const messages = {
     collaboration: 'Collaboration',
     collaborationTitle: 'Review, comments and access',
     refreshCollaboration: 'Refresh collaboration',
-    collaborationHelp: 'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
+    collaborationHelp:
+      'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
     objectComments: 'Object comments',
     selectOneObjectForComment: 'Select one object to comment on it.',
     commentPlaceholder: 'Add a revision-bound planning comment…',

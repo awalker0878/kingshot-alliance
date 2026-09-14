@@ -8,14 +8,16 @@ const messages = {
       'خطط لخريطة المملكة بصفتك {governor} ثم انشر تخطيطًا يستطيع الضباط التنسيق من خلاله فعليًا.',
     editorSubtitle: 'يقوم {governor} بتحرير تخطيط العمل. تبقى المراجعات المنشورة ثابتة.',
     recoveryAvailable: 'مسودة استرداد متاحة',
-    recoveryAvailableStale: 'العمل المسترد مبني على المراجعة {base}، بينما الخطة المعتمدة الآن هي المراجعة {current}. راجعها قبل الحفظ.',
+    recoveryAvailableStale:
+      'العمل المسترد مبني على المراجعة {base}، بينما الخطة المعتمدة الآن هي المراجعة {current}. راجعها قبل الحفظ.',
     recoveryAvailableCurrent: 'يتوفر عمل غير محفوظ من المراجعة {revision} للاسترداد.',
     recoverDraft: 'استرداد المسودة',
     discardDraft: 'تجاهل المسودة',
     recoverySaveFailed: 'تعذر حفظ مسودة الاسترداد.',
     recoveryDiscarded: 'تم تجاهل مسودة الاسترداد.',
     recoveryMapMismatch: 'هذه المسودة تخص خريطة مثبتة مختلفة ولا يمكن تطبيقها.',
-    recoveryRestoredStale: 'تم استرداد العمل من المراجعة {base}. الخطة المعتمدة هي المراجعة {current}؛ راجع التعارضات قبل الحفظ.',
+    recoveryRestoredStale:
+      'تم استرداد العمل من المراجعة {base}. الخطة المعتمدة هي المراجعة {current}؛ راجع التعارضات قبل الحفظ.',
     recoveryRestored: 'تم استرداد المسودة. راجع التخطيط قبل الحفظ.',
     savedPlans: 'التخطيطات المحفوظة',
     plansHeading: 'خطط الإقليم',
@@ -181,7 +183,8 @@ const messages = {
     collaboration: 'Collaboration',
     collaborationTitle: 'Review, comments and access',
     refreshCollaboration: 'Refresh collaboration',
-    collaborationHelp: 'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
+    collaborationHelp:
+      'Comments and reviews are revision-bound. Delegated access is limited to explicit Alliance layers and can be revoked immediately.',
     objectComments: 'Object comments',
     selectOneObjectForComment: 'Select one object to comment on it.',
     commentPlaceholder: 'Add a revision-bound planning comment…',

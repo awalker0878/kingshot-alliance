@@ -6,8 +6,7 @@ export type TerritoryCommandRefusal = {
   blockedKeys: string[];
 };
 export type TerritoryCommandResult =
-  | TerritoryCommandRefusal
-  | { ok: true; objects: PlanObject[]; affectedKeys: string[] };
+  TerritoryCommandRefusal | { ok: true; objects: PlanObject[]; affectedKeys: string[] };
 
 export function objectIsLocked(object: PlanObject, allianceLocked = false): boolean {
   return allianceLocked || object.metadata.locked === true;
@@ -80,7 +79,8 @@ export function rotateObjectsAtomic(
 ): TerritoryCommandResult {
   const selection = requireAtomicEditableSelection(objects, keys, isEditable);
   if (!selection.ok) return selection;
-  if (![pivot.x, pivot.y].every(Number.isFinite)) throw new TypeError('Invalid Territory rotation pivot.');
+  if (![pivot.x, pivot.y].every(Number.isFinite))
+    throw new TypeError('Invalid Territory rotation pivot.');
   const affected = new Set(selection.selected.map((object) => object.key));
   return {
     ok: true,
@@ -96,9 +96,8 @@ export function rotateObjectsAtomic(
       const rotatedCenterY = pivot.y + (direction === 1 ? -relativeX : relativeX);
       const rotation = (object.rotation + direction * 90 + 360) % 360;
       const base = map.object_types[object.type].footprint;
-      const after = rotation === 90 || rotation === 270
-        ? { width: base.height, height: base.width }
-        : base;
+      const after =
+        rotation === 90 || rotation === 270 ? { width: base.height, height: base.width } : base;
       return {
         ...object,
         rotation,
@@ -150,7 +149,8 @@ export function materializeHiveProposal(
 ): PlanObject[] {
   const keys = new Set<string>();
   return proposal.map((object, index) => {
-    if (!object.key || keys.has(object.key)) throw new TypeError('Hive proposal keys must be unique.');
+    if (!object.key || keys.has(object.key))
+      throw new TypeError('Hive proposal keys must be unique.');
     keys.add(object.key);
     const metadata = { ...(object.metadata ?? {}) };
     if (object.type === 'governor_city' && metadata.slot_state === undefined)
@@ -167,4 +167,3 @@ export function materializeHiveProposal(
     };
   });
 }
-

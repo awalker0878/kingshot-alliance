@@ -8,7 +8,13 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
 type SharedSnapshot = {
-  plan: { id: string; name: string; scope: string; map_dataset_id: string; map_dataset_checksum: string };
+  plan: {
+    id: string;
+    name: string;
+    scope: string;
+    map_dataset_id: string;
+    map_dataset_checksum: string;
+  };
   alliances: PlanAlliance[];
   objects: PlanObject[];
 };
@@ -20,7 +26,14 @@ type SharedProjection = {
   projection_checksum: string;
   expires_at: string;
   snapshot: SharedSnapshot;
-  map: { id: string; checksum: string; source_label: string; confidence: string; observed_at: string; data: MapData };
+  map: {
+    id: string;
+    checksum: string;
+    source_label: string;
+    confidence: string;
+    observed_at: string;
+    data: MapData;
+  };
 };
 
 const props = defineProps<{
@@ -85,7 +98,11 @@ onMounted(resolveShare);
         {{ t('territory.shareExpires', { date: formatDate(projection.expires_at) }) }}
       </p>
       <p v-if="loading" class="mt-4" role="status">{{ t('territory.collaborationLoading') }}</p>
-      <div v-else-if="error" class="mt-4 rounded border border-red-500/40 p-3 text-red-100" role="alert">
+      <div
+        v-else-if="error"
+        class="mt-4 rounded border border-red-500/40 p-3 text-red-100"
+        role="alert"
+      >
         {{ error }}
       </div>
       <div v-else-if="projection" class="mt-4">
@@ -104,10 +121,13 @@ onMounted(resolveShare);
           />
         </div>
         <p class="mt-2 text-xs text-[var(--ks-muted)]">
-          {{ projection.map.source_label }} · {{ projection.map.id }} · {{ projection.projection_checksum }}
+          {{ projection.map.source_label }} · {{ projection.map.id }} ·
+          {{ projection.projection_checksum }}
         </p>
       </div>
-      <Link href="/territory" class="ks-command-link mt-4 inline-flex">{{ t('territory.backToPlans') }}</Link>
+      <Link href="/territory" class="ks-command-link mt-4 inline-flex">{{
+        t('territory.backToPlans')
+      }}</Link>
     </section>
   </AppLayout>
 </template>

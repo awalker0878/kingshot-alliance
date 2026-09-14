@@ -78,3 +78,5 @@ Schedule::command('gift-codes:rebuild-contributor-projections --limit=100')->hou
 Schedule::command('gift-codes:rebuild-acquisition-intelligence --cluster-limit=500 --source-limit=100')->hourly()->onOneServer()->withoutOverlapping(30);
 Schedule::command('kingdom-governance:expire-delegations --limit=250')->hourly()->onOneServer()->withoutOverlapping(30);
 Schedule::command('evidence:enforce-retention --limit=250')->dailyAt('03:20')->onOneServer()->withoutOverlapping(60);
+
+Schedule::command('territory:prune-recovery --limit=250')->hourly()->onOneServer()->withoutOverlapping(10);

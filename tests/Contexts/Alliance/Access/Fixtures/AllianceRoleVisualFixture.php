@@ -17,9 +17,9 @@ final class AllianceRoleVisualFixture
     {
         $factory = app(ScenarioFactory::class);
         $user = User::factory()->create(['name' => 'Role Boundary Visual', 'email' => 'role-boundary-visual@example.test']);
-        $player = $factory->player((int) $user->id, 59353);
+        $player = $factory->player((int) $user->id, 59353, 'alliance-role-visual-owner');
         $alliance = $factory->alliance($player);
-        $member = $factory->unclaimedPlayer(59353);
+        $member = $factory->unclaimedPlayer(59353, 'alliance-role-visual-member');
         AllianceMembership::query()->create([
             'alliance_id' => $alliance->allianceId,
             'player_id' => $member->playerId,
