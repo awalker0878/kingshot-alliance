@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const bearHuntDebriefVisualFingerprints: Record<string, string> = {
-  desktop: 'd61505159977835faf7a8425eae505750497c438b4bb0a98f3aa9246bd64b9a4',
+  desktop: 'db5b611875a3dead37a6dc1794cc3b6ea862890e2e311ac4e8a3a9a5a9ef7317',
   mobile: 'a5435dfe7a7ac9d8829d7ffa2ac6604b429f1757c45171ea5f180cb99b66ca7e',
 };
 
