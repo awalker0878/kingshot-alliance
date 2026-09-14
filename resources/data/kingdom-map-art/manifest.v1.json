@@ -1,0 +1,698 @@
+{
+  "schema_version": 1,
+  "registry_version": "2026.09.14.1",
+  "authorization": {
+    "basis": "user_supplied_kingshot_artwork_authorization",
+    "recorded_at": "2026-09-06",
+    "scope": ["kingshot_kingdom_map_artwork"],
+    "statement": "Authorization covers Kingshot Kingdom Map artwork that is supplied or explicitly authorized. It does not extend to unrelated third-party artwork, data or code.",
+    "unrelated_asset_authorization": false
+  },
+  "limits": {
+    "max_source_bytes": 8388608,
+    "max_dimension": 4096,
+    "max_registry_entries": 128,
+    "max_total_assets": 512,
+    "source_mime_types": ["image/png", "image/webp", "image/jpeg", "image/svg+xml"],
+    "delivery_mime_types": ["image/png", "image/webp", "image/jpeg"]
+  },
+  "representation_kinds": ["icon", "sprite", "detail"],
+  "review_states": ["not_required", "awaiting_source", "delivered_unreviewed", "reviewed"],
+  "entries": [
+    {
+      "key": "headquarters.badland",
+      "family": "headquarters",
+      "variant": "badland",
+      "label": "Badland Headquarters",
+      "category": "planned",
+      "layer": "planned",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 3,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "headquarters.plains",
+      "family": "headquarters",
+      "variant": "plains",
+      "label": "Plains Headquarters",
+      "category": "planned",
+      "layer": "planned",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 3,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "banner.default",
+      "family": "banner",
+      "variant": "default",
+      "label": "Alliance Banner",
+      "category": "planned",
+      "layer": "planned",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "governor_city.default",
+      "family": "governor_city",
+      "variant": "default",
+      "label": "Governor City",
+      "category": "planned",
+      "layer": "planned",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 2,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "bear_trap.default",
+      "family": "bear_trap",
+      "variant": "default",
+      "label": "Bear Trap",
+      "category": "planned",
+      "layer": "planned",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 3,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "castle.kings_castle",
+      "family": "castle",
+      "variant": "kings_castle",
+      "label": "King's Castle",
+      "category": "structure",
+      "layer": "structures",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 6,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "turret.default",
+      "family": "turret",
+      "variant": "default",
+      "label": "Turret",
+      "category": "structure",
+      "layer": "structures",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 2,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "fortress.default",
+      "family": "fortress",
+      "variant": "default",
+      "label": "Fortress",
+      "category": "structure",
+      "layer": "structures",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 6,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "sanctuary.default",
+      "family": "sanctuary",
+      "variant": "default",
+      "label": "Sanctuary",
+      "category": "structure",
+      "layer": "structures",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 6,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "outpost.builders_guild",
+      "family": "outpost",
+      "variant": "builders_guild",
+      "label": "Builder's Guild",
+      "category": "facility",
+      "layer": "facilities",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "outpost.armory",
+      "family": "outpost",
+      "variant": "armory",
+      "label": "Armory",
+      "category": "facility",
+      "layer": "facilities",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "outpost.scholars_tower",
+      "family": "outpost",
+      "variant": "scholars_tower",
+      "label": "Scholar's Tower",
+      "category": "facility",
+      "layer": "facilities",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "outpost.arsenal",
+      "family": "outpost",
+      "variant": "arsenal",
+      "label": "Arsenal",
+      "category": "facility",
+      "layer": "facilities",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "outpost.forager_grove",
+      "family": "outpost",
+      "variant": "forager_grove",
+      "label": "Forager Grove",
+      "category": "facility",
+      "layer": "facilities",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "outpost.harvest_altar",
+      "family": "outpost",
+      "variant": "harvest_altar",
+      "label": "Harvest Altar",
+      "category": "facility",
+      "layer": "facilities",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "outpost.drill_camp",
+      "family": "outpost",
+      "variant": "drill_camp",
+      "label": "Drill Camp",
+      "category": "facility",
+      "layer": "facilities",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "outpost.frontier_lodge",
+      "family": "outpost",
+      "variant": "frontier_lodge",
+      "label": "Frontier Lodge",
+      "category": "facility",
+      "layer": "facilities",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "outpost.unknown",
+      "family": "outpost",
+      "variant": "unknown",
+      "label": "Unclassified Outpost",
+      "category": "facility",
+      "layer": "facilities",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "resource.bread",
+      "family": "resource",
+      "variant": "bread",
+      "label": "Bread Resource Node",
+      "category": "resource",
+      "layer": "resources",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "resource.woodmill",
+      "family": "resource",
+      "variant": "woodmill",
+      "label": "Woodmill Resource Node",
+      "category": "resource",
+      "layer": "resources",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "resource.quarry",
+      "family": "resource",
+      "variant": "quarry",
+      "label": "Quarry Resource Node",
+      "category": "resource",
+      "layer": "resources",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "resource.ironmine",
+      "family": "resource",
+      "variant": "ironmine",
+      "label": "Iron Mine Resource Node",
+      "category": "resource",
+      "layer": "resources",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "terrain.lake",
+      "family": "terrain",
+      "variant": "lake",
+      "label": "Lake",
+      "category": "terrain",
+      "layer": "terrain",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "terrain.mountain",
+      "family": "terrain",
+      "variant": "mountain",
+      "label": "Mountain",
+      "category": "terrain",
+      "layer": "terrain",
+      "renderer": "raster",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 1
+      },
+      "world_width_tiles": 1,
+      "required_representations": ["icon", "sprite", "detail"],
+      "review_state": "awaiting_source",
+      "source": null,
+      "provenance": [],
+      "rights_basis": "kingshot_supplied_artwork",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "region.default",
+      "family": "region",
+      "variant": "default",
+      "label": "Region Overlay",
+      "category": "symbol",
+      "layer": "regions",
+      "renderer": "vector",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "world_width_tiles": 1,
+      "required_representations": [],
+      "review_state": "not_required",
+      "source": null,
+      "provenance": ["application_deliberate_overlay"],
+      "rights_basis": "application_owned",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "restriction.default",
+      "family": "restriction",
+      "variant": "default",
+      "label": "Placement Restriction Overlay",
+      "category": "symbol",
+      "layer": "restrictions",
+      "renderer": "vector",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "world_width_tiles": 1,
+      "required_representations": [],
+      "review_state": "not_required",
+      "source": null,
+      "provenance": ["application_deliberate_overlay"],
+      "rights_basis": "application_owned",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    },
+    {
+      "key": "annotation.default",
+      "family": "annotation",
+      "variant": "default",
+      "label": "Annotation Symbol",
+      "category": "symbol",
+      "layer": "annotations",
+      "renderer": "vector",
+      "orientation": "upright",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "world_width_tiles": 1,
+      "required_representations": [],
+      "review_state": "not_required",
+      "source": null,
+      "provenance": ["application_deliberate_overlay"],
+      "rights_basis": "application_owned",
+      "representations": {
+        "icon": null,
+        "sprite": null,
+        "detail": null
+      }
+    }
+  ]
+}
