@@ -29,7 +29,10 @@ jobs:
               out=subprocess.check_output(['git','ls-tree',base,'--',f['path']]).decode().strip()
               old=out.split()[2] if out else None
               if old!=f['old_sha']: raise SystemExit('base blob mismatch: '+f['path'])
-          parts=sorted((root/'.github/kingdom-map-recovery-chunks').glob('part-*.b64'))
+          count=int(manifest['chunk_count'])
+          if count < 1 or count > 32: raise SystemExit('invalid chunk count')
+          parts=[root/f'.github/kingdom-map-recovery-chunks/part-{i:02d}.b64' for i in range(1,count+1)]
+          if not all(p.is_file() for p in parts): raise SystemExit('missing recovery chunk')
           compressed=b''.join(base64.b64decode(p.read_text().strip(), validate=True) for p in parts)
           patch=gzip.decompress(compressed)
           if hashlib.sha256(patch).hexdigest()!=manifest['patch_sha256']: raise SystemExit('patch digest mismatch')
