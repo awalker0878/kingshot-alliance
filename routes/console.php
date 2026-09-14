@@ -46,6 +46,7 @@ Schedule::command('events:queue-reminders --limit=100')->everyMinute()->onOneSer
 Schedule::command('notifications:queue-officer-briefs --group=daily --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:queue-officer-briefs --group=event --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:queue-intelligence-changes --limit=1000 --cycle')->everyFifteenMinutes()->onOneServer()->withoutOverlapping(10);
+Schedule::command('notifications:queue-territory --pages=10 --page-size=50')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:deliver --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:build-digests --limit=500')->everyMinute()->onOneServer()->withoutOverlapping(10);
 Schedule::command('notifications:deliver-digests --limit=100')->everyMinute()->onOneServer()->withoutOverlapping(10);
@@ -77,3 +78,5 @@ Schedule::command('gift-codes:rebuild-contributor-projections --limit=100')->hou
 Schedule::command('gift-codes:rebuild-acquisition-intelligence --cluster-limit=500 --source-limit=100')->hourly()->onOneServer()->withoutOverlapping(30);
 Schedule::command('kingdom-governance:expire-delegations --limit=250')->hourly()->onOneServer()->withoutOverlapping(30);
 Schedule::command('evidence:enforce-retention --limit=250')->dailyAt('03:20')->onOneServer()->withoutOverlapping(60);
+
+Schedule::command('territory:prune-recovery --limit=250')->hourly()->onOneServer()->withoutOverlapping(10);

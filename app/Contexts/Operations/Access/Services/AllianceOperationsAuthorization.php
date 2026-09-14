@@ -21,6 +21,24 @@ final readonly class AllianceOperationsAuthorization
         return $facts instanceof AllianceAuthorityFacts && $this->allowsFacts($facts, $permission);
     }
 
+    /**
+     * Resolve multiple read-time permissions from one current authority snapshot.
+     *
+     * @param  list<OperationsPermission>  $permissions
+     * @return array<string, bool>
+     */
+    public function allowsMany(string $actorPlayerId, string $allianceId, array $permissions): array
+    {
+        $facts = $this->authorityFacts->findCurrent($actorPlayerId, $allianceId);
+        $resolved = [];
+        foreach ($permissions as $permission) {
+            $resolved[$permission->value] = $facts instanceof AllianceAuthorityFacts
+                && $this->allowsFacts($facts, $permission);
+        }
+
+        return $resolved;
+    }
+
     public function allowsFacts(AllianceAuthorityFacts $facts, OperationsPermission $permission): bool
     {
         return $this->allowsRoleState($facts->rankObservedAtRead, $facts->roleKeysObservedAtRead, $permission);

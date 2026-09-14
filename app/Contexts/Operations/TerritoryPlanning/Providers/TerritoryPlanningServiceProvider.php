@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\TerritoryPlanning\Providers;
 
+use App\Contexts\Operations\TerritoryPlanning\Console\Commands\PruneTerritoryRecoveryDraftsCommand;
+use App\Contexts\Operations\TerritoryPlanning\Http\Controllers\TerritoryCollaborationController;
 use App\Contexts\Operations\TerritoryPlanning\Http\Controllers\TerritoryPlanController;
+use App\Contexts\Operations\TerritoryPlanning\Http\Controllers\TerritoryWorkspaceViewController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -12,7 +15,22 @@ final class TerritoryPlanningServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        if ($this->app->runningInConsole()) {
+            $this->commands([PruneTerritoryRecoveryDraftsCommand::class]);
+        }
+
         Route::middleware(['web', 'auth', 'auth.session', 'verified'])->group(function (): void {
+            Route::get('/territory/workspace-views', [TerritoryWorkspaceViewController::class, 'show'])->name('territory.workspace-views.show');
+            Route::put('/territory/workspace-views', [TerritoryWorkspaceViewController::class, 'update'])->name('territory.workspace-views.update');
+            Route::get('/territory/{plan}/collaboration', [TerritoryCollaborationController::class, 'overview'])->whereUlid('plan')->name('territory.collaboration');
+            Route::post('/territory/{plan}/comments', [TerritoryCollaborationController::class, 'comment'])->whereUlid('plan')->name('territory.comments.store');
+            Route::post('/territory/{plan}/reviews', [TerritoryCollaborationController::class, 'review'])->whereUlid('plan')->name('territory.reviews.store');
+            Route::post('/territory/{plan}/access', [TerritoryCollaborationController::class, 'grant'])->whereUlid('plan')->name('territory.access.store');
+            Route::delete('/territory/{plan}/access/{grant}', [TerritoryCollaborationController::class, 'revokeGrant'])->whereUlid('plan')->whereUlid('grant')->name('territory.access.destroy');
+            Route::post('/territory/{plan}/shares', [TerritoryCollaborationController::class, 'share'])->whereUlid('plan')->name('territory.shares.store');
+            Route::delete('/territory/{plan}/shares/{share}', [TerritoryCollaborationController::class, 'revokeShare'])->whereUlid('plan')->whereUlid('share')->name('territory.shares.destroy');
+            Route::get('/territory/shared/{share}', [TerritoryCollaborationController::class, 'viewer'])->whereUlid('share')->name('territory.shared.viewer');
+            Route::post('/territory/shared/{share}', [TerritoryCollaborationController::class, 'shared'])->whereUlid('share')->name('territory.shared');
             Route::get('/territory/{plan}/revisions/{revision}', [TerritoryPlanController::class, 'revision'])
                 ->whereUlid('plan')
                 ->whereUlid('revision')
@@ -26,6 +44,15 @@ final class TerritoryPlanningServiceProvider extends ServiceProvider
             Route::put('/territory/{plan}/alliances', [TerritoryPlanController::class, 'updateAlliances'])
                 ->whereUlid('plan')
                 ->name('territory.alliances.update');
+            Route::get('/territory/{plan}/recovery', [TerritoryPlanController::class, 'recovery'])
+                ->whereUlid('plan')
+                ->name('territory.recovery.show');
+            Route::put('/territory/{plan}/recovery', [TerritoryPlanController::class, 'saveRecovery'])
+                ->whereUlid('plan')
+                ->name('territory.recovery.update');
+            Route::delete('/territory/{plan}/recovery', [TerritoryPlanController::class, 'discardRecovery'])
+                ->whereUlid('plan')
+                ->name('territory.recovery.destroy');
             Route::put('/territory/{plan}', [TerritoryPlanController::class, 'save'])
                 ->whereUlid('plan')
                 ->name('territory.save');

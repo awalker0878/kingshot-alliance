@@ -16,6 +16,7 @@ use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanGroup;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanObject;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryLayoutAnalyzer;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanSnapshotBuilder;
 
 final readonly class TerritoryPlanQuery
 {
@@ -25,6 +26,7 @@ final readonly class TerritoryPlanQuery
         private KingdomMapDatasetQuery $datasets,
         private PlacementValidator $placement,
         private TerritoryLayoutAnalyzer $analysis,
+        private TerritoryPlanSnapshotBuilder $snapshots,
     ) {}
 
     /** @return list<array<string, mixed>> */
@@ -53,7 +55,8 @@ final readonly class TerritoryPlanQuery
         $plan = TerritoryPlan::query()
             ->with(['planAlliances', 'groups', 'objects', 'revisions'])
             ->findOrFail($planId);
-        abort_unless($this->canView($actorPlayerId, $plan), 403);
+        $access = $this->access($actorPlayerId, $plan);
+        abort_unless($access['can_view'], 403);
 
         $dataset = $this->datasets->require($plan->map_dataset_id, $plan->map_dataset_checksum);
 
@@ -147,7 +150,7 @@ final readonly class TerritoryPlanQuery
         }
 
         return [
-            'plan' => $this->summary($actorPlayerId, $plan),
+            'plan' => $this->summary($actorPlayerId, $plan, $access['can_manage']),
             'alliances' => $alliances,
             'groups' => $groups,
             'objects' => $objects,
@@ -164,6 +167,7 @@ final readonly class TerritoryPlanQuery
                 'data' => $dataset->data,
             ],
             'revisions' => $revisions,
+            'layout_checksum' => $this->snapshots->checksum($this->snapshots->build($plan)),
         ];
     }
 
@@ -188,10 +192,39 @@ final readonly class TerritoryPlanQuery
             );
     }
 
-    /** @return array<string, mixed> */
-    private function summary(string $actorPlayerId, TerritoryPlan $plan): array
+    /** @return array{can_view:bool,can_manage:bool} */
+    private function access(string $actorPlayerId, TerritoryPlan $plan): array
     {
-        $canManage = $plan->scope === TerritoryPlanScope::Alliance
+        if ($plan->scope === TerritoryPlanScope::Alliance) {
+            if ($plan->owner_alliance_id === null) {
+                return ['can_view' => false, 'can_manage' => false];
+            }
+            $resolved = $this->allianceAuthorization->allowsMany($actorPlayerId, $plan->owner_alliance_id, [
+                OperationsPermission::TerritoryAllianceView,
+                OperationsPermission::TerritoryAllianceManage,
+            ]);
+
+            return [
+                'can_view' => $resolved[OperationsPermission::TerritoryAllianceView->value] ?? false,
+                'can_manage' => $resolved[OperationsPermission::TerritoryAllianceManage->value] ?? false,
+            ];
+        }
+
+        $resolved = $this->kingdomAuthorization->allowsMany($actorPlayerId, $plan->kingdom_id, [
+            OperationsPermission::TerritoryKingdomView,
+            OperationsPermission::TerritoryKingdomManage,
+        ]);
+
+        return [
+            'can_view' => $resolved[OperationsPermission::TerritoryKingdomView->value] ?? false,
+            'can_manage' => $resolved[OperationsPermission::TerritoryKingdomManage->value] ?? false,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function summary(string $actorPlayerId, TerritoryPlan $plan, ?bool $canManage = null): array
+    {
+        $canManage ??= $plan->scope === TerritoryPlanScope::Alliance
             ? $plan->owner_alliance_id !== null && $this->allianceAuthorization->allows(
                 $actorPlayerId,
                 $plan->owner_alliance_id,

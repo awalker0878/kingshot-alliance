@@ -27,6 +27,7 @@ final readonly class SetNotificationPreference
         'intelligence.change',
         'king_perks.reminder',
         'officer.brief',
+        'territory.activity',
     ];
 
     public function __construct(private PlayerReferenceQuery $players) {}

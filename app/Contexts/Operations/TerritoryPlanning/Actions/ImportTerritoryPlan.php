@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\TerritoryPlanning\Actions;
 
+use App\Contexts\Operations\TerritoryPlanning\Exceptions\TerritoryRevisionConflict;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanImport;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanningAuthorization;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanWriteState;
 use App\Contexts\Operations\TerritoryPlanning\ValueObjects\TerritoryPlanMutationReceipt;
 use App\Shared\Infrastructure\AuditTrail\Services\AuditRecorder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 final readonly class ImportTerritoryPlan
@@ -27,7 +29,11 @@ final readonly class ImportTerritoryPlan
         string $planId,
         int $expectedRevision,
         string $document,
+        string $documentChecksum,
     ): TerritoryPlanMutationReceipt {
+        if (! hash_equals(hash('sha256', $document), $documentChecksum)) {
+            throw $this->invalidImport('The import document changed after preview. Preview the exact document again.');
+        }
         $preview = $this->imports->preview($document);
         if (($preview['can_commit'] ?? false) !== true) {
             throw ValidationException::withMessages([
@@ -45,9 +51,7 @@ final readonly class ImportTerritoryPlan
             $this->authorization->authorizeManage($context);
 
             if ($context->plan->revision !== $expectedRevision) {
-                throw ValidationException::withMessages([
-                    'revision' => 'This plan changed before the imported layout could be committed.',
-                ]);
+                throw new TerritoryRevisionConflict($expectedRevision, $context->plan->revision);
             }
 
             if (
@@ -70,7 +74,7 @@ final readonly class ImportTerritoryPlan
             $receipt = $this->save->handle(
                 $actorPlayerId,
                 $planId,
-                $expectedRevision,
+                $expectedRevision, (string) Str::uuid(),
                 $alliances,
                 $groups,
                 $objects,

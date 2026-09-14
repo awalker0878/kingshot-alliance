@@ -1,0 +1,17 @@
+{
+  "schema_version": 2,
+  "plan": {
+    "id": "01K00000000000000000000001",
+    "scope": "kingdom",
+    "kingdom_id": "01K00000000000000000000002",
+    "owner_alliance_id": null,
+    "name": "Browser interchange",
+    "head_revision": 7,
+    "map_dataset_id": "kingshot-evidence-backed-2026-09-06-v2",
+    "map_dataset_checksum": "39c679d5897bbb29939e00b7903a0e7f5dd44d1b95f10dabef29d5762b5405ec",
+    "planning_preferences": {}
+  },
+  "alliances": [{"key":"external","alliance_id":null,"external_name":"Friends","external_tag":"F","display_name":"Friends","presentation_color":"#4da3ff","sort_order":0,"visible":true,"locked":false}],
+  "groups": [{"key":"hive","label":"North hive"}],
+  "objects": [{"key":"city","alliance_key":"external","group_key":"hive","type":"governor_city","player_id":null,"external_player_name":null,"label":"Reserved Governor","x":100,"y":102,"rotation":90,"sort_order":0,"metadata":{"slot_state":"reserved","locked":true}}]
+}

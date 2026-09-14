@@ -16,6 +16,7 @@ use App\Contexts\GameWorld\Players\Queries\PlayerReferenceQuery;
 use App\Contexts\Intelligence\Access\Services\AllianceIntelligenceAuthorization;
 use App\Contexts\Operations\KingPerks\Queries\KingPerkNotificationEligibilityQuery;
 use App\Contexts\Operations\Participation\Reminders\Queries\EventReminderNotificationEligibilityQuery;
+use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryNotificationEligibilityQuery;
 use App\Contexts\Platform\Administration\Services\PlatformAuthorization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -35,6 +36,7 @@ final readonly class CurrentNotificationSourceAuthorization implements Notificat
         private GiftCodeNotificationEligibilityQuery $giftCodes,
         private PlatformAuthorization $platform,
         private EndpointTestNotificationEligibilityQuery $endpointTests,
+        private TerritoryNotificationEligibilityQuery $territory,
     ) {}
 
     public function allows(NotificationSource $source): bool
@@ -51,6 +53,7 @@ final readonly class CurrentNotificationSourceAuthorization implements Notificat
 
         try {
             return match ($source->notificationType) {
+                'territory.activity' => $player !== null && $this->territory->allows($source, $player),
                 'account.security' => $this->security->allows($source),
                 'communications.endpoint_test' => $this->endpointTests->allows($source),
                 'alliance.announcement' => $player !== null && $this->announcements->allows($source, $player),

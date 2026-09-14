@@ -13,7 +13,7 @@ final class TerritoryPlanSnapshotBuilder
 {
     /**
      * @return array{
-     *     schema_version: 1,
+     *     schema_version: 2,
      *     plan: array{
      *         id: string,
      *         scope: string,
@@ -32,7 +32,7 @@ final class TerritoryPlanSnapshotBuilder
      */
     public function build(TerritoryPlan $plan): array
     {
-        $plan->load(['planAlliances', 'groups', 'objects']);
+        $plan->load(['planAlliances' => static fn ($query) => $query->orderBy('plan_key'), 'groups' => static fn ($query) => $query->orderBy('plan_key'), 'objects' => static fn ($query) => $query->orderBy('plan_key')]);
 
         $allianceKeyById = [];
         $alliances = [];
@@ -99,7 +99,7 @@ final class TerritoryPlanSnapshotBuilder
         }
 
         return [
-            'schema_version' => 1,
+            'schema_version' => TerritoryLayoutContract::SCHEMA_VERSION,
             'plan' => [
                 'id' => $plan->id,
                 'scope' => $plan->scope->value,
@@ -122,7 +122,19 @@ final class TerritoryPlanSnapshotBuilder
     {
         return hash(
             'sha256',
-            json_encode($snapshot, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+            json_encode($this->canonical($snapshot), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
         );
+    }
+
+    private function canonical(mixed $value): mixed
+    {
+        if (! is_array($value)) {
+            return $value;
+        }
+        if (! array_is_list($value)) {
+            ksort($value);
+        }
+
+        return array_map($this->canonical(...), $value);
     }
 }

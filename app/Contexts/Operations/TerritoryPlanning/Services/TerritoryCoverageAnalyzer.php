@@ -30,7 +30,7 @@ final class TerritoryCoverageAnalyzer
                 if ($city['type'] !== 'governor_city') {
                     continue;
                 }
-                $target = $this->geometry->footprint($dataset, 'governor_city', $city['x'], $city['y']);
+                $target = $this->geometry->footprint($dataset, 'governor_city', $city['x'], $city['y'], $city['rotation'] ?? 0);
                 $result[$city['key']] = $target instanceof Rectangle
                     && $this->geometry->meetsRatio($target, $coverage, 1.0);
             }
@@ -76,7 +76,7 @@ final class TerritoryCoverageAnalyzer
     {
         $coverage = [];
         foreach ($objects as $object) {
-            $rectangle = $this->geometry->coverage($dataset, $object['type'], $object['x'], $object['y']);
+            $rectangle = $this->geometry->coverage($dataset, $object['type'], $object['x'], $object['y'], $object['rotation'] ?? 0);
             if ($rectangle instanceof Rectangle) {
                 $coverage[] = $rectangle;
             }

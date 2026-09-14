@@ -23,6 +23,7 @@ use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 final class TerritoryReconciliationVisualFixture
 {
@@ -57,10 +58,10 @@ final class TerritoryReconciliationVisualFixture
             'Observed Hive Alpha',
             'kingshot-evidence-backed-2026-09-06-v2',
         );
-        app(SaveTerritoryPlan::class)->handle(
+        $saved = app(SaveTerritoryPlan::class)->handle(
             (string) $player->id,
             $plan->planId,
-            $plan->revision,
+            $plan->revision, (string) Str::uuid(),
             [[
                 'key' => 'owner',
                 'alliance_id' => $allianceId,
@@ -91,6 +92,7 @@ final class TerritoryReconciliationVisualFixture
             (string) $player->id,
             $plan->planId,
             (int) $savedPlan->revision,
+            (string) $saved->layoutChecksum,
         );
         if ($published->publishedRevisionId !== null) {
             TerritoryPlanRevision::query()

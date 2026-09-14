@@ -9,11 +9,30 @@ import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import MarchAnalysisPanel from '@/features/territory-planner/components/MarchAnalysisPanel.vue';
 import TerritoryCanvas from '@/features/territory-planner/components/TerritoryCanvas.vue';
 import {
-  buildSvg,
-  downloadPngFromSvg,
-  downloadText,
-} from '@/features/territory-planner/engine/export';
+  createEditorSession,
+  TerritoryRequestError,
+  type SaveReceipt,
+  type SaveRequest,
+} from '@/features/territory-planner/engine/editor-session';
+import {
+  assignCanonicalGovernorIdentity,
+  assignExternalGovernorIdentity,
+  materializeHiveProposal,
+  objectIsLocked,
+  requireAtomicEditableSelection,
+  rotateObjectsAtomic,
+  selectionPivot,
+  translateObjectsAtomic,
+} from '@/features/territory-planner/engine/commands';
 import { analyzeLayout, validatePlacement } from '@/features/territory-planner/engine/geometry';
+import {
+  editableAllianceKeys,
+  privateShareFragment,
+  reviewableAllianceKeys,
+  uniquePlayerOptions,
+  type CollaborationGrant,
+  type CollaborationOverview as CollaborationOverviewBase,
+} from '@/features/territory-planner/engine/collaboration';
 import type {
   AllianceAnalysis,
   MapData,
@@ -24,6 +43,7 @@ import type {
   TerritoryObjectType,
   ValidationIssue,
 } from '@/features/territory-planner/engine/types';
+import { buildLayoutDocument } from '@/features/territory-planner/engine/interchange';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -63,7 +83,9 @@ type TerritoryProp = {
     data: MapData;
   };
   revisions: Revision[];
+  layout_checksum: string;
   governor_options: Record<string, Array<{ id: string; name: string }>>;
+  collaboration_player_options: Array<{ id: string; name: string }>;
 };
 type Tool = 'select' | 'pan' | 'place';
 type DialogAction = { kind: 'archive' } | { kind: 'restore'; revision: Revision } | null;
@@ -72,6 +94,28 @@ type RevisionSnapshot = {
   groups: PlanGroup[];
   objects: PlanObject[];
   plan: { planning_preferences?: PlanningPreferences };
+};
+type EditorLayout = {
+  alliances: PlanAlliance[];
+  groups: PlanGroup[];
+  objects: PlanObject[];
+  preferences: PlanningPreferences;
+};
+type ServerSnapshot = {
+  schema_version: number;
+  plan: { planning_preferences?: PlanningPreferences };
+  alliances: PlanAlliance[];
+  groups: PlanGroup[];
+  objects: PlanObject[];
+};
+type ServerMutationReceipt = {
+  plan_id: string;
+  revision: number;
+  status: string;
+  published_revision_id: string | null;
+  snapshot: ServerSnapshot | null;
+  layout_checksum: string | null;
+  mutation_id: string | null;
 };
 type ImportPreview = {
   can_commit: boolean;
@@ -84,6 +128,54 @@ type ImportPreview = {
     warnings: ValidationIssue[];
     suggestions: ValidationIssue[];
   };
+};
+type RecoveryDraft = {
+  id: string;
+  base_revision: number;
+  current_revision: number;
+  stale: boolean;
+  map_dataset_id: string;
+  map_dataset_checksum: string;
+  document_checksum: string;
+  document: EditorLayout;
+  updated_at: string | null;
+  expires_at: string | null;
+};
+type CollaborationComment = {
+  id: string;
+  player_id: string;
+  object_key: string;
+  body: string;
+  head_revision: number;
+  created_at: string | null;
+};
+type CollaborationReview = {
+  id: string;
+  reviewer_player_id: string;
+  head_revision: number;
+  decision: 'approved' | 'changes_requested';
+  note: string | null;
+  stale: boolean;
+  created_at: string | null;
+};
+type CollaborationShare = {
+  id: string;
+  territory_plan_revision_id: string;
+  recipient_player_id: string;
+  alliance_keys: string[];
+  expires_at: string;
+  revoked_at: string | null;
+  created_at: string | null;
+};
+type CollaborationOverview = CollaborationOverviewBase & {
+  comments: CollaborationComment[];
+  comments_after: string | null;
+  reviews: CollaborationReview[];
+  reviews_before: string | null;
+  grants: CollaborationGrant[];
+  grants_after: string | null;
+  shares: CollaborationShare[];
+  shares_before: string | null;
 };
 
 function cloneJson<T>(value: T): T {
@@ -140,7 +232,25 @@ const showCoverage = ref(true);
 const showStructures = ref(true);
 const showZones = ref(true);
 const objectFilter = ref('');
-const draftStorageKey = `territory-draft:${props.territory.plan.id}:${props.territory.plan.revision}`;
+const recoveryDraft = ref<RecoveryDraft | null>(null);
+const recoveryBusy = ref(false);
+const collaboration = ref<CollaborationOverview | null>(null);
+const collaborationBusy = ref(false);
+const collaborationCommentBody = ref('');
+const collaborationReviewDecision = ref<'approved' | 'changes_requested'>('approved');
+const collaborationReviewNote = ref('');
+const collaborationGrantPlayerId = ref('');
+const collaborationGrantAllianceKey = ref(alliances.value[0]?.key ?? '');
+const collaborationGrantPermission = ref<'review' | 'edit'>('review');
+const collaborationGrantExpiresAt = ref('');
+const collaborationShareRevisionId = ref(props.territory.revisions[0]?.id ?? '');
+const collaborationShareRecipientPlayerId = ref('');
+const collaborationShareAllianceKeys = ref<string[]>([]);
+const collaborationShareExpiresAt = ref('');
+const createdPrivateShare = ref<{ id: string; fragment: string; expires_at: string } | null>(null);
+let persistenceSession: ReturnType<typeof createEditorSession<EditorLayout>> | null = null;
+let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
+let recoveryTimer: ReturnType<typeof setTimeout> | null = null;
 
 const mapMinX = computed(() => props.territory.map.data.bounds.x);
 const mapMinY = computed(() => props.territory.map.data.bounds.y);
@@ -161,16 +271,30 @@ const validation = computed(() =>
 const analysis = computed(() =>
   analyzeLayout(props.territory.map.data, objects.value, preferences.value),
 );
-const selectedObjects = computed(() =>
-  objects.value.filter((object) => selectedKeys.value.includes(object.key)),
-);
 const governorCities = computed(() =>
   visibleObjects.value.filter((object) => object.type === 'governor_city'),
 );
-const activeAlliance = computed(
-  () => alliances.value.find((alliance) => alliance.key === activeAllianceKey.value) ?? null,
+const canManage = computed(() => props.territory.plan.can_manage && status.value !== 'archived');
+const delegatedEditableAllianceKeys = computed(() => editableAllianceKeys(collaboration.value));
+const reviewableLayerKeys = computed(() =>
+  reviewableAllianceKeys(
+    collaboration.value,
+    alliances.value.map((alliance) => alliance.key),
+  ),
 );
-const canEdit = computed(() => props.territory.plan.can_manage && status.value !== 'archived');
+const canEdit = computed(
+  () =>
+    status.value !== 'archived' &&
+    (canManage.value || delegatedEditableAllianceKeys.value.size > 0),
+);
+const collaborationPlayers = computed(() =>
+  uniquePlayerOptions({ kingdom: props.territory.collaboration_player_options ?? [] }),
+);
+const selectedObject = computed(() =>
+  selectedKeys.value.length === 1
+    ? (objects.value.find((object) => object.key === selectedKeys.value[0]) ?? null)
+    : null,
+);
 const visibleObjects = computed(() => {
   const query = objectFilter.value.trim().toLocaleLowerCase();
   return objects.value.filter((object) => {
@@ -201,6 +325,46 @@ const hivePreviewValidation = computed(() =>
     preferences.value,
   ),
 );
+
+function currentLayout(): EditorLayout {
+  return {
+    alliances: cloneJson(alliances.value),
+    groups: cloneJson(groups.value),
+    objects: cloneJson(objects.value),
+    preferences: cloneJson(preferences.value),
+  };
+}
+function installLayout(layout: EditorLayout): void {
+  alliances.value = cloneJson(layout.alliances);
+  groups.value = cloneJson(layout.groups);
+  objects.value = cloneJson(layout.objects);
+  preferences.value = cloneJson(layout.preferences);
+  selectedKeys.value = selectedKeys.value.filter((key) =>
+    objects.value.some((object) => object.key === key),
+  );
+}
+function editorReceipt(
+  raw: ServerMutationReceipt,
+  fallbackMutationId = 'replacement',
+): SaveReceipt<EditorLayout> {
+  if (!raw.snapshot || !raw.layout_checksum)
+    throw new TerritoryRequestError('The server returned an incomplete Territory receipt.', 502);
+  return {
+    mutation_id: raw.mutation_id ?? fallbackMutationId,
+    revision: raw.revision,
+    status: raw.status,
+    layout_checksum: raw.layout_checksum,
+    layout: {
+      alliances: raw.snapshot.alliances,
+      groups: raw.snapshot.groups,
+      objects: raw.snapshot.objects,
+      preferences: raw.snapshot.plan.planning_preferences ?? {},
+    },
+  };
+}
+function mutationId(): string {
+  return crypto.randomUUID();
+}
 
 function snapshot(): string {
   return JSON.stringify({
@@ -248,8 +412,28 @@ function key(prefix: string): string {
 function allianceFor(object: PlanObject): PlanAlliance | undefined {
   return alliances.value.find((alliance) => alliance.key === object.alliance_key);
 }
+function canEditAlliance(allianceKey: string | null): boolean {
+  if (!allianceKey || status.value === 'archived') return false;
+  const alliance = alliances.value.find((candidate) => candidate.key === allianceKey);
+  if (alliance?.locked) return false;
+  return canManage.value || delegatedEditableAllianceKeys.value.has(allianceKey);
+}
+function editableByScope(object: PlanObject): boolean {
+  return canEditAlliance(object.alliance_key);
+}
 function editable(object: PlanObject): boolean {
-  return canEdit.value && !allianceFor(object)?.locked;
+  return editableByScope(object) && !objectIsLocked(object);
+}
+function atomicSelection(keys: string[]): PlanObject[] | null {
+  const result = requireAtomicEditableSelection(objects.value, keys, editable);
+  if (result.ok) return result.selected;
+  if (result.reason === 'locked_selection') {
+    notice.value = {
+      tone: 'warning',
+      message: `Selection includes ${result.blockedKeys.length} locked or read-only object(s); no objects were changed.`,
+    };
+  }
+  return null;
 }
 function governorOptionsFor(object: PlanObject): Array<{ id: string; name: string }> {
   return props.territory.governor_options[object.alliance_key] ?? [];
@@ -257,17 +441,22 @@ function governorOptionsFor(object: PlanObject): Array<{ id: string; name: strin
 function assignGovernor(object: PlanObject, playerId: string): void {
   if (!editable(object)) return;
   remember();
-  object.player_id = playerId || null;
-  if (playerId) object.external_player_name = null;
+  const replacement = assignCanonicalGovernorIdentity(object, playerId);
+  objects.value = objects.value.map((candidate) =>
+    candidate.key === object.key ? replacement : candidate,
+  );
 }
 function assignExternalGovernor(object: PlanObject, name: string): void {
   if (!editable(object)) return;
-  object.player_id = null;
-  object.external_player_name = name.trim() || null;
+  remember();
+  const replacement = assignExternalGovernorIdentity(object, name);
+  objects.value = objects.value.map((candidate) =>
+    candidate.key === object.key ? replacement : candidate,
+  );
 }
 function setSelectedBear(allianceKey: string, objectKey: string): void {
   const alliance = alliances.value.find((candidate) => candidate.key === allianceKey);
-  if (!canEdit.value || alliance?.locked) return;
+  if (!canManage.value || alliance?.locked) return;
   remember();
   const selected = { ...(preferences.value.selected_bear_trap_by_alliance ?? {}) };
   if (objectKey) selected[allianceKey] = objectKey;
@@ -276,12 +465,13 @@ function setSelectedBear(allianceKey: string, objectKey: string): void {
 }
 
 function place(point: { x: number; y: number }): void {
-  if (!canEdit.value || !activeAllianceKey.value || activeAlliance.value?.locked) return;
+  const allianceKey = activeAllianceKey.value;
+  if (!allianceKey || !canEditAlliance(allianceKey)) return;
   remember();
   const objectKey = key('object');
   objects.value.push({
     key: objectKey,
-    alliance_key: activeAllianceKey.value,
+    alliance_key: allianceKey,
     group_key: null,
     type: placementType.value,
     player_id: null,
@@ -296,28 +486,29 @@ function place(point: { x: number; y: number }): void {
   selectedKeys.value = [objectKey];
 }
 function move(payload: { keys: string[]; dx: number; dy: number }): void {
-  const movable = payload.keys.filter((item) => {
-    const object = objects.value.find((candidate) => candidate.key === item);
-    return object ? editable(object) : false;
-  });
-  if (!movable.length || (!payload.dx && !payload.dy)) return;
-  remember();
-  objects.value = objects.value.map((object) =>
-    movable.includes(object.key)
-      ? { ...object, x: object.x + payload.dx, y: object.y + payload.dy }
-      : object,
+  if ((!payload.dx && !payload.dy) || !atomicSelection(payload.keys)) return;
+  const result = translateObjectsAtomic(
+    objects.value,
+    payload.keys,
+    payload.dx,
+    payload.dy,
+    editable,
   );
+  if (!result.ok) return;
+  remember();
+  objects.value = result.objects;
 }
 function removeSelected(): void {
-  const keys = selectedObjects.value.filter(editable).map((object) => object.key);
-  if (!keys.length) return;
+  const selected = atomicSelection(selectedKeys.value);
+  if (!selected?.length) return;
+  const keys = new Set(selected.map((object) => object.key));
   remember();
-  objects.value = objects.value.filter((object) => !keys.includes(object.key));
+  objects.value = objects.value.filter((object) => !keys.has(object.key));
   selectedKeys.value = [];
 }
 function duplicateSelected(): void {
-  const source = selectedObjects.value.filter(editable);
-  if (!source.length) return;
+  const source = atomicSelection(selectedKeys.value);
+  if (!source?.length) return;
   remember();
   const clones = source.map((object, index) => ({
     ...cloneJson(object),
@@ -325,43 +516,63 @@ function duplicateSelected(): void {
     x: object.x + 3,
     y: object.y + 3,
     group_key: null,
+    player_id: null,
+    external_player_name: object.external_player_name
+      ? `${object.external_player_name} copy`
+      : null,
   }));
   objects.value.push(...clones);
   selectedKeys.value = clones.map((object) => object.key);
 }
 function groupSelected(): void {
-  const items = selectedObjects.value.filter(editable);
-  if (items.length < 2) return;
+  const items = atomicSelection(selectedKeys.value);
+  if (!items || items.length < 2) return;
   remember();
   const groupKey = key('group');
   groups.value.push({ key: groupKey, label: t('territory.group') });
+  const keys = new Set(items.map((item) => item.key));
   objects.value = objects.value.map((object) =>
-    items.some((item) => item.key === object.key) ? { ...object, group_key: groupKey } : object,
+    keys.has(object.key) ? { ...object, group_key: groupKey } : object,
   );
 }
 function ungroupSelected(): void {
+  const selected = atomicSelection(selectedKeys.value);
+  if (!selected?.length) return;
   const affected = new Set(
-    selectedObjects.value
-      .filter(editable)
-      .map((object) => object.group_key)
-      .filter((value): value is string => value !== null),
+    selected.map((object) => object.group_key).filter((value): value is string => value !== null),
   );
   if (!affected.size) return;
+  const groupMembers = objects.value.filter((object) => affected.has(object.group_key ?? ''));
+  if (!atomicSelection(groupMembers.map((object) => object.key))) return;
   remember();
   objects.value = objects.value.map((object) =>
     affected.has(object.group_key ?? '') ? { ...object, group_key: null } : object,
   );
   groups.value = groups.value.filter((group) => !affected.has(group.key));
 }
-function rotateSelected(direction = 1): void {
-  const keys = selectedObjects.value.filter(editable).map((object) => object.key);
-  if (!keys.length) return;
-  remember();
-  objects.value = objects.value.map((object) =>
-    keys.includes(object.key)
-      ? { ...object, rotation: (object.rotation + direction * 90 + 360) % 360 }
-      : object,
+function rotateSelected(direction: 1 | -1 = 1): void {
+  const selected = atomicSelection(selectedKeys.value);
+  if (!selected?.length) return;
+  const groupedKeys = new Set(selected.map((object) => object.group_key).filter(Boolean));
+  const rotationKeys = groupedKeys.size
+    ? objects.value
+        .filter((object) => object.group_key !== null && groupedKeys.has(object.group_key))
+        .map((object) => object.key)
+    : selected.map((object) => object.key);
+  const rotationSelection = atomicSelection(rotationKeys);
+  if (!rotationSelection?.length) return;
+  const pivot = selectionPivot(props.territory.map.data, rotationSelection);
+  const result = rotateObjectsAtomic(
+    props.territory.map.data,
+    objects.value,
+    rotationKeys,
+    direction,
+    pivot,
+    editable,
   );
+  if (!result.ok) return;
+  remember();
+  objects.value = result.objects;
 }
 function nudge(dx: number, dy: number): void {
   move({ keys: selectedKeys.value, dx, dy });
@@ -370,11 +581,12 @@ function selectObject(object: PlanObject): void {
   selectedKeys.value = [object.key];
 }
 function beginExactEdit(): void {
-  if (canEdit.value) remember();
+  if (canManage.value) remember();
 }
 
 function stampCities(): void {
-  if (!canEdit.value || !activeAllianceKey.value || activeAlliance.value?.locked) return;
+  const allianceKey = activeAllianceKey.value;
+  if (!allianceKey || !canEditAlliance(allianceKey)) return;
   const count = stampColumns.value * stampRows.value;
   if (count < 1 || count > 100) {
     notice.value = { tone: 'danger', message: t('territory.stampLimit') };
@@ -388,7 +600,7 @@ function stampCities(): void {
     for (let column = 0; column < stampColumns.value; column += 1) {
       placed.push({
         key: key('city'),
-        alliance_key: activeAllianceKey.value,
+        alliance_key: allianceKey,
         group_key: groupKey,
         type: 'governor_city',
         player_id: null,
@@ -413,6 +625,7 @@ async function jsonRequest(
   url: string,
   method: string,
   body?: unknown,
+  signal?: AbortSignal,
 ): Promise<Record<string, unknown>> {
   const init: NonNullable<Parameters<typeof fetch>[1]> = {
     method,
@@ -424,45 +637,358 @@ async function jsonRequest(
       'X-Requested-With': 'XMLHttpRequest',
     },
   };
+  if (signal !== undefined) init.signal = signal;
   if (body !== undefined) init.body = JSON.stringify(body);
   const response = await fetch(url, init);
   const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
   if (!response.ok) {
     const errors = payload.errors as Record<string, string[] | string> | undefined;
     const first = errors ? Object.values(errors).flat()[0] : null;
-    throw new Error(
+    throw new TerritoryRequestError(
       typeof first === 'string'
         ? first
         : typeof payload.message === 'string'
           ? payload.message
           : t('territory.requestFailed'),
+      response.status,
     );
   }
   return payload;
 }
 
-async function save(): Promise<void> {
-  if (!canEdit.value || validation.value.violations.length) {
-    notice.value = { tone: 'danger', message: t('territory.fixViolations') };
+async function loadRecoveryDraft(): Promise<void> {
+  if (!canEdit.value) return;
+  const payload = await jsonRequest(`/territory/${props.territory.plan.id}/recovery`, 'GET');
+  recoveryDraft.value = (payload.recovery as RecoveryDraft | null) ?? null;
+}
+
+async function persistRecoveryDraft(): Promise<void> {
+  if (!canEdit.value || !persistenceSession?.dirty()) return;
+  recoveryBusy.value = true;
+  try {
+    const payload = await jsonRequest(`/territory/${props.territory.plan.id}/recovery`, 'PUT', {
+      base_revision: revision.value,
+      map_dataset_id: props.territory.map.id,
+      map_dataset_checksum: props.territory.map.checksum,
+      document: currentLayout(),
+    });
+    recoveryDraft.value = (payload.recovery as RecoveryDraft | null) ?? null;
+  } catch (error) {
+    notice.value = {
+      tone: 'warning',
+      message: error instanceof Error ? error.message : t('territory.recoverySaveFailed'),
+    };
+  } finally {
+    recoveryBusy.value = false;
+  }
+}
+
+async function discardRecoveryDraft(silent = false): Promise<void> {
+  if (!canEdit.value) return;
+  try {
+    await jsonRequest(`/territory/${props.territory.plan.id}/recovery`, 'DELETE');
+    recoveryDraft.value = null;
+    if (!silent) notice.value = { tone: 'info', message: t('territory.recoveryDiscarded') };
+  } catch (error) {
+    if (!silent) {
+      notice.value = {
+        tone: 'danger',
+        message: error instanceof Error ? error.message : t('territory.requestFailed'),
+      };
+    }
+  }
+}
+
+function recoverDraft(): void {
+  const draft = recoveryDraft.value;
+  if (!draft) return;
+  if (
+    draft.map_dataset_id !== props.territory.map.id ||
+    draft.map_dataset_checksum !== props.territory.map.checksum
+  ) {
+    notice.value = { tone: 'danger', message: t('territory.recoveryMapMismatch') };
     return;
   }
+  remember();
+  installLayout(cloneJson(draft.document));
+  history.value = [];
+  future.value = [];
+  recoveryDraft.value = null;
+  notice.value = {
+    tone: draft.stale ? 'warning' : 'info',
+    message: draft.stale
+      ? t('territory.recoveryRestoredStale', {
+          base: draft.base_revision,
+          current: draft.current_revision,
+        })
+      : t('territory.recoveryRestored'),
+  };
+}
+
+function defaultExpiry(hours: number): string {
+  const value = new Date(Date.now() + hours * 60 * 60 * 1000);
+  const local = new Date(value.getTime() - value.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+function expiryIso(value: string): string {
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime()))
+    throw new TerritoryRequestError(t('territory.invalidExpiry'), 422);
+  return parsed.toISOString();
+}
+async function loadCollaboration(): Promise<void> {
+  collaborationBusy.value = true;
+  try {
+    collaboration.value = (await jsonRequest(
+      `/territory/${props.territory.plan.id}/collaboration`,
+      'GET',
+    )) as unknown as CollaborationOverview;
+    if (!collaborationGrantPlayerId.value)
+      collaborationGrantPlayerId.value = collaborationPlayers.value[0]?.id ?? '';
+    if (!collaborationShareRecipientPlayerId.value)
+      collaborationShareRecipientPlayerId.value = collaborationPlayers.value[0]?.id ?? '';
+    if (!collaborationGrantAllianceKey.value)
+      collaborationGrantAllianceKey.value = alliances.value[0]?.key ?? '';
+    if (!collaborationShareAllianceKeys.value.length && canManage.value)
+      collaborationShareAllianceKeys.value = alliances.value.map((alliance) => alliance.key);
+  } finally {
+    collaborationBusy.value = false;
+  }
+}
+async function postObjectComment(): Promise<void> {
+  const object = selectedObject.value;
+  const body = collaborationCommentBody.value.trim();
+  if (!object || !body || !reviewableLayerKeys.value.has(object.alliance_key)) return;
+  collaborationBusy.value = true;
+  try {
+    await jsonRequest(`/territory/${props.territory.plan.id}/comments`, 'POST', {
+      expected_revision: collaboration.value?.current_revision ?? revision.value,
+      object_key: object.key,
+      body,
+    });
+    collaborationCommentBody.value = '';
+    await loadCollaboration();
+    notice.value = { tone: 'success', message: t('territory.commentAdded') };
+  } catch (error) {
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : t('territory.requestFailed'),
+    };
+  } finally {
+    collaborationBusy.value = false;
+  }
+}
+async function submitPlanReview(): Promise<void> {
+  const current = collaboration.value;
+  if (!current?.can_review) return;
+  collaborationBusy.value = true;
+  try {
+    await jsonRequest(`/territory/${props.territory.plan.id}/reviews`, 'POST', {
+      expected_revision: current.current_revision,
+      snapshot_checksum: current.current_snapshot_checksum,
+      decision: collaborationReviewDecision.value,
+      note: collaborationReviewNote.value.trim() || null,
+    });
+    collaborationReviewNote.value = '';
+    await loadCollaboration();
+    notice.value = { tone: 'success', message: t('territory.reviewRecorded') };
+  } catch (error) {
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : t('territory.requestFailed'),
+    };
+  } finally {
+    collaborationBusy.value = false;
+  }
+}
+async function grantCollaborationAccess(): Promise<void> {
+  if (!canManage.value || !collaborationGrantPlayerId.value || !collaborationGrantAllianceKey.value)
+    return;
+  collaborationBusy.value = true;
+  try {
+    await jsonRequest(`/territory/${props.territory.plan.id}/access`, 'POST', {
+      player_id: collaborationGrantPlayerId.value,
+      alliance_key: collaborationGrantAllianceKey.value,
+      permission: collaborationGrantPermission.value,
+      expires_at: expiryIso(collaborationGrantExpiresAt.value),
+    });
+    await loadCollaboration();
+    notice.value = { tone: 'success', message: t('territory.accessGranted') };
+  } catch (error) {
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : t('territory.requestFailed'),
+    };
+  } finally {
+    collaborationBusy.value = false;
+  }
+}
+async function revokeCollaborationAccess(grantId: string): Promise<void> {
+  if (!canManage.value) return;
+  collaborationBusy.value = true;
+  try {
+    await jsonRequest(`/territory/${props.territory.plan.id}/access/${grantId}`, 'DELETE');
+    await loadCollaboration();
+    notice.value = { tone: 'info', message: t('territory.accessRevoked') };
+  } catch (error) {
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : t('territory.requestFailed'),
+    };
+  } finally {
+    collaborationBusy.value = false;
+  }
+}
+async function createPrivateShare(): Promise<void> {
+  if (
+    !canManage.value ||
+    !collaborationShareRevisionId.value ||
+    !collaborationShareRecipientPlayerId.value ||
+    !collaborationShareAllianceKeys.value.length
+  )
+    return;
+  collaborationBusy.value = true;
+  try {
+    const payload = await jsonRequest(`/territory/${props.territory.plan.id}/shares`, 'POST', {
+      revision_id: collaborationShareRevisionId.value,
+      recipient_player_id: collaborationShareRecipientPlayerId.value,
+      alliance_keys: collaborationShareAllianceKeys.value,
+      expires_at: expiryIso(collaborationShareExpiresAt.value),
+    });
+    const id = String(payload.id ?? '');
+    const token = String(payload.token ?? '');
+    const expiresAt = String(payload.expires_at ?? '');
+    if (!id || !token) throw new TerritoryRequestError(t('territory.requestFailed'), 502);
+    createdPrivateShare.value = {
+      id,
+      fragment: privateShareFragment(id, token),
+      expires_at: expiresAt,
+    };
+    await loadCollaboration();
+    notice.value = { tone: 'success', message: t('territory.shareCreated') };
+  } catch (error) {
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : t('territory.requestFailed'),
+    };
+  } finally {
+    collaborationBusy.value = false;
+  }
+}
+async function revokePrivateShare(shareId: string): Promise<void> {
+  if (!canManage.value) return;
+  collaborationBusy.value = true;
+  try {
+    await jsonRequest(`/territory/${props.territory.plan.id}/shares/${shareId}`, 'DELETE');
+    if (createdPrivateShare.value?.id === shareId) createdPrivateShare.value = null;
+    await loadCollaboration();
+    notice.value = { tone: 'info', message: t('territory.shareRevoked') };
+  } catch (error) {
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : t('territory.requestFailed'),
+    };
+  } finally {
+    collaborationBusy.value = false;
+  }
+}
+async function loadMoreCollaboration(
+  kind: 'comments' | 'reviews' | 'grants' | 'shares',
+): Promise<void> {
+  const current = collaboration.value;
+  if (!current) return;
+  const cursor =
+    kind === 'comments'
+      ? current.comments_after
+      : kind === 'reviews'
+        ? current.reviews_before
+        : kind === 'grants'
+          ? current.grants_after
+          : current.shares_before;
+  if (!cursor) return;
+  const parameter =
+    kind === 'comments'
+      ? 'after'
+      : kind === 'reviews'
+        ? 'review_before'
+        : kind === 'grants'
+          ? 'grant_after'
+          : 'share_before';
+  collaborationBusy.value = true;
+  try {
+    const page = (await jsonRequest(
+      `/territory/${props.territory.plan.id}/collaboration?${parameter}=${encodeURIComponent(cursor)}`,
+      'GET',
+    )) as unknown as CollaborationOverview;
+    if (kind === 'comments') {
+      current.comments.push(...page.comments);
+      current.comments_after = page.comments_after;
+    }
+    if (kind === 'reviews') {
+      current.reviews.push(...page.reviews);
+      current.reviews_before = page.reviews_before;
+    }
+    if (kind === 'grants') {
+      current.grants.push(...page.grants);
+      current.grants_after = page.grants_after;
+    }
+    if (kind === 'shares') {
+      current.shares.push(...page.shares);
+      current.shares_before = page.shares_before;
+    }
+  } finally {
+    collaborationBusy.value = false;
+  }
+}
+
+function initializePersistence(): void {
+  persistenceSession = createEditorSession<EditorLayout>({
+    revision: revision.value,
+    layoutChecksum: props.territory.layout_checksum,
+    read: currentLayout,
+    install: installLayout,
+    authority: () => `${props.activePlayer.id}:${props.territory.plan.id}`,
+    mutationId,
+    accepted: (receipt) => {
+      revision.value = receipt.revision;
+      status.value = receipt.status;
+    },
+    save: async (request: SaveRequest<EditorLayout>, signal: AbortSignal) => {
+      const payload = await jsonRequest(
+        `/territory/${props.territory.plan.id}`,
+        'PUT',
+        {
+          expected_revision: request.expected_revision,
+          mutation_id: request.mutation_id,
+          alliances: request.layout.alliances,
+          groups: request.layout.groups,
+          objects: request.layout.objects,
+          planning_preferences: request.layout.preferences,
+        },
+        signal,
+      );
+      return editorReceipt(payload.receipt as ServerMutationReceipt, request.mutation_id);
+    },
+  });
+}
+
+async function flushPersistence(successNotice = true): Promise<void> {
+  if (!persistenceSession)
+    throw new TerritoryRequestError('Territory persistence is not ready.', 503);
+  if (validation.value.violations.length)
+    throw new TerritoryRequestError(t('territory.fixViolations'), 422);
+  await persistenceSession.flush();
+  await discardRecoveryDraft(true);
+  if (successNotice)
+    notice.value = { tone: 'success', message: t('territory.saved', { revision: revision.value }) };
+}
+
+async function save(): Promise<void> {
+  if (!canEdit.value) return;
   busy.value = true;
   notice.value = null;
   try {
-    const payload = await jsonRequest(`/territory/${props.territory.plan.id}`, 'PUT', {
-      expected_revision: revision.value,
-      alliances: alliances.value,
-      groups: groups.value,
-      objects: objects.value,
-      planning_preferences: preferences.value,
-    });
-    const receipt = payload.receipt as { revision: number; status: string };
-    revision.value = receipt.revision;
-    status.value = receipt.status;
-    history.value = [];
-    future.value = [];
-    localStorage.removeItem(draftStorageKey);
-    notice.value = { tone: 'success', message: t('territory.saved', { revision: revision.value }) };
+    await flushPersistence(true);
   } catch (error) {
     notice.value = {
       tone: 'danger',
@@ -473,16 +999,22 @@ async function save(): Promise<void> {
   }
 }
 async function publish(): Promise<void> {
+  if (!canManage.value) return;
   if (validation.value.violations.length) {
     notice.value = { tone: 'danger', message: t('territory.fixViolations') };
     return;
   }
   busy.value = true;
   try {
-    const payload = await jsonRequest(`/territory/${props.territory.plan.id}/publish`, 'POST', {
-      expected_revision: revision.value,
-    });
-    const receipt = payload.receipt as { status: string };
+    if (!persistenceSession)
+      throw new TerritoryRequestError('Territory persistence is not ready.', 503);
+    const publication = await persistenceSession.publication();
+    const payload = await jsonRequest(
+      `/territory/${props.territory.plan.id}/publish`,
+      'POST',
+      publication,
+    );
+    const receipt = payload.receipt as ServerMutationReceipt;
     status.value = receipt.status;
     notice.value = { tone: 'success', message: t('territory.published') };
     router.reload({ only: ['territory'] });
@@ -496,13 +1028,14 @@ async function publish(): Promise<void> {
   }
 }
 async function archive(): Promise<void> {
+  if (!canManage.value) return;
   busy.value = true;
   try {
     await jsonRequest(`/territory/${props.territory.plan.id}`, 'DELETE', {
       expected_revision: revision.value,
     });
     dialogAction.value = null;
-    localStorage.removeItem(draftStorageKey);
+    persistenceSession?.dispose();
     router.visit('/territory');
   } catch (error) {
     notice.value = {
@@ -514,6 +1047,7 @@ async function archive(): Promise<void> {
   }
 }
 async function clonePlan(): Promise<void> {
+  if (!canManage.value) return;
   const name = cloneName.value.trim();
   if (!name) return;
   busy.value = true;
@@ -540,8 +1074,12 @@ async function restoreRevision(item: Revision): Promise<void> {
       'POST',
       { expected_revision: revision.value },
     );
-    const receipt = payload.receipt as { revision: number };
-    revision.value = receipt.revision;
+    const receipt = editorReceipt(payload.receipt as ServerMutationReceipt);
+    if (!persistenceSession)
+      throw new TerritoryRequestError('Territory persistence is not ready.', 503);
+    persistenceSession.replace(receipt);
+    history.value = [];
+    future.value = [];
     dialogAction.value = null;
     notice.value = {
       tone: 'success',
@@ -590,34 +1128,38 @@ async function compareRevision(): Promise<void> {
 }
 
 async function generateHivePreview(): Promise<void> {
-  if (!activeAllianceKey.value) return;
+  const allianceKey = activeAllianceKey.value;
+  if (!allianceKey || !canEditAlliance(allianceKey)) return;
   busy.value = true;
   try {
     const payload = await jsonRequest('/territory/hive-preview', 'POST', {
+      map_dataset_id: props.territory.map.id,
+      map_dataset_checksum: props.territory.map.checksum,
+      existing_objects: objects.value.map(({ key, type, alliance_key, x, y, rotation }) => ({
+        key,
+        type,
+        alliance_key,
+        x,
+        y,
+        rotation,
+      })),
       style: hiveStyle.value,
       alliance_key: activeAllianceKey.value,
       center_x: hiveCenterX.value,
       center_y: hiveCenterY.value,
       city_count: hiveCityCount.value,
+      spacing: 1,
+      planning_preferences: preferences.value,
     });
-    const generated = payload.objects as Array<
-      Partial<PlanObject> & Pick<PlanObject, 'type' | 'x' | 'y' | 'alliance_key'>
-    >;
-    const groupKey = key('hive');
-    hivePreview.value = generated.map((object, index) => ({
-      key: key(`hive-preview-${index}`),
-      alliance_key: object.alliance_key,
-      group_key: groupKey,
-      type: object.type,
-      player_id: null,
-      external_player_name: null,
-      label: object.label ?? null,
-      x: object.x,
-      y: object.y,
-      rotation: 0,
-      sort_order: objects.value.length + index,
-      metadata: {},
-    }));
+    if (payload.status !== 'feasible') {
+      const diagnostics = payload.diagnostics as Array<{ message?: string }> | undefined;
+      throw new TerritoryRequestError(
+        diagnostics?.[0]?.message ?? t('territory.hivePreviewBlocked'),
+        422,
+      );
+    }
+    const generated = payload.objects as PlanObject[];
+    hivePreview.value = materializeHiveProposal(generated, objects.value.length);
     if (hivePreviewValidation.value.violations.length)
       notice.value = { tone: 'warning', message: t('territory.hivePreviewBlocked') };
   } catch (error) {
@@ -642,26 +1184,19 @@ function applyHivePreview(): void {
   hivePreview.value = [];
 }
 
-function exportDocument(): {
-  schema_version: 1;
-  plan: Record<string, unknown>;
-  alliances: PlanAlliance[];
-  groups: PlanGroup[];
-  objects: PlanObject[];
-} {
-  return {
-    schema_version: 1,
-    plan: {
-      ...props.territory.plan,
-      revision: revision.value,
-      map_dataset_id: props.territory.map.id,
-      map_dataset_checksum: props.territory.map.checksum,
-      planning_preferences: preferences.value,
+function exportDocument() {
+  return buildLayoutDocument(
+    props.territory.plan,
+    revision.value,
+    props.territory.map.id,
+    props.territory.map.checksum,
+    {
+      alliances: alliances.value,
+      groups: groups.value,
+      objects: objects.value,
+      preferences: preferences.value,
     },
-    alliances: alliances.value,
-    groups: groups.value,
-    objects: objects.value,
-  };
+  );
 }
 function exportMetadata() {
   return {
@@ -670,27 +1205,52 @@ function exportMetadata() {
     observedAt: props.territory.map.observed_at,
     confidence: props.territory.map.confidence,
     exportedAt: new Date().toISOString(),
+    mapChecksum: props.territory.map.checksum,
+    planRevision: revision.value,
+    workingDraft: persistenceSession?.dirty() ?? false,
   };
 }
-function exportJson(): void {
-  downloadText(
-    `${props.territory.plan.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.json`,
-    JSON.stringify(exportDocument(), null, 2),
-    'application/json',
-  );
+async function runExport(kind: 'json' | 'svg' | 'png'): Promise<void> {
+  if (busy.value) return;
+  busy.value = true;
+  try {
+    // Capture one working revision before the optional export module is loaded.
+    const documentJson = JSON.stringify(exportDocument(), null, 2);
+    if (new Blob([documentJson]).size > 5_000_000) throw new Error(t('territory.requestFailed'));
+    const snapshot = JSON.parse(documentJson) as ReturnType<typeof exportDocument>;
+    const metadata = exportMetadata();
+    const options = canvas.value?.exportOptions();
+    const { buildSvg, downloadText, downloadPngFromSvg } =
+      await import('@/features/territory-planner/engine/export');
+    if (kind === 'json') downloadText(`${metadata.title}.json`, documentJson, 'application/json');
+    else {
+      const svg = buildSvg(
+        props.territory.map.data,
+        snapshot.alliances,
+        snapshot.objects,
+        metadata,
+        options,
+      );
+      if (kind === 'svg') downloadText(`${metadata.title}.svg`, svg, 'image/svg+xml');
+      else await downloadPngFromSvg(`${metadata.title}.png`, svg);
+    }
+  } catch (error) {
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : t('territory.requestFailed'),
+    };
+  } finally {
+    busy.value = false;
+  }
 }
-function exportSvg(): void {
-  downloadText(
-    `${props.territory.plan.name}.svg`,
-    buildSvg(props.territory.map.data, alliances.value, objects.value, exportMetadata()),
-    'image/svg+xml',
-  );
+function exportJson(): Promise<void> {
+  return runExport('json');
 }
-async function exportPng(): Promise<void> {
-  await downloadPngFromSvg(
-    `${props.territory.plan.name}.png`,
-    buildSvg(props.territory.map.data, alliances.value, objects.value, exportMetadata()),
-  );
+function exportSvg(): Promise<void> {
+  return runExport('svg');
+}
+function exportPng(): Promise<void> {
+  return runExport('png');
 }
 async function importFile(event: Event): Promise<void> {
   const input = event.target as HTMLInputElement;
@@ -716,22 +1276,28 @@ async function importFile(event: Event): Promise<void> {
     input.value = '';
   }
 }
+async function sha256(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
 async function applyImport(): Promise<void> {
   if (!importPreview.value || !importPreview.value.can_commit || !importDocument.value) return;
   busy.value = true;
   try {
+    const documentChecksum = await sha256(importDocument.value);
     const payload = await jsonRequest(`/territory/${props.territory.plan.id}/import`, 'POST', {
       expected_revision: revision.value,
       document: importDocument.value,
+      document_checksum: documentChecksum,
     });
-    const receipt = payload.receipt as { revision: number; status: string };
-    revision.value = receipt.revision;
-    status.value = receipt.status;
+    const receipt = editorReceipt(payload.receipt as ServerMutationReceipt);
+    if (!persistenceSession)
+      throw new TerritoryRequestError('Territory persistence is not ready.', 503);
+    persistenceSession.replace(receipt);
     importPreview.value = null;
     importDocument.value = '';
     history.value = [];
     future.value = [];
-    localStorage.removeItem(draftStorageKey);
     notice.value = {
       tone: 'success',
       message: t('territory.imported', { revision: revision.value }),
@@ -799,19 +1365,49 @@ function onKey(event: KeyboardEvent): void {
 watch(
   [alliances, groups, objects, preferences],
   () => {
-    if (canEdit.value) localStorage.setItem(draftStorageKey, snapshot());
+    if (!canEdit.value || !persistenceSession) return;
+    if (recoveryTimer) clearTimeout(recoveryTimer);
+    recoveryTimer = setTimeout(() => {
+      void persistRecoveryDraft();
+    }, 900);
+    if (autosaveTimer) clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(() => {
+      if (!persistenceSession?.dirty() || validation.value.violations.length) return;
+      void flushPersistence(false).catch((error) => {
+        notice.value = {
+          tone:
+            error instanceof TerritoryRequestError && error.status === 409 ? 'warning' : 'danger',
+          message: error instanceof Error ? error.message : t('territory.requestFailed'),
+        };
+      });
+    }, 2000);
   },
   { deep: true },
 );
 onMounted(() => {
+  initializePersistence();
+  collaborationGrantExpiresAt.value = defaultExpiry(24 * 7);
+  collaborationShareExpiresAt.value = defaultExpiry(24);
+  void loadCollaboration().catch((error) => {
+    notice.value = {
+      tone: 'warning',
+      message: error instanceof Error ? error.message : t('territory.requestFailed'),
+    };
+  });
+  void loadRecoveryDraft().catch((error) => {
+    notice.value = {
+      tone: 'warning',
+      message: error instanceof Error ? error.message : t('territory.requestFailed'),
+    };
+  });
   window.addEventListener('keydown', onKey);
-  const stored = localStorage.getItem(draftStorageKey);
-  if (stored && stored !== snapshot()) {
-    restoreSnapshot(stored);
-    notice.value = { tone: 'info', message: t('territory.localDraftRestored') };
-  }
 });
-onUnmounted(() => window.removeEventListener('keydown', onKey));
+onUnmounted(() => {
+  if (autosaveTimer) clearTimeout(autosaveTimer);
+  if (recoveryTimer) clearTimeout(recoveryTimer);
+  persistenceSession?.dispose();
+  window.removeEventListener('keydown', onKey);
+});
 </script>
 
 <template>
@@ -846,6 +1442,40 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
     </header>
 
     <ActionNotice v-if="notice" class="mt-4" :tone="notice.tone" :message="notice.message" />
+
+    <section
+      v-if="recoveryDraft"
+      class="ks-surface mt-4 border border-amber-500/40 p-4"
+      role="status"
+      aria-live="polite"
+    >
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p class="ks-kicker">{{ t('territory.recoveryAvailable') }}</p>
+          <p class="mt-1 text-sm text-[var(--ks-muted)]">
+            {{
+              recoveryDraft.stale
+                ? t('territory.recoveryAvailableStale', {
+                    base: recoveryDraft.base_revision,
+                    current: recoveryDraft.current_revision,
+                  })
+                : t('territory.recoveryAvailableCurrent', { revision: recoveryDraft.base_revision })
+            }}
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <AppButton :busy="recoveryBusy" @click="recoverDraft">{{
+            t('territory.recoverDraft')
+          }}</AppButton>
+          <AppButton
+            data-variant="secondary"
+            :busy="recoveryBusy"
+            @click="discardRecoveryDraft(false)"
+            >{{ t('territory.discardDraft') }}</AppButton
+          >
+        </div>
+      </div>
+    </section>
 
     <section class="ks-surface mt-4 p-4" :aria-label="t('territory.planStatus')">
       <div class="flex flex-wrap items-center gap-3 text-sm">
@@ -892,7 +1522,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
           <button
             class="ks-command-link"
             :aria-pressed="tool === 'place'"
-            :disabled="!canEdit || Boolean(activeAlliance?.locked)"
+            :disabled="!canEditAlliance(activeAllianceKey)"
             @click="tool = 'place'"
           >
             {{ t('territory.place') }}
@@ -924,7 +1554,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
             class="mt-3 rounded border border-[var(--ks-border)] p-2"
           >
             <label class="flex items-center gap-2 text-xs"
-              ><input v-model="alliance.visible" type="checkbox" />{{
+              ><input v-model="alliance.visible" type="checkbox" :disabled="!canManage" />{{
                 alliance.display_name
               }}</label
             >
@@ -932,9 +1562,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
               <input
                 v-model="alliance.presentation_color"
                 type="color"
+                :disabled="!canManage"
                 :aria-label="t('territory.layerColor', { alliance: alliance.display_name })"
               /><label class="flex items-center gap-1 text-xs"
-                ><input v-model="alliance.locked" type="checkbox" :disabled="!canEdit" />{{
+                ><input v-model="alliance.locked" type="checkbox" :disabled="!canManage" />{{
                   t('territory.lockLayer')
                 }}</label
               >
@@ -1002,7 +1633,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
           <AppButton
             class="mt-2 w-full"
             :busy="busy"
-            :disabled="!canEdit || Boolean(activeAlliance?.locked)"
+            :disabled="!canEditAlliance(activeAllianceKey)"
             @click="generateHivePreview"
             >{{ t('territory.previewHive') }}</AppButton
           >
@@ -1048,7 +1679,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
           </div>
           <AppButton
             class="mt-2 w-full"
-            :disabled="!canEdit || Boolean(activeAlliance?.locked)"
+            :disabled="!canEditAlliance(activeAllianceKey)"
             @click="stampCities"
             >{{ t('territory.stampCities') }}</AppButton
           >
@@ -1102,6 +1733,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
           v-model:selected-keys="selectedKeys"
           :label="t('territory.canvasLabel')"
           :map="territory.map.data"
+          :map-checksum="territory.map.checksum"
           :alliances="alliances"
           :objects="objects"
           :tool="tool"
@@ -1372,7 +2004,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
           :objects="objects"
           :analysis="analysis"
           :preferences="preferences"
-          :can-edit="canEdit"
+          :can-edit="canManage"
           @select-trap="setSelectedBear($event.allianceKey, $event.trapKey)"
         />
         <section class="ks-surface p-4">
@@ -1385,6 +2017,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
               min="1"
               :max="mapDistanceLimit"
               class="ks-input mt-1 w-full"
+              :disabled="!canManage"
               @focus="beginExactEdit" /></label
           ><label class="mt-3 block text-sm"
             >{{ t('territory.marchSecondsPerTile')
@@ -1395,6 +2028,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
               max="60"
               step="0.01"
               class="ks-input mt-1 w-full"
+              :disabled="!canManage"
               @focus="beginExactEdit"
           /></label>
           <p class="mt-2 text-xs text-[var(--ks-muted)]">
@@ -1475,7 +2109,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
           <input v-model="cloneName" maxlength="160" class="ks-input mt-2 w-full" /><AppButton
             class="mt-2"
             :busy="busy"
-            :disabled="!cloneName.trim()"
+            :disabled="!canManage || !cloneName.trim()"
             @click="clonePlan"
             >{{ t('territory.clonePlan') }}</AppButton
           >
@@ -1492,7 +2126,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
           >{{ t('territory.save') }}</AppButton
         ><AppButton
           :busy="busy"
-          :disabled="!canEdit || validation.violations.length > 0"
+          :disabled="!canManage || validation.violations.length > 0"
           @click="publish"
           >{{ t('territory.publish') }}</AppButton
         ><button class="ks-command-link" @click="exportJson">{{ t('territory.exportJson') }}</button
@@ -1506,7 +2140,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
             class="sr-only"
             @change="importFile" /></label
         ><button
-          v-if="canEdit"
+          v-if="canManage"
           class="ks-command-link"
           data-variant="danger"
           @click="dialogAction = { kind: 'archive' }"
@@ -1565,6 +2199,292 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
       </div>
     </section>
 
+    <section class="ks-surface mt-4 p-4" aria-labelledby="territory-collaboration-heading">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="ks-kicker">{{ t('territory.collaboration') }}</p>
+          <h2 id="territory-collaboration-heading" class="ks-display mt-1 text-xl font-semibold">
+            {{ t('territory.collaborationTitle') }}
+          </h2>
+        </div>
+        <AppButton :busy="collaborationBusy" data-variant="secondary" @click="loadCollaboration">
+          {{ t('territory.refreshCollaboration') }}
+        </AppButton>
+      </div>
+      <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ t('territory.collaborationHelp') }}</p>
+
+      <div v-if="collaboration" class="mt-4 grid gap-4 xl:grid-cols-2">
+        <fieldset class="rounded border border-[var(--ks-border)] p-3">
+          <legend class="px-1 text-sm font-semibold">{{ t('territory.objectComments') }}</legend>
+          <p class="text-xs text-[var(--ks-muted)]">
+            {{
+              selectedObject
+                ? selectedObject.label || selectedObject.key
+                : t('territory.selectOneObjectForComment')
+            }}
+          </p>
+          <textarea
+            v-model="collaborationCommentBody"
+            class="ks-input mt-2 min-h-24 w-full"
+            maxlength="4000"
+            :disabled="!selectedObject || !reviewableLayerKeys.has(selectedObject.alliance_key)"
+            :placeholder="t('territory.commentPlaceholder')"
+          />
+          <AppButton
+            class="mt-2"
+            :busy="collaborationBusy"
+            :disabled="
+              !selectedObject ||
+              !collaborationCommentBody.trim() ||
+              !reviewableLayerKeys.has(selectedObject.alliance_key)
+            "
+            @click="postObjectComment"
+            >{{ t('territory.addComment') }}</AppButton
+          >
+          <ul class="mt-3 space-y-2 text-xs">
+            <li
+              v-for="comment in collaboration.comments"
+              :key="comment.id"
+              class="rounded border border-[var(--ks-border)] p-2"
+            >
+              <strong>{{ comment.object_key }}</strong> ·
+              {{ t('territory.revisionNumber', { revision: comment.head_revision }) }}
+              <p class="mt-1 whitespace-pre-wrap">{{ comment.body }}</p>
+              <p v-if="comment.created_at" class="mt-1 text-[var(--ks-muted)]">
+                {{ formatDate(comment.created_at) }}
+              </p>
+            </li>
+          </ul>
+          <button
+            v-if="collaboration.comments_after"
+            class="ks-command-link mt-2"
+            @click="loadMoreCollaboration('comments')"
+          >
+            {{ t('territory.loadMore') }}
+          </button>
+        </fieldset>
+
+        <fieldset class="rounded border border-[var(--ks-border)] p-3">
+          <legend class="px-1 text-sm font-semibold">{{ t('territory.planReview') }}</legend>
+          <select
+            v-model="collaborationReviewDecision"
+            class="ks-input mt-2 w-full"
+            :disabled="!collaboration.can_review"
+          >
+            <option value="approved">{{ t('territory.reviewApproved') }}</option>
+            <option value="changes_requested">{{ t('territory.reviewChangesRequested') }}</option>
+          </select>
+          <textarea
+            v-model="collaborationReviewNote"
+            class="ks-input mt-2 min-h-20 w-full"
+            maxlength="4000"
+            :disabled="!collaboration.can_review"
+            :placeholder="t('territory.reviewNotePlaceholder')"
+          />
+          <AppButton
+            class="mt-2"
+            :busy="collaborationBusy"
+            :disabled="!collaboration.can_review"
+            @click="submitPlanReview"
+          >
+            {{ t('territory.recordReview') }}
+          </AppButton>
+          <ul class="mt-3 space-y-2 text-xs">
+            <li
+              v-for="review in collaboration.reviews"
+              :key="review.id"
+              class="rounded border border-[var(--ks-border)] p-2"
+            >
+              <strong>{{
+                review.decision === 'approved'
+                  ? t('territory.reviewApproved')
+                  : t('territory.reviewChangesRequested')
+              }}</strong>
+              · {{ t('territory.revisionNumber', { revision: review.head_revision }) }}
+              <span v-if="review.stale" class="ml-1 text-amber-200">{{
+                t('territory.staleReview')
+              }}</span>
+              <p v-if="review.note" class="mt-1 whitespace-pre-wrap">{{ review.note }}</p>
+            </li>
+          </ul>
+          <button
+            v-if="collaboration.reviews_before"
+            class="ks-command-link mt-2"
+            @click="loadMoreCollaboration('reviews')"
+          >
+            {{ t('territory.loadMore') }}
+          </button>
+        </fieldset>
+
+        <fieldset v-if="canManage" class="rounded border border-[var(--ks-border)] p-3">
+          <legend class="px-1 text-sm font-semibold">{{ t('territory.delegatedAccess') }}</legend>
+          <label class="mt-2 block text-xs"
+            >{{ t('territory.player') }}
+            <select v-model="collaborationGrantPlayerId" class="ks-input mt-1 w-full">
+              <option value="">{{ t('territory.choosePlayer') }}</option>
+              <option v-for="player in collaborationPlayers" :key="player.id" :value="player.id">
+                {{ player.name }}
+              </option>
+            </select>
+          </label>
+          <label class="mt-2 block text-xs"
+            >{{ t('territory.layer') }}
+            <select v-model="collaborationGrantAllianceKey" class="ks-input mt-1 w-full">
+              <option v-for="alliance in alliances" :key="alliance.key" :value="alliance.key">
+                {{ alliance.display_name }}
+              </option>
+            </select>
+          </label>
+          <div class="mt-2 grid gap-2 sm:grid-cols-2">
+            <label class="text-xs"
+              >{{ t('territory.permission') }}
+              <select v-model="collaborationGrantPermission" class="ks-input mt-1 w-full">
+                <option value="review">{{ t('territory.permissionReview') }}</option>
+                <option value="edit">{{ t('territory.permissionEdit') }}</option>
+              </select>
+            </label>
+            <label class="text-xs"
+              >{{ t('territory.expiresAt') }}
+              <input
+                v-model="collaborationGrantExpiresAt"
+                type="datetime-local"
+                class="ks-input mt-1 w-full"
+              />
+            </label>
+          </div>
+          <AppButton
+            class="mt-2"
+            :busy="collaborationBusy"
+            :disabled="!collaborationGrantPlayerId || !collaborationGrantAllianceKey"
+            @click="grantCollaborationAccess"
+          >
+            {{ t('territory.grantAccess') }}
+          </AppButton>
+          <ul class="mt-3 space-y-2 text-xs">
+            <li
+              v-for="grant in collaboration.grants"
+              :key="grant.id"
+              class="flex flex-wrap items-center justify-between gap-2 rounded border border-[var(--ks-border)] p-2"
+            >
+              <span
+                >{{ grant.alliance_key }} · {{ grant.permission }} ·
+                {{ formatDate(grant.expires_at) }}</span
+              >
+              <button
+                v-if="!grant.revoked_at"
+                class="ks-command-link"
+                data-variant="danger"
+                @click="revokeCollaborationAccess(grant.id)"
+              >
+                {{ t('territory.revoke') }}
+              </button>
+            </li>
+          </ul>
+          <button
+            v-if="collaboration.grants_after"
+            class="ks-command-link mt-2"
+            @click="loadMoreCollaboration('grants')"
+          >
+            {{ t('territory.loadMore') }}
+          </button>
+        </fieldset>
+
+        <fieldset v-if="canManage" class="rounded border border-[var(--ks-border)] p-3">
+          <legend class="px-1 text-sm font-semibold">{{ t('territory.privateSharing') }}</legend>
+          <label class="mt-2 block text-xs"
+            >{{ t('territory.publishedRevision') }}
+            <select v-model="collaborationShareRevisionId" class="ks-input mt-1 w-full">
+              <option value="">{{ t('territory.choosePublishedRevision') }}</option>
+              <option v-for="item in territory.revisions" :key="item.id" :value="item.id">
+                #{{ item.revision_number }}
+              </option>
+            </select>
+          </label>
+          <label class="mt-2 block text-xs"
+            >{{ t('territory.recipient') }}
+            <select v-model="collaborationShareRecipientPlayerId" class="ks-input mt-1 w-full">
+              <option value="">{{ t('territory.choosePlayer') }}</option>
+              <option v-for="player in collaborationPlayers" :key="player.id" :value="player.id">
+                {{ player.name }}
+              </option>
+            </select>
+          </label>
+          <fieldset class="mt-2">
+            <legend class="text-xs">{{ t('territory.sharedLayers') }}</legend>
+            <label
+              v-for="alliance in alliances"
+              :key="alliance.key"
+              class="mt-1 flex items-center gap-2 text-xs"
+            >
+              <input
+                v-model="collaborationShareAllianceKeys"
+                type="checkbox"
+                :value="alliance.key"
+              />{{ alliance.display_name }}
+            </label>
+          </fieldset>
+          <label class="mt-2 block text-xs"
+            >{{ t('territory.expiresAt') }}
+            <input
+              v-model="collaborationShareExpiresAt"
+              type="datetime-local"
+              class="ks-input mt-1 w-full"
+            />
+          </label>
+          <AppButton
+            class="mt-2"
+            :busy="collaborationBusy"
+            :disabled="
+              !collaborationShareRevisionId ||
+              !collaborationShareRecipientPlayerId ||
+              !collaborationShareAllianceKeys.length
+            "
+            @click="createPrivateShare"
+          >
+            {{ t('territory.createPrivateShare') }}
+          </AppButton>
+          <div
+            v-if="createdPrivateShare"
+            class="mt-3 rounded border border-emerald-500/40 p-2 text-xs"
+            aria-live="polite"
+          >
+            <p class="font-semibold">{{ t('territory.shareTokenShownOnce') }}</p>
+            <code class="mt-1 block break-all">{{ createdPrivateShare.fragment }}</code>
+          </div>
+          <ul class="mt-3 space-y-2 text-xs">
+            <li
+              v-for="share in collaboration.shares"
+              :key="share.id"
+              class="flex flex-wrap items-center justify-between gap-2 rounded border border-[var(--ks-border)] p-2"
+            >
+              <span
+                >{{ t('territory.revisionIdShort', { id: share.territory_plan_revision_id }) }} ·
+                {{ formatDate(share.expires_at) }}</span
+              >
+              <button
+                v-if="!share.revoked_at"
+                class="ks-command-link"
+                data-variant="danger"
+                @click="revokePrivateShare(share.id)"
+              >
+                {{ t('territory.revoke') }}
+              </button>
+            </li>
+          </ul>
+          <button
+            v-if="collaboration.shares_before"
+            class="ks-command-link mt-2"
+            @click="loadMoreCollaboration('shares')"
+          >
+            {{ t('territory.loadMore') }}
+          </button>
+        </fieldset>
+      </div>
+      <p v-else class="mt-4 text-sm text-[var(--ks-muted)]">
+        {{ t('territory.collaborationLoading') }}
+      </p>
+    </section>
+
     <section v-if="territory.revisions.length" class="ks-surface mt-4 p-4">
       <p class="ks-kicker">{{ t('territory.revisions') }}</p>
       <div class="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
@@ -1578,7 +2498,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey));
             {{ item.published_at ? formatDate(item.published_at) : '—' }}
           </p>
           <button
-            v-if="canEdit"
+            v-if="canManage"
             class="ks-command-link mt-2"
             @click="dialogAction = { kind: 'restore', revision: item }"
           >

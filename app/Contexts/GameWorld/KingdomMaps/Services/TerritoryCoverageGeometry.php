@@ -10,17 +10,19 @@ use InvalidArgumentException;
 
 final class TerritoryCoverageGeometry
 {
-    public function footprint(KingdomMapDataset $dataset, string $type, int $x, int $y): ?Rectangle
+    public function footprint(KingdomMapDataset $dataset, string $type, int $x, int $y, int $rotation = 0): ?Rectangle
     {
         $footprint = $dataset->footprint($type);
         if ($footprint === null) {
             return null;
         }
 
-        return new Rectangle($x, $y, $footprint['width'], $footprint['height']);
+        [$width, $height] = $this->dimensions($footprint, $rotation);
+
+        return new Rectangle($x, $y, $width, $height);
     }
 
-    public function coverage(KingdomMapDataset $dataset, string $type, int $x, int $y): ?Rectangle
+    public function coverage(KingdomMapDataset $dataset, string $type, int $x, int $y, int $rotation = 0): ?Rectangle
     {
         $footprint = $dataset->footprint($type);
         $coverage = $dataset->coverage($type);
@@ -28,15 +30,64 @@ final class TerritoryCoverageGeometry
             return null;
         }
 
-        $offsetX = intdiv($coverage['width'] - $footprint['width'], 2);
-        $offsetY = intdiv($coverage['height'] - $footprint['height'], 2);
+        [$width, $height] = $this->dimensions($coverage, $rotation);
+        [$footprintWidth, $footprintHeight] = $this->dimensions($footprint, $rotation);
+        $offsetX = intdiv($width - $footprintWidth, 2);
+        $offsetY = intdiv($height - $footprintHeight, 2);
 
         return new Rectangle(
             $x - $offsetX,
             $y - $offsetY,
-            $coverage['width'],
-            $coverage['height'],
+            $width,
+            $height,
         );
+    }
+
+    /** @param array{width:int,height:int} $size
+     * @return array{int,int}
+     */
+    private function dimensions(array $size, int $rotation): array
+    {
+        if (! in_array($rotation, [0, 90, 180, 270], true)) {
+            throw new InvalidArgumentException('Rotation must be 0, 90, 180, or 270 degrees.');
+        }
+
+        return in_array($rotation, [90, 270], true)
+            ? [$size['height'], $size['width']]
+            : [$size['width'], $size['height']];
+    }
+
+    /** Exact rectangle union area; bounded by rectangle count rather than world dimensions.
+     * @param  list<Rectangle>  $rectangles
+     */
+    public function unionArea(array $rectangles): int
+    {
+        $edges = [];
+        foreach ($rectangles as $rect) {
+            $edges[] = $rect->x;
+            $edges[] = $rect->right();
+        }
+        $edges = array_values(array_unique($edges));
+        sort($edges, SORT_NUMERIC);
+        $area = 0;
+        for ($i = 1, $count = count($edges); $i < $count; $i++) {
+            $intervals = [];
+            foreach ($rectangles as $rect) {
+                if ($rect->x < $edges[$i] && $rect->right() > $edges[$i - 1]) {
+                    $intervals[] = [$rect->y, $rect->bottom()];
+                }
+            }
+            usort($intervals, static fn (array $a, array $b): int => $a[0] <=> $b[0]);
+            $length = 0;
+            $end = null;
+            foreach ($intervals as [$start, $stop]) {
+                $length += max(0, $stop - max($start, $end ?? $start));
+                $end = max($end ?? $stop, $stop);
+            }
+            $area += ($edges[$i] - $edges[$i - 1]) * $length;
+        }
+
+        return $area;
     }
 
     /** @param list<Rectangle> $territory */

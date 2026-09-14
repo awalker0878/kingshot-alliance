@@ -37,7 +37,7 @@ final readonly class KingdomGovernanceHealthQuery
             }
         }
         foreach (DefaultKingdomRole::cases() as $template) {
-            $expected = array_map(static fn (OperationsPermission $permission): string => $permission->key(), $this->operationsPolicy->permissions($template));
+            $expected = array_map(static fn (OperationsPermission $permission): string => $permission->key(), $template === DefaultKingdomRole::Viewer ? $this->operationsPolicy->viewing() : $this->operationsPolicy->management());
             $roleKey = $template->value;
             $role = $roles->get($roleKey);
             if (! $role instanceof KingdomRole) {

@@ -17,6 +17,7 @@ use App\Contexts\Operations\TerritoryPlanning\Models\EventTerritoryPlanRevision;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\Support\ScenarioFactory;
 use Tests\TestCase;
 
@@ -59,7 +60,7 @@ final class TerritoryEventRevisionIntegrationV3Test extends TestCase
         $saved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $created->revision,
+            $created->revision, (string) Str::uuid(),
             $this->layers($alliance->allianceId, $alliance->name),
             [],
             [$this->city(100)],
@@ -68,6 +69,7 @@ final class TerritoryEventRevisionIntegrationV3Test extends TestCase
             $actor->playerId,
             $created->planId,
             $saved->revision,
+            (string) $saved->layoutChecksum,
         );
         self::assertNotNull($firstPublished->publishedRevisionId);
 
@@ -83,7 +85,7 @@ final class TerritoryEventRevisionIntegrationV3Test extends TestCase
         $resaved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $saved->revision,
+            $saved->revision, (string) Str::uuid(),
             $this->layers($alliance->allianceId, $alliance->name),
             [],
             [$this->city(200)],
@@ -100,6 +102,7 @@ final class TerritoryEventRevisionIntegrationV3Test extends TestCase
             $actor->playerId,
             $created->planId,
             $resaved->revision,
+            (string) $resaved->layoutChecksum,
         );
         self::assertNotNull($secondPublished->publishedRevisionId);
         $replacedLinkId = app(AttachTerritoryPlanRevisionToEvent::class)->handle(

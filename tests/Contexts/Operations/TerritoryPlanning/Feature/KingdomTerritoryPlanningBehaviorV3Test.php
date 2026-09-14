@@ -14,6 +14,7 @@ use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanObject;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
 use App\Workflows\KingdomGovernance\Actions\BootstrapKingdomAdministrator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Tests\Support\ScenarioFactory;
 use Tests\TestCase;
@@ -53,7 +54,7 @@ final class KingdomTerritoryPlanningBehaviorV3Test extends TestCase
         $saved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $created->revision,
+            $created->revision, (string) Str::uuid(),
             $layers,
             [],
             [
@@ -99,7 +100,7 @@ final class KingdomTerritoryPlanningBehaviorV3Test extends TestCase
         $saved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            1,
+            1, (string) Str::uuid(),
             [$this->linkedLayer('alpha', $actorAlliance->allianceId, $actorAlliance->name, '#4da3ff', 0)],
             [],
             [$this->city('alpha-city', 'alpha', 100, 100)],
@@ -151,7 +152,7 @@ final class KingdomTerritoryPlanningBehaviorV3Test extends TestCase
         $saved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            1,
+            1, (string) Str::uuid(),
             [
                 $this->linkedLayer('alpha', $actorAlliance->allianceId, $actorAlliance->name, '#4da3ff', 0),
                 $this->externalLayer('partner', 'NAP Partner', '#c4874e', 1),
@@ -223,7 +224,7 @@ final class KingdomTerritoryPlanningBehaviorV3Test extends TestCase
         app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $created->revision,
+            $created->revision, (string) Str::uuid(),
             [
                 $this->linkedLayer('alpha', $actorAlliance->allianceId, $actorAlliance->name, '#4da3ff', 0),
                 $this->linkedLayer('foreign', $foreignAlliance->allianceId, $foreignAlliance->name, '#c4874e', 1),

@@ -20,6 +20,24 @@ final readonly class KingdomOperationsAuthorization
         return $facts instanceof KingdomAuthorityFacts && $this->allowsFacts($facts, $permission);
     }
 
+    /**
+     * Resolve multiple read-time permissions from one current authority snapshot.
+     *
+     * @param  list<OperationsPermission>  $permissions
+     * @return array<string, bool>
+     */
+    public function allowsMany(string $actorPlayerId, string $kingdomId, array $permissions): array
+    {
+        $facts = $this->authorityFacts->findCurrent($actorPlayerId, $kingdomId);
+        $resolved = [];
+        foreach ($permissions as $permission) {
+            $resolved[$permission->value] = $facts instanceof KingdomAuthorityFacts
+                && $this->allowsFacts($facts, $permission);
+        }
+
+        return $resolved;
+    }
+
     public function allowsFacts(KingdomAuthorityFacts $facts, OperationsPermission $permission): bool
     {
         return $this->supports($permission) && $facts->hasPermissionObservedAtRead($permission->key());

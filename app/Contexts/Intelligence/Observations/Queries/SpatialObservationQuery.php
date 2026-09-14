@@ -30,6 +30,43 @@ final readonly class SpatialObservationQuery
             ->all());
     }
 
+    /**
+     * One authorization snapshot for reconciliation history and selected/latest detail.
+     *
+     * @return array{history:list<array<string,mixed>>,selected:array<string,mixed>|null}
+     */
+    public function historyWithSelection(
+        string $actorPlayerId,
+        string $allianceId,
+        string $kingdomId,
+        ?string $observationId,
+        int $limit = 50,
+    ): array {
+        $this->authorize($actorPlayerId, $allianceId);
+        $history = array_values(SpatialObservation::query()
+            ->where('alliance_id', $allianceId)
+            ->where('kingdom_id', $kingdomId)
+            ->orderByDesc('captured_at')
+            ->orderByDesc('id')
+            ->limit(max(1, min(100, $limit)))
+            ->get()
+            ->map(fn (SpatialObservation $observation): array => $this->summary($observation))
+            ->all());
+
+        $query = SpatialObservation::query()
+            ->with('objects')
+            ->where('alliance_id', $allianceId)
+            ->where('kingdom_id', $kingdomId);
+        $observation = $observationId === null
+            ? $query->whereNull('invalidated_at')->orderByDesc('captured_at')->orderByDesc('id')->first()
+            : $query->whereKey($observationId)->firstOrFail();
+
+        return [
+            'history' => $history,
+            'selected' => $observation instanceof SpatialObservation ? $this->detailArray($observation) : null,
+        ];
+    }
+
     /** @return array<string,mixed>|null */
     public function latest(string $actorPlayerId, string $allianceId, string $kingdomId): ?array
     {

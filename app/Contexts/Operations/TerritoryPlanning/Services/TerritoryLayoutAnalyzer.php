@@ -49,18 +49,25 @@ final readonly class TerritoryLayoutAnalyzer
         $result = [];
         foreach ($byAlliance as $allianceKey => $allianceObjects) {
             $coverageRectangles = [];
+            $coverageTypes = [];
+            $cityRectangles = [];
             $cities = [];
             $traps = [];
             $counts = [];
 
             foreach ($allianceObjects as $object) {
                 $counts[$object['type']] = ($counts[$object['type']] ?? 0) + 1;
-                $coverageRectangle = $this->coverageGeometry->coverage($dataset, $object['type'], $object['x'], $object['y']);
+                $coverageRectangle = $this->coverageGeometry->coverage($dataset, $object['type'], $object['x'], $object['y'], $object['rotation'] ?? 0);
                 if ($coverageRectangle instanceof Rectangle) {
                     $coverageRectangles[] = $coverageRectangle;
+                    $coverageTypes[] = $object['type'];
                 }
                 if ($object['type'] === 'governor_city') {
                     $cities[] = $object;
+                    $footprint = $this->coverageGeometry->footprint($dataset, $object['type'], $object['x'], $object['y'], $object['rotation'] ?? 0);
+                    if ($footprint instanceof Rectangle) {
+                        $cityRectangles[] = $footprint;
+                    }
                 }
                 if ($object['type'] === 'bear_trap') {
                     $traps[] = $object;
@@ -74,7 +81,34 @@ final readonly class TerritoryLayoutAnalyzer
                 }
             }
 
-            $components = $this->coverageGeometry->componentCount($coverageRectangles);
+            $componentMembers = $this->coverageGeometry->components($coverageRectangles);
+            $components = count($componentMembers);
+            $anchored = 0;
+            foreach ($componentMembers as $members) {
+                foreach ($members as $index) {
+                    if ($coverageTypes[$index] === 'headquarters') {
+                        $anchored++;
+                        break;
+                    }
+                }
+            }
+            $territoryArea = $this->coverageGeometry->unionArea($coverageRectangles);
+            $hqRectangles = [];
+            $redundantBanners = 0;
+            foreach ($coverageRectangles as $index => $rectangle) {
+                if ($coverageTypes[$index] === 'headquarters') {
+                    $hqRectangles[] = $rectangle;
+                } elseif ($coverageTypes[$index] === 'banner') {
+                    $others = $coverageRectangles;
+                    unset($others[$index]);
+                    if ($this->coverageGeometry->meetsRatio($rectangle, array_values($others), 1.0)) {
+                        $redundantBanners++;
+                    }
+                }
+            }
+            $densityArea = $cityRectangles === [] ? null :
+                (max(array_map(static fn (Rectangle $rect): int => $rect->right(), $cityRectangles)) - min(array_column($cityRectangles, 'x')))
+                * (max(array_map(static fn (Rectangle $rect): int => $rect->bottom(), $cityRectangles)) - min(array_column($cityRectangles, 'y')));
             $marchSecondsPerTile = isset($preferences['march_seconds_per_tile'])
                 ? (float) $preferences['march_seconds_per_tile']
                 : null;
@@ -92,6 +126,21 @@ final readonly class TerritoryLayoutAnalyzer
 
             $result[$allianceKey] = [
                 'counts' => $counts,
+                'algorithm_version' => 'territory-analysis-v2',
+                'territory_area_tiles' => $territoryArea,
+                'hq_anchored_components' => $anchored,
+                'disconnected_components' => $components - $anchored,
+                'useful_banner_area_tiles' => $territoryArea - $this->coverageGeometry->unionArea($hqRectangles),
+                'redundant_banner_count' => $redundantBanners,
+                'hive_density_percent' => $densityArea === null || $densityArea < 1 ? null : round(100 * $this->coverageGeometry->unionArea($cityRectangles) / $densityArea, 2),
+                'density_bounds_area_tiles' => $densityArea,
+                'assumptions' => [
+                    'city_coverage' => 'entire_footprint',
+                    'distance' => 'euclidean_southwest_anchor',
+                    'march_time' => 'user_calibration_no_pathfinding',
+                    'banner_efficiency' => 'covered_cities_per_banner',
+                    'density' => 'city_footprint_union_over_city_bounds',
+                ],
                 'governor_cities' => count($cities),
                 'covered_governor_cities' => $covered,
                 'uncovered_governor_cities' => count($cities) - $covered,
@@ -123,7 +172,14 @@ final readonly class TerritoryLayoutAnalyzer
             elapsedMilliseconds: (hrtime(true) - $startedAt) / 1_000_000,
         );
 
-        return ['alliances' => $result];
+        return [
+            'alliances' => $result,
+            'map_dataset_id' => $dataset->id,
+            'map_dataset_checksum' => $dataset->checksum,
+            'input_checksum' => hash('sha256', json_encode([$dataset->checksum, $objects, $preferences], JSON_THROW_ON_ERROR)),
+            'resource_ownership' => ['state' => 'unavailable', 'reason' => 'Verified Alliance-resource footprints are required.'],
+            'pathfinding' => ['state' => 'unavailable', 'reason' => 'Verified movement topology is required.'],
+        ];
     }
 
     /**

@@ -1,0 +1,49 @@
+name: Kingdom Map reviewed editing apply
+on:
+  push:
+    branches: [astra/kingdom-map-workspace]
+    paths: [.github/kingdom-map-editing-chunks/trigger]
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: github.repository == 'awalker0878/kingshot-alliance' && github.actor == 'awalker0878'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+      - name: Verify, apply and commit reviewed editing patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import base64,gzip,hashlib,json,pathlib,subprocess
+          root=pathlib.Path.cwd()
+          manifest=json.loads((root/'.github/kingdom-map-editing-manifest.json').read_text())
+          base=manifest['base_sha']
+          if subprocess.run(['git','merge-base','--is-ancestor',base,'HEAD']).returncode != 0:
+              raise SystemExit('declared editing base is not an ancestor')
+          for f in manifest['files']:
+              out=subprocess.check_output(['git','ls-tree',base,'--',f['path']]).decode().strip()
+              old=out.split()[2] if out else None
+              if old!=f['old_sha']: raise SystemExit('base blob mismatch: '+f['path'])
+          parts=sorted((root/'.github/kingdom-map-editing-chunks').glob('part-*.b64'))
+          encoded=''.join(p.read_text().strip() for p in parts)
+          patch=gzip.decompress(base64.b64decode(encoded, validate=True))
+          if hashlib.sha256(patch).hexdigest()!=manifest['patch_sha256']: raise SystemExit('patch digest mismatch')
+          subprocess.run(['git','apply','--check','--binary','-'],input=patch,check=True)
+          subprocess.run(['git','apply','--index','--binary','-'],input=patch,check=True)
+          changed=set(subprocess.check_output(['git','diff','--cached','--name-only']).decode().splitlines())
+          expected={f['path'] for f in manifest['files']}
+          if changed!=expected: raise SystemExit(f'changed paths mismatch: {changed ^ expected}')
+          for f in manifest['files']:
+              out=subprocess.check_output(['git','ls-files','--stage','--',f['path']]).decode().strip()
+              sha=out.split()[1] if out else None
+              if sha!=f['new_sha']: raise SystemExit('blob mismatch: '+f['path'])
+          subprocess.run(['git','config','user.name','github-actions[bot]'],check=True)
+          subprocess.run(['git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com'],check=True)
+          subprocess.run(['git','commit','-m',manifest['message']],check=True)
+          subprocess.run(['git','push','origin','HEAD:astra/kingdom-map-workspace'],check=True)
+          PY

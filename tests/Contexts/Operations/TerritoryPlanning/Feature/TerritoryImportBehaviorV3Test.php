@@ -36,7 +36,7 @@ final class TerritoryImportBehaviorV3Test extends TestCase
     public function test_import_preview_rejects_malformed_rows_before_commit(): void
     {
         $document = json_encode([
-            'schema_version' => 1,
+            'schema_version' => 2,
             'plan' => ['map_dataset_id' => self::DATASET_ID],
             'alliances' => [[
                 'key' => 'external',
@@ -76,6 +76,7 @@ final class TerritoryImportBehaviorV3Test extends TestCase
                 (string) $plan->id,
                 1,
                 $document,
+                hash('sha256', $document),
             );
             self::fail('Expected a blocking imported layout to be rejected.');
         } catch (ValidationException) {
@@ -101,6 +102,7 @@ final class TerritoryImportBehaviorV3Test extends TestCase
             (string) $plan->id,
             1,
             $document,
+            hash('sha256', $document),
         );
 
         self::assertSame(2, $receipt->revision);
@@ -134,6 +136,7 @@ final class TerritoryImportBehaviorV3Test extends TestCase
                 (string) $plan->id,
                 1,
                 $document,
+                hash('sha256', $document),
             );
         } finally {
             self::assertSame(2, $plan->refresh()->revision);
@@ -161,6 +164,7 @@ final class TerritoryImportBehaviorV3Test extends TestCase
                 (string) $plan->id,
                 1,
                 $document,
+                hash('sha256', $document),
             );
         } finally {
             self::assertSame(1, $plan->refresh()->revision);
@@ -198,7 +202,7 @@ final class TerritoryImportBehaviorV3Test extends TestCase
         int $y,
     ): string {
         return json_encode([
-            'schema_version' => 1,
+            'schema_version' => 2,
             'plan' => [
                 'map_dataset_id' => (string) $plan->map_dataset_id,
                 'map_dataset_checksum' => (string) $plan->map_dataset_checksum,

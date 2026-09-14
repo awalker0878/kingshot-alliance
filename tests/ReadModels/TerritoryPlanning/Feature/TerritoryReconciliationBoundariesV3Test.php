@@ -19,6 +19,7 @@ use App\ReadModels\TerritoryPlanning\Queries\TerritoryReconciliationQuery;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Support\ScenarioFactory;
@@ -172,7 +173,8 @@ final class TerritoryReconciliationBoundariesV3Test extends TestCase
         self::assertIsString($frontend);
         self::assertStringNotContainsString('viewBox="0 0 1200 1200"', $frontend);
         self::assertStringNotContainsString('1200 - row.', $frontend);
-        self::assertStringContainsString(':viewBox="mapViewBox"', $frontend);
+        self::assertStringContainsString('<TerritoryCanvas', $frontend);
+        self::assertStringContainsString(':observed-objects="observedSceneObjects"', $frontend);
         self::assertStringContainsString('historicalInvalidatedHelp', $frontend);
     }
 
@@ -277,7 +279,7 @@ final class TerritoryReconciliationBoundariesV3Test extends TestCase
         $saved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $created->revision,
+            $created->revision, (string) Str::uuid(),
             [[
                 'key' => 'owner',
                 'alliance_id' => $alliance->allianceId,
@@ -301,6 +303,7 @@ final class TerritoryReconciliationBoundariesV3Test extends TestCase
             $actor->playerId,
             $created->planId,
             $saved->revision,
+            (string) $saved->layoutChecksum,
         );
         self::assertNotNull($published->publishedRevisionId);
 

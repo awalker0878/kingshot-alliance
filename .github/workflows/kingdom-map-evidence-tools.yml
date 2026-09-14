@@ -1,0 +1,152 @@
+name: Kingdom Map evidence and browser tools
+
+# Temporary read-only development tooling. No source execution from the evidence
+# host, no database state, secrets, ref writes or deployments. Remove before ready.
+on:
+  push:
+    branches: [astra/kingdom-map-workspace]
+    paths: [.github/workflows/kingdom-map-evidence-tools.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Export tracked source and the public PostgreSQL configuration sample
+        run: |
+          mkdir -p "$RUNNER_TEMP/source"
+          git bundle create "$RUNNER_TEMP/source/source.bundle" HEAD
+          git rev-parse HEAD > "$RUNNER_TEMP/source/revision.txt"
+          docker pull postgres:18-bookworm
+          docker image inspect postgres:18-bookworm --format '{{json .RepoDigests}}' > "$RUNNER_TEMP/source/postgres-image.json"
+          docker run --rm --entrypoint cat postgres:18-bookworm /usr/share/postgresql/postgresql.conf.sample > "$RUNNER_TEMP/source/postgresql.conf.sample"
+          (cd "$RUNNER_TEMP/source" && sha256sum source.bundle postgresql.conf.sample > SHA256SUMS)
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: kingdom-map-current-source
+          path: ${{ runner.temp }}/source
+          retention-days: 1
+          if-no-files-found: error
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install the lockfile-selected browser and native libraries
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: /tmp/kingdom-map-browsers
+        run: |
+          npm ci --no-audit --no-fund
+          node node_modules/playwright/cli.js install --with-deps chromium
+          mkdir -p "$RUNNER_TEMP/browser/lib"
+          python3 - "$PLAYWRIGHT_BROWSERS_PATH" "$RUNNER_TEMP/browser/lib" <<'PY'
+          import pathlib, re, shutil, subprocess, sys
+          root, libraries = map(pathlib.Path, sys.argv[1:])
+          for path in root.rglob('*'):
+              if not path.is_file() or path.is_symlink():
+                  continue
+              with path.open('rb') as stream:
+                  if stream.read(4) != b'\x7fELF':
+                      continue
+              result = subprocess.run(['ldd', str(path)], capture_output=True, text=True, check=False)
+              for name in re.findall(r'=> (/\S+)', result.stdout):
+                  source = pathlib.Path(name)
+                  if source.name not in {'libc.so.6', 'libm.so.6', 'libpthread.so.0', 'libdl.so.2', 'librt.so.1'}:
+                      shutil.copyfile(source.resolve(), libraries / source.name)
+          PY
+          tar -C /tmp -czf "$RUNNER_TEMP/browser/chromium.tar.gz" kingdom-map-browsers
+          tar -C "$RUNNER_TEMP/browser" -czf "$RUNNER_TEMP/browser/browser-libs.tar.gz" lib
+          node node_modules/playwright/cli.js --version > "$RUNNER_TEMP/browser/version.txt"
+          (cd "$RUNNER_TEMP/browser" && sha256sum *.tar.gz > SHA256SUMS)
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: kingdom-map-browser-tools
+          path: |
+            ${{ runner.temp }}/browser/*.tar.gz
+            ${{ runner.temp }}/browser/version.txt
+            ${{ runner.temp }}/browser/SHA256SUMS
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
+  evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Retrieve bounded same-origin public map source references for inspection only
+        env:
+          OUTPUT: ${{ runner.temp }}/evidence
+        run: |
+          python3 <<'PY'
+          import collections, datetime, hashlib, html.parser, json, os, pathlib, re, urllib.parse, urllib.request
+          root = pathlib.Path(os.environ['OUTPUT'])
+          root.mkdir()
+          origin = 'https://ksmapper.pages.dev'
+          queue = collections.deque([origin + '/'])
+          seen, records, total = set(), [], 0
+          suffixes = {'.js', '.json', '.css', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.avif'}
+          class References(html.parser.HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.references = []
+              def handle_starttag(self, tag, attrs):
+                  for key, value in attrs:
+                      if key in {'src', 'href'} and value:
+                          self.references.append(value)
+          while queue and len(seen) < 200 and total < 120_000_000:
+              url = queue.popleft()
+              parsed = urllib.parse.urlsplit(url)
+              if url in seen or parsed.scheme != 'https' or parsed.netloc != 'ksmapper.pages.dev' or parsed.username:
+                  continue
+              suffix = pathlib.PurePosixPath(parsed.path).suffix.lower()
+              if parsed.path != '/' and suffix not in suffixes:
+                  continue
+              seen.add(url)
+              record = {'url': url, 'retrieved_at': datetime.datetime.now(datetime.timezone.utc).isoformat()}
+              try:
+                  request = urllib.request.Request(url, headers={'User-Agent': 'Kingshot-Map-Source-Review/1.0'})
+                  with urllib.request.urlopen(request, timeout=20) as response:
+                      if urllib.parse.urlsplit(response.geturl()).netloc != parsed.netloc:
+                          raise ValueError('Cross-origin redirect rejected')
+                      body = response.read(8_000_001)
+                      if len(body) > 8_000_000:
+                          raise ValueError('Per-file limit exceeded')
+                      kind = response.headers.get('Content-Type', '')
+                  total += len(body)
+                  filename = hashlib.sha256(url.encode()).hexdigest() + (suffix or '.html')
+                  (root / filename).write_bytes(body)
+                  record.update({'file': filename, 'sha256': hashlib.sha256(body).hexdigest(), 'bytes': len(body), 'content_type': kind})
+                  if suffix in {'.js', '.json', '.css'} or parsed.path == '/':
+                      text = body.decode('utf-8', errors='replace')
+                      references = re.findall(r'''["']([^"'\s<>]{1,300}\.(?:js|json|css|png|jpe?g|webp|svg|avif)(?:\?[^"'\s<>]*)?)["']''', text)
+                      references += re.findall(r'url\(\s*([^\s)]+)\s*\)', text)
+                      if parsed.path == '/':
+                          parser = References()
+                          parser.feed(text)
+                          references += parser.references
+                      for reference in references:
+                          target = urllib.parse.urljoin(url, reference.strip('"\''))
+                          if target.startswith(origin + '/'):
+                              queue.append(target.split('#')[0])
+              except Exception as error:
+                  record['error'] = type(error).__name__ + ': ' + str(error)[:300]
+              records.append(record)
+          (root / 'sources.json').write_text(json.dumps({'origin': origin, 'records': records, 'total_bytes': total, 'unfetched_references': len(queue), 'notice': 'Inspection-only public source acquisition. Counts and files do not certify complete data, official mechanics, artwork provenance, or reuse of upstream application code.'}, indent=2) + '\n')
+          print('Retrieved', len(records), 'references;', total, 'bytes; remaining', len(queue))
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: kingdom-map-source-evidence
+          path: ${{ runner.temp }}/evidence
+          retention-days: 1
+          if-no-files-found: error

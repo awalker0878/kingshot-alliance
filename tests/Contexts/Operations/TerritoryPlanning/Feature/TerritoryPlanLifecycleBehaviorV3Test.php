@@ -17,6 +17,7 @@ use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use App\Shared\Infrastructure\AuditTrail\Models\AuditEvent;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Tests\Support\ScenarioFactory;
 use Tests\TestCase;
@@ -46,7 +47,7 @@ final class TerritoryPlanLifecycleBehaviorV3Test extends TestCase
         $saved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $created->revision,
+            $created->revision, (string) Str::uuid(),
             $this->allianceLayers($alliance->allianceId, $alliance->name),
             [],
             $this->objects(100),
@@ -63,6 +64,7 @@ final class TerritoryPlanLifecycleBehaviorV3Test extends TestCase
             $actor->playerId,
             $created->planId,
             $saved->revision,
+            (string) $saved->layoutChecksum,
         );
         self::assertNotNull($published->publishedRevisionId);
         self::assertSame(TerritoryPlanStatus::Published->value, $published->status);
@@ -75,7 +77,7 @@ final class TerritoryPlanLifecycleBehaviorV3Test extends TestCase
         $resaved = app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            $saved->revision,
+            $saved->revision, (string) Str::uuid(),
             $this->allianceLayers($alliance->allianceId, $alliance->name),
             [],
             $this->objects(150),
@@ -146,7 +148,7 @@ final class TerritoryPlanLifecycleBehaviorV3Test extends TestCase
         app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            1,
+            1, (string) Str::uuid(),
             $this->allianceLayers($alliance->allianceId, $alliance->name),
             [],
             $this->objects(100),
@@ -156,7 +158,7 @@ final class TerritoryPlanLifecycleBehaviorV3Test extends TestCase
         app(SaveTerritoryPlan::class)->handle(
             $actor->playerId,
             $created->planId,
-            1,
+            1, (string) Str::uuid(),
             $this->allianceLayers($alliance->allianceId, $alliance->name),
             [],
             $this->objects(200),
