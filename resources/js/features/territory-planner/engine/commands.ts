@@ -108,3 +108,63 @@ export function rotateObjectsAtomic(
     }),
   };
 }
+
+export function assignCanonicalGovernorIdentity(object: PlanObject, playerId: string): PlanObject {
+  if (object.type !== 'governor_city') throw new TypeError('Only Governor cities can be assigned.');
+  const metadata = { ...object.metadata };
+  delete metadata.external_identity_key;
+  metadata.slot_state = playerId ? 'assigned' : object.external_player_name ? 'assigned' : 'open';
+  return {
+    ...object,
+    player_id: playerId || null,
+    external_player_name: playerId ? null : object.external_player_name,
+    metadata,
+  };
+}
+
+export function assignExternalGovernorIdentity(object: PlanObject, name: string): PlanObject {
+  if (object.type !== 'governor_city') throw new TypeError('Only Governor cities can be assigned.');
+  const normalized = name.trim();
+  const metadata = { ...object.metadata };
+  if (normalized) {
+    metadata.external_identity_key =
+      typeof metadata.external_identity_key === 'string' && metadata.external_identity_key.trim()
+        ? metadata.external_identity_key
+        : `external-${object.key}`;
+    metadata.slot_state = 'assigned';
+  } else {
+    delete metadata.external_identity_key;
+    metadata.slot_state = 'open';
+  }
+  return {
+    ...object,
+    player_id: null,
+    external_player_name: normalized || null,
+    metadata,
+  };
+}
+
+export function materializeHiveProposal(
+  proposal: PlanObject[],
+  existingObjectCount: number,
+): PlanObject[] {
+  const keys = new Set<string>();
+  return proposal.map((object, index) => {
+    if (!object.key || keys.has(object.key)) throw new TypeError('Hive proposal keys must be unique.');
+    keys.add(object.key);
+    const metadata = { ...(object.metadata ?? {}) };
+    if (object.type === 'governor_city' && metadata.slot_state === undefined)
+      metadata.slot_state = 'open';
+    return {
+      ...object,
+      rotation: object.rotation ?? 0,
+      player_id: object.player_id ?? null,
+      external_player_name: object.external_player_name ?? null,
+      label: object.label ?? null,
+      group_key: object.group_key ?? null,
+      sort_order: existingObjectCount + index,
+      metadata,
+    };
+  });
+}
+

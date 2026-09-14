@@ -27,6 +27,10 @@ final class TerritoryHiveGenerationTest extends TestCase
             self::assertSame('feasible', $result['status'], json_encode($result['diagnostics'], JSON_THROW_ON_ERROR));
             self::assertSame(8, $result['generated_city_count']);
             self::assertCount(8, array_filter($result['objects'], static fn (array $object): bool => $object['type'] === 'governor_city'));
+            $cities = array_values(array_filter($result['objects'], static fn (array $object): bool => $object['type'] === 'governor_city'));
+            self::assertSame(array_fill(0, 8, 'open'), array_column(array_column($cities, 'metadata'), 'slot_state'));
+            self::assertCount(8, array_unique(array_column($cities, 'key')));
+            self::assertCount(1, array_unique(array_column($cities, 'group_key')));
             self::assertTrue($validator->validate($dataset, array_merge($existing, $result['objects']))->valid());
             self::assertSame($result, $generator->preview($dataset, $existing, $style, 'alpha', 25, 25, 8));
         }

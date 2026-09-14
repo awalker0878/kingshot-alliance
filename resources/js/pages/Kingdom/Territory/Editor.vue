@@ -20,6 +20,9 @@ import {
   type SaveRequest,
 } from '@/features/territory-planner/engine/editor-session';
 import {
+  assignCanonicalGovernorIdentity,
+  assignExternalGovernorIdentity,
+  materializeHiveProposal,
   objectIsLocked,
   requireAtomicEditableSelection,
   rotateObjectsAtomic,
@@ -360,13 +363,18 @@ function governorOptionsFor(object: PlanObject): Array<{ id: string; name: strin
 function assignGovernor(object: PlanObject, playerId: string): void {
   if (!editable(object)) return;
   remember();
-  object.player_id = playerId || null;
-  if (playerId) object.external_player_name = null;
+  const replacement = assignCanonicalGovernorIdentity(object, playerId);
+  objects.value = objects.value.map((candidate) =>
+    candidate.key === object.key ? replacement : candidate,
+  );
 }
 function assignExternalGovernor(object: PlanObject, name: string): void {
   if (!editable(object)) return;
-  object.player_id = null;
-  object.external_player_name = name.trim() || null;
+  remember();
+  const replacement = assignExternalGovernorIdentity(object, name);
+  objects.value = objects.value.map((candidate) =>
+    candidate.key === object.key ? replacement : candidate,
+  );
 }
 function setSelectedBear(allianceKey: string, objectKey: string): void {
   const alliance = alliances.value.find((candidate) => candidate.key === allianceKey);
@@ -842,24 +850,8 @@ async function generateHivePreview(): Promise<void> {
         422,
       );
     }
-    const generated = payload.objects as Array<
-      Partial<PlanObject> & Pick<PlanObject, 'type' | 'x' | 'y' | 'alliance_key'>
-    >;
-    const groupKey = key('hive');
-    hivePreview.value = generated.map((object, index) => ({
-      key: key(`hive-preview-${index}`),
-      alliance_key: object.alliance_key,
-      group_key: groupKey,
-      type: object.type,
-      player_id: null,
-      external_player_name: null,
-      label: object.label ?? null,
-      x: object.x,
-      y: object.y,
-      rotation: 0,
-      sort_order: objects.value.length + index,
-      metadata: {},
-    }));
+    const generated = payload.objects as PlanObject[];
+    hivePreview.value = materializeHiveProposal(generated, objects.value.length);
     if (hivePreviewValidation.value.violations.length)
       notice.value = { tone: 'warning', message: t('territory.hivePreviewBlocked') };
   } catch (error) {
