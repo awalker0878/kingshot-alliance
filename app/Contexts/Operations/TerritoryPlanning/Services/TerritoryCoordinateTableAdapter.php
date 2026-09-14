@@ -146,7 +146,10 @@ final class TerritoryCoordinateTableAdapter
         }
     }
 
-    /** @param array<string,string|null> $row */
+    /**
+     * @param  array<string,string|null>  $row
+     * @return array{key:string,type:string,x:int,y:int,rotation:int,alliance_key:?string,group_key:?string,player_id:?string,external_player_name:?string,label:?string,metadata:array<string,mixed>}
+     */
     private function normalizeRow(array $row): array
     {
         $key = $this->boundedRequired($row['key'] ?? '', 'key');
