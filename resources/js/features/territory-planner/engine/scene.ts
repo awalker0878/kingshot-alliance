@@ -1,11 +1,25 @@
 import type { TerritorySceneDocument, TerritorySceneEntity } from './scene-types';
 import type { MapData, MapStructure, PlanAlliance, PlanObject, TerritoryObjectType } from './types';
 
+export type ObservedSceneObject = {
+  key: string;
+  type: TerritoryObjectType;
+  x: number;
+  y: number;
+  rotation?: number;
+  label?: string | null;
+  observed_label?: string | null;
+  confidence?: number | null;
+  identity_state?: string | null;
+  status?: string | null;
+};
+
 export type BuildTerritorySceneInput = {
   map: MapData;
   mapChecksum: string;
   alliances?: PlanAlliance[];
   objects?: PlanObject[];
+  observedObjects?: ObservedSceneObject[];
 };
 
 function objectAssetKey(object: PlanObject): string {
@@ -73,6 +87,7 @@ export function buildTerritoryScene(input: BuildTerritorySceneInput): TerritoryS
   const { map, mapChecksum } = input;
   const alliances = input.alliances ?? [];
   const objects = input.objects ?? [];
+  const observedObjects = input.observedObjects ?? [];
   const colors = new Map(alliances.map((alliance) => [alliance.key, alliance.presentation_color]));
   const visible = new Set(
     alliances.filter((alliance) => alliance.visible).map((alliance) => alliance.key),
@@ -191,6 +206,48 @@ export function buildTerritoryScene(input: BuildTerritorySceneInput): TerritoryS
         category: facility.category,
         level: facility.level ?? null,
         reference_marker: true,
+      },
+    });
+  }
+
+  for (const object of observedObjects) {
+    if (!(object.type in map.object_types)) continue;
+    const rotation = object.rotation ?? 0;
+    const definition = map.object_types[object.type];
+    const rotated = rotation === 90 || rotation === 270;
+    entities.push({
+      key: `observed:${object.key}`,
+      sourceKey: object.key,
+      kind: 'observed',
+      layer: 'observed',
+      label: object.observed_label ?? object.label ?? object.type,
+      bounds: {
+        x: object.x,
+        y: object.y,
+        width: rotated ? definition.footprint.height : definition.footprint.width,
+        height: rotated ? definition.footprint.width : definition.footprint.height,
+      },
+      assetKey:
+        object.type === 'headquarters'
+          ? 'headquarters.badland'
+          : object.type === 'governor_city'
+            ? 'governor_city.default'
+            : object.type === 'bear_trap'
+              ? 'bear_trap.default'
+              : 'banner.default',
+      color: '#f3d36a',
+      opacity: 0.9,
+      selectable: true,
+      planObjectKey: null,
+      confidence: object.confidence === null || object.confidence === undefined
+        ? null
+        : String(object.confidence),
+      provenance: [],
+      metadata: {
+        object_type: object.type,
+        rotation,
+        identity_state: object.identity_state ?? null,
+        reconciliation_status: object.status ?? null,
       },
     });
   }

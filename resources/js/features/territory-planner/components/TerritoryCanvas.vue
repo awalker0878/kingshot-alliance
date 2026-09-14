@@ -15,6 +15,7 @@ import {
 import type { Point, PointerGesture, Viewport, WorldBounds } from '../engine/viewport';
 
 import { buildTerritoryScene } from '../engine/scene';
+import type { ObservedSceneObject } from '../engine/scene';
 import type { TerritorySceneEntity } from '../engine/scene-types';
 import type { MapData, PlanAlliance, PlanObject, TerritoryObjectType } from '../engine/types';
 
@@ -26,6 +27,7 @@ const props = withDefaults(
     mapChecksum?: string;
     alliances: PlanAlliance[];
     objects: PlanObject[];
+    observedObjects?: ObservedSceneObject[];
     selectedKeys: string[];
     tool: Tool;
     placementType: TerritoryObjectType;
@@ -38,9 +40,11 @@ const props = withDefaults(
     showTerrain?: boolean;
     showFacilities?: boolean;
     showResources?: boolean;
+    showObserved?: boolean;
   }>(),
   {
     mapChecksum: '',
+    observedObjects: () => [],
     readOnly: false,
     showCoverage: true,
     showStructures: true,
@@ -48,6 +52,7 @@ const props = withDefaults(
     showTerrain: true,
     showFacilities: true,
     showResources: true,
+    showObserved: true,
   },
 );
 
@@ -101,6 +106,7 @@ const scene = computed(() =>
     mapChecksum: props.mapChecksum,
     alliances: props.alliances,
     objects: props.objects,
+    observedObjects: props.observedObjects ?? [],
   }),
 );
 
@@ -461,6 +467,35 @@ function render(): void {
       context.fillText(entity.label, x + 2, yBottom - entityHeight - 3);
     }
   }
+  if (props.showObserved) {
+    for (const entity of scene.value.entities) {
+      if (entity.kind !== 'observed') continue;
+      const [x, yBottom] = toScreen(entity.bounds.x, entity.bounds.y);
+      const entityWidth = Math.max(4, entity.bounds.width * zoom.value);
+      const entityHeight = Math.max(4, entity.bounds.height * zoom.value);
+      if (
+        x > width.value + 32 || x + entityWidth < -32 ||
+        yBottom > height.value + entityHeight + 32 || yBottom - entityHeight < -32
+      ) continue;
+      context.save();
+      context.globalAlpha = entity.opacity;
+      context.fillStyle = entity.color ?? '#f3d36a';
+      context.fillRect(x, yBottom - entityHeight, entityWidth, entityHeight);
+      context.globalAlpha = 1;
+      context.strokeStyle = '#ffffff';
+      context.lineWidth = Math.max(1, Math.min(2, zoom.value));
+      context.setLineDash([4, 3]);
+      context.strokeRect(x, yBottom - entityHeight, entityWidth, entityHeight);
+      context.setLineDash([]);
+      if (zoom.value > 1.4) {
+        context.fillStyle = '#ffffff';
+        context.font = '10px sans-serif';
+        context.fillText(entity.label, x + 2, yBottom - entityHeight - 3);
+      }
+      context.restore();
+    }
+  }
+
   const previewDelta = drag.value?.kind === 'object' ? gestureDelta(drag.value) : { x: 0, y: 0 };
   const previewKeys = new Set(drag.value?.kind === 'object' ? drag.value.keys : []);
   for (const stored of props.objects) {
@@ -570,6 +605,8 @@ watch(
     props.showTerrain,
     props.showFacilities,
     props.showResources,
+    props.showObserved,
+    props.observedObjects,
   ],
   draw,
   { deep: true },

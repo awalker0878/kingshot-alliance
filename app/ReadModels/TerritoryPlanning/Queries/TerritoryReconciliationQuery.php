@@ -89,15 +89,15 @@ final readonly class TerritoryReconciliationQuery
         }
 
         $kingdomId = (string) ($snapshotPlan['kingdom_id'] ?? $plan['kingdom_id'] ?? '');
-        $history = $this->observations->history($actorPlayerId, $allianceId, $kingdomId, 50);
-        $observation = $observationId === null
-            ? $this->observations->latest($actorPlayerId, $allianceId, $kingdomId)
-            : $this->observations->detail(
-                $actorPlayerId,
-                $allianceId,
-                $kingdomId,
-                $observationId,
-            );
+        $observationSelection = $this->observations->historyWithSelection(
+            $actorPlayerId,
+            $allianceId,
+            $kingdomId,
+            $observationId,
+            50,
+        );
+        $history = $observationSelection['history'];
+        $observation = $observationSelection['selected'];
 
         if ($observation === null) {
             return [
@@ -143,6 +143,11 @@ final readonly class TerritoryReconciliationQuery
                 'freshness' => $freshness,
                 'compatibility' => $compatibility,
                 'map_geometry' => $mapGeometry,
+                'map' => [
+                    'id' => $planDataset->id,
+                    'checksum' => $planDataset->checksum,
+                    'data' => $planDataset->data,
+                ],
             ];
         }
 
@@ -214,6 +219,11 @@ final readonly class TerritoryReconciliationQuery
             'freshness' => $freshness,
             'compatibility' => $compatibility,
             'map_geometry' => $mapGeometry,
+            'map' => [
+                'id' => $planDataset->id,
+                'checksum' => $planDataset->checksum,
+                'data' => $planDataset->data,
+            ],
             'summary' => $this->summary($governors, $structures, $unexpected),
             'governors' => $governors,
             'structures' => $structures,

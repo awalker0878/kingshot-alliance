@@ -160,3 +160,27 @@ test('semantic scene query is bounded and searches labels, stable keys, layers a
   );
   assert.ok(sceneEntitiesForQuery(scene, '', 2).length <= 2);
 });
+
+test('observed reality is projected as a distinct shared-scene layer without changing plan authority', () => {
+  const planned: PlanObject = { ...objects[0]!, key: 'planned-city', x: 160, y: 260, rotation: 0 };
+  const scene = buildTerritoryScene({
+    map,
+    mapChecksum: 'f'.repeat(64),
+    alliances,
+    objects: [planned],
+    observedObjects: [{
+      key: 'observed-city',
+      type: 'governor_city',
+      x: 163,
+      y: 261,
+      identity_state: 'resolved_player',
+      confidence: 0.9,
+    }],
+  });
+  const observed = scene.entities.find((entity) => entity.key === 'observed:observed-city');
+  assert.equal(observed?.kind, 'observed');
+  assert.equal(observed?.layer, 'observed');
+  assert.deepEqual(observed?.bounds, { x: 163, y: 261, width: 2, height: 3 });
+  assert.equal(observed?.metadata.identity_state, 'resolved_player');
+  assert.equal(scene.entities.find((entity) => entity.key === 'planned:planned-city')?.kind, 'planned');
+});

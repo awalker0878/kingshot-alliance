@@ -3,6 +3,9 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, reactive, ref } from 'vue';
 
 import AppButton from '@/components/ui/AppButton.vue';
+import TerritoryCanvas from '@/features/territory-planner/components/TerritoryCanvas.vue';
+import type { ObservedSceneObject } from '@/features/territory-planner/engine/scene';
+import type { MapData, PlanAlliance, PlanObject, TerritoryObjectType } from '@/features/territory-planner/engine/types';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -83,6 +86,7 @@ type Reconciliation = {
   freshness?: { age_seconds: number; state: string };
   compatibility?: string;
   map_geometry?: MapGeometry;
+  map?: { id: string; checksum: string; data: MapData };
   summary?: Summary;
   governors?: GovernorRow[];
   structures?: StructureRow[];
@@ -210,22 +214,6 @@ const observationIsStale = computed(() => props.reconciliation.freshness?.state 
 const selectedObservationIsInvalidated = computed(() =>
   Boolean(props.reconciliation.observation?.invalidated_at),
 );
-const mapViewBox = computed(() => {
-  const geometry = props.reconciliation.map_geometry;
-  if (!geometry) return undefined;
-  const { x, y, width, height } = geometry.bounds;
-  return `${x} ${y} ${width} ${height}`;
-});
-
-function mapY(y: number): number | undefined {
-  const geometry = props.reconciliation.map_geometry;
-  if (!geometry) return undefined;
-  if (geometry.render.y_axis === 'up') {
-    return geometry.bounds.y + geometry.bounds.height - (y - geometry.bounds.y);
-  }
-  return y;
-}
-
 function observationOptionLabel(observation: Observation): string {
   const base = `${formatDate(observation.captured_at)} · ${observation.coverage_kind}`;
   return observation.invalidated_at ? `${base} · ${t('territory.historicalInvalidated')}` : base;
@@ -276,6 +264,56 @@ const visibleUnexpected = computed(() =>
       );
     }
     return false;
+  }),
+);
+
+const reconciliationAlliance = computed<PlanAlliance[]>(() => {
+  const alliance = props.reconciliation.alliance;
+  if (!alliance) return [];
+  return [{
+    key: alliance.key,
+    alliance_id: alliance.id,
+    external_name: null,
+    external_tag: null,
+    display_name: alliance.name,
+    presentation_color: '#4da3ff',
+    sort_order: 0,
+    visible: true,
+    locked: true,
+  }];
+});
+const plannedSceneObjects = computed<PlanObject[]>(() => {
+  const allianceKey = props.reconciliation.alliance?.key ?? '';
+  return (props.reconciliation.planned_objects ?? []).flatMap((object, index) => {
+    if (!['headquarters', 'banner', 'governor_city', 'bear_trap'].includes(object.type)) return [];
+    return [{
+      key: object.key,
+      alliance_key: allianceKey,
+      group_key: null,
+      type: object.type as TerritoryObjectType,
+      player_id: object.player_id ?? null,
+      external_player_name: object.external_player_name ?? null,
+      label: object.observed_label ?? null,
+      x: object.x,
+      y: object.y,
+      rotation: 0,
+      sort_order: index,
+      metadata: {},
+    }];
+  });
+});
+const observedSceneObjects = computed<ObservedSceneObject[]>(() =>
+  (props.reconciliation.observed_objects ?? []).flatMap((object) => {
+    if (!['headquarters', 'banner', 'governor_city', 'bear_trap'].includes(object.type)) return [];
+    return [{
+      key: object.key,
+      type: object.type as TerritoryObjectType,
+      x: object.x,
+      y: object.y,
+      label: object.observed_label ?? object.external_player_name ?? null,
+      confidence: object.confidence ?? null,
+      identity_state: object.identity_state ?? null,
+    }];
   }),
 );
 
@@ -646,47 +684,21 @@ function freshnessLabel(): string {
           </p>
         </div>
         <div class="mt-4 overflow-hidden rounded-xl border bg-[var(--ks-panel)]">
-          <svg
-            v-if="reconciliation.map_geometry"
-            :viewBox="mapViewBox"
-            class="aspect-square max-h-[560px] w-full"
-            role="img"
-            :aria-label="t('territory.observedMapOverlay')"
-          >
-            <g
-              v-for="row in [
-                ...(reconciliation.governors ?? []),
-                ...(reconciliation.structures ?? []),
-              ]"
-              :key="row.planned.key"
-            >
-              <line
-                v-if="row.observed"
-                :x1="row.planned.x"
-                :y1="mapY(row.planned.y)"
-                :x2="row.observed.x"
-                :y2="mapY(row.observed.y)"
-                stroke="currentColor"
-                stroke-width="1"
-                opacity="0.3"
-              />
-              <circle
-                :cx="row.planned.x"
-                :cy="mapY(row.planned.y)"
-                r="7"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              />
-              <circle
-                v-if="row.observed"
-                :cx="row.observed.x"
-                :cy="mapY(row.observed.y)"
-                r="4"
-                fill="currentColor"
-              />
-            </g>
-          </svg>
+          <TerritoryCanvas
+            v-if="reconciliation.map"
+            :map="reconciliation.map.data"
+            :map-checksum="reconciliation.map.checksum"
+            :alliances="reconciliationAlliance"
+            :objects="plannedSceneObjects"
+            :observed-objects="observedSceneObjects"
+            :selected-keys="[]"
+            tool="pan"
+            placement-type="governor_city"
+            :active-alliance-key="null"
+            :label="t('territory.observedMapOverlay')"
+            read-only
+            :show-coverage="false"
+          />
         </div>
       </section>
 

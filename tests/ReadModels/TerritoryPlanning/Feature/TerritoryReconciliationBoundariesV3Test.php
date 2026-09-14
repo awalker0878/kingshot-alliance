@@ -173,7 +173,8 @@ final class TerritoryReconciliationBoundariesV3Test extends TestCase
         self::assertIsString($frontend);
         self::assertStringNotContainsString('viewBox="0 0 1200 1200"', $frontend);
         self::assertStringNotContainsString('1200 - row.', $frontend);
-        self::assertStringContainsString(':viewBox="mapViewBox"', $frontend);
+        self::assertStringContainsString('<TerritoryCanvas', $frontend);
+        self::assertStringContainsString(':observed-objects="observedSceneObjects"', $frontend);
         self::assertStringContainsString('historicalInvalidatedHelp', $frontend);
     }
 
