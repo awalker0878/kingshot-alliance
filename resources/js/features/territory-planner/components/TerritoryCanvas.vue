@@ -16,7 +16,7 @@ import type { Point, PointerGesture, Viewport, WorldBounds } from '../engine/vie
 
 import { buildTerritoryScene } from '../engine/scene';
 import { buildPresentation, layerIsVisible, paintPresentation } from '../engine/presentation';
-import type { PresentationOptions } from '../engine/presentation';
+import type { PresentationImage, PresentationOptions } from '../engine/presentation';
 import { sceneEntitiesInBounds, sceneEntityContains } from '../engine/scene-index';
 import { requireAtomicEditableSelection } from '../engine/commands';
 import { MAX_ZOOM, MIN_ZOOM, worldPoint } from '../engine/viewport';
@@ -116,10 +116,19 @@ const scene = computed(() =>
   }),
 );
 
+/**
+ * Artwork is a presentation-only concern, so the registry, the manifest and the delivered
+ * bytes stay out of the page chunk and load on demand. Until they resolve, the scene keeps
+ * its typed fallback symbols rather than inventing imagery.
+ */
+let artworkHook: ((key: string, pixels: number) => PresentationImage | null) | null = null;
+let detachArtwork: (() => void) | null = null;
+
 const presentationOptions = computed<PresentationOptions>(() => ({
   selectedKeys: props.selectedKeys,
   showGrid: props.showGrid,
   showLabels: props.showLabels,
+  image: (assetKey, pixels) => artworkHook?.(assetKey, pixels) ?? null,
   layers: {
     regions: { visible: props.showZones, opacity: 1 },
     restrictions: { visible: props.showZones, opacity: 1 },
@@ -471,7 +480,10 @@ function render(): void {
 }
 
 function exportOptions(): PresentationOptions {
-  return { ...presentationOptions.value, selectedKeys: [] };
+  // Canvas object URLs are not embeddable; export artwork arrives as verified data URLs.
+  const options = { ...presentationOptions.value, selectedKeys: [] as string[] };
+  delete options.image;
+  return options;
 }
 defineExpose({ fitMap, focusBounds, jumpTo, setCamera, viewport, exportOptions });
 onMounted(() => {
@@ -490,10 +502,21 @@ onMounted(() => {
   if (host.value) resizeObserver.observe(host.value);
   nextTick(draw);
   window.addEventListener('blur', cancelGesture);
+  void import('../engine/artwork-runtime').then(async (artwork) => {
+    artworkHook = artwork.artworkImage;
+    detachArtwork = artwork.onArtworkChange(draw);
+    const keys = scene.value.entities
+      .map((entity) => entity.assetKey)
+      .filter((key): key is string => key !== null);
+    if (keys.length && (await artwork.ensureArtwork(keys)).length) draw();
+  });
 });
 onBeforeUnmount(() => {
   resizeObserver?.disconnect();
   cancelGesture();
+  detachArtwork?.();
+  detachArtwork = null;
+  artworkHook = null;
   if (animationFrame !== null) cancelAnimationFrame(animationFrame);
   window.removeEventListener('blur', cancelGesture);
 });

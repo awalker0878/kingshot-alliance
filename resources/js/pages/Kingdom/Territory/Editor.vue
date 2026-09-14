@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import ActionNotice from '@/components/ui/ActionNotice.vue';
@@ -43,6 +43,7 @@ import type {
   TerritoryObjectType,
   ValidationIssue,
 } from '@/features/territory-planner/engine/types';
+import type { ExportMetadata, ExportScope } from '@/features/territory-planner/engine/export';
 import { buildLayoutDocument } from '@/features/territory-planner/engine/interchange';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
@@ -187,7 +188,11 @@ const props = defineProps<{
   activePlayer: { id: string; name: string; kingdomNumber: number | null };
   territory: TerritoryProp;
 }>();
-const { t, formatNumber, formatDate } = useLocale();
+const { t, formatNumber, formatDate, locale } = useLocale();
+/** The import preview only appears after a parse, so its panel is split out of this page chunk. */
+const TerritoryImportPreview = defineAsyncComponent(
+  () => import('@/features/territory-planner/components/TerritoryImportPreview.vue'),
+);
 const alliances = ref<PlanAlliance[]>(cloneJson(props.territory.alliances));
 const groups = ref<PlanGroup[]>(cloneJson(props.territory.groups));
 const objects = ref<PlanObject[]>(cloneJson(props.territory.objects));
@@ -198,6 +203,7 @@ const revision = ref(props.territory.plan.revision);
 const status = ref(props.territory.plan.status);
 const selectedKeys = ref<string[]>([]);
 const activeAllianceKey = ref(alliances.value[0]?.key ?? null);
+const exportScope = ref<ExportScope>('map');
 const tool = ref<Tool>('select');
 const placementType = ref<TerritoryObjectType>('governor_city');
 const notice = ref<{ tone: 'success' | 'warning' | 'danger' | 'info'; message: string } | null>(
@@ -1198,7 +1204,7 @@ function exportDocument() {
     },
   );
 }
-function exportMetadata() {
+function exportMetadata(): ExportMetadata {
   return {
     title: props.territory.plan.name,
     mapProfile: props.territory.map.source_label,
@@ -1208,6 +1214,7 @@ function exportMetadata() {
     mapChecksum: props.territory.map.checksum,
     planRevision: revision.value,
     workingDraft: persistenceSession?.dirty() ?? false,
+    locale: locale.value,
   };
 }
 async function runExport(kind: 'json' | 'svg' | 'png'): Promise<void> {
@@ -1220,16 +1227,37 @@ async function runExport(kind: 'json' | 'svg' | 'png'): Promise<void> {
     const snapshot = JSON.parse(documentJson) as ReturnType<typeof exportDocument>;
     const metadata = exportMetadata();
     const options = canvas.value?.exportOptions();
-    const { buildSvg, downloadText, downloadPngFromSvg } =
-      await import('@/features/territory-planner/engine/export');
+    const {
+      buildSvg,
+      downloadText,
+      downloadPngFromSvg,
+      exportScopeBounds,
+      estimateExportSize,
+      EXPORT_FONT_FAMILY,
+    } = await import('@/features/territory-planner/engine/export');
     if (kind === 'json') downloadText(`${metadata.title}.json`, documentJson, 'application/json');
     else {
+      const viewport = canvas.value?.viewport();
+      const bounds = exportScopeBounds({
+        scope: exportScope.value,
+        map: props.territory.map.data,
+        objects: snapshot.objects,
+        selectedKeys: selectedKeys.value,
+        activeAllianceKey: activeAllianceKey.value,
+        ...(viewport ? { viewport } : {}),
+      });
+      estimateExportSize(bounds);
+      const artwork = await import('@/features/territory-planner/engine/artwork-runtime');
+      metadata.fontFamily = EXPORT_FONT_FAMILY;
+      const version = artwork.artworkVersion();
+      if (version) metadata.artworkVersion = version;
+      if (options) await artwork.attachExportArtwork(options);
       const svg = buildSvg(
         props.territory.map.data,
         snapshot.alliances,
         snapshot.objects,
         metadata,
-        options,
+        { ...options, bounds },
       );
       if (kind === 'svg') downloadText(`${metadata.title}.svg`, svg, 'image/svg+xml');
       else await downloadPngFromSvg(`${metadata.title}.png`, svg);
@@ -2132,6 +2160,14 @@ onUnmounted(() => {
         ><button class="ks-command-link" @click="exportJson">{{ t('territory.exportJson') }}</button
         ><button class="ks-command-link" @click="exportPng">{{ t('territory.exportPng') }}</button
         ><button class="ks-command-link" @click="exportSvg">{{ t('territory.exportSvg') }}</button
+        ><label class="flex items-center gap-2 text-xs text-[var(--ks-text-muted)]"
+          >{{ t('territory.exportScope')
+          }}<select v-model="exportScope" class="ks-input" data-testid="territory-export-scope">
+            <option value="map">{{ t('territory.exportScopeMap') }}</option>
+            <option value="viewport">{{ t('territory.exportScopeViewport') }}</option>
+            <option value="selection">{{ t('territory.exportScopeSelection') }}</option>
+            <option value="alliance">{{ t('territory.exportScopeAlliance') }}</option>
+          </select></label
         ><label class="ks-command-link cursor-pointer"
           >{{ t('territory.importJson')
           }}<input
@@ -2148,55 +2184,7 @@ onUnmounted(() => {
           {{ t('territory.archive') }}
         </button>
       </div>
-      <div v-if="importPreview" class="mt-4 rounded border border-[var(--ks-border)] p-3">
-        <p class="text-sm font-semibold">{{ t('territory.importPreview') }}</p>
-        <dl class="mt-2 grid gap-2 text-xs sm:grid-cols-4">
-          <div>
-            <dt class="text-[var(--ks-muted)]">{{ t('territory.layers') }}</dt>
-            <dd>{{ formatNumber(importPreview.alliances.length) }}</dd>
-          </div>
-          <div>
-            <dt class="text-[var(--ks-muted)]">{{ t('territory.object') }}</dt>
-            <dd>{{ formatNumber(importPreview.objects.length) }}</dd>
-          </div>
-          <div>
-            <dt class="text-[var(--ks-muted)]">{{ t('territory.violations') }}</dt>
-            <dd>{{ formatNumber(importPreview.validation.violations.length) }}</dd>
-          </div>
-          <div>
-            <dt class="text-[var(--ks-muted)]">{{ t('territory.warnings') }}</dt>
-            <dd>{{ formatNumber(importPreview.validation.warnings.length) }}</dd>
-          </div>
-        </dl>
-        <p class="mt-2 text-xs text-[var(--ks-muted)]">
-          {{ importPreview.map.source_label }} · {{ importPreview.map.id }}
-        </p>
-        <ul
-          v-if="importPreview.validation.violations.length"
-          class="mt-2 space-y-1 text-xs text-red-200"
-        >
-          <li
-            v-for="item in importPreview.validation.violations"
-            :key="`import-v-${item.code}-${item.object_key}`"
-          >
-            {{ item.message }}
-          </li>
-        </ul>
-        <ul
-          v-if="importPreview.validation.warnings.length"
-          class="mt-2 space-y-1 text-xs text-amber-200"
-        >
-          <li
-            v-for="item in importPreview.validation.warnings"
-            :key="`import-w-${item.code}-${item.object_key}`"
-          >
-            {{ item.message }}
-          </li>
-        </ul>
-        <AppButton class="mt-3" :disabled="!importPreview.can_commit" @click="applyImport">
-          {{ t('territory.applyImport') }}
-        </AppButton>
-      </div>
+      <TerritoryImportPreview v-if="importPreview" :preview="importPreview" @commit="applyImport" />
     </section>
 
     <section class="ks-surface mt-4 p-4" aria-labelledby="territory-collaboration-heading">

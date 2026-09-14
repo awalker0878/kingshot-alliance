@@ -175,6 +175,11 @@ const messages = {
     exportJson: 'Esporta JSON',
     exportPng: 'Esporta PNG',
     exportSvg: 'Esporta SVG',
+    exportScope: 'Ambito di esportazione',
+    exportScopeMap: 'Mappa completa',
+    exportScopeViewport: 'Area di visualizzazione',
+    exportScopeSelection: 'Selezione',
+    exportScopeAlliance: 'Alleanza',
     importJson: 'Importa JSON',
     importReady:
       'L’importazione è stata analizzata e validata. Controlla l’anteprima prima di confermare.',
