@@ -10,7 +10,9 @@
  * every source-required entry must carry real, reviewed representations. It therefore fails by design
  * while the rights-cleared artwork master pack has not been supplied. Missing art is never substituted.
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { join, resolve } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import {
@@ -21,6 +23,7 @@ import {
 const manifestPath = fileURLToPath(
   new URL('../resources/data/kingdom-map-art/manifest.v1.json', import.meta.url),
 );
+const assetsDir = fileURLToPath(new URL('../resources/data/kingdom-map-art', import.meta.url));
 
 /**
  * Presentation contract: every key the shared scene can emit must exist in the registry.
@@ -70,14 +73,18 @@ try {
 const structural = validateArtworkManifest(manifest);
 for (const diagnostic of structural) failures.push(`structure: ${diagnostic}`);
 
-const keys = new Set(Array.isArray(manifest.entries) ? manifest.entries.map((entry) => entry.key) : []);
+const keys = new Set(
+  Array.isArray(manifest.entries) ? manifest.entries.map((entry) => entry.key) : [],
+);
 for (const key of REQUIRED_ENTRY_KEYS)
   if (!keys.has(key)) failures.push(`missing required entry: ${key}`);
 
 const sourceRequired = [];
 if (Array.isArray(manifest.entries)) {
   for (const entry of manifest.entries) {
-    const required = Array.isArray(entry.required_representations) ? entry.required_representations : [];
+    const required = Array.isArray(entry.required_representations)
+      ? entry.required_representations
+      : [];
     if (!required.length) continue;
     const absent = required.filter((kind) => !entry.representations?.[kind]);
     if (absent.length || entry.review_state !== 'reviewed')
@@ -94,16 +101,47 @@ if (!structureOnly) {
     failures.push(
       `incomplete source artwork: ${entry.key} (review_state=${entry.reviewState}, absent=${entry.absent.join('/') || 'review'})`,
     );
+
+  // A declared representation is only real when its delivery bytes exist and still hash to the
+  // registry value. Without this the registry could claim artwork that was never written.
+  for (const entry of Array.isArray(manifest.entries) ? manifest.entries : []) {
+    for (const kind of ARTWORK_REPRESENTATION_KINDS) {
+      const declared = entry.representations?.[kind];
+      if (!declared) continue;
+      const file = resolve(join(assetsDir, declared.path));
+      if (file !== assetsDir && !file.startsWith(assetsDir))
+        failures.push(`${entry.key}.${kind}: delivery path escapes the art pack`);
+      else if (!existsSync(file))
+        failures.push(`${entry.key}.${kind}: delivery bytes are absent (${declared.path})`);
+      else {
+        const bytes = readFileSync(file);
+        const digest = createHash('sha256').update(bytes).digest('hex');
+        if (digest !== declared.sha256)
+          failures.push(`${entry.key}.${kind}: delivery bytes do not match the recorded sha256`);
+        if (bytes.length !== declared.byte_size)
+          failures.push(`${entry.key}.${kind}: delivery byte_size does not match the file`);
+      }
+    }
+  }
 }
 
 if (failures.length) {
   console.error(`Kingdom Map artwork registry check FAILED with ${failures.length} issue(s):`);
   for (const failure of failures) console.error(`  - ${failure}`);
   if (!structureOnly && sourceRequired.length) {
-    console.error(
-      'BLOCKED_INPUT: the rights-cleared Kingshot artwork master pack has not been supplied. ' +
-        'Registry entries legitimately remain awaiting_source; no imagery is fabricated.',
-    );
+    const absent = sourceRequired.filter((entry) => entry.absent.length > 0);
+    if (absent.length)
+      console.error(
+        'BLOCKED_INPUT: the rights-cleared Kingshot artwork master pack has not been supplied. ' +
+          `${absent.length} entr${absent.length === 1 ? 'y is' : 'ies are'} still awaiting source representations; ` +
+          'no imagery is fabricated. Ingest the pack with: npm run art:pack -- <pack-dir>',
+      );
+    else
+      console.error(
+        `REVIEW_PENDING: all ${sourceRequired.length} source-required entr${sourceRequired.length === 1 ? 'y has' : 'ies have'} ` +
+          'delivered representations, but none is reviewed yet. Inspect the rendered output, then record the ' +
+          'named review with: npm run art:approve -- <reviewer>',
+      );
   }
   process.exit(1);
 }

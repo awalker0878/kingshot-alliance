@@ -32,6 +32,8 @@
     "check:territory-export": "node scripts/check-territory-export.mjs",
     "check:kingdom-map-art": "node scripts/check-kingdom-map-art.mjs --structure-only",
     "check:kingdom-map-art:strict": "node scripts/check-kingdom-map-art.mjs",
+    "art:pack": "node scripts/kingdom-map-art-pack.mjs --pack",
+    "art:approve": "node scripts/kingdom-map-art-pack.mjs --approve",
     "check:performance-budgets": "node scripts/check-performance-budgets.mjs"
   },
   "dependencies": {

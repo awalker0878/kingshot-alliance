@@ -35,4 +35,37 @@ One versioned registry owns stable keys, variants, source metadata, icon/sprite/
 
 Preparation is `scripts/kingdom-map-art-import.mjs`. It accepts only explicitly selected local source files, validates MIME from magic bytes, enforces byte/dimension limits, trims transparent borders, produces bounded resolution variants, never upscales, and writes content-addressed delivery paths. SVG input must be rasterized by an approved rasterizer first and is rejected here. The emitted record contains bytes and geometry only; it never asserts rights or review state. Runtime loading is lazy and bounded; export embedding verifies asset identity and cleans up decoded resources.
 
-The user's Kingshot authorization is recorded as supplied; unrelated third-party datasets require their own rights basis. Source research may identify URLs and factual metadata without establishing that an image is cleared or delivered. The required unresolved input is a rights-cleared artwork master pack; it cannot be replaced with invented records.
+### Master pack contract
+
+`scripts/kingdom-map-art-pack.mjs` ingests a whole rights-cleared master pack in one atomic operation instead of preparing one representation at a time. A pack is a directory holding a `pack.json` declaration plus the source images it names:
+
+```json
+{
+  "pack_schema_version": 1,
+  "pack_id": "kingshot-kingdom-map-artwork-2026-09",
+  "supplied_at": "2026-09-14",
+  "supplied_by": "<supplying party>",
+  "source": "<optional description of the delivery channel>",
+  "entries": {
+    "headquarters.badland": {
+      "icon": "hq-badland-icon.png",
+      "sprite": "hq-badland-sprite.png",
+      "detail": "hq-badland-detail.png"
+    }
+  }
+}
+```
+
+Every `entries` key must be an existing registry key and every representation kind must be one the registry declares for that key; unknown keys, unknown kinds, absolute paths and `..` escapes are rejected before any bytes are read. Each named file is prepared through the same validation used by the single-file importer (magic-byte MIME detection, byte and dimension limits, transparent-border trim, no upscaling) and written to its content-addressed delivery path.
+
+```bash
+npm run art:pack -- <pack-dir>            # validate and apply, writing bytes + registry records
+npm run art:pack -- <pack-dir> --dry-run  # report the plan, write nothing
+npm run art:approve -- <reviewer>         # human review: awaiting -> delivered -> reviewed
+```
+
+Ingestion is atomic: the whole pack is planned in memory, the resulting registry is validated, and only then are bytes and manifest written, so a rejected pack leaves the registry and delivery tree untouched. Re-ingesting an identical pack is idempotent. Ingestion can never set `review_state: reviewed`; it records `delivered_unreviewed` and only the separately named `npm run art:approve -- <reviewer>` transition sets `reviewed` and appends `reviewed by <name> at <date>` to provenance. Rights and review are therefore never asserted by tooling.
+
+The strict gate verifies delivery bytes, not just declarations: for every declared representation it checks that the content-addressed file exists, does not escape the delivery root, and matches the recorded `sha256` and `byte_size`. That verification is what makes embedded artwork safe, because an export can only embed bytes whose hash it has confirmed. When representations are absent the gate reports `BLOCKED_INPUT`; when they are present but not yet human-reviewed it reports `REVIEW_PENDING`.
+
+The user's Kingshot authorization is recorded as supplied and was reconfirmed on 2026-09-14 for the Kingshot Kingdom Map artwork master pack; unrelated third-party datasets require their own rights basis. Clearance is a rights statement, not a delivery: no artwork bytes are present in the repository, so every source-required entry remains `awaiting_source` until the pack is supplied and ingested. Source research may identify URLs and factual metadata without establishing that an image is cleared or delivered. The required unresolved input is the master pack itself; it cannot be replaced with invented records.

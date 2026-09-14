@@ -6,7 +6,9 @@
     "recorded_at": "2026-09-06",
     "scope": ["kingshot_kingdom_map_artwork"],
     "statement": "Authorization covers Kingshot Kingdom Map artwork that is supplied or explicitly authorized. It does not extend to unrelated third-party artwork, data or code.",
-    "unrelated_asset_authorization": false
+    "unrelated_asset_authorization": false,
+    "reconfirmed_at": "2026-09-14",
+    "reconfirmation": "The authorizing party reconfirmed on 2026-09-14 that rights are cleared for the Kingshot Kingdom Map artwork master pack. Clearance is a rights statement only: it does not supply artwork bytes, so every source-required entry remains awaiting_source until the pack is ingested with scripts/kingdom-map-art-pack.mjs."
   },
   "limits": {
     "max_source_bytes": 8388608,
