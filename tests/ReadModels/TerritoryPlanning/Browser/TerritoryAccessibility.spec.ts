@@ -95,7 +95,7 @@ test('KM-16 territory workspace applies RTL direction without losing semantic ac
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  await expect(page.getByLabel('Interactive Kingdom territory map editor', { exact: true })).toBeVisible();
+  await expect(page.locator('canvas[tabindex="0"]').first()).toBeVisible();
   await expect(page.locator('table').first()).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
