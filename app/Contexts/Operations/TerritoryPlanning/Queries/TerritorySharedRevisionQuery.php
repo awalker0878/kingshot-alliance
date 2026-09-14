@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\TerritoryPlanning\Queries;
 
+use App\Contexts\GameWorld\KingdomMaps\Queries\KingdomMapDatasetQuery;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryShare;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanningAuthorization;
@@ -14,8 +15,12 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class TerritorySharedRevisionQuery
 {
-    public function __construct(private TerritoryPlanWriteState $state, private TerritoryPlanningAuthorization $authorization,
-        private TerritoryPlanSnapshotBuilder $snapshots) {}
+    public function __construct(
+        private TerritoryPlanWriteState $state,
+        private TerritoryPlanningAuthorization $authorization,
+        private TerritoryPlanSnapshotBuilder $snapshots,
+        private KingdomMapDatasetQuery $datasets,
+    ) {}
 
     /** @return array<string,mixed> */
     public function get(string $actorPlayerId, string $shareId, string $token): array
@@ -53,10 +58,31 @@ final readonly class TerritorySharedRevisionQuery
                 'objects' => $objects,
                 'annotations' => array_values(array_filter($snapshot['annotations'] ?? [], static fn (array $row): bool => in_array($row['alliance_key'] ?? null, $keys, true))),
             ];
+            $mapId = $filtered['plan']['map_dataset_id'] ?? null;
+            $mapChecksum = $filtered['plan']['map_dataset_checksum'] ?? null;
+            if (! is_string($mapId) || ! is_string($mapChecksum)) {
+                throw new AuthorizationException('The shared revision does not pin a map dataset.');
+            }
+            $dataset = $this->datasets->require($mapId, $mapChecksum);
 
-            return ['share_id' => $shareId, 'revision_id' => $revision->id, 'revision_number' => $revision->revision_number,
-                'snapshot_checksum' => $revision->snapshot_checksum, 'projection_checksum' => $this->snapshots->checksum($filtered),
-                'expires_at' => $share->expires_at->toIso8601String(), 'snapshot' => $filtered];
+            return [
+                'share_id' => $shareId,
+                'revision_id' => $revision->id,
+                'revision_number' => $revision->revision_number,
+                'snapshot_checksum' => $revision->snapshot_checksum,
+                'projection_checksum' => $this->snapshots->checksum($filtered),
+                'expires_at' => $share->expires_at->toIso8601String(),
+                'snapshot' => $filtered,
+                'map' => [
+                    'id' => $dataset->id,
+                    'checksum' => $dataset->checksum,
+                    'source_label' => $dataset->sourceLabel,
+                    'source_uri' => $dataset->sourceUri,
+                    'confidence' => $dataset->confidence->value,
+                    'observed_at' => $dataset->observedAt,
+                    'data' => $dataset->data,
+                ],
+            ];
         });
     }
 }

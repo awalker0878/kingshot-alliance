@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\TerritoryPlanning\Http\Controllers;
 
+use App\Contexts\Accounts\Identity\Contracts\AuthenticatedAccount;
 use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\Operations\TerritoryPlanning\Actions\CommentOnTerritoryObject;
 use App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryShare;
@@ -17,6 +18,8 @@ use App\Shared\Infrastructure\Http\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 final class TerritoryCollaborationController extends Controller
 {
@@ -67,6 +70,28 @@ final class TerritoryCollaborationController extends Controller
         $action->handle($this->actor($players), $plan, $share);
 
         return $this->privateJson(['revoked' => true]);
+    }
+
+    public function viewer(Request $request, string $share, PlayerContext $players): SymfonyResponse
+    {
+        $user = $request->user();
+        abort_unless($user instanceof AuthenticatedAccount, 401);
+        $player = $players->playerOrNull();
+        abort_unless($player !== null, 403);
+
+        $response = Inertia::render('Kingdom/Territory/Shared', [
+            'user' => ['name' => $user->name, 'email' => $user->email],
+            'activePlayer' => [
+                'id' => $player->playerId,
+                'name' => $player->currentName,
+                'kingdomNumber' => $player->kingdomNumber,
+            ],
+            'shareId' => $share,
+        ])->toResponse($request);
+        $response->headers->set('Cache-Control', 'private, no-store');
+        $response->headers->set('Referrer-Policy', 'no-referrer');
+
+        return $response;
     }
 
     public function shared(Request $request, string $share, PlayerContext $players, TerritorySharedRevisionQuery $query): JsonResponse

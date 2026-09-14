@@ -24,6 +24,7 @@ final class TerritoryPlanningServiceProvider extends ServiceProvider
             Route::delete('/territory/{plan}/access/{grant}', [TerritoryCollaborationController::class, 'revokeGrant'])->whereUlid('plan')->whereUlid('grant')->name('territory.access.destroy');
             Route::post('/territory/{plan}/shares', [TerritoryCollaborationController::class, 'share'])->whereUlid('plan')->name('territory.shares.store');
             Route::delete('/territory/{plan}/shares/{share}', [TerritoryCollaborationController::class, 'revokeShare'])->whereUlid('plan')->whereUlid('share')->name('territory.shares.destroy');
+            Route::get('/territory/shared/{share}', [TerritoryCollaborationController::class, 'viewer'])->whereUlid('share')->name('territory.shared.viewer');
             Route::post('/territory/shared/{share}', [TerritoryCollaborationController::class, 'shared'])->whereUlid('share')->name('territory.shared');
             Route::get('/territory/{plan}/revisions/{revision}', [TerritoryPlanController::class, 'revision'])
                 ->whereUlid('plan')

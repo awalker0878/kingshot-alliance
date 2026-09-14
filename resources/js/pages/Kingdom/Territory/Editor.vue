@@ -30,6 +30,14 @@ import {
   translateObjectsAtomic,
 } from '@/features/territory-planner/engine/commands';
 import { analyzeLayout, validatePlacement } from '@/features/territory-planner/engine/geometry';
+import {
+  editableAllianceKeys,
+  privateShareFragment,
+  reviewableAllianceKeys,
+  uniquePlayerOptions,
+  type CollaborationGrant,
+  type CollaborationOverview as CollaborationOverviewBase,
+} from '@/features/territory-planner/engine/collaboration';
 import type {
   AllianceAnalysis,
   MapData,
@@ -81,6 +89,7 @@ type TerritoryProp = {
   revisions: Revision[];
   layout_checksum: string;
   governor_options: Record<string, Array<{ id: string; name: string }>>;
+  collaboration_player_options: Array<{ id: string; name: string }>;
 };
 type Tool = 'select' | 'pan' | 'place';
 type DialogAction = { kind: 'archive' } | { kind: 'restore'; revision: Revision } | null;
@@ -135,6 +144,15 @@ type RecoveryDraft = {
   document: EditorLayout;
   updated_at: string | null;
   expires_at: string | null;
+};
+type CollaborationComment = { id: string; player_id: string; object_key: string; body: string; head_revision: number; created_at: string | null };
+type CollaborationReview = { id: string; reviewer_player_id: string; head_revision: number; decision: 'approved' | 'changes_requested'; note: string | null; stale: boolean; created_at: string | null };
+type CollaborationShare = { id: string; territory_plan_revision_id: string; recipient_player_id: string; alliance_keys: string[]; expires_at: string; revoked_at: string | null; created_at: string | null };
+type CollaborationOverview = CollaborationOverviewBase & {
+  comments: CollaborationComment[]; comments_after: string | null;
+  reviews: CollaborationReview[]; reviews_before: string | null;
+  grants: CollaborationGrant[]; grants_after: string | null;
+  shares: CollaborationShare[]; shares_before: string | null;
 };
 
 function cloneJson<T>(value: T): T {
@@ -193,6 +211,20 @@ const showZones = ref(true);
 const objectFilter = ref('');
 const recoveryDraft = ref<RecoveryDraft | null>(null);
 const recoveryBusy = ref(false);
+const collaboration = ref<CollaborationOverview | null>(null);
+const collaborationBusy = ref(false);
+const collaborationCommentBody = ref('');
+const collaborationReviewDecision = ref<'approved' | 'changes_requested'>('approved');
+const collaborationReviewNote = ref('');
+const collaborationGrantPlayerId = ref('');
+const collaborationGrantAllianceKey = ref(alliances.value[0]?.key ?? '');
+const collaborationGrantPermission = ref<'review' | 'edit'>('review');
+const collaborationGrantExpiresAt = ref('');
+const collaborationShareRevisionId = ref(props.territory.revisions[0]?.id ?? '');
+const collaborationShareRecipientPlayerId = ref('');
+const collaborationShareAllianceKeys = ref<string[]>([]);
+const collaborationShareExpiresAt = ref('');
+const createdPrivateShare = ref<{ id: string; fragment: string; expires_at: string } | null>(null);
 let persistenceSession: ReturnType<typeof createEditorSession<EditorLayout>> | null = null;
 let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
 let recoveryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -219,10 +251,25 @@ const analysis = computed(() =>
 const governorCities = computed(() =>
   visibleObjects.value.filter((object) => object.type === 'governor_city'),
 );
-const activeAlliance = computed(
-  () => alliances.value.find((alliance) => alliance.key === activeAllianceKey.value) ?? null,
+const canManage = computed(() => props.territory.plan.can_manage && status.value !== 'archived');
+const delegatedEditableAllianceKeys = computed(() => editableAllianceKeys(collaboration.value));
+const reviewableLayerKeys = computed(() =>
+  reviewableAllianceKeys(
+    collaboration.value,
+    alliances.value.map((alliance) => alliance.key),
+  ),
 );
-const canEdit = computed(() => props.territory.plan.can_manage && status.value !== 'archived');
+const canEdit = computed(
+  () => status.value !== 'archived' && (canManage.value || delegatedEditableAllianceKeys.value.size > 0),
+);
+const collaborationPlayers = computed(() =>
+  uniquePlayerOptions({ kingdom: props.territory.collaboration_player_options ?? [] }),
+);
+const selectedObject = computed(() =>
+  selectedKeys.value.length === 1
+    ? objects.value.find((object) => object.key === selectedKeys.value[0]) ?? null
+    : null,
+);
 const visibleObjects = computed(() => {
   const query = objectFilter.value.trim().toLocaleLowerCase();
   return objects.value.filter((object) => {
@@ -340,8 +387,14 @@ function key(prefix: string): string {
 function allianceFor(object: PlanObject): PlanAlliance | undefined {
   return alliances.value.find((alliance) => alliance.key === object.alliance_key);
 }
+function canEditAlliance(allianceKey: string | null): boolean {
+  if (!allianceKey || status.value === 'archived') return false;
+  const alliance = alliances.value.find((candidate) => candidate.key === allianceKey);
+  if (alliance?.locked) return false;
+  return canManage.value || delegatedEditableAllianceKeys.value.has(allianceKey);
+}
 function editableByScope(object: PlanObject): boolean {
-  return canEdit.value && !allianceFor(object)?.locked;
+  return canEditAlliance(object.alliance_key);
 }
 function editable(object: PlanObject): boolean {
   return editableByScope(object) && !objectIsLocked(object);
@@ -378,7 +431,7 @@ function assignExternalGovernor(object: PlanObject, name: string): void {
 }
 function setSelectedBear(allianceKey: string, objectKey: string): void {
   const alliance = alliances.value.find((candidate) => candidate.key === allianceKey);
-  if (!canEdit.value || alliance?.locked) return;
+  if (!canManage.value || alliance?.locked) return;
   remember();
   const selected = { ...(preferences.value.selected_bear_trap_by_alliance ?? {}) };
   if (objectKey) selected[allianceKey] = objectKey;
@@ -387,12 +440,13 @@ function setSelectedBear(allianceKey: string, objectKey: string): void {
 }
 
 function place(point: { x: number; y: number }): void {
-  if (!canEdit.value || !activeAllianceKey.value || activeAlliance.value?.locked) return;
+  const allianceKey = activeAllianceKey.value;
+  if (!allianceKey || !canEditAlliance(allianceKey)) return;
   remember();
   const objectKey = key('object');
   objects.value.push({
     key: objectKey,
-    alliance_key: activeAllianceKey.value,
+    alliance_key: allianceKey,
     group_key: null,
     type: placementType.value,
     player_id: null,
@@ -494,11 +548,12 @@ function selectObject(object: PlanObject): void {
   selectedKeys.value = [object.key];
 }
 function beginExactEdit(): void {
-  if (canEdit.value) remember();
+  if (canManage.value) remember();
 }
 
 function stampCities(): void {
-  if (!canEdit.value || !activeAllianceKey.value || activeAlliance.value?.locked) return;
+  const allianceKey = activeAllianceKey.value;
+  if (!allianceKey || !canEditAlliance(allianceKey)) return;
   const count = stampColumns.value * stampRows.value;
   if (count < 1 || count > 100) {
     notice.value = { tone: 'danger', message: t('territory.stampLimit') };
@@ -512,7 +567,7 @@ function stampCities(): void {
     for (let column = 0; column < stampColumns.value; column += 1) {
       placed.push({
         key: key('city'),
-        alliance_key: activeAllianceKey.value,
+        alliance_key: allianceKey,
         group_key: groupKey,
         type: 'governor_city',
         player_id: null,
@@ -637,6 +692,144 @@ function recoverDraft(): void {
   };
 }
 
+function defaultExpiry(hours: number): string {
+  const value = new Date(Date.now() + hours * 60 * 60 * 1000);
+  const local = new Date(value.getTime() - value.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+function expiryIso(value: string): string {
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) throw new TerritoryRequestError(t('territory.invalidExpiry'), 422);
+  return parsed.toISOString();
+}
+async function loadCollaboration(): Promise<void> {
+  collaborationBusy.value = true;
+  try {
+    collaboration.value = (await jsonRequest(
+      `/territory/${props.territory.plan.id}/collaboration`,
+      'GET',
+    )) as unknown as CollaborationOverview;
+    if (!collaborationGrantPlayerId.value) collaborationGrantPlayerId.value = collaborationPlayers.value[0]?.id ?? '';
+    if (!collaborationShareRecipientPlayerId.value) collaborationShareRecipientPlayerId.value = collaborationPlayers.value[0]?.id ?? '';
+    if (!collaborationGrantAllianceKey.value) collaborationGrantAllianceKey.value = alliances.value[0]?.key ?? '';
+    if (!collaborationShareAllianceKeys.value.length && canManage.value)
+      collaborationShareAllianceKeys.value = alliances.value.map((alliance) => alliance.key);
+  } finally {
+    collaborationBusy.value = false;
+  }
+}
+async function postObjectComment(): Promise<void> {
+  const object = selectedObject.value;
+  const body = collaborationCommentBody.value.trim();
+  if (!object || !body || !reviewableLayerKeys.value.has(object.alliance_key)) return;
+  collaborationBusy.value = true;
+  try {
+    await jsonRequest(`/territory/${props.territory.plan.id}/comments`, 'POST', {
+      expected_revision: collaboration.value?.current_revision ?? revision.value,
+      object_key: object.key,
+      body,
+    });
+    collaborationCommentBody.value = '';
+    await loadCollaboration();
+    notice.value = { tone: 'success', message: t('territory.commentAdded') };
+  } catch (error) {
+    notice.value = { tone: 'danger', message: error instanceof Error ? error.message : t('territory.requestFailed') };
+  } finally { collaborationBusy.value = false; }
+}
+async function submitPlanReview(): Promise<void> {
+  const current = collaboration.value;
+  if (!current?.can_review) return;
+  collaborationBusy.value = true;
+  try {
+    await jsonRequest(`/territory/${props.territory.plan.id}/reviews`, 'POST', {
+      expected_revision: current.current_revision,
+      snapshot_checksum: current.current_snapshot_checksum,
+      decision: collaborationReviewDecision.value,
+      note: collaborationReviewNote.value.trim() || null,
+    });
+    collaborationReviewNote.value = '';
+    await loadCollaboration();
+    notice.value = { tone: 'success', message: t('territory.reviewRecorded') };
+  } catch (error) {
+    notice.value = { tone: 'danger', message: error instanceof Error ? error.message : t('territory.requestFailed') };
+  } finally { collaborationBusy.value = false; }
+}
+async function grantCollaborationAccess(): Promise<void> {
+  if (!canManage.value || !collaborationGrantPlayerId.value || !collaborationGrantAllianceKey.value) return;
+  collaborationBusy.value = true;
+  try {
+    await jsonRequest(`/territory/${props.territory.plan.id}/access`, 'POST', {
+      player_id: collaborationGrantPlayerId.value,
+      alliance_key: collaborationGrantAllianceKey.value,
+      permission: collaborationGrantPermission.value,
+      expires_at: expiryIso(collaborationGrantExpiresAt.value),
+    });
+    await loadCollaboration();
+    notice.value = { tone: 'success', message: t('territory.accessGranted') };
+  } catch (error) {
+    notice.value = { tone: 'danger', message: error instanceof Error ? error.message : t('territory.requestFailed') };
+  } finally { collaborationBusy.value = false; }
+}
+async function revokeCollaborationAccess(grantId: string): Promise<void> {
+  if (!canManage.value) return;
+  collaborationBusy.value = true;
+  try {
+    await jsonRequest(`/territory/${props.territory.plan.id}/access/${grantId}`, 'DELETE');
+    await loadCollaboration();
+    notice.value = { tone: 'info', message: t('territory.accessRevoked') };
+  } catch (error) {
+    notice.value = { tone: 'danger', message: error instanceof Error ? error.message : t('territory.requestFailed') };
+  } finally { collaborationBusy.value = false; }
+}
+async function createPrivateShare(): Promise<void> {
+  if (!canManage.value || !collaborationShareRevisionId.value || !collaborationShareRecipientPlayerId.value || !collaborationShareAllianceKeys.value.length) return;
+  collaborationBusy.value = true;
+  try {
+    const payload = await jsonRequest(`/territory/${props.territory.plan.id}/shares`, 'POST', {
+      revision_id: collaborationShareRevisionId.value,
+      recipient_player_id: collaborationShareRecipientPlayerId.value,
+      alliance_keys: collaborationShareAllianceKeys.value,
+      expires_at: expiryIso(collaborationShareExpiresAt.value),
+    });
+    const id = String(payload.id ?? '');
+    const token = String(payload.token ?? '');
+    const expiresAt = String(payload.expires_at ?? '');
+    if (!id || !token) throw new TerritoryRequestError(t('territory.requestFailed'), 502);
+    createdPrivateShare.value = { id, fragment: privateShareFragment(id, token), expires_at: expiresAt };
+    await loadCollaboration();
+    notice.value = { tone: 'success', message: t('territory.shareCreated') };
+  } catch (error) {
+    notice.value = { tone: 'danger', message: error instanceof Error ? error.message : t('territory.requestFailed') };
+  } finally { collaborationBusy.value = false; }
+}
+async function revokePrivateShare(shareId: string): Promise<void> {
+  if (!canManage.value) return;
+  collaborationBusy.value = true;
+  try {
+    await jsonRequest(`/territory/${props.territory.plan.id}/shares/${shareId}`, 'DELETE');
+    if (createdPrivateShare.value?.id === shareId) createdPrivateShare.value = null;
+    await loadCollaboration();
+    notice.value = { tone: 'info', message: t('territory.shareRevoked') };
+  } catch (error) {
+    notice.value = { tone: 'danger', message: error instanceof Error ? error.message : t('territory.requestFailed') };
+  } finally { collaborationBusy.value = false; }
+}
+async function loadMoreCollaboration(kind: 'comments' | 'reviews' | 'grants' | 'shares'): Promise<void> {
+  const current = collaboration.value;
+  if (!current) return;
+  const cursor = kind === 'comments' ? current.comments_after : kind === 'reviews' ? current.reviews_before : kind === 'grants' ? current.grants_after : current.shares_before;
+  if (!cursor) return;
+  const parameter = kind === 'comments' ? 'after' : kind === 'reviews' ? 'review_before' : kind === 'grants' ? 'grant_after' : 'share_before';
+  collaborationBusy.value = true;
+  try {
+    const page = (await jsonRequest(`/territory/${props.territory.plan.id}/collaboration?${parameter}=${encodeURIComponent(cursor)}`, 'GET')) as unknown as CollaborationOverview;
+    if (kind === 'comments') { current.comments.push(...page.comments); current.comments_after = page.comments_after; }
+    if (kind === 'reviews') { current.reviews.push(...page.reviews); current.reviews_before = page.reviews_before; }
+    if (kind === 'grants') { current.grants.push(...page.grants); current.grants_after = page.grants_after; }
+    if (kind === 'shares') { current.shares.push(...page.shares); current.shares_before = page.shares_before; }
+  } finally { collaborationBusy.value = false; }
+}
+
 function initializePersistence(): void {
   persistenceSession = createEditorSession<EditorLayout>({
     revision: revision.value,
@@ -695,6 +888,7 @@ async function save(): Promise<void> {
   }
 }
 async function publish(): Promise<void> {
+  if (!canManage.value) return;
   if (validation.value.violations.length) {
     notice.value = { tone: 'danger', message: t('territory.fixViolations') };
     return;
@@ -723,6 +917,7 @@ async function publish(): Promise<void> {
   }
 }
 async function archive(): Promise<void> {
+  if (!canManage.value) return;
   busy.value = true;
   try {
     await jsonRequest(`/territory/${props.territory.plan.id}`, 'DELETE', {
@@ -741,6 +936,7 @@ async function archive(): Promise<void> {
   }
 }
 async function clonePlan(): Promise<void> {
+  if (!canManage.value) return;
   const name = cloneName.value.trim();
   if (!name) return;
   busy.value = true;
@@ -821,7 +1017,8 @@ async function compareRevision(): Promise<void> {
 }
 
 async function generateHivePreview(): Promise<void> {
-  if (!activeAllianceKey.value) return;
+  const allianceKey = activeAllianceKey.value;
+  if (!allianceKey || !canEditAlliance(allianceKey)) return;
   busy.value = true;
   try {
     const payload = await jsonRequest('/territory/hive-preview', 'POST', {
@@ -1060,6 +1257,11 @@ watch(
 );
 onMounted(() => {
   initializePersistence();
+  collaborationGrantExpiresAt.value = defaultExpiry(24 * 7);
+  collaborationShareExpiresAt.value = defaultExpiry(24);
+  void loadCollaboration().catch((error) => {
+    notice.value = { tone: 'warning', message: error instanceof Error ? error.message : t('territory.requestFailed') };
+  });
   void loadRecoveryDraft().catch((error) => {
     notice.value = {
       tone: 'warning',
@@ -1188,7 +1390,7 @@ onUnmounted(() => {
           <button
             class="ks-command-link"
             :aria-pressed="tool === 'place'"
-            :disabled="!canEdit || Boolean(activeAlliance?.locked)"
+            :disabled="!canEditAlliance(activeAllianceKey)"
             @click="tool = 'place'"
           >
             {{ t('territory.place') }}
@@ -1220,7 +1422,7 @@ onUnmounted(() => {
             class="mt-3 rounded border border-[var(--ks-border)] p-2"
           >
             <label class="flex items-center gap-2 text-xs"
-              ><input v-model="alliance.visible" type="checkbox" />{{
+              ><input v-model="alliance.visible" type="checkbox" :disabled="!canManage" />{{
                 alliance.display_name
               }}</label
             >
@@ -1228,9 +1430,10 @@ onUnmounted(() => {
               <input
                 v-model="alliance.presentation_color"
                 type="color"
+                :disabled="!canManage"
                 :aria-label="t('territory.layerColor', { alliance: alliance.display_name })"
               /><label class="flex items-center gap-1 text-xs"
-                ><input v-model="alliance.locked" type="checkbox" :disabled="!canEdit" />{{
+                ><input v-model="alliance.locked" type="checkbox" :disabled="!canManage" />{{
                   t('territory.lockLayer')
                 }}</label
               >
@@ -1298,7 +1501,7 @@ onUnmounted(() => {
           <AppButton
             class="mt-2 w-full"
             :busy="busy"
-            :disabled="!canEdit || Boolean(activeAlliance?.locked)"
+            :disabled="!canEditAlliance(activeAllianceKey)"
             @click="generateHivePreview"
             >{{ t('territory.previewHive') }}</AppButton
           >
@@ -1344,7 +1547,7 @@ onUnmounted(() => {
           </div>
           <AppButton
             class="mt-2 w-full"
-            :disabled="!canEdit || Boolean(activeAlliance?.locked)"
+            :disabled="!canEditAlliance(activeAllianceKey)"
             @click="stampCities"
             >{{ t('territory.stampCities') }}</AppButton
           >
@@ -1669,7 +1872,7 @@ onUnmounted(() => {
           :objects="objects"
           :analysis="analysis"
           :preferences="preferences"
-          :can-edit="canEdit"
+          :can-edit="canManage"
           @select-trap="setSelectedBear($event.allianceKey, $event.trapKey)"
         />
         <section class="ks-surface p-4">
@@ -1682,6 +1885,7 @@ onUnmounted(() => {
               min="1"
               :max="mapDistanceLimit"
               class="ks-input mt-1 w-full"
+              :disabled="!canManage"
               @focus="beginExactEdit" /></label
           ><label class="mt-3 block text-sm"
             >{{ t('territory.marchSecondsPerTile')
@@ -1692,6 +1896,7 @@ onUnmounted(() => {
               max="60"
               step="0.01"
               class="ks-input mt-1 w-full"
+              :disabled="!canManage"
               @focus="beginExactEdit"
           /></label>
           <p class="mt-2 text-xs text-[var(--ks-muted)]">
@@ -1772,7 +1977,7 @@ onUnmounted(() => {
           <input v-model="cloneName" maxlength="160" class="ks-input mt-2 w-full" /><AppButton
             class="mt-2"
             :busy="busy"
-            :disabled="!cloneName.trim()"
+            :disabled="!canManage || !cloneName.trim()"
             @click="clonePlan"
             >{{ t('territory.clonePlan') }}</AppButton
           >
@@ -1789,7 +1994,7 @@ onUnmounted(() => {
           >{{ t('territory.save') }}</AppButton
         ><AppButton
           :busy="busy"
-          :disabled="!canEdit || validation.violations.length > 0"
+          :disabled="!canManage || validation.violations.length > 0"
           @click="publish"
           >{{ t('territory.publish') }}</AppButton
         ><button class="ks-command-link" @click="exportJson">{{ t('territory.exportJson') }}</button
@@ -1803,7 +2008,7 @@ onUnmounted(() => {
             class="sr-only"
             @change="importFile" /></label
         ><button
-          v-if="canEdit"
+          v-if="canManage"
           class="ks-command-link"
           data-variant="danger"
           @click="dialogAction = { kind: 'archive' }"
@@ -1862,6 +2067,158 @@ onUnmounted(() => {
       </div>
     </section>
 
+    <section class="ks-surface mt-4 p-4" aria-labelledby="territory-collaboration-heading">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="ks-kicker">{{ t('territory.collaboration') }}</p>
+          <h2 id="territory-collaboration-heading" class="ks-display mt-1 text-xl font-semibold">
+            {{ t('territory.collaborationTitle') }}
+          </h2>
+        </div>
+        <AppButton :busy="collaborationBusy" data-variant="secondary" @click="loadCollaboration">
+          {{ t('territory.refreshCollaboration') }}
+        </AppButton>
+      </div>
+      <p class="mt-2 text-sm text-[var(--ks-muted)]">{{ t('territory.collaborationHelp') }}</p>
+
+      <div v-if="collaboration" class="mt-4 grid gap-4 xl:grid-cols-2">
+        <fieldset class="rounded border border-[var(--ks-border)] p-3">
+          <legend class="px-1 text-sm font-semibold">{{ t('territory.objectComments') }}</legend>
+          <p class="text-xs text-[var(--ks-muted)]">
+            {{ selectedObject ? (selectedObject.label || selectedObject.key) : t('territory.selectOneObjectForComment') }}
+          </p>
+          <textarea
+            v-model="collaborationCommentBody"
+            class="ks-input mt-2 min-h-24 w-full"
+            maxlength="4000"
+            :disabled="!selectedObject || !reviewableLayerKeys.has(selectedObject.alliance_key)"
+            :placeholder="t('territory.commentPlaceholder')"
+          />
+          <AppButton
+            class="mt-2"
+            :busy="collaborationBusy"
+            :disabled="!selectedObject || !collaborationCommentBody.trim() || !reviewableLayerKeys.has(selectedObject.alliance_key)"
+            @click="postObjectComment"
+          >{{ t('territory.addComment') }}</AppButton>
+          <ul class="mt-3 space-y-2 text-xs">
+            <li v-for="comment in collaboration.comments" :key="comment.id" class="rounded border border-[var(--ks-border)] p-2">
+              <strong>{{ comment.object_key }}</strong> · {{ t('territory.revisionNumber', { revision: comment.head_revision }) }}
+              <p class="mt-1 whitespace-pre-wrap">{{ comment.body }}</p>
+              <p v-if="comment.created_at" class="mt-1 text-[var(--ks-muted)]">{{ formatDate(comment.created_at) }}</p>
+            </li>
+          </ul>
+          <button v-if="collaboration.comments_after" class="ks-command-link mt-2" @click="loadMoreCollaboration('comments')">
+            {{ t('territory.loadMore') }}
+          </button>
+        </fieldset>
+
+        <fieldset class="rounded border border-[var(--ks-border)] p-3">
+          <legend class="px-1 text-sm font-semibold">{{ t('territory.planReview') }}</legend>
+          <select v-model="collaborationReviewDecision" class="ks-input mt-2 w-full" :disabled="!collaboration.can_review">
+            <option value="approved">{{ t('territory.reviewApproved') }}</option>
+            <option value="changes_requested">{{ t('territory.reviewChangesRequested') }}</option>
+          </select>
+          <textarea
+            v-model="collaborationReviewNote"
+            class="ks-input mt-2 min-h-20 w-full"
+            maxlength="4000"
+            :disabled="!collaboration.can_review"
+            :placeholder="t('territory.reviewNotePlaceholder')"
+          />
+          <AppButton class="mt-2" :busy="collaborationBusy" :disabled="!collaboration.can_review" @click="submitPlanReview">
+            {{ t('territory.recordReview') }}
+          </AppButton>
+          <ul class="mt-3 space-y-2 text-xs">
+            <li v-for="review in collaboration.reviews" :key="review.id" class="rounded border border-[var(--ks-border)] p-2">
+              <strong>{{ review.decision === 'approved' ? t('territory.reviewApproved') : t('territory.reviewChangesRequested') }}</strong>
+              · {{ t('territory.revisionNumber', { revision: review.head_revision }) }}
+              <span v-if="review.stale" class="ml-1 text-amber-200">{{ t('territory.staleReview') }}</span>
+              <p v-if="review.note" class="mt-1 whitespace-pre-wrap">{{ review.note }}</p>
+            </li>
+          </ul>
+          <button v-if="collaboration.reviews_before" class="ks-command-link mt-2" @click="loadMoreCollaboration('reviews')">
+            {{ t('territory.loadMore') }}
+          </button>
+        </fieldset>
+
+        <fieldset v-if="canManage" class="rounded border border-[var(--ks-border)] p-3">
+          <legend class="px-1 text-sm font-semibold">{{ t('territory.delegatedAccess') }}</legend>
+          <label class="mt-2 block text-xs">{{ t('territory.player') }}
+            <select v-model="collaborationGrantPlayerId" class="ks-input mt-1 w-full">
+              <option value="">{{ t('territory.choosePlayer') }}</option>
+              <option v-for="player in collaborationPlayers" :key="player.id" :value="player.id">{{ player.name }}</option>
+            </select>
+          </label>
+          <label class="mt-2 block text-xs">{{ t('territory.layer') }}
+            <select v-model="collaborationGrantAllianceKey" class="ks-input mt-1 w-full">
+              <option v-for="alliance in alliances" :key="alliance.key" :value="alliance.key">{{ alliance.display_name }}</option>
+            </select>
+          </label>
+          <div class="mt-2 grid gap-2 sm:grid-cols-2">
+            <label class="text-xs">{{ t('territory.permission') }}
+              <select v-model="collaborationGrantPermission" class="ks-input mt-1 w-full">
+                <option value="review">{{ t('territory.permissionReview') }}</option>
+                <option value="edit">{{ t('territory.permissionEdit') }}</option>
+              </select>
+            </label>
+            <label class="text-xs">{{ t('territory.expiresAt') }}
+              <input v-model="collaborationGrantExpiresAt" type="datetime-local" class="ks-input mt-1 w-full" />
+            </label>
+          </div>
+          <AppButton class="mt-2" :busy="collaborationBusy" :disabled="!collaborationGrantPlayerId || !collaborationGrantAllianceKey" @click="grantCollaborationAccess">
+            {{ t('territory.grantAccess') }}
+          </AppButton>
+          <ul class="mt-3 space-y-2 text-xs">
+            <li v-for="grant in collaboration.grants" :key="grant.id" class="flex flex-wrap items-center justify-between gap-2 rounded border border-[var(--ks-border)] p-2">
+              <span>{{ grant.alliance_key }} · {{ grant.permission }} · {{ formatDate(grant.expires_at) }}</span>
+              <button v-if="!grant.revoked_at" class="ks-command-link" data-variant="danger" @click="revokeCollaborationAccess(grant.id)">{{ t('territory.revoke') }}</button>
+            </li>
+          </ul>
+          <button v-if="collaboration.grants_after" class="ks-command-link mt-2" @click="loadMoreCollaboration('grants')">{{ t('territory.loadMore') }}</button>
+        </fieldset>
+
+        <fieldset v-if="canManage" class="rounded border border-[var(--ks-border)] p-3">
+          <legend class="px-1 text-sm font-semibold">{{ t('territory.privateSharing') }}</legend>
+          <label class="mt-2 block text-xs">{{ t('territory.publishedRevision') }}
+            <select v-model="collaborationShareRevisionId" class="ks-input mt-1 w-full">
+              <option value="">{{ t('territory.choosePublishedRevision') }}</option>
+              <option v-for="item in territory.revisions" :key="item.id" :value="item.id">#{{ item.revision_number }}</option>
+            </select>
+          </label>
+          <label class="mt-2 block text-xs">{{ t('territory.recipient') }}
+            <select v-model="collaborationShareRecipientPlayerId" class="ks-input mt-1 w-full">
+              <option value="">{{ t('territory.choosePlayer') }}</option>
+              <option v-for="player in collaborationPlayers" :key="player.id" :value="player.id">{{ player.name }}</option>
+            </select>
+          </label>
+          <fieldset class="mt-2">
+            <legend class="text-xs">{{ t('territory.sharedLayers') }}</legend>
+            <label v-for="alliance in alliances" :key="alliance.key" class="mt-1 flex items-center gap-2 text-xs">
+              <input v-model="collaborationShareAllianceKeys" type="checkbox" :value="alliance.key" />{{ alliance.display_name }}
+            </label>
+          </fieldset>
+          <label class="mt-2 block text-xs">{{ t('territory.expiresAt') }}
+            <input v-model="collaborationShareExpiresAt" type="datetime-local" class="ks-input mt-1 w-full" />
+          </label>
+          <AppButton class="mt-2" :busy="collaborationBusy" :disabled="!collaborationShareRevisionId || !collaborationShareRecipientPlayerId || !collaborationShareAllianceKeys.length" @click="createPrivateShare">
+            {{ t('territory.createPrivateShare') }}
+          </AppButton>
+          <div v-if="createdPrivateShare" class="mt-3 rounded border border-emerald-500/40 p-2 text-xs" aria-live="polite">
+            <p class="font-semibold">{{ t('territory.shareTokenShownOnce') }}</p>
+            <code class="mt-1 block break-all">{{ createdPrivateShare.fragment }}</code>
+          </div>
+          <ul class="mt-3 space-y-2 text-xs">
+            <li v-for="share in collaboration.shares" :key="share.id" class="flex flex-wrap items-center justify-between gap-2 rounded border border-[var(--ks-border)] p-2">
+              <span>{{ t('territory.revisionIdShort', { id: share.territory_plan_revision_id }) }} · {{ formatDate(share.expires_at) }}</span>
+              <button v-if="!share.revoked_at" class="ks-command-link" data-variant="danger" @click="revokePrivateShare(share.id)">{{ t('territory.revoke') }}</button>
+            </li>
+          </ul>
+          <button v-if="collaboration.shares_before" class="ks-command-link mt-2" @click="loadMoreCollaboration('shares')">{{ t('territory.loadMore') }}</button>
+        </fieldset>
+      </div>
+      <p v-else class="mt-4 text-sm text-[var(--ks-muted)]">{{ t('territory.collaborationLoading') }}</p>
+    </section>
+
     <section v-if="territory.revisions.length" class="ks-surface mt-4 p-4">
       <p class="ks-kicker">{{ t('territory.revisions') }}</p>
       <div class="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
@@ -1875,7 +2232,7 @@ onUnmounted(() => {
             {{ item.published_at ? formatDate(item.published_at) : '—' }}
           </p>
           <button
-            v-if="canEdit"
+            v-if="canManage"
             class="ks-command-link mt-2"
             @click="dialogAction = { kind: 'restore', revision: item }"
           >

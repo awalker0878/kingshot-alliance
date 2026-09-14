@@ -25,6 +25,8 @@ use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanScope;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryActivity;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryObjectComment;
+use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanAccessGrant;
+use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanReview;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryShare;
@@ -61,6 +63,8 @@ final class TerritoryCollaborationTest extends TestCase
         self::assertSame(hash('sha256', $share['token']), $stored->token_hash);
         self::assertArrayNotHasKey('token_hash', $stored->toArray());
         $result = app(TerritorySharedRevisionQuery::class)->get($member->playerId, $share['id'], $share['token']);
+        self::assertSame('kingshot-evidence-backed-2026-09-06-v2', $result['map']['id']);
+        self::assertSame($result['snapshot']['plan']['map_dataset_checksum'], $result['map']['checksum']);
         self::assertSame(['owner'], array_column($result['snapshot']['alliances'], 'key'));
         self::assertSame(['city'], array_column($result['snapshot']['objects'], 'key'));
         self::assertArrayNotHasKey('planning_preferences', $result['snapshot']['plan']);
@@ -172,6 +176,85 @@ final class TerritoryCollaborationTest extends TestCase
         app(RevokeTerritoryPlanAccess::class)->handle($owner->playerId, $plan->id, $grant);
         $source = new NotificationSource('territory.activity', $member->userId, $member->playerId, 'territory_activity', $activity->id, ['plan_id' => $plan->id]);
         self::assertFalse(app(TerritoryNotificationEligibilityQuery::class)->allows($source, $member));
+    }
+
+    public function test_collaboration_collections_page_at_hard_limits_without_duplicates(): void
+    {
+        [$owner, $member, $plan] = $this->scenario();
+        $published = app(PublishTerritoryPlan::class)->handle(
+            $owner->playerId,
+            $plan->id,
+            $plan->revision,
+            app(TerritoryPlanSnapshotBuilder::class)->checksum($this->snapshot($plan)),
+        );
+        $now = now();
+        for ($index = 0; $index < 51; $index++) {
+            TerritoryObjectComment::query()->create([
+                'territory_plan_id' => $plan->id,
+                'object_key' => 'city',
+                'alliance_key' => 'owner',
+                'author_player_id' => $owner->playerId,
+                'head_revision' => $plan->revision,
+                'object_snapshot' => ['key' => 'city', 'x' => 100, 'y' => 100],
+                'body' => 'comment-'.$index,
+            ]);
+            TerritoryPlanReview::query()->create([
+                'territory_plan_id' => $plan->id,
+                'reviewer_player_id' => $owner->playerId,
+                'head_revision' => $index + 100,
+                'snapshot_checksum' => hash('sha256', 'review-'.$index),
+                'decision' => 'approved',
+                'note' => null,
+            ]);
+            TerritoryShare::query()->create([
+                'territory_plan_id' => $plan->id,
+                'territory_plan_revision_id' => $published->publishedRevisionId,
+                'recipient_player_id' => $member->playerId,
+                'created_by_player_id' => $owner->playerId,
+                'token_hash' => hash('sha256', 'share-'.$index),
+                'alliance_keys' => ['owner'],
+                'expires_at' => $now->copy()->addDay(),
+            ]);
+        }
+        for ($index = 0; $index < 101; $index++) {
+            TerritoryPlanAccessGrant::query()->create([
+                'territory_plan_id' => $plan->id,
+                'player_id' => $member->playerId,
+                'granted_by_player_id' => $owner->playerId,
+                'alliance_key' => 'layer-'.$index,
+                'permission' => 'review',
+                'expires_at' => $now->copy()->addDay(),
+            ]);
+        }
+
+        $query = app(TerritoryCollaborationQuery::class);
+        $first = $query->get($owner->playerId, $plan->id);
+        self::assertCount(50, $first['comments']);
+        self::assertCount(50, $first['reviews']);
+        self::assertCount(100, $first['grants']);
+        self::assertCount(50, $first['shares']);
+        self::assertNotNull($first['comments_after']);
+        self::assertNotNull($first['reviews_before']);
+        self::assertNotNull($first['grants_after']);
+        self::assertNotNull($first['shares_before']);
+
+        $second = $query->get(
+            $owner->playerId,
+            $plan->id,
+            $first['comments_after'],
+            $first['reviews_before'],
+            $first['grants_after'],
+            $first['shares_before'],
+        );
+        self::assertCount(1, $second['comments']);
+        self::assertCount(1, $second['reviews']);
+        self::assertCount(1, $second['grants']);
+        self::assertCount(1, $second['shares']);
+        foreach (['comments', 'reviews', 'grants', 'shares'] as $collection) {
+            $firstIds = array_column($first[$collection], 'id');
+            $secondIds = array_column($second[$collection], 'id');
+            self::assertSame([], array_values(array_intersect($firstIds, $secondIds)));
+        }
     }
 
     public function test_review_and_activity_roll_back_together_when_audit_fails(): void
