@@ -6,7 +6,7 @@ namespace Tests\Contexts\Operations\TerritoryPlanning\Unit;
 
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryCoordinateTableAdapter;
 use Illuminate\Validation\ValidationException;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 final class TerritoryCoordinateTableAdapterTest extends TestCase
 {
