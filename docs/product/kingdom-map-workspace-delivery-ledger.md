@@ -29,6 +29,49 @@ Checkpoint SHAs name preceding durable work. Git history and the PR verification
 - The production Editor exceeded the unchanged 72 KiB page budget. Loading the optional export implementation on demand reduced its page chunk to **73,060 bytes** (budget 73,728); initial JavaScript approximately 210 KiB and stylesheet approximately 107 KiB pass their existing limits. This is a build-size measurement, not representative-device interaction proof.
 - New behavioral verification covers terrain holes, Y-up painting, full semantic traversal, moving offscreen previews, hidden layers, label priority, rotation and browser/PHP interchange. Product-level browser journeys, artwork identity/anchor review, resource-density LOD, annotations/templates, complete editing, sharing revalidation, and full measured acceptance remain in progress.
 
+## Deepseek execution checkpoint (current candidate)
+
+- Branch `feature/kingdom-map-deepseek`; HEAD `fc83b8f2d09ce1e99d46631366a05337dd7cef9e`; `git rev-parse main` returns the same SHA, so this branch is content-identical to `main`. Nothing is pushed, merged or force-pushed from this checkpoint.
+- Authoritative specification: the user-supplied plan is preserved as [Kingdom Map workspace implementation plan](kingdom-map-workspace-implementation-plan.md). It is the new-deployment plan; the earlier [source reference](../reference/kingdom-map-workspace-source-plan.md) records the superseded PR #165 audit.
+- Historical-state reconciliation: the resume header above describes branch `astra/kingdom-map-workspace` at main `044a6be16e54b3bc2ee5ae9ca9adf6a9c9c5923c`. Current code has moved on. The following ledger claims were re-checked against the working tree and are now stale or repaired — see the reconciliation table below.
+
+### Reconciliation of ledger claims against current code
+
+| Ledger claim | Current code |
+| --- | --- |
+| "SVG export ignored nonzero map origins" | Repaired in `buildSvg`; now locked by an exact translation-invariance assertion in `scripts/check-territory-export.mjs` and `tests/Contexts/Operations/TerritoryPlanning/Frontend/ExportBounds.test.ts` that translates the world *and* a nonzero-origin sub-region and requires byte-identical output. |
+| "pointer cancellation could commit a move" | Repaired and covered by the editing regression slice. |
+| "Publish could omit unsaved work" | Repaired; publication carries a normalized snapshot and checksum receipt, and unsaved working drafts are identified in exports. |
+| "Resource/terrain corpus counts do not supply actual coordinates" | Superseded. Released `kingshot-spatial-complete-v2-r1` carries `kingshot-terrain-2026-09-13.json` (501 lakes, 1,948 mountains) and `kingshot-resources-2026-09-13.json` (6,499 nodes) as checksummed artifacts. See the [asset catalogue](kingdom-map-workspace-assets.md). |
+| "The production Editor exceeded the unchanged 72 KiB page budget" | Holds at the time of writing; the optional import-preview panel is now an async component and the Editor page chunk measures 71 KiB / 72 KiB. |
+| "test suite registry omits the new TerritoryPlanning Unit directory" | Not reproducible here: the Node runner globs `tests/**/Unit/*.test.ts` and `tests/**/Frontend/*.test.ts`. |
+| "Local toolchain: Node 24.19/npm 11.9 and PHP 8.5.10" | Node 24.19.0 and npm 11.17.0 are present. **PHP and composer are absent from this execution profile**, so no PHP-side gate can be executed or claimed (see below). |
+
+### Executed evidence
+
+`npm run check` completed end to end with exit code 0, covering: ESLint (0 errors, the two inherited `resources/js/pages/Public/Recruitment/Apply.vue` attribute-order warnings), Prettier, `vue-tsc --noEmit`, the Node source-contract suite (**175 tests, 175 pass, 0 fail**), accessibility, documentation-link, page/event/action localization-coverage, product-language, territory localization (16 catalogues), territory geometry parity, territory export, the artwork registry structure gate, `vite build`, localization-chunk and performance-budget checks.
+
+Performance receipts from that run: initial JavaScript 212 KiB / 225 KiB, application entry source 6 KiB / 20 KiB, largest page chunk 71 KiB / 72 KiB (`resources/js/pages/Kingdom/Territory/Editor.vue`), largest stylesheet 107 KiB / 128 KiB. Localization chunks 323; page chunks 92.
+
+Defect repaired: `test:source-contracts` reported `tests 0 / pass 0` because the npm script quoted its globs with single quotes, which PowerShell does not strip before handing arguments to Node. The script now uses double quotes, so the suite actually runs.
+
+### Artwork pipeline (KM03 / KMAP-004)
+
+- `resources/data/kingdom-map-art/manifest.v1.json` (registry version `2026.09.14.1`) is the single versioned registry: 27 entries, of which 24 raster families are `awaiting_source` and 3 are application-owned vector overlays.
+- `resources/js/features/territory-planner/engine/artwork.ts` owns the typed schema, a strict validator that returns diagnostics instead of throwing, and a bounded lazy loader. `outpost.*` keys degrade to `outpost.unknown`; nothing invents art or provenance.
+- `resources/js/features/territory-planner/engine/artwork-runtime.ts` is the Vite-aware bridge used by Canvas and by exports.
+- `scripts/kingdom-map-art-import.mjs` prepares explicitly selected local source files and emits registry-valid, content-addressed records. `scripts/check-kingdom-map-art.mjs` is the structure gate (`npm run check`) and the strict completeness gate (`npm run check:kingdom-map-art:strict`).
+- Verification: `tests/ReadModels/TerritoryPlanning/Frontend/TerritoryArtwork.test.ts` (8 tests) and `TerritoryArtworkImport.test.ts` (5 tests). The latter round-trips prepared bytes through the PNG decoder and asserts the emitted record is accepted by `validateArtworkManifest` unchanged.
+- **Blocked input.** `npm run check:kingdom-map-art:strict` exits 1 with `BLOCKED_INPUT`, naming every absent icon/sprite/detail representation. The rights-cleared Kingshot artwork master pack has not been supplied, so the 24 raster entries legitimately remain `awaiting_source`. No imagery, hash, provenance or authorization was fabricated to close this gate.
+
+### Visual exports (KM14 / KMAP-013)
+
+`buildSvg` accepts a bounded `options.bounds` region. `exportScopeBounds` resolves `map`, `viewport`, `selection` and `alliance` scopes, pads by 2 tiles and clamps to the released map so a rendition can never expose geometry outside the authorized release; `estimateExportSize` rejects non-positive or over-large allocations before any raster memory is taken. Exports record locale, font family, artwork version, plan revision and map checksum provenance. The Editor exposes the scope selector, and every new string has entries in all 17 territory catalogues.
+
+### Environment-limited gates (not executed, not claimed)
+
+PHP 8.5, composer, PostgreSQL and a browser are absent from this execution profile. Therefore `composer check:ci`, `composer lint:check`, `composer types:check`, `composer test:architecture`, `php artisan test`, fresh-schema installation and `npm run test:visual` were **not** executed and are neither passing nor failing here. They remain required before merge readiness and must run in CI. No SQLite substitution, executable patch or persistent database reset was performed.
+
 ## Sources and boundaries
 
 The delivery implements the user's **Kingshot Kingdom Map — Complete Implementation Planning Prompt** and **Kingshot Kingdom Map — Execute to Completion** instructions. The formerly inaccessible shared source is reconciled by the full attachment supplied in this conversation; see the preserved source reference above.

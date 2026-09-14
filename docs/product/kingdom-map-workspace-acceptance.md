@@ -1,6 +1,6 @@
 # Kingdom Map workspace acceptance matrix
 
-This matrix maps the visible planning package names to the existing delivery ledger. It defines required evidence, not completion status. The exact shared-conversation body remains unverified; decisions unique to that URL must be reconciled before declaring full source compliance. [Implementation](kingdom-map-workspace-implementation.md) defines the current design and the [ledger](kingdom-map-workspace-delivery-ledger.md) records actual results.
+This matrix maps the visible planning package names to the existing delivery ledger. It defines required evidence, not completion status. The authoritative plan is preserved as [Kingdom Map workspace implementation plan](kingdom-map-workspace-implementation-plan.md); the earlier [source reference](../reference/kingdom-map-workspace-source-plan.md) records the superseded PR #165 audit. [Implementation](kingdom-map-workspace-implementation.md) defines the current design and the [ledger](kingdom-map-workspace-delivery-ledger.md) records actual results.
 
 | Plan package | Ledger | Owner and implementation area | Required evidence |
 | --- | --- | --- | --- |
@@ -27,6 +27,10 @@ This matrix maps the visible planning package names to the existing delivery led
 ## Runnable verification entry points
 
 Use the lockfile-selected Node 24/PHP 8.5 toolchain. `composer check:ci` and `npm run check` are the repository-wide gates; normal CI adds dependency advisories, PostgreSQL/Redis services and clean installation. `.github/workflows/kingdom-maps-assurance.yml` owns map release validation and browser/server geometry parity. Territory HTTP/Action/ReadModel tests run against PostgreSQL, not an SQLite surrogate. `npm run test:visual` runs the configured Playwright projects. Commands must retain their assertions and required exit codes.
+
+Two artwork gates are distinct on purpose. `npm run check:kingdom-map-art` (`--structure-only`) validates registry keys, schema, limits, content-addressed paths and anchors without asserting delivered bytes, and is part of `npm run check`. `npm run check:kingdom-map-art:strict` additionally requires every raster representation to exist and therefore exits 1 with `BLOCKED_INPUT` until the rights-cleared artwork master pack is supplied. A strict failure is an honest incomplete-coverage report, not a defect.
+
+The current execution profile has no PHP, composer, PostgreSQL or browser, so `composer check:ci`, the PHP test and architecture suites, fresh-schema installation and `npm run test:visual` cannot be executed or claimed there. The executed candidate evidence and the exact command results are recorded in the [delivery ledger](kingdom-map-workspace-delivery-ledger.md).
 
 Required real journeys include inspect/picture; create/save/reopen hive; assign Governors; reject illegal placement; resolve concurrent edits; compare alternatives and observed drift; publish immutable intent; artwork-bearing export; private scoped share; and revoke then deny. Loading failures, unavailable data/art, stale tabs and authority loss are first-class cases.
 
