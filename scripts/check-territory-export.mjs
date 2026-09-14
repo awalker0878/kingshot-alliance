@@ -78,13 +78,14 @@ const objects = [
     metadata: {},
   },
 ];
-const svg = buildSvg(map, alliances, objects, {
+const metadata = {
   title: 'Plan <Alpha> & "Bravo"',
   mapProfile: 'Observed & reviewed',
   observedAt: '2026-08-22',
   confidence: 'community_observed',
   exportedAt: '2026-08-22T12:00:00Z',
-});
+};
+const svg = buildSvg(map, alliances, objects, metadata);
 
 assert.match(svg, /^<svg /);
 assert.match(svg, /role="img"/);
@@ -101,5 +102,31 @@ assert.match(
 );
 assert.match(svg, /x="20"/);
 assert.doesNotMatch(svg, /x="80" y="17"/);
+
+// Regression: a bounded sub-region whose origin is far from (0, 0) must project geometry relative to
+// the requested region. Translating the whole world and the region together must not change a byte.
+const region = { x: 10, y: 10, width: 40, height: 40 };
+const cropped = buildSvg(map, alliances, objects, metadata, { bounds: region });
+assert.match(cropped, /<rect width="40" height="40"\/>/);
+assert.match(cropped, /<defs><clipPath id="territory-map-clip"><rect width="40" height="40"\/>/);
+assert.match(cropped, /<rect x="10" y="27" width="3" height="3"/);
+const shift = 4000;
+const shiftedMap = structuredClone(map);
+shiftedMap.bounds = {
+  x: map.bounds.x + shift,
+  y: map.bounds.y + shift,
+  width: map.bounds.width,
+  height: map.bounds.height,
+};
+assert.equal(
+  buildSvg(
+    shiftedMap,
+    alliances,
+    objects.map((object) => ({ ...object, x: object.x + shift, y: object.y + shift })),
+    metadata,
+    { bounds: { ...region, x: region.x + shift, y: region.y + shift } },
+  ),
+  cropped,
+);
 
 console.log('Territory SVG source contract passed; browser PNG execution is a separate gate.');
