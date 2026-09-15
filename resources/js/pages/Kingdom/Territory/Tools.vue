@@ -115,11 +115,13 @@ const props = defineProps<{
 }>();
 
 const { locale } = useLocale();
-const cloneJson = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+const cloneJson = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const alliances = ref<PlanAlliance[]>(cloneJson(props.territory.alliances));
 const groups = ref<PlanGroup[]>(cloneJson(props.territory.groups));
 const objects = ref<PlanObject[]>(cloneJson(props.territory.objects));
-const preferences = ref<PlanningPreferences>(cloneJson(props.territory.plan.planning_preferences ?? {}));
+const preferences = ref<PlanningPreferences>(
+  cloneJson(props.territory.plan.planning_preferences ?? {}),
+);
 const annotations = ref<Annotation[]>(cloneJson(props.territory.annotations ?? []));
 const templates = ref<HiveTemplate[]>(cloneJson(props.territory.hive_templates ?? []));
 const renditions = ref<Rendition[]>(cloneJson(props.territory.renditions ?? []));
@@ -128,7 +130,9 @@ const revision = ref(props.territory.plan.revision);
 const status = ref(props.territory.plan.status);
 const layoutChecksum = ref(props.territory.layout_checksum);
 const baselineLayout = ref(layoutJson());
-const notice = ref<{ tone: 'success' | 'warning' | 'danger' | 'info'; message: string } | null>(null);
+const notice = ref<{ tone: 'success' | 'warning' | 'danger' | 'info'; message: string } | null>(
+  null,
+);
 const busy = ref(false);
 const csvText = ref('');
 const coordinatePreview = ref<CoordinatePreviewRow[]>([]);
@@ -138,13 +142,18 @@ const templateCityCount = ref(25);
 const templateSpacing = ref(1);
 const templateId = ref('');
 const templateAllianceKey = ref(alliances.value[0]?.key ?? '');
-const templateCenterX = ref(Math.round(props.territory.map.data.bounds.x + props.territory.map.data.bounds.width / 2));
-const templateCenterY = ref(Math.round(props.territory.map.data.bounds.y + props.territory.map.data.bounds.height / 2));
+const templateCenterX = ref(
+  Math.round(props.territory.map.data.bounds.x + props.territory.map.data.bounds.width / 2),
+);
+const templateCenterY = ref(
+  Math.round(props.territory.map.data.bounds.y + props.territory.map.data.bounds.height / 2),
+);
 
 const dirty = computed(() => layoutJson() !== baselineLayout.value);
 const selectedCount = computed(() => selectedKeys.value.length);
-const latestPublishedRevision = computed(() =>
-  [...props.territory.revisions].sort((a, b) => b.revision_number - a.revision_number)[0] ?? null,
+const latestPublishedRevision = computed(
+  () =>
+    [...props.territory.revisions].sort((a, b) => b.revision_number - a.revision_number)[0] ?? null,
 );
 
 function layoutJson(): string {
@@ -209,7 +218,10 @@ function applyCommand(result: TerritoryCommandResult): void {
     return;
   }
   objects.value = result.objects;
-  notice.value = { tone: 'info', message: `Updated ${result.affectedKeys.length} object(s) atomically.` };
+  notice.value = {
+    tone: 'info',
+    message: `Updated ${result.affectedKeys.length} object(s) atomically.`,
+  };
 }
 
 function align(alignment: TerritoryAlignment): void {
@@ -264,7 +276,10 @@ async function saveLayout(): Promise<void> {
     baselineLayout.value = layoutJson();
     notice.value = { tone: 'success', message: `Layout saved as revision ${revision.value}.` };
   } catch (error) {
-    notice.value = { tone: 'danger', message: error instanceof Error ? error.message : 'Save failed.' };
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : 'Save failed.',
+    };
   } finally {
     busy.value = false;
   }
@@ -286,10 +301,16 @@ async function previewCsv(): Promise<void> {
           typeof row === 'object' && row !== null && !Array.isArray(row),
       )
       .map((row) => ({ key: String(row.key ?? ''), x: Number(row.x), y: Number(row.y) }));
-    notice.value = { tone: 'info', message: `Validated ${coordinatePreview.value.length} CSV coordinate row(s).` };
+    notice.value = {
+      tone: 'info',
+      message: `Validated ${coordinatePreview.value.length} CSV coordinate row(s).`,
+    };
   } catch (error) {
     coordinatePreview.value = [];
-    notice.value = { tone: 'danger', message: error instanceof Error ? error.message : 'CSV preview failed.' };
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : 'CSV preview failed.',
+    };
   } finally {
     busy.value = false;
   }
@@ -300,13 +321,20 @@ function applyCsvCoordinates(): void {
   try {
     applyCommand(setObjectCoordinatesAtomic(objects.value, coordinatePreview.value, editable));
   } catch (error) {
-    notice.value = { tone: 'danger', message: error instanceof Error ? error.message : 'CSV coordinates could not be applied.' };
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : 'CSV coordinates could not be applied.',
+    };
   }
 }
 
 function addAnnotation(): void {
-  const x = Math.round(props.territory.map.data.bounds.x + props.territory.map.data.bounds.width / 2);
-  const y = Math.round(props.territory.map.data.bounds.y + props.territory.map.data.bounds.height / 2);
+  const x = Math.round(
+    props.territory.map.data.bounds.x + props.territory.map.data.bounds.width / 2,
+  );
+  const y = Math.round(
+    props.territory.map.data.bounds.y + props.territory.map.data.bounds.height / 2,
+  );
   annotations.value.push({
     key: `annotation-${crypto.randomUUID()}`,
     kind: 'label',
@@ -349,7 +377,10 @@ async function saveAnnotations(): Promise<void> {
     if (snapshot?.annotations) annotations.value = cloneJson(snapshot.annotations);
     notice.value = { tone: 'success', message: `Annotations saved as revision ${revision.value}.` };
   } catch (error) {
-    notice.value = { tone: 'danger', message: error instanceof Error ? error.message : 'Annotation save failed.' };
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : 'Annotation save failed.',
+    };
   } finally {
     busy.value = false;
   }
@@ -365,19 +396,26 @@ async function saveHiveTemplate(): Promise<void> {
   if (!templateName.value.trim()) return;
   busy.value = true;
   try {
-    const payload = await jsonRequest(`/territory/${props.territory.plan.id}/hive-templates`, 'POST', {
-      name: templateName.value.trim(),
-      style: templateStyle.value,
-      city_count: templateCityCount.value,
-      spacing: templateSpacing.value,
-      planning_preferences: preferences.value,
-    });
+    const payload = await jsonRequest(
+      `/territory/${props.territory.plan.id}/hive-templates`,
+      'POST',
+      {
+        name: templateName.value.trim(),
+        style: templateStyle.value,
+        city_count: templateCityCount.value,
+        spacing: templateSpacing.value,
+        planning_preferences: preferences.value,
+      },
+    );
     const template = payload.template as HiveTemplate;
     templateId.value = template.id;
     await refreshTemplates();
     notice.value = { tone: 'success', message: `Hive template “${template.name}” saved.` };
   } catch (error) {
-    notice.value = { tone: 'danger', message: error instanceof Error ? error.message : 'Template save failed.' };
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : 'Template save failed.',
+    };
   } finally {
     busy.value = false;
   }
@@ -400,15 +438,26 @@ async function instantiateHiveTemplate(): Promise<void> {
     if (payload.status !== 'feasible' || !Array.isArray(payload.objects)) {
       const diagnostics = Array.isArray(payload.diagnostics)
         ? payload.diagnostics
-            .map((item) => (typeof item === 'object' && item !== null ? String((item as Record<string, unknown>).message ?? '') : ''))
+            .map((item) =>
+              typeof item === 'object' && item !== null
+                ? String((item as Record<string, unknown>).message ?? '')
+                : '',
+            )
             .filter(Boolean)
             .join(' ')
         : '';
       throw new Error(diagnostics || 'The Hive template is not feasible at this location.');
     }
-    const additions = materializeHiveProposal(payload.objects as PlanObject[], objects.value.length);
+    const additions = materializeHiveProposal(
+      payload.objects as PlanObject[],
+      objects.value.length,
+    );
     const groupKeys = new Set(groups.value.map((group) => group.key));
-    for (const groupKey of new Set(additions.map((object) => object.group_key).filter((value): value is string => Boolean(value)))) {
+    for (const groupKey of new Set(
+      additions
+        .map((object) => object.group_key)
+        .filter((value): value is string => Boolean(value)),
+    )) {
       if (!groupKeys.has(groupKey)) {
         groups.value.push({ key: groupKey, label: 'Hive template' });
         groupKeys.add(groupKey);
@@ -416,9 +465,15 @@ async function instantiateHiveTemplate(): Promise<void> {
     }
     objects.value.push(...additions);
     selectedKeys.value = additions.map((object) => object.key);
-    notice.value = { tone: 'success', message: `Materialized ${additions.length} Hive template object(s). Save the layout to persist them.` };
+    notice.value = {
+      tone: 'success',
+      message: `Materialized ${additions.length} Hive template object(s). Save the layout to persist them.`,
+    };
   } catch (error) {
-    notice.value = { tone: 'danger', message: error instanceof Error ? error.message : 'Template instantiation failed.' };
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : 'Template instantiation failed.',
+    };
   } finally {
     busy.value = false;
   }
@@ -433,7 +488,9 @@ function textBase64(value: string): string {
   const bytes = new TextEncoder().encode(value);
   let binary = '';
   for (let offset = 0; offset < bytes.length; offset += 0x8000) {
-    binary += String.fromCharCode(...bytes.subarray(offset, Math.min(bytes.length, offset + 0x8000)));
+    binary += String.fromCharCode(
+      ...bytes.subarray(offset, Math.min(bytes.length, offset + 0x8000)),
+    );
   }
   return btoa(binary);
 }
@@ -441,11 +498,17 @@ function textBase64(value: string): string {
 async function persistArtworkRendition(): Promise<void> {
   const published = latestPublishedRevision.value;
   if (!published || status.value !== 'published') {
-    notice.value = { tone: 'warning', message: 'Publish the plan before persisting a visual rendition.' };
+    notice.value = {
+      tone: 'warning',
+      message: 'Publish the plan before persisting a visual rendition.',
+    };
     return;
   }
   if (dirty.value) {
-    notice.value = { tone: 'warning', message: 'Save and publish layout changes before persisting a rendition.' };
+    notice.value = {
+      tone: 'warning',
+      message: 'Save and publish layout changes before persisting a rendition.',
+    };
     return;
   }
   busy.value = true;
@@ -456,7 +519,9 @@ async function persistArtworkRendition(): Promise<void> {
     const options: { image?: Parameters<typeof exportModule.buildSvg>[4]['image'] } = {};
     const attached = await artworkRuntime.attachExportArtwork(options);
     if (!attached) {
-      throw new Error('Authorized Kingshot artwork bytes are not delivered; an artwork-bearing rendition cannot be persisted.');
+      throw new Error(
+        'Authorized Kingshot artwork bytes are not delivered; an artwork-bearing rendition cannot be persisted.',
+      );
     }
     const manifest = await artworkModule.loadArtworkManifest();
     const exportedAt = new Date().toISOString();
@@ -494,9 +559,15 @@ async function persistArtworkRendition(): Promise<void> {
     });
     await refreshRenditions();
     const rendition = payload.rendition as Rendition;
-    notice.value = { tone: 'success', message: `Persisted artwork rendition ${rendition.content_checksum.slice(0, 12)}….` };
+    notice.value = {
+      tone: 'success',
+      message: `Persisted artwork rendition ${rendition.content_checksum.slice(0, 12)}….`,
+    };
   } catch (error) {
-    notice.value = { tone: 'danger', message: error instanceof Error ? error.message : 'Rendition persistence failed.' };
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : 'Rendition persistence failed.',
+    };
   } finally {
     busy.value = false;
   }
@@ -525,7 +596,10 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
     anchor.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (error) {
-    notice.value = { tone: 'danger', message: error instanceof Error ? error.message : 'Rendition reopen failed.' };
+    notice.value = {
+      tone: 'danger',
+      message: error instanceof Error ? error.message : 'Rendition reopen failed.',
+    };
   } finally {
     busy.value = false;
   }
@@ -546,7 +620,12 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
         </div>
         <nav class="flex flex-wrap gap-2" aria-label="Territory plan navigation">
           <Link :href="`/territory/${territory.plan.id}`" class="ks-command-link">Editor</Link>
-          <Link :href="`/territory/${territory.plan.id}/reconciliation`" class="ks-command-link" data-variant="secondary">Plan vs observed</Link>
+          <Link
+            :href="`/territory/${territory.plan.id}/reconciliation`"
+            class="ks-command-link"
+            data-variant="secondary"
+            >Plan vs observed</Link
+          >
           <Link href="/territory" class="ks-command-link" data-variant="secondary">Plans</Link>
         </nav>
       </div>
@@ -559,7 +638,9 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p class="ks-kicker">Atomic editing</p>
-            <h2 id="transform-heading" class="ks-display text-xl font-semibold">Align, distribute and bulk coordinates</h2>
+            <h2 id="transform-heading" class="ks-display text-xl font-semibold">
+              Align, distribute and bulk coordinates
+            </h2>
           </div>
           <span class="ks-chip">{{ selectedCount }} selected</span>
         </div>
@@ -568,34 +649,80 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
           <AppButton data-variant="secondary" @click="selectedKeys = []">Clear</AppButton>
         </div>
         <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-          <button v-for="item in [
-            ['left', 'Align left'], ['center_x', 'Center X'], ['right', 'Align right'],
-            ['top', 'Align top'], ['center_y', 'Center Y'], ['bottom', 'Align bottom'],
-          ] as const" :key="item[0]" class="ks-command-link" :disabled="!selectedCount" @click="align(item[0])">
+          <button
+            v-for="item in [
+              ['left', 'Align left'],
+              ['center_x', 'Center X'],
+              ['right', 'Align right'],
+              ['top', 'Align top'],
+              ['center_y', 'Center Y'],
+              ['bottom', 'Align bottom'],
+            ] as const"
+            :key="item[0]"
+            class="ks-command-link"
+            :disabled="!selectedCount"
+            @click="align(item[0])"
+          >
             {{ item[1] }}
           </button>
-          <button class="ks-command-link" :disabled="selectedCount < 3" @click="distribute('horizontal')">Distribute X</button>
-          <button class="ks-command-link" :disabled="selectedCount < 3" @click="distribute('vertical')">Distribute Y</button>
+          <button
+            class="ks-command-link"
+            :disabled="selectedCount < 3"
+            @click="distribute('horizontal')"
+          >
+            Distribute X
+          </button>
+          <button
+            class="ks-command-link"
+            :disabled="selectedCount < 3"
+            @click="distribute('vertical')"
+          >
+            Distribute Y
+          </button>
         </div>
         <div class="mt-4 max-h-[30rem] overflow-auto rounded border border-[var(--ks-border)]">
           <table class="w-full min-w-[42rem] text-sm">
             <thead class="sticky top-0 bg-[var(--ks-surface)]">
               <tr class="text-start text-xs text-[var(--ks-muted)]">
-                <th class="p-2">Select</th><th class="p-2 text-start">Object</th><th class="p-2 text-start">Layer</th><th class="p-2">X</th><th class="p-2">Y</th>
+                <th class="p-2">Select</th>
+                <th class="p-2 text-start">Object</th>
+                <th class="p-2 text-start">Layer</th>
+                <th class="p-2">X</th>
+                <th class="p-2">Y</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="object in objects" :key="object.key" class="border-t border-[var(--ks-border)]">
-                <td class="p-2 text-center"><input v-model="selectedKeys" type="checkbox" :value="object.key" :disabled="!editable(object)" :aria-label="`Select ${object.label ?? object.external_player_name ?? object.key}`" /></td>
-                <td class="p-2">{{ object.label || object.external_player_name || object.type }}</td>
+              <tr
+                v-for="object in objects"
+                :key="object.key"
+                class="border-t border-[var(--ks-border)]"
+              >
+                <td class="p-2 text-center">
+                  <input
+                    v-model="selectedKeys"
+                    type="checkbox"
+                    :value="object.key"
+                    :disabled="!editable(object)"
+                    :aria-label="`Select ${object.label ?? object.external_player_name ?? object.key}`"
+                  />
+                </td>
+                <td class="p-2">
+                  {{ object.label || object.external_player_name || object.type }}
+                </td>
                 <td class="p-2">{{ object.alliance_key }}</td>
-                <td class="p-2 text-center">{{ object.x }}</td><td class="p-2 text-center">{{ object.y }}</td>
+                <td class="p-2 text-center">{{ object.x }}</td>
+                <td class="p-2 text-center">{{ object.y }}</td>
               </tr>
             </tbody>
           </table>
         </div>
         <div class="mt-4 flex flex-wrap items-center gap-2">
-          <AppButton :busy="busy" :disabled="!dirty || !territory.plan.can_manage" @click="saveLayout">Save layout</AppButton>
+          <AppButton
+            :busy="busy"
+            :disabled="!dirty || !territory.plan.can_manage"
+            @click="saveLayout"
+            >Save layout</AppButton
+          >
           <span v-if="dirty" class="text-xs text-amber-200">Unsaved layout changes</span>
         </div>
       </section>
@@ -603,72 +730,255 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
       <section class="ks-surface p-4" aria-labelledby="csv-heading">
         <p class="ks-kicker">Interchange</p>
         <h2 id="csv-heading" class="ks-display text-xl font-semibold">CSV coordinate table</h2>
-        <p class="mt-2 text-sm text-[var(--ks-muted)]">Preview is strict and bounded; applying coordinates is one atomic command and respects locks.</p>
-        <a :href="`/territory/${territory.plan.id}/coordinates.csv`" class="ks-command-link mt-3 inline-flex">Export CSV</a>
-        <label class="mt-4 block text-sm font-semibold">CSV preview
-          <textarea v-model="csvText" class="ks-input mt-2 min-h-48 w-full font-mono text-xs" placeholder="key,type,variant_key,x,y,rotation,..." />
+        <p class="mt-2 text-sm text-[var(--ks-muted)]">
+          Preview is strict and bounded; applying coordinates is one atomic command and respects
+          locks.
+        </p>
+        <a
+          :href="`/territory/${territory.plan.id}/coordinates.csv`"
+          class="ks-command-link mt-3 inline-flex"
+          >Export CSV</a
+        >
+        <label class="mt-4 block text-sm font-semibold"
+          >CSV preview
+          <textarea
+            v-model="csvText"
+            class="ks-input mt-2 min-h-48 w-full font-mono text-xs"
+            placeholder="key,type,variant_key,x,y,rotation,..."
+          />
         </label>
         <div class="mt-3 flex flex-wrap gap-2">
-          <AppButton :busy="busy" :disabled="!csvText.trim()" @click="previewCsv">Validate CSV</AppButton>
-          <AppButton data-variant="secondary" :disabled="!coordinatePreview.length" @click="applyCsvCoordinates">Apply coordinates</AppButton>
+          <AppButton :busy="busy" :disabled="!csvText.trim()" @click="previewCsv"
+            >Validate CSV</AppButton
+          >
+          <AppButton
+            data-variant="secondary"
+            :disabled="!coordinatePreview.length"
+            @click="applyCsvCoordinates"
+            >Apply coordinates</AppButton
+          >
         </div>
-        <p v-if="coordinatePreview.length" class="mt-2 text-xs text-[var(--ks-muted)]">{{ coordinatePreview.length }} validated row(s) ready to apply.</p>
+        <p v-if="coordinatePreview.length" class="mt-2 text-xs text-[var(--ks-muted)]">
+          {{ coordinatePreview.length }} validated row(s) ready to apply.
+        </p>
       </section>
 
       <section class="ks-surface p-4" aria-labelledby="annotations-heading">
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <div><p class="ks-kicker">Annotations</p><h2 id="annotations-heading" class="ks-display text-xl font-semibold">Plan annotations</h2></div>
-          <AppButton data-variant="secondary" :disabled="annotations.length >= 500" @click="addAnnotation">Add annotation</AppButton>
+          <div>
+            <p class="ks-kicker">Annotations</p>
+            <h2 id="annotations-heading" class="ks-display text-xl font-semibold">
+              Plan annotations
+            </h2>
+          </div>
+          <AppButton
+            data-variant="secondary"
+            :disabled="annotations.length >= 500"
+            @click="addAnnotation"
+            >Add annotation</AppButton
+          >
         </div>
         <div class="mt-3 space-y-3">
-          <fieldset v-for="(annotation, index) in annotations" :key="annotation.key" class="rounded border border-[var(--ks-border)] p-3">
+          <fieldset
+            v-for="(annotation, index) in annotations"
+            :key="annotation.key"
+            class="rounded border border-[var(--ks-border)] p-3"
+          >
             <legend class="px-1 text-xs font-semibold">Annotation {{ index + 1 }}</legend>
             <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              <label class="text-xs">Kind<select v-model="annotation.kind" class="ks-input mt-1 w-full" @change="normalizeAnnotationTarget(annotation)"><option value="label">Label</option><option value="line">Line</option><option value="arrow">Arrow</option><option value="rectangle">Rectangle</option></select></label>
-              <label class="text-xs">Alliance<select v-model="annotation.alliance_key" class="ks-input mt-1 w-full"><option :value="null">All layers</option><option v-for="alliance in alliances" :key="alliance.key" :value="alliance.key">{{ alliance.display_name }}</option></select></label>
-              <label class="text-xs">X<input v-model.number="annotation.x" type="number" class="ks-input mt-1 w-full" /></label>
-              <label class="text-xs">Y<input v-model.number="annotation.y" type="number" class="ks-input mt-1 w-full" /></label>
-              <label v-if="annotation.kind !== 'label'" class="text-xs">Target X<input v-model.number="annotation.target_x" type="number" class="ks-input mt-1 w-full" /></label>
-              <label v-if="annotation.kind !== 'label'" class="text-xs">Target Y<input v-model.number="annotation.target_y" type="number" class="ks-input mt-1 w-full" /></label>
-              <label class="text-xs sm:col-span-2">Text<input v-model="annotation.text" maxlength="500" class="ks-input mt-1 w-full" /></label>
+              <label class="text-xs"
+                >Kind<select
+                  v-model="annotation.kind"
+                  class="ks-input mt-1 w-full"
+                  @change="normalizeAnnotationTarget(annotation)"
+                >
+                  <option value="label">Label</option>
+                  <option value="line">Line</option>
+                  <option value="arrow">Arrow</option>
+                  <option value="rectangle">Rectangle</option>
+                </select></label
+              >
+              <label class="text-xs"
+                >Alliance<select v-model="annotation.alliance_key" class="ks-input mt-1 w-full">
+                  <option :value="null">All layers</option>
+                  <option v-for="alliance in alliances" :key="alliance.key" :value="alliance.key">
+                    {{ alliance.display_name }}
+                  </option>
+                </select></label
+              >
+              <label class="text-xs"
+                >X<input v-model.number="annotation.x" type="number" class="ks-input mt-1 w-full"
+              /></label>
+              <label class="text-xs"
+                >Y<input v-model.number="annotation.y" type="number" class="ks-input mt-1 w-full"
+              /></label>
+              <label v-if="annotation.kind !== 'label'" class="text-xs"
+                >Target X<input
+                  v-model.number="annotation.target_x"
+                  type="number"
+                  class="ks-input mt-1 w-full"
+              /></label>
+              <label v-if="annotation.kind !== 'label'" class="text-xs"
+                >Target Y<input
+                  v-model.number="annotation.target_y"
+                  type="number"
+                  class="ks-input mt-1 w-full"
+              /></label>
+              <label class="text-xs sm:col-span-2"
+                >Text<input v-model="annotation.text" maxlength="500" class="ks-input mt-1 w-full"
+              /></label>
             </div>
-            <button class="ks-command-link mt-2" data-variant="danger" @click="annotations.splice(index, 1)">Remove</button>
+            <button
+              class="ks-command-link mt-2"
+              data-variant="danger"
+              @click="annotations.splice(index, 1)"
+            >
+              Remove
+            </button>
           </fieldset>
         </div>
-        <AppButton class="mt-3" :busy="busy" :disabled="!territory.plan.can_manage" @click="saveAnnotations">Save annotations</AppButton>
+        <AppButton
+          class="mt-3"
+          :busy="busy"
+          :disabled="!territory.plan.can_manage"
+          @click="saveAnnotations"
+          >Save annotations</AppButton
+        >
       </section>
 
       <section class="ks-surface p-4" aria-labelledby="templates-heading">
         <p class="ks-kicker">Hive Builder</p>
-        <h2 id="templates-heading" class="ks-display text-xl font-semibold">Reusable Hive templates</h2>
+        <h2 id="templates-heading" class="ks-display text-xl font-semibold">
+          Reusable Hive templates
+        </h2>
         <div class="mt-3 grid gap-2 sm:grid-cols-2">
-          <label class="text-xs">Template name<input v-model="templateName" maxlength="160" class="ks-input mt-1 w-full" /></label>
-          <label class="text-xs">Style<select v-model="templateStyle" class="ks-input mt-1 w-full"><option value="swirl">Swirl</option><option value="banner_pad">Banner pad</option></select></label>
-          <label class="text-xs">City count<input v-model.number="templateCityCount" type="number" min="1" max="100" class="ks-input mt-1 w-full" /></label>
-          <label class="text-xs">Spacing<input v-model.number="templateSpacing" type="number" min="0" max="8" class="ks-input mt-1 w-full" /></label>
+          <label class="text-xs"
+            >Template name<input
+              v-model="templateName"
+              maxlength="160"
+              class="ks-input mt-1 w-full"
+          /></label>
+          <label class="text-xs"
+            >Style<select v-model="templateStyle" class="ks-input mt-1 w-full">
+              <option value="swirl">Swirl</option>
+              <option value="banner_pad">Banner pad</option>
+            </select></label
+          >
+          <label class="text-xs"
+            >City count<input
+              v-model.number="templateCityCount"
+              type="number"
+              min="1"
+              max="100"
+              class="ks-input mt-1 w-full"
+          /></label>
+          <label class="text-xs"
+            >Spacing<input
+              v-model.number="templateSpacing"
+              type="number"
+              min="0"
+              max="8"
+              class="ks-input mt-1 w-full"
+          /></label>
         </div>
-        <AppButton class="mt-2" :busy="busy" :disabled="!territory.plan.can_manage || !templateName.trim()" @click="saveHiveTemplate">Save template</AppButton>
+        <AppButton
+          class="mt-2"
+          :busy="busy"
+          :disabled="!territory.plan.can_manage || !templateName.trim()"
+          @click="saveHiveTemplate"
+          >Save template</AppButton
+        >
         <div class="mt-4 border-t border-[var(--ks-border)] pt-3">
-          <label class="text-xs">Saved template<select v-model="templateId" class="ks-input mt-1 w-full"><option value="">Choose template</option><option v-for="template in templates" :key="template.id" :value="template.id">{{ template.name }} · {{ template.style }} · {{ template.city_count }} cities</option></select></label>
+          <label class="text-xs"
+            >Saved template<select v-model="templateId" class="ks-input mt-1 w-full">
+              <option value="">Choose template</option>
+              <option v-for="template in templates" :key="template.id" :value="template.id">
+                {{ template.name }} · {{ template.style }} · {{ template.city_count }} cities
+              </option>
+            </select></label
+          >
           <div class="mt-2 grid gap-2 sm:grid-cols-3">
-            <label class="text-xs">Alliance<select v-model="templateAllianceKey" class="ks-input mt-1 w-full"><option v-for="alliance in alliances" :key="alliance.key" :value="alliance.key">{{ alliance.display_name }}</option></select></label>
-            <label class="text-xs">Center X<input v-model.number="templateCenterX" type="number" class="ks-input mt-1 w-full" /></label>
-            <label class="text-xs">Center Y<input v-model.number="templateCenterY" type="number" class="ks-input mt-1 w-full" /></label>
+            <label class="text-xs"
+              >Alliance<select v-model="templateAllianceKey" class="ks-input mt-1 w-full">
+                <option v-for="alliance in alliances" :key="alliance.key" :value="alliance.key">
+                  {{ alliance.display_name }}
+                </option>
+              </select></label
+            >
+            <label class="text-xs"
+              >Center X<input
+                v-model.number="templateCenterX"
+                type="number"
+                class="ks-input mt-1 w-full"
+            /></label>
+            <label class="text-xs"
+              >Center Y<input
+                v-model.number="templateCenterY"
+                type="number"
+                class="ks-input mt-1 w-full"
+            /></label>
           </div>
-          <AppButton class="mt-2" :busy="busy" :disabled="!templateId || !templateAllianceKey" @click="instantiateHiveTemplate">Instantiate template</AppButton>
+          <AppButton
+            class="mt-2"
+            :busy="busy"
+            :disabled="!templateId || !templateAllianceKey"
+            @click="instantiateHiveTemplate"
+            >Instantiate template</AppButton
+          >
         </div>
       </section>
 
       <section class="ks-surface p-4 xl:col-span-2" aria-labelledby="renditions-heading">
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <div><p class="ks-kicker">Visual evidence</p><h2 id="renditions-heading" class="ks-display text-xl font-semibold">Persisted renditions</h2></div>
-          <AppButton :busy="busy" :disabled="!territory.plan.can_manage" @click="persistArtworkRendition">Persist artwork SVG</AppButton>
+          <div>
+            <p class="ks-kicker">Visual evidence</p>
+            <h2 id="renditions-heading" class="ks-display text-xl font-semibold">
+              Persisted renditions
+            </h2>
+          </div>
+          <AppButton
+            :busy="busy"
+            :disabled="!territory.plan.can_manage"
+            @click="persistArtworkRendition"
+            >Persist artwork SVG</AppButton
+          >
         </div>
-        <p class="mt-2 text-sm text-[var(--ks-muted)]">Persistence is revision-pinned and fails closed until real authorized artwork bytes can be embedded.</p>
+        <p class="mt-2 text-sm text-[var(--ks-muted)]">
+          Persistence is revision-pinned and fails closed until real authorized artwork bytes can be
+          embedded.
+        </p>
         <div class="mt-3 overflow-auto">
           <table class="w-full min-w-[48rem] text-sm">
-            <thead><tr class="text-start text-xs text-[var(--ks-muted)]"><th class="p-2 text-start">Created</th><th class="p-2 text-start">Revision</th><th class="p-2 text-start">Scope</th><th class="p-2 text-start">Type</th><th class="p-2 text-start">Checksum</th><th class="p-2">Action</th></tr></thead>
-            <tbody><tr v-for="rendition in renditions" :key="rendition.id" class="border-t border-[var(--ks-border)]"><td class="p-2">{{ rendition.created_at ?? '—' }}</td><td class="p-2">{{ rendition.territory_plan_revision_id }}</td><td class="p-2">{{ rendition.scope }}</td><td class="p-2">{{ rendition.media_type }}</td><td class="p-2 font-mono text-xs">{{ rendition.content_checksum.slice(0, 16) }}…</td><td class="p-2 text-center"><button class="ks-command-link" @click="reopenRendition(rendition)">Reopen</button></td></tr></tbody>
+            <thead>
+              <tr class="text-start text-xs text-[var(--ks-muted)]">
+                <th class="p-2 text-start">Created</th>
+                <th class="p-2 text-start">Revision</th>
+                <th class="p-2 text-start">Scope</th>
+                <th class="p-2 text-start">Type</th>
+                <th class="p-2 text-start">Checksum</th>
+                <th class="p-2">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="rendition in renditions"
+                :key="rendition.id"
+                class="border-t border-[var(--ks-border)]"
+              >
+                <td class="p-2">{{ rendition.created_at ?? '—' }}</td>
+                <td class="p-2">{{ rendition.territory_plan_revision_id }}</td>
+                <td class="p-2">{{ rendition.scope }}</td>
+                <td class="p-2">{{ rendition.media_type }}</td>
+                <td class="p-2 font-mono text-xs">
+                  {{ rendition.content_checksum.slice(0, 16) }}…
+                </td>
+                <td class="p-2 text-center">
+                  <button class="ks-command-link" @click="reopenRendition(rendition)">
+                    Reopen
+                  </button>
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
       </section>
