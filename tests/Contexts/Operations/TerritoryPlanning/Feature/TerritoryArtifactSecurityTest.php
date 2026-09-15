@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Contexts\Operations\TerritoryPlanning\Feature;
 
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Contexts\GameWorld\Players\ValueObjects\PlayerReference;
 use App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\PublishTerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryPlan;
@@ -142,7 +143,7 @@ final class TerritoryArtifactSecurityTest extends TestCase
     }
 
     /**
-     * @return array{User,\App\Contexts\GameWorld\Players\ValueObjects\PlayerReference,string,string}
+     * @return array{User,PlayerReference,string,string}
      */
     private function publishedPlan(int $kingdomNumber): array
     {
