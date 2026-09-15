@@ -109,7 +109,7 @@ final readonly class InstantiateTerritoryHiveTemplate
         if ($value === null) {
             return [];
         }
-        if (! is_array($value) || array_is_list($value)) {
+        if (! is_array($value) || ($value !== [] && array_is_list($value))) {
             throw new \LogicException('Persisted Hive template preferences are invalid.');
         }
 
