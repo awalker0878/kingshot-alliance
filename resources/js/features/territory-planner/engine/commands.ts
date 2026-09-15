@@ -116,9 +116,7 @@ export function rotateObjectsAtomic(
       const rotation = (object.rotation + direction * 90 + 360) % 360;
       const base = map.object_types[object.type].footprint;
       const after =
-        rotation === 90 || rotation === 270
-          ? { width: base.height, height: base.width }
-          : base;
+        rotation === 90 || rotation === 270 ? { width: base.height, height: base.width } : base;
       return {
         ...object,
         rotation,
