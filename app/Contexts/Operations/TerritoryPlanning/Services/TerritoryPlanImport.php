@@ -13,7 +13,7 @@ final readonly class TerritoryPlanImport
         private KingdomMapDatasetQuery $datasets,
         private PlacementValidator $placement,
         private TerritoryLayoutAnalyzer $analysis,
-        private TerritoryLayoutContract $contract,
+        private TerritoryLayoutDocumentContract $contract,
     ) {}
 
     /** @return array<string, mixed> */
@@ -41,7 +41,8 @@ final readonly class TerritoryPlanImport
             'map' => ['id' => $dataset->id, 'checksum' => $dataset->checksum,
                 'source_label' => $dataset->sourceLabel, 'confidence' => $dataset->confidence->value],
             'alliances' => $document['alliances'], 'groups' => $document['groups'],
-            'objects' => $document['objects'], 'planning_preferences' => $preferences,
+            'objects' => $document['objects'], 'annotations' => $document['annotations'],
+            'planning_preferences' => $preferences,
             'validation' => $validation->toArray(),
             'analysis' => $this->analysis->analyze($dataset, $validationObjects, $preferences),
             'can_commit' => $validation->valid(),
