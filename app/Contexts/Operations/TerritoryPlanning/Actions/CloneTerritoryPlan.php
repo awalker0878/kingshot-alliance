@@ -95,7 +95,7 @@ final readonly class CloneTerritoryPlan
     /** @return array<string, mixed> */
     private function map(mixed $value): array
     {
-        if (! is_array($value) || array_is_list($value)) {
+        if (! is_array($value) || ($value !== [] && array_is_list($value))) {
             throw $this->invalidSnapshot();
         }
 
