@@ -8,6 +8,7 @@ use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryRendition;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanningAuthorization;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanWriteState;
+use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -78,13 +79,13 @@ final readonly class CreateTerritoryRendition
 
             return [
                 'id' => (string) $rendition->id,
-                'territory_plan_revision_id' => (string) $rendition->territory_plan_revision_id,
-                'scope' => (string) $rendition->scope,
-                'media_type' => (string) $rendition->media_type,
-                'content_checksum' => (string) $rendition->content_checksum,
-                'content_bytes' => (int) $rendition->content_bytes,
-                'metadata' => is_array($rendition->metadata) ? $rendition->metadata : [],
-                'created_at' => $rendition->created_at?->toIso8601String(),
+                'territory_plan_revision_id' => $revisionId,
+                'scope' => $scope,
+                'media_type' => $mediaType,
+                'content_checksum' => $checksum,
+                'content_bytes' => strlen($bytes),
+                'metadata' => $this->metadata($rendition->getAttribute('metadata')),
+                'created_at' => $this->date($rendition->getAttribute('created_at')),
             ];
         });
     }
@@ -129,5 +130,35 @@ final readonly class CreateTerritoryRendition
         if (strlen(json_encode($metadata, JSON_THROW_ON_ERROR)) > 20_000) {
             throw ValidationException::withMessages(['metadata' => 'Rendition metadata is too large.']);
         }
+    }
+
+    /** @return array<string, mixed> */
+    private function metadata(mixed $value): array
+    {
+        if (! is_array($value) || array_is_list($value)) {
+            throw new \LogicException('Persisted Territory rendition metadata is invalid.');
+        }
+
+        $metadata = [];
+        foreach ($value as $key => $item) {
+            if (! is_string($key)) {
+                throw new \LogicException('Persisted Territory rendition metadata is invalid.');
+            }
+            $metadata[$key] = $item;
+        }
+
+        return $metadata;
+    }
+
+    private function date(mixed $value): ?string
+    {
+        if ($value instanceof DateTimeInterface) {
+            return $value->format(DATE_ATOM);
+        }
+        if (is_string($value) && $value !== '') {
+            return $value;
+        }
+
+        return null;
     }
 }
