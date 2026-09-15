@@ -17,6 +17,7 @@ final class TerritoryPlanningReadModelServiceProvider extends ServiceProvider
             Route::get('/territory', [TerritoryPlanningPageController::class, 'index'])->name('territory.index');
             Route::get('/territory/explore', [TerritoryPlanningPageController::class, 'explore'])->name('territory.explore');
             Route::get('/territory/{plan}/alliances', [TerritoryPlanningPageController::class, 'alliances'])->whereUlid('plan')->name('territory.alliances');
+            Route::get('/territory/{plan}/tools', [TerritoryPlanningPageController::class, 'tools'])->whereUlid('plan')->name('territory.tools');
             Route::get('/territory/{plan}/reconciliation', [TerritoryReconciliationController::class, 'show'])->whereUlid('plan')->name('territory.reconciliation');
             Route::get('/territory/{plan}', [TerritoryPlanningPageController::class, 'show'])->whereUlid('plan')->name('territory.show');
         });

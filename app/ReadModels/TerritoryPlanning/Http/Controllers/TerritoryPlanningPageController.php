@@ -13,6 +13,7 @@ use App\Contexts\GameWorld\Players\Services\PlayerContext;
 use App\Contexts\Operations\Access\Enums\OperationsPermission;
 use App\Contexts\Operations\Access\Services\AllianceOperationsAuthorization;
 use App\Contexts\Operations\Access\Services\KingdomOperationsAuthorization;
+use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryArtifactQuery;
 use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryPlanQuery;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\Request;
@@ -141,6 +142,34 @@ final class TerritoryPlanningPageController extends Controller
         $territory['governor_options'] = $this->governorOptions($territory, $memberships, $players);
 
         return Inertia::render('Kingdom/Territory/Editor', [
+            'user' => ['name' => $user->name, 'email' => $user->email],
+            'activePlayer' => [
+                'id' => $player->playerId,
+                'name' => $player->currentName,
+                'kingdomNumber' => $player->kingdomNumber,
+            ],
+            'territory' => $territory,
+        ]);
+    }
+
+    public function tools(
+        Request $request,
+        string $plan,
+        PlayerContext $playerContext,
+        TerritoryPlanQuery $plans,
+        TerritoryArtifactQuery $artifacts,
+    ): Response {
+        $user = $request->user();
+        abort_unless($user instanceof AuthenticatedAccount, 401);
+        $player = $playerContext->playerOrNull();
+        abort_unless($player !== null, 403);
+
+        $territory = $plans->detail($player->playerId, $plan);
+        $territory['annotations'] = $artifacts->annotations($player->playerId, $plan);
+        $territory['hive_templates'] = $artifacts->templates($player->playerId, $plan);
+        $territory['renditions'] = $artifacts->renditions($player->playerId, $plan);
+
+        return Inertia::render('Kingdom/Territory/Tools', [
             'user' => ['name' => $user->name, 'email' => $user->email],
             'activePlayer' => [
                 'id' => $player->playerId,

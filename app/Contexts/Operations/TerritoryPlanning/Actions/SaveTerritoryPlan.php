@@ -10,10 +10,12 @@ use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryObjectType;
 use App\Contexts\Operations\TerritoryPlanning\Enums\TerritoryPlanStatus;
 use App\Contexts\Operations\TerritoryPlanning\Exceptions\TerritoryRevisionConflict;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanAlliance;
+use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanAnnotation;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanGroup;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanObject;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritorySaveReceipt;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryActivityRecorder;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryAnnotationContract;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryCollaborationAuthorization;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryLayoutContract;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryLayoutIdentityValidator;
@@ -36,6 +38,7 @@ final readonly class SaveTerritoryPlan
         private KingdomMapDatasetQuery $datasets,
         private PlacementValidator $placement,
         private TerritoryLayoutContract $contract,
+        private TerritoryAnnotationContract $annotationContract,
         private TerritoryLayoutIdentityValidator $identities,
         private TerritoryPlanSnapshotBuilder $snapshots,
         private AuditRecorder $audit,
@@ -46,6 +49,7 @@ final readonly class SaveTerritoryPlan
      * @param  list<array<string, mixed>>  $groups
      * @param  list<array<string, mixed>>  $objects
      * @param  array<string, mixed>  $preferences
+     * @param  list<array<string, mixed>>|null  $annotations
      */
     public function handle(
         string $actorPlayerId,
@@ -56,6 +60,7 @@ final readonly class SaveTerritoryPlan
         array $groups,
         array $objects,
         array $preferences = [],
+        ?array $annotations = null,
     ): TerritoryPlanMutationReceipt {
         if (! Str::isUuid($mutationId) || $expectedRevision < 1) {
             throw ValidationException::withMessages(['mutation_id' => 'A valid mutation UUID and positive expected revision are required.']);
@@ -64,7 +69,7 @@ final readonly class SaveTerritoryPlan
         // Hash the exact owner command, including actor, operation, plan and base revision.
         $request = json_encode(['operation' => 'save', 'actor' => $actorPlayerId, 'plan' => $planId,
             'revision' => $expectedRevision, 'alliances' => $alliances, 'groups' => $groups,
-            'objects' => $objects, 'preferences' => $preferences], JSON_THROW_ON_ERROR);
+            'objects' => $objects, 'preferences' => $preferences, 'annotations' => $annotations], JSON_THROW_ON_ERROR);
         if (strlen($request) > 5_000_000) {
             throw ValidationException::withMessages(['layout' => 'The save command exceeds the five megabyte limit.']);
         }
@@ -74,6 +79,9 @@ final readonly class SaveTerritoryPlan
         $normalizedGroups = $layout['groups'];
         $normalizedObjects = $layout['objects'];
         $preferences = $layout['planning_preferences'];
+        $normalizedAnnotations = $annotations === null
+            ? null
+            : $this->annotationContract->normalize($annotations, array_column($normalizedAlliances, 'key'));
 
         return DB::transaction(function () use (
             $actorPlayerId,
@@ -85,9 +93,13 @@ final readonly class SaveTerritoryPlan
             $normalizedGroups,
             $normalizedObjects,
             $preferences,
+            $normalizedAnnotations,
         ): TerritoryPlanMutationReceipt {
             $context = $this->writeState->lock($actorPlayerId, $planId);
             $this->authorization->authorizeView($context);
+            if ($normalizedAnnotations !== null) {
+                $this->authorization->authorizeManage($context);
+            }
             if ($context->plan->status === TerritoryPlanStatus::Archived) {
                 throw ValidationException::withMessages(['plan' => 'Archived plans are read-only. Clone this plan to resume editing.']);
             }
@@ -150,7 +162,7 @@ final readonly class SaveTerritoryPlan
             }
 
             $previousObjects = $this->snapshots->build($context->plan)['objects'];
-            $requiresManage = $this->collaboration->isManager($context);
+            $requiresManage = $normalizedAnnotations !== null || $this->collaboration->isManager($context);
             $previousByKey = array_column($previousObjects, null, 'key');
             $nextByKey = array_column($normalizedObjects, null, 'key');
             $requiredLayers = [];
@@ -217,6 +229,26 @@ final readonly class SaveTerritoryPlan
                 ]);
             }
 
+            if ($normalizedAnnotations !== null) {
+                TerritoryPlanAnnotation::query()->where('territory_plan_id', $planId)->delete();
+                foreach ($normalizedAnnotations as $annotation) {
+                    TerritoryPlanAnnotation::query()->create([
+                        'territory_plan_id' => $planId,
+                        'plan_key' => $annotation['key'],
+                        'kind' => $annotation['kind'],
+                        'alliance_key' => $annotation['alliance_key'],
+                        'text' => $annotation['text'],
+                        'coordinate_x' => $annotation['x'],
+                        'coordinate_y' => $annotation['y'],
+                        'target_x' => $annotation['target_x'],
+                        'target_y' => $annotation['target_y'],
+                        'sort_order' => $annotation['sort_order'],
+                        'created_by_player_id' => $actorPlayerId,
+                        'updated_by_player_id' => $actorPlayerId,
+                    ]);
+                }
+            }
+
             $context->plan->forceFill([
                 'planning_preferences' => $preferences,
                 'revision' => $expectedRevision + 1,
@@ -233,6 +265,7 @@ final readonly class SaveTerritoryPlan
                     'revision' => $expectedRevision + 1,
                     'alliance_count' => count($normalizedAlliances),
                     'object_count' => count($normalizedObjects),
+                    'annotation_count' => $normalizedAnnotations === null ? null : count($normalizedAnnotations),
                     'warning_count' => count($validation->warnings),
                     'suggestion_count' => count($validation->suggestions),
                 ],

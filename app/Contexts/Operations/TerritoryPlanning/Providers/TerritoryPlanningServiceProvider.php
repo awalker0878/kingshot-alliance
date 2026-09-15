@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\TerritoryPlanning\Providers;
 
 use App\Contexts\Operations\TerritoryPlanning\Console\Commands\PruneTerritoryRecoveryDraftsCommand;
+use App\Contexts\Operations\TerritoryPlanning\Http\Controllers\TerritoryArtifactController;
 use App\Contexts\Operations\TerritoryPlanning\Http\Controllers\TerritoryCollaborationController;
 use App\Contexts\Operations\TerritoryPlanning\Http\Controllers\TerritoryPlanController;
 use App\Contexts\Operations\TerritoryPlanning\Http\Controllers\TerritoryWorkspaceViewController;
@@ -56,6 +57,35 @@ final class TerritoryPlanningServiceProvider extends ServiceProvider
             Route::put('/territory/{plan}', [TerritoryPlanController::class, 'save'])
                 ->whereUlid('plan')
                 ->name('territory.save');
+            Route::put('/territory/{plan}/annotations', [TerritoryArtifactController::class, 'annotations'])
+                ->whereUlid('plan')
+                ->name('territory.annotations.update');
+            Route::get('/territory/{plan}/coordinates.csv', [TerritoryArtifactController::class, 'coordinateTable'])
+                ->whereUlid('plan')
+                ->name('territory.coordinates.export');
+            Route::post('/territory/{plan}/coordinates/preview', [TerritoryArtifactController::class, 'coordinatePreview'])
+                ->whereUlid('plan')
+                ->name('territory.coordinates.preview');
+            Route::get('/territory/{plan}/hive-templates', [TerritoryArtifactController::class, 'templates'])
+                ->whereUlid('plan')
+                ->name('territory.hive-templates.index');
+            Route::post('/territory/{plan}/hive-templates', [TerritoryArtifactController::class, 'saveTemplate'])
+                ->whereUlid('plan')
+                ->name('territory.hive-templates.store');
+            Route::post('/territory/{plan}/hive-templates/{template}/instantiate', [TerritoryArtifactController::class, 'instantiateTemplate'])
+                ->whereUlid('plan')
+                ->whereUlid('template')
+                ->name('territory.hive-templates.instantiate');
+            Route::get('/territory/{plan}/renditions', [TerritoryArtifactController::class, 'renditions'])
+                ->whereUlid('plan')
+                ->name('territory.renditions.index');
+            Route::get('/territory/{plan}/renditions/{rendition}', [TerritoryArtifactController::class, 'renditionShow'])
+                ->whereUlid('plan')
+                ->whereUlid('rendition')
+                ->name('territory.renditions.show');
+            Route::post('/territory/{plan}/renditions', [TerritoryArtifactController::class, 'rendition'])
+                ->whereUlid('plan')
+                ->name('territory.renditions.store');
             Route::post('/territory/{plan}/import', [TerritoryPlanController::class, 'import'])
                 ->whereUlid('plan')
                 ->name('territory.import');

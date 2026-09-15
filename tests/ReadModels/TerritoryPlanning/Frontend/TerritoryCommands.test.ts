@@ -1,15 +1,21 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  alignObjectsAtomic,
   assignCanonicalGovernorIdentity,
   assignExternalGovernorIdentity,
+  distributeObjectsAtomic,
   materializeHiveProposal,
   objectIsLocked,
   rotateObjectsAtomic,
   selectionPivot,
+  setObjectCoordinatesAtomic,
   translateObjectsAtomic,
 } from '../../../../resources/js/features/territory-planner/engine/commands.ts';
-import type { MapData, PlanObject } from '../../../../resources/js/features/territory-planner/engine/types.ts';
+import type {
+  MapData,
+  PlanObject,
+} from '../../../../resources/js/features/territory-planner/engine/types.ts';
 
 const map = {
   object_types: {
@@ -27,8 +33,18 @@ function object(
   metadata: Record<string, unknown> = {},
 ): PlanObject {
   return {
-    key, alliance_key: 'a', group_key: 'g', type, player_id: null, external_player_name: null,
-    label: null, x, y, rotation: 0, sort_order: 0, metadata,
+    key,
+    alliance_key: 'a',
+    group_key: 'g',
+    type,
+    player_id: null,
+    external_player_name: null,
+    label: null,
+    x,
+    y,
+    rotation: 0,
+    sort_order: 0,
+    metadata,
   };
 }
 const editable = (candidate: PlanObject) => !objectIsLocked(candidate, false);
@@ -51,21 +67,127 @@ test('group rotation transforms member positions around the declared pivot', () 
   const result = rotateObjectsAtomic(map, objects, ['a', 'b'], 1, pivot, editable);
   assert.equal(result.ok, true);
   if (!result.ok) return;
-  assert.deepEqual(result.objects.map(({ key, x, y, rotation }) => ({ key, x, y, rotation })), [
-    { key: 'a', x: 2, y: 2, rotation: 90 },
-    { key: 'b', x: 2, y: -2, rotation: 90 },
-  ]);
+  assert.deepEqual(
+    result.objects.map(({ key, x, y, rotation }) => ({ key, x, y, rotation })),
+    [
+      { key: 'a', x: 2, y: 2, rotation: 90 },
+      { key: 'b', x: 2, y: -2, rotation: 90 },
+    ],
+  );
 });
 
 test('rectangular footprint uses its post-rotation dimensions and remains integer snapped', () => {
   const rectangularMap = structuredClone(map);
   rectangularMap.object_types.governor_city.footprint = { width: 2, height: 3 };
   const source = object('a', 5, 7);
-  const result = rotateObjectsAtomic(rectangularMap, [source], ['a'], 1, { x: 6, y: 8.5 }, editable);
+  const result = rotateObjectsAtomic(
+    rectangularMap,
+    [source],
+    ['a'],
+    1,
+    { x: 6, y: 8.5 },
+    editable,
+  );
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.deepEqual(result.objects[0], { ...source, x: 5, y: 8, rotation: 90 });
-  assert.equal(Number.isInteger(result.objects[0]!.x) && Number.isInteger(result.objects[0]!.y), true);
+  assert.equal(
+    Number.isInteger(result.objects[0]!.x) && Number.isInteger(result.objects[0]!.y),
+    true,
+  );
+});
+
+test('alignment is footprint-aware and refuses a mixed locked selection atomically', () => {
+  const objects = [
+    object('a', 2, 4, 'banner'),
+    object('b', 8, 8, 'governor_city'),
+    object('c', 14, 12, 'headquarters'),
+  ];
+  const aligned = alignObjectsAtomic(map, objects, ['a', 'b', 'c'], 'right', editable);
+  assert.equal(aligned.ok, true);
+  if (!aligned.ok) return;
+  assert.deepEqual(
+    aligned.objects.map(({ key, x }) => ({ key, x })),
+    [
+      { key: 'a', x: 16 },
+      { key: 'b', x: 15 },
+      { key: 'c', x: 14 },
+    ],
+  );
+
+  const locked = { ...objects[1]!, metadata: { locked: true } };
+  assert.deepEqual(
+    alignObjectsAtomic(map, [objects[0]!, locked], ['a', 'b'], 'top', editable),
+    { ok: false, reason: 'locked_selection', blockedKeys: ['b'] },
+  );
+});
+
+test('distribution keeps outer objects anchored and spaces centres deterministically', () => {
+  const objects = [
+    object('a', 0, 0, 'banner'),
+    object('b', 2, 4, 'governor_city'),
+    object('c', 10, 8, 'banner'),
+  ];
+  const result = distributeObjectsAtomic(map, objects, ['a', 'b', 'c'], 'horizontal', editable);
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.deepEqual(
+    result.objects.map(({ key, x }) => ({ key, x })),
+    [
+      { key: 'a', x: 0 },
+      { key: 'b', x: 5 },
+      { key: 'c', x: 10 },
+    ],
+  );
+});
+
+test('bulk coordinates are atomic, integer-only and reject duplicate or unknown keys', () => {
+  const objects = [object('a', 1, 1), object('b', 2, 2)];
+  const result = setObjectCoordinatesAtomic(
+    objects,
+    [
+      { key: 'a', x: 100, y: 200 },
+      { key: 'b', x: 300, y: 400 },
+    ],
+    editable,
+  );
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.deepEqual(
+    result.objects.map(({ key, x, y }) => ({ key, x, y })),
+    [
+      { key: 'a', x: 100, y: 200 },
+      { key: 'b', x: 300, y: 400 },
+    ],
+  );
+  assert.throws(
+    () => setObjectCoordinatesAtomic(objects, [{ key: 'a', x: 1.5, y: 2 }], editable),
+    /integer/,
+  );
+  assert.throws(
+    () =>
+      setObjectCoordinatesAtomic(
+        objects,
+        [
+          { key: 'a', x: 1, y: 2 },
+          { key: 'a', x: 3, y: 4 },
+        ],
+        editable,
+      ),
+    /duplicate/,
+  );
+  assert.throws(
+    () =>
+      setObjectCoordinatesAtomic(
+        objects,
+        [
+          { key: 'a', x: 1, y: 2 },
+          { key: 'missing', x: 3, y: 4 },
+        ],
+        editable,
+      ),
+    /unknown object key/,
+  );
 });
 
 test('Governor identity transitions preserve slot-state invariants', () => {
@@ -90,14 +212,28 @@ test('Governor identity transitions preserve slot-state invariants', () => {
 
 test('hive proposal materialization preserves deterministic keys, groups and slot metadata', () => {
   const proposal = [
-    { ...object('hive-a-city-1', 10, 10, 'governor_city', { slot_state: 'open' }), group_key: 'hive-a' },
-    { ...object('hive-a-city-2', 13, 10, 'governor_city', { slot_state: 'open' }), group_key: 'hive-a' },
+    {
+      ...object('hive-a-city-1', 10, 10, 'governor_city', { slot_state: 'open' }),
+      group_key: 'hive-a',
+    },
+    {
+      ...object('hive-a-city-2', 13, 10, 'governor_city', { slot_state: 'open' }),
+      group_key: 'hive-a',
+    },
   ];
   const installed = materializeHiveProposal(proposal, 7);
-  assert.deepEqual(installed.map((item) => item.key), ['hive-a-city-1', 'hive-a-city-2']);
-  assert.deepEqual(installed.map((item) => item.group_key), ['hive-a', 'hive-a']);
-  assert.deepEqual(installed.map((item) => item.sort_order), [7, 8]);
+  assert.deepEqual(
+    installed.map((item) => item.key),
+    ['hive-a-city-1', 'hive-a-city-2'],
+  );
+  assert.deepEqual(
+    installed.map((item) => item.group_key),
+    ['hive-a', 'hive-a'],
+  );
+  assert.deepEqual(
+    installed.map((item) => item.sort_order),
+    [7, 8],
+  );
   assert.equal(installed[0]?.metadata.slot_state, 'open');
   assert.throws(() => materializeHiveProposal([proposal[0]!, proposal[0]!], 0), /unique/);
 });
-

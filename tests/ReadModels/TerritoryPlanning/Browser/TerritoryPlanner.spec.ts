@@ -3,19 +3,22 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const territoryVisualFingerprints: Record<string, string> = {
-  desktop: '4a21a9a563fa545e46feac70eb0916efceadb082d4024a7485ca1fcf97d8c0b6',
-  mobile: 'e240171fe0ac14c41550a68000e974320cfb764182573659411d9ea717f2e442',
+  desktop: '344ac1613035b8cc8098072c875b47603e8fc8b7e02e76e11f45a53244abb5df',
+  mobile: '5f542071cf672e7b31283889864349c6b46ac01a4e488099e53e3122e27ca92a',
 };
 
 const territoryReconciliationFingerprints: Record<string, string> = {
-  desktop: '5ad1f7c066ec8f4228733a73f5099bf06c1c5de75dee8eea49420d09ead8289c',
-  mobile: '5d6f2437dc1d32501ca9e02f8ad12b4add50d588bfc3e98f670c069be43e69bd',
+  desktop: 'bed1e04479bd351b4561f561ce5033130ada82fd231d76cbf64d8f8e181add86',
+  mobile: 'e35cb779b2eec3bdf92f455d78268847cde23c827c410b3eaa60b0f40fbca383',
 };
+
+const territoryVisualTime = new Date('2026-09-14T12:00:00Z');
 
 async function activateVisualGovernor(
   page: Page,
   email = 'territory-visual@example.test',
 ): Promise<void> {
+  await page.clock.setFixedTime(territoryVisualTime);
   await page.goto('/login');
   await page.locator('#email').fill(email);
   await page.locator('#password').fill('password');

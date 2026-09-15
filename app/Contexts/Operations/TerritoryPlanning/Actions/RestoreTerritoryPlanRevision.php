@@ -7,6 +7,7 @@ namespace App\Contexts\Operations\TerritoryPlanning\Actions;
 use App\Contexts\Operations\TerritoryPlanning\Exceptions\TerritoryRevisionConflict;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanRevision;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryLayoutContract;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryLayoutDocumentContract;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanningAuthorization;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanSnapshotBuilder;
 use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryPlanWriteState;
@@ -22,7 +23,7 @@ final readonly class RestoreTerritoryPlanRevision
         private TerritoryPlanWriteState $writeState,
         private TerritoryPlanningAuthorization $authorization,
         private SaveTerritoryPlan $save,
-        private TerritoryLayoutContract $contract,
+        private TerritoryLayoutDocumentContract $contract,
         private TerritoryPlanSnapshotBuilder $snapshots,
         private AuditRecorder $audit,
     ) {}
@@ -55,6 +56,7 @@ final readonly class RestoreTerritoryPlanRevision
             $alliances = $this->rows($snapshot['alliances'] ?? null);
             $groups = $this->rows($snapshot['groups'] ?? null);
             $objects = $this->rows($snapshot['objects'] ?? null);
+            $annotations = $this->rows($snapshot['annotations'] ?? null);
             $planData = $snapshot['plan'] ?? null;
             if (! is_array($planData)) {
                 throw $this->invalidSnapshot();
@@ -76,6 +78,7 @@ final readonly class RestoreTerritoryPlanRevision
                 $groups,
                 $objects,
                 $preferences,
+                $annotations,
             );
 
             $plan = $context->plan->refresh();

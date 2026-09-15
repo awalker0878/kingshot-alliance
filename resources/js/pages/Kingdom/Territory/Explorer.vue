@@ -7,9 +7,12 @@ import RoomBanner from '@/components/game/RoomBanner.vue';
 import ActionNotice from '@/components/ui/ActionNotice.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import TerritoryCanvas from '@/features/territory-planner/components/TerritoryCanvas.vue';
+import TerritoryMinimap from '@/features/territory-planner/components/TerritoryMinimap.vue';
+import TerritoryObjectList from '@/features/territory-planner/components/TerritoryObjectList.vue';
 import { buildTerritoryScene, sceneSearchPage } from '@/features/territory-planner/engine/scene';
 import type { TerritorySceneEntity } from '@/features/territory-planner/engine/scene-types';
 import type { MapData } from '@/features/territory-planner/engine/types';
+import type { Viewport } from '@/features/territory-planner/engine/viewport';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -54,6 +57,8 @@ const viewsLoaded = ref(false);
 const mobilePanel = ref<'map' | 'tools' | 'objects'>('map');
 const mapHost = ref<HTMLElement | null>(null);
 const isFullscreen = ref(false);
+const currentViewport = ref<Viewport | null>(null);
+let viewportFrame: number | null = null;
 let requestController = new AbortController();
 let disposed = false;
 const selectedReference = ref<string | null>(null);
@@ -141,12 +146,14 @@ async function jsonRequest(
     disposed ||
     signal.aborted ||
     authority !== `${props.activePlayer.id}:${props.territory.map.id}:${authorityContextKey()}`
-  )
+  ) {
     throw new Error(t('territory.requestFailed'));
-  if (!response.ok)
+  }
+  if (!response.ok) {
     throw new Error(
       typeof payload.message === 'string' ? payload.message : t('territory.requestFailed'),
     );
+  }
   return payload;
 }
 function inspect(entity: TerritorySceneEntity): void {
@@ -171,6 +178,15 @@ function jump(): void {
     return;
   }
   canvas.value?.jumpTo({ x: coordinateX.value, y: coordinateY.value });
+}
+function navigateFromMinimap(point: { x: number; y: number }): void {
+  coordinateX.value = point.x;
+  coordinateY.value = point.y;
+  canvas.value?.jumpTo(point);
+}
+function syncViewport(): void {
+  currentViewport.value = canvas.value?.viewport() ?? null;
+  viewportFrame = window.requestAnimationFrame(syncViewport);
 }
 function layerSnapshot(): Record<string, { visible: boolean; opacity: number }> {
   return {
@@ -230,11 +246,12 @@ async function persistViews(views: WorkspaceView[]): Promise<void> {
       message: t('territory.saved', { revision: workspaceRevision.value }),
     };
   } catch (error) {
-    if (!disposed && !requestController.signal.aborted)
+    if (!disposed && !requestController.signal.aborted) {
       notice.value = {
         tone: 'danger',
         message: error instanceof Error ? error.message : t('territory.requestFailed'),
       };
+    }
   } finally {
     busy.value = false;
   }
@@ -312,6 +329,7 @@ watch(
 );
 onMounted(() => {
   void loadViews();
+  viewportFrame = window.requestAnimationFrame(syncViewport);
   window.addEventListener(AUTHORITY_CONTEXT_STALE_EVENT, clearPrivateViews);
   document.addEventListener('fullscreenchange', fullscreenChanged);
 });
@@ -319,6 +337,7 @@ onBeforeUnmount(() => {
   disposed = true;
   clearPrivateViews();
   requestController.abort();
+  if (viewportFrame !== null) window.cancelAnimationFrame(viewportFrame);
   window.removeEventListener(AUTHORITY_CONTEXT_STALE_EVENT, clearPrivateViews);
   document.removeEventListener('fullscreenchange', fullscreenChanged);
 });
@@ -505,6 +524,12 @@ onBeforeUnmount(() => {
           :show-zones="showZones"
           @inspect-reference="inspectReference"
         />
+        <TerritoryMinimap
+          :bounds="territory.map.data.bounds"
+          :viewport="currentViewport"
+          :label="t('territory.explorer.map')"
+          @navigate="navigateFromMinimap"
+        />
         <section class="ks-surface mt-4 p-4" aria-live="polite">
           <p class="text-sm text-[var(--ks-muted)]">
             {{
@@ -549,6 +574,8 @@ onBeforeUnmount(() => {
             <dd>{{ selected.bounds.width }}×{{ selected.bounds.height }}</dd>
             <dt>{{ t('territory.explorer.confidence') }}</dt>
             <dd>{{ selected.confidence ?? territory.map.confidence }}</dd>
+            <dt>{{ t('territory.mapSource') }}</dt>
+            <dd>{{ selected.provenance.join(' · ') || selected.sourceKey }}</dd>
           </dl>
           <a
             v-if="territory.map.source_uri"
@@ -586,24 +613,13 @@ onBeforeUnmount(() => {
               >{{ t('territory.explorer.next') }}</AppButton
             >
           </nav>
-          <div
-            class="mt-2 max-h-[32rem] overflow-auto"
-            :aria-label="t('territory.explorer.searchableObjects')"
-          >
-            <button
-              v-for="entity in results"
-              :key="entity.key"
-              type="button"
-              class="block min-h-11 w-full border-b border-[var(--ks-border)] px-2 py-2 text-left text-sm focus-visible:outline-2 focus-visible:outline-offset-[-2px]"
-              :aria-pressed="selectedReference === entity.key"
-              @click="inspect(entity)"
-            >
-              <span class="block font-semibold">{{ entity.label }}</span>
-              <span class="text-xs text-[var(--ks-muted)]"
-                >{{ entity.layer }} · X{{ entity.bounds.x }} Y{{ entity.bounds.y }}</span
-              >
-            </button>
-          </div>
+          <TerritoryObjectList
+            class="mt-2"
+            :entities="results"
+            :selected-key="selectedReference"
+            :label="t('territory.explorer.searchableObjects')"
+            @inspect="inspect"
+          />
         </div>
       </aside>
     </div>
