@@ -20,7 +20,10 @@ final readonly class CreateTerritoryRendition
         private TerritoryPlanningAuthorization $authorization,
     ) {}
 
-    /** @param array<string,mixed> $metadata */
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @return array{id:string,territory_plan_revision_id:string,scope:string,media_type:string,content_checksum:string,content_bytes:int,metadata:array<string,mixed>,created_at:?string}
+     */
     public function handle(
         string $actorPlayerId,
         string $planId,
@@ -29,7 +32,7 @@ final readonly class CreateTerritoryRendition
         string $mediaType,
         string $contentBase64,
         array $metadata,
-    ): TerritoryRendition {
+    ): array {
         $bytes = base64_decode($contentBase64, true);
         if ($bytes === false || $bytes === '' || strlen($bytes) > self::MAX_BYTES) {
             throw ValidationException::withMessages(['content' => 'Rendition content must be valid base64 between 1 byte and 5 MB.']);
@@ -44,7 +47,7 @@ final readonly class CreateTerritoryRendition
         $this->assertMetadata($metadata);
         $checksum = hash('sha256', $bytes);
 
-        return DB::transaction(function () use ($actorPlayerId, $planId, $revisionId, $scope, $mediaType, $contentBase64, $metadata, $bytes, $checksum): TerritoryRendition {
+        return DB::transaction(function () use ($actorPlayerId, $planId, $revisionId, $scope, $mediaType, $contentBase64, $metadata, $bytes, $checksum): array {
             $context = $this->writeState->lock($actorPlayerId, $planId);
             $this->authorization->authorizeManage($context);
             $revision = TerritoryPlanRevision::query()
@@ -56,7 +59,7 @@ final readonly class CreateTerritoryRendition
                 throw ValidationException::withMessages(['revision' => 'Renditions must use the plan revision map pin.']);
             }
 
-            return TerritoryRendition::query()->firstOrCreate(
+            $rendition = TerritoryRendition::query()->firstOrCreate(
                 [
                     'territory_plan_revision_id' => $revisionId,
                     'scope' => $scope,
@@ -72,6 +75,17 @@ final readonly class CreateTerritoryRendition
                     'created_at' => now(),
                 ],
             );
+
+            return [
+                'id' => (string) $rendition->id,
+                'territory_plan_revision_id' => (string) $rendition->territory_plan_revision_id,
+                'scope' => (string) $rendition->scope,
+                'media_type' => (string) $rendition->media_type,
+                'content_checksum' => (string) $rendition->content_checksum,
+                'content_bytes' => (int) $rendition->content_bytes,
+                'metadata' => is_array($rendition->metadata) ? $rendition->metadata : [],
+                'created_at' => $rendition->created_at?->toIso8601String(),
+            ];
         });
     }
 
@@ -102,7 +116,7 @@ final readonly class CreateTerritoryRendition
             && ! str_contains($lower, '<foreignobject');
     }
 
-    /** @param array<string,mixed> $metadata */
+    /** @param  array<string, mixed>  $metadata */
     private function assertMetadata(array $metadata): void
     {
         $allowed = [
