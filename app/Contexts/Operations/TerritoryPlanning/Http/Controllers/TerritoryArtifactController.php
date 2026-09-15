@@ -62,10 +62,7 @@ final class TerritoryArtifactController extends Controller
             $data['planning_preferences'],
         );
 
-        return response()->json(['template' => $template->only([
-            'id', 'kingdom_id', 'name', 'map_dataset_id', 'map_dataset_checksum',
-            'style', 'city_count', 'spacing', 'planning_preferences',
-        ])]);
+        return response()->json(['template' => $template]);
     }
 
     public function instantiateTemplate(
@@ -121,9 +118,6 @@ final class TerritoryArtifactController extends Controller
             $data['metadata'],
         );
 
-        return response()->json(['rendition' => $rendition->only([
-            'id', 'territory_plan_revision_id', 'scope', 'media_type',
-            'content_checksum', 'content_bytes', 'metadata', 'created_at',
-        ])]);
+        return response()->json(['rendition' => $rendition]);
     }
 }
