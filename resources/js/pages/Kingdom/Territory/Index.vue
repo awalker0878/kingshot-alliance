@@ -101,6 +101,13 @@ function submit(): void {
                 {{ t('territory.editorTitle') }}
               </Link>
               <Link
+                :href="`/territory/${plan.id}/tools`"
+                class="ks-command-link"
+                data-variant="secondary"
+              >
+                Layout tools
+              </Link>
+              <Link
                 :href="`/territory/${plan.id}/reconciliation`"
                 class="ks-command-link"
                 data-variant="secondary"
