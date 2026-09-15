@@ -99,7 +99,7 @@ final class TerritoryPlanSnapshotBuilder
             ->values()
             ->all();
 
-        return [
+        $snapshot = [
             'schema_version' => TerritoryLayoutContract::SCHEMA_VERSION,
             'plan' => [
                 'id' => $plan->id,
@@ -115,11 +115,15 @@ final class TerritoryPlanSnapshotBuilder
             'alliances' => $alliances,
             'groups' => $groups,
             'objects' => $objects,
-            'annotations' => $annotations,
         ];
+        if ($annotations !== []) {
+            $snapshot['annotations'] = $annotations;
+        }
+
+        return $snapshot;
     }
 
-    /** @param array<string, mixed> $snapshot */
+    /** @param  array<string, mixed>  $snapshot */
     public function checksum(array $snapshot): string
     {
         return hash(
