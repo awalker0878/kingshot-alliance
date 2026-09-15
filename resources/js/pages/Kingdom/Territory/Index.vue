@@ -105,7 +105,7 @@ function submit(): void {
                 class="ks-command-link"
                 data-variant="secondary"
               >
-                Layout tools
+                {{ t('territory.tools.title') }}
               </Link>
               <Link
                 :href="`/territory/${plan.id}/reconciliation`"

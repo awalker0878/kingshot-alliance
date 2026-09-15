@@ -114,7 +114,7 @@ const props = defineProps<{
   territory: TerritoryProp;
 }>();
 
-const { locale } = useLocale();
+const { locale, t } = useLocale();
 const cloneJson = <T,>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const alliances = ref<PlanAlliance[]>(cloneJson(props.territory.alliances));
 const groups = ref<PlanGroup[]>(cloneJson(props.territory.groups));
@@ -459,7 +459,7 @@ async function instantiateHiveTemplate(): Promise<void> {
         .filter((value): value is string => Boolean(value)),
     )) {
       if (!groupKeys.has(groupKey)) {
-        groups.value.push({ key: groupKey, label: 'Hive template' });
+        groups.value.push({ key: groupKey, label: t('territory.tools.hiveTemplate') });
         groupKeys.add(groupKey);
       }
     }
@@ -609,26 +609,31 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
 </script>
 
 <template>
-  <Head :title="`${territory.plan.name} · Layout Tools`" />
+  <Head :title="`${territory.plan.name} · ${t('territory.tools.title')}`" />
   <AppLayout :user="user">
     <header class="ks-surface p-5">
-      <p class="ks-kicker">Territory planning</p>
+      <p class="ks-kicker">{{ t('territory.tools.eyebrow') }}</p>
       <div class="mt-1 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 class="ks-display text-3xl font-semibold">Layout Tools</h1>
+          <h1 class="ks-display text-3xl font-semibold">{{ t('territory.tools.title') }}</h1>
           <p class="mt-2 text-sm text-[var(--ks-muted)]">
-            {{ territory.plan.name }} · revision {{ revision }} · {{ status }}
+            {{ territory.plan.name }} · {{ t('territory.revision', { revision }) }} ·
+            {{ t(`territory.status.${status}`) }}
           </p>
         </div>
-        <nav class="flex flex-wrap gap-2" aria-label="Territory plan navigation">
-          <Link :href="`/territory/${territory.plan.id}`" class="ks-command-link">Editor</Link>
+        <nav class="flex flex-wrap gap-2" :aria-label="t('territory.tools.navigation')">
+          <Link :href="`/territory/${territory.plan.id}`" class="ks-command-link">{{
+            t('territory.editorTitle')
+          }}</Link>
           <Link
             :href="`/territory/${territory.plan.id}/reconciliation`"
             class="ks-command-link"
             data-variant="secondary"
-            >Plan vs observed</Link
+            >{{ t('territory.reconciliationTitle') }}</Link
           >
-          <Link href="/territory" class="ks-command-link" data-variant="secondary">Plans</Link>
+          <Link href="/territory" class="ks-command-link" data-variant="secondary">{{
+            t('territory.plansHeading')
+          }}</Link>
         </nav>
       </div>
     </header>
@@ -639,58 +644,62 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
       <section class="ks-surface p-4" aria-labelledby="transform-heading">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p class="ks-kicker">Atomic editing</p>
+            <p class="ks-kicker">{{ t('territory.tools.atomicEditing') }}</p>
             <h2 id="transform-heading" class="ks-display text-xl font-semibold">
-              Align, distribute and bulk coordinates
+              {{ t('territory.tools.transformTitle') }}
             </h2>
           </div>
-          <span class="ks-chip">{{ selectedCount }} selected</span>
+          <span class="ks-chip">{{ t('territory.selectedCount', { count: selectedCount }) }}</span>
         </div>
         <div class="mt-3 flex flex-wrap gap-2">
-          <AppButton data-variant="secondary" @click="selectAllEditable">Select editable</AppButton>
-          <AppButton data-variant="secondary" @click="selectedKeys = []">Clear</AppButton>
+          <AppButton data-variant="secondary" @click="selectAllEditable">{{
+            t('territory.tools.selectEditable')
+          }}</AppButton>
+          <AppButton data-variant="secondary" @click="selectedKeys = []">{{
+            t('territory.tools.clear')
+          }}</AppButton>
         </div>
         <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
           <button
             v-for="item in [
-              ['left', 'Align left'],
-              ['center_x', 'Center X'],
-              ['right', 'Align right'],
-              ['top', 'Align top'],
-              ['center_y', 'Center Y'],
-              ['bottom', 'Align bottom'],
+              ['left', 'territory.tools.alignLeft'],
+              ['center_x', 'territory.tools.centerX'],
+              ['right', 'territory.tools.alignRight'],
+              ['top', 'territory.tools.alignTop'],
+              ['center_y', 'territory.tools.centerY'],
+              ['bottom', 'territory.tools.alignBottom'],
             ] as const"
             :key="item[0]"
             class="ks-command-link"
             :disabled="!selectedCount"
             @click="align(item[0])"
           >
-            {{ item[1] }}
+            {{ t(item[1]) }}
           </button>
           <button
             class="ks-command-link"
             :disabled="selectedCount < 3"
             @click="distribute('horizontal')"
           >
-            Distribute X
+            {{ t('territory.tools.distributeX') }}
           </button>
           <button
             class="ks-command-link"
             :disabled="selectedCount < 3"
             @click="distribute('vertical')"
           >
-            Distribute Y
+            {{ t('territory.tools.distributeY') }}
           </button>
         </div>
         <div class="mt-4 max-h-[30rem] overflow-auto rounded border border-[var(--ks-border)]">
           <table class="w-full min-w-[42rem] text-sm">
             <thead class="sticky top-0 bg-[var(--ks-surface)]">
               <tr class="text-start text-xs text-[var(--ks-muted)]">
-                <th class="p-2">Select</th>
-                <th class="p-2 text-start">Object</th>
-                <th class="p-2 text-start">Layer</th>
-                <th class="p-2">X</th>
-                <th class="p-2">Y</th>
+                <th class="p-2">{{ t('territory.select') }}</th>
+                <th class="p-2 text-start">{{ t('territory.object') }}</th>
+                <th class="p-2 text-start">{{ t('territory.layer') }}</th>
+                <th class="p-2">{{ t('territory.explorer.xCoordinate') }}</th>
+                <th class="p-2">{{ t('territory.explorer.yCoordinate') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -705,7 +714,11 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
                     type="checkbox"
                     :value="object.key"
                     :disabled="!editable(object)"
-                    :aria-label="`Select ${object.label ?? object.external_player_name ?? object.key}`"
+                    :aria-label="
+                      t('territory.tools.selectObject', {
+                        object: object.label ?? object.external_player_name ?? object.key,
+                      })
+                    "
                   />
                 </td>
                 <td class="p-2">
@@ -723,61 +736,64 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
             :busy="busy"
             :disabled="!dirty || !territory.plan.can_manage"
             @click="saveLayout"
-            >Save layout</AppButton
+            >{{ t('territory.save') }}</AppButton
           >
-          <span v-if="dirty" class="text-xs text-amber-200">Unsaved layout changes</span>
+          <span v-if="dirty" class="text-xs text-amber-200">{{
+            t('territory.tools.unsavedChanges')
+          }}</span>
         </div>
       </section>
 
       <section class="ks-surface p-4" aria-labelledby="csv-heading">
-        <p class="ks-kicker">Interchange</p>
-        <h2 id="csv-heading" class="ks-display text-xl font-semibold">CSV coordinate table</h2>
+        <p class="ks-kicker">{{ t('territory.tools.interchange') }}</p>
+        <h2 id="csv-heading" class="ks-display text-xl font-semibold">
+          {{ t('territory.tools.csvTitle') }}
+        </h2>
         <p class="mt-2 text-sm text-[var(--ks-muted)]">
-          Preview is strict and bounded; applying coordinates is one atomic command and respects
-          locks.
+          {{ t('territory.tools.csvHelp') }}
         </p>
         <a
           :href="`/territory/${territory.plan.id}/coordinates.csv`"
           class="ks-command-link mt-3 inline-flex"
-          >Export CSV</a
+          >{{ t('territory.tools.exportCsv') }}</a
         >
         <label class="mt-4 block text-sm font-semibold"
-          >CSV preview
+          >{{ t('territory.tools.csvPreview') }}
           <textarea
             v-model="csvText"
             class="ks-input mt-2 min-h-48 w-full font-mono text-xs"
-            placeholder="key,type,variant_key,x,y,rotation,..."
+            :placeholder="t('territory.tools.csvPlaceholder')"
           />
         </label>
         <div class="mt-3 flex flex-wrap gap-2">
-          <AppButton :busy="busy" :disabled="!csvText.trim()" @click="previewCsv"
-            >Validate CSV</AppButton
-          >
+          <AppButton :busy="busy" :disabled="!csvText.trim()" @click="previewCsv">{{
+            t('territory.tools.validateCsv')
+          }}</AppButton>
           <AppButton
             data-variant="secondary"
             :disabled="!coordinatePreview.length"
             @click="applyCsvCoordinates"
-            >Apply coordinates</AppButton
+            >{{ t('territory.tools.applyCoordinates') }}</AppButton
           >
         </div>
         <p v-if="coordinatePreview.length" class="mt-2 text-xs text-[var(--ks-muted)]">
-          {{ coordinatePreview.length }} validated row(s) ready to apply.
+          {{ t('territory.tools.validatedRows', { count: coordinatePreview.length }) }}
         </p>
       </section>
 
       <section class="ks-surface p-4" aria-labelledby="annotations-heading">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p class="ks-kicker">Annotations</p>
+            <p class="ks-kicker">{{ t('territory.tools.annotations') }}</p>
             <h2 id="annotations-heading" class="ks-display text-xl font-semibold">
-              Plan annotations
+              {{ t('territory.tools.planAnnotations') }}
             </h2>
           </div>
           <AppButton
             data-variant="secondary"
             :disabled="annotations.length >= 500"
             @click="addAnnotation"
-            >Add annotation</AppButton
+            >{{ t('territory.tools.addAnnotation') }}</AppButton
           >
         </div>
         <div class="mt-3 space-y-3">
@@ -786,23 +802,27 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
             :key="annotation.key"
             class="rounded border border-[var(--ks-border)] p-3"
           >
-            <legend class="px-1 text-xs font-semibold">Annotation {{ index + 1 }}</legend>
+            <legend class="px-1 text-xs font-semibold">
+              {{ t('territory.tools.annotationNumber', { number: index + 1 }) }}
+            </legend>
             <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <label class="text-xs"
-                >Kind<select
+                >{{ t('territory.tools.kind')
+                }}<select
                   v-model="annotation.kind"
                   class="ks-input mt-1 w-full"
                   @change="normalizeAnnotationTarget(annotation)"
                 >
-                  <option value="label">Label</option>
-                  <option value="line">Line</option>
-                  <option value="arrow">Arrow</option>
-                  <option value="rectangle">Rectangle</option>
+                  <option value="label">{{ t('territory.tools.label') }}</option>
+                  <option value="line">{{ t('territory.tools.line') }}</option>
+                  <option value="arrow">{{ t('territory.tools.arrow') }}</option>
+                  <option value="rectangle">{{ t('territory.tools.rectangle') }}</option>
                 </select></label
               >
               <label class="text-xs"
-                >Alliance<select v-model="annotation.alliance_key" class="ks-input mt-1 w-full">
-                  <option :value="null">All layers</option>
+                >{{ t('territory.alliance')
+                }}<select v-model="annotation.alliance_key" class="ks-input mt-1 w-full">
+                  <option :value="null">{{ t('territory.tools.allLayers') }}</option>
                   <option v-for="alliance in alliances" :key="alliance.key" :value="alliance.key">
                     {{ alliance.display_name }}
                   </option>
@@ -815,19 +835,22 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
                 >Y<input v-model.number="annotation.y" type="number" class="ks-input mt-1 w-full"
               /></label>
               <label v-if="annotation.kind !== 'label'" class="text-xs"
-                >Target X<input
+                >{{ t('territory.tools.targetX')
+                }}<input
                   v-model.number="annotation.target_x"
                   type="number"
                   class="ks-input mt-1 w-full"
               /></label>
               <label v-if="annotation.kind !== 'label'" class="text-xs"
-                >Target Y<input
+                >{{ t('territory.tools.targetY')
+                }}<input
                   v-model.number="annotation.target_y"
                   type="number"
                   class="ks-input mt-1 w-full"
               /></label>
               <label class="text-xs sm:col-span-2"
-                >Text<input v-model="annotation.text" maxlength="500" class="ks-input mt-1 w-full"
+                >{{ t('territory.tools.text')
+                }}<input v-model="annotation.text" maxlength="500" class="ks-input mt-1 w-full"
               /></label>
             </div>
             <button
@@ -835,7 +858,7 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
               data-variant="danger"
               @click="annotations.splice(index, 1)"
             >
-              Remove
+              {{ t('territory.tools.remove') }}
             </button>
           </fieldset>
         </div>
@@ -844,30 +867,30 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
           :busy="busy"
           :disabled="!territory.plan.can_manage"
           @click="saveAnnotations"
-          >Save annotations</AppButton
+          >{{ t('territory.tools.saveAnnotations') }}</AppButton
         >
       </section>
 
       <section class="ks-surface p-4" aria-labelledby="templates-heading">
-        <p class="ks-kicker">Hive Builder</p>
+        <p class="ks-kicker">{{ t('territory.hiveBuilder') }}</p>
         <h2 id="templates-heading" class="ks-display text-xl font-semibold">
-          Reusable Hive templates
+          {{ t('territory.tools.reusableHiveTemplates') }}
         </h2>
         <div class="mt-3 grid gap-2 sm:grid-cols-2">
           <label class="text-xs"
-            >Template name<input
-              v-model="templateName"
-              maxlength="160"
-              class="ks-input mt-1 w-full"
+            >{{ t('territory.tools.templateName')
+            }}<input v-model="templateName" maxlength="160" class="ks-input mt-1 w-full"
           /></label>
           <label class="text-xs"
-            >Style<select v-model="templateStyle" class="ks-input mt-1 w-full">
-              <option value="swirl">Swirl</option>
-              <option value="banner_pad">Banner pad</option>
+            >{{ t('territory.tools.style')
+            }}<select v-model="templateStyle" class="ks-input mt-1 w-full">
+              <option value="swirl">{{ t('territory.tools.swirl') }}</option>
+              <option value="banner_pad">{{ t('territory.tools.bannerPad') }}</option>
             </select></label
           >
           <label class="text-xs"
-            >City count<input
+            >{{ t('territory.cityCount')
+            }}<input
               v-model.number="templateCityCount"
               type="number"
               min="1"
@@ -875,7 +898,8 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
               class="ks-input mt-1 w-full"
           /></label>
           <label class="text-xs"
-            >Spacing<input
+            >{{ t('territory.tools.spacing')
+            }}<input
               v-model.number="templateSpacing"
               type="number"
               min="0"
@@ -888,36 +912,35 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
           :busy="busy"
           :disabled="!territory.plan.can_manage || !templateName.trim()"
           @click="saveHiveTemplate"
-          >Save template</AppButton
+          >{{ t('territory.tools.saveTemplate') }}</AppButton
         >
         <div class="mt-4 border-t border-[var(--ks-border)] pt-3">
           <label class="text-xs"
-            >Saved template<select v-model="templateId" class="ks-input mt-1 w-full">
-              <option value="">Choose template</option>
+            >{{ t('territory.tools.savedTemplate')
+            }}<select v-model="templateId" class="ks-input mt-1 w-full">
+              <option value="">{{ t('territory.tools.chooseTemplate') }}</option>
               <option v-for="template in templates" :key="template.id" :value="template.id">
-                {{ template.name }} · {{ template.style }} · {{ template.city_count }} cities
+                {{ template.name }} · {{ template.style }} ·
+                {{ t('territory.tools.cities', { count: template.city_count }) }}
               </option>
             </select></label
           >
           <div class="mt-2 grid gap-2 sm:grid-cols-3">
             <label class="text-xs"
-              >Alliance<select v-model="templateAllianceKey" class="ks-input mt-1 w-full">
+              >{{ t('territory.alliance')
+              }}<select v-model="templateAllianceKey" class="ks-input mt-1 w-full">
                 <option v-for="alliance in alliances" :key="alliance.key" :value="alliance.key">
                   {{ alliance.display_name }}
                 </option>
               </select></label
             >
             <label class="text-xs"
-              >Center X<input
-                v-model.number="templateCenterX"
-                type="number"
-                class="ks-input mt-1 w-full"
+              >{{ t('territory.tools.centerX')
+              }}<input v-model.number="templateCenterX" type="number" class="ks-input mt-1 w-full"
             /></label>
             <label class="text-xs"
-              >Center Y<input
-                v-model.number="templateCenterY"
-                type="number"
-                class="ks-input mt-1 w-full"
+              >{{ t('territory.tools.centerY')
+              }}<input v-model.number="templateCenterY" type="number" class="ks-input mt-1 w-full"
             /></label>
           </div>
           <AppButton
@@ -925,7 +948,7 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
             :busy="busy"
             :disabled="!templateId || !templateAllianceKey"
             @click="instantiateHiveTemplate"
-            >Instantiate template</AppButton
+            >{{ t('territory.tools.instantiateTemplate') }}</AppButton
           >
         </div>
       </section>
@@ -933,32 +956,31 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
       <section class="ks-surface p-4 xl:col-span-2" aria-labelledby="renditions-heading">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p class="ks-kicker">Visual evidence</p>
+            <p class="ks-kicker">{{ t('territory.tools.visualEvidence') }}</p>
             <h2 id="renditions-heading" class="ks-display text-xl font-semibold">
-              Persisted renditions
+              {{ t('territory.tools.persistedRenditions') }}
             </h2>
           </div>
           <AppButton
             :busy="busy"
             :disabled="!territory.plan.can_manage"
             @click="persistArtworkRendition"
-            >Persist artwork SVG</AppButton
+            >{{ t('territory.tools.persistArtworkSvg') }}</AppButton
           >
         </div>
         <p class="mt-2 text-sm text-[var(--ks-muted)]">
-          Persistence is revision-pinned and fails closed until real authorized artwork bytes can be
-          embedded.
+          {{ t('territory.tools.renditionHelp') }}
         </p>
         <div class="mt-3 overflow-auto">
           <table class="w-full min-w-[48rem] text-sm">
             <thead>
               <tr class="text-start text-xs text-[var(--ks-muted)]">
-                <th class="p-2 text-start">Created</th>
-                <th class="p-2 text-start">Revision</th>
-                <th class="p-2 text-start">Scope</th>
-                <th class="p-2 text-start">Type</th>
-                <th class="p-2 text-start">Checksum</th>
-                <th class="p-2">Action</th>
+                <th class="p-2 text-start">{{ t('territory.tools.created') }}</th>
+                <th class="p-2 text-start">{{ t('territory.tools.revision') }}</th>
+                <th class="p-2 text-start">{{ t('territory.scope') }}</th>
+                <th class="p-2 text-start">{{ t('territory.tools.type') }}</th>
+                <th class="p-2 text-start">{{ t('territory.tools.checksum') }}</th>
+                <th class="p-2">{{ t('territory.tools.action') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -976,7 +998,7 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
                 </td>
                 <td class="p-2 text-center">
                   <button class="ks-command-link" @click="reopenRendition(rendition)">
-                    Reopen
+                    {{ t('territory.tools.reopen') }}
                   </button>
                 </td>
               </tr>
