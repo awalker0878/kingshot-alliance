@@ -516,9 +516,9 @@ async function persistArtworkRendition(): Promise<void> {
     const exportModule = await import('@/features/territory-planner/engine/export');
     const artworkRuntime = await import('@/features/territory-planner/engine/artwork-runtime');
     const artworkModule = await import('@/features/territory-planner/engine/artwork');
-    const options: { image?: Parameters<typeof exportModule.buildSvg>[4]['image'] } = {};
+    const options: Parameters<typeof artworkRuntime.attachExportArtwork>[0] = {};
     const attached = await artworkRuntime.attachExportArtwork(options);
-    if (!attached) {
+    if (!attached || !options.image) {
       throw new Error(
         'Authorized Kingshot artwork bytes are not delivered; an artwork-bearing rendition cannot be persisted.',
       );
@@ -541,7 +541,7 @@ async function persistArtworkRendition(): Promise<void> {
         locale: locale.value,
         fontFamily: exportModule.EXPORT_FONT_FAMILY,
       },
-      options,
+      { image: options.image },
     );
     const payload = await jsonRequest(`/territory/${props.territory.plan.id}/renditions`, 'POST', {
       revision_id: published.id,
@@ -573,9 +573,11 @@ async function persistArtworkRendition(): Promise<void> {
   }
 }
 
-function bytesFromBase64(value: string): Uint8Array {
+function bytesFromBase64(value: string): Uint8Array<ArrayBuffer> {
   const binary = atob(value);
-  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+  return bytes;
 }
 
 async function reopenRendition(rendition: Rendition): Promise<void> {
