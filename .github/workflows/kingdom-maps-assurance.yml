@@ -18,7 +18,6 @@ on:
       - 'tests/Contexts/GameWorld/KingdomMaps/**'
       - 'scripts/check-territory-geometry-parity.mjs'
       - 'scripts/check-kingdom-map-art.mjs'
-      - 'scripts/localize-territory-tools.py'
       - '.github/workflows/kingdom-maps-assurance.yml'
   push:
     branches:
@@ -46,60 +45,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  localize-tools:
-    name: Localize Territory Tools
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-
-    steps:
-      - name: Check out PR head
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
-
-      - name: Configure Node.js
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version: '24'
-          cache: npm
-
-      - name: Install locked frontend dependencies
-        run: npm ci --no-audit --no-fund
-
-      - name: Apply and verify localization
-        shell: bash
-        run: |
-          if grep -Fq 'const { locale } = useLocale();' resources/js/pages/Kingdom/Territory/Tools.vue; then
-            python scripts/localize-territory-tools.py
-          else
-            echo 'Territory Tools localization already applied.'
-          fi
-          npx prettier resources/js/pages/Kingdom/Territory/Tools.vue resources/js/pages/Kingdom/Territory/Index.vue resources/js/localization/messages/territory --write
-          npm run check:page-localization-coverage
-          npm run check:territory-localization
-          npm run types:check
-
-      - name: Commit localized surface
-        shell: bash
-        run: |
-          if git diff --quiet -- resources/js/pages/Kingdom/Territory/Tools.vue resources/js/pages/Kingdom/Territory/Index.vue resources/js/localization/messages/territory; then
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add resources/js/pages/Kingdom/Territory/Tools.vue resources/js/pages/Kingdom/Territory/Index.vue resources/js/localization/messages/territory
-          git commit -m 'feat(territory): localize layout tools surface'
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
-
   kingdom-maps:
     name: KingdomMaps release and geometry
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    permissions:
-      contents: read
 
     services:
       postgres:
