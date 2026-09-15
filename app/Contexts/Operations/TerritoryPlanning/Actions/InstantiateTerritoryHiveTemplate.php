@@ -34,7 +34,9 @@ final readonly class InstantiateTerritoryHiveTemplate
         int $centerX,
         int $centerY,
     ): array {
-        return DB::transaction(function () use ($actorPlayerId, $planId, $templateId, $existingObjects, $allianceKey, $centerX, $centerY): array {
+        $objects = $this->objects($existingObjects);
+
+        return DB::transaction(function () use ($actorPlayerId, $planId, $templateId, $objects, $allianceKey, $centerX, $centerY): array {
             $context = $this->writeState->lock($actorPlayerId, $planId);
             $this->authorization->authorizeView($context);
             $template = TerritoryHiveTemplate::query()->whereKey($templateId)->firstOrFail();
@@ -49,15 +51,76 @@ final readonly class InstantiateTerritoryHiveTemplate
 
             return $this->generator->preview(
                 $dataset,
-                $existingObjects,
+                $objects,
                 $template->style,
                 $allianceKey,
                 $centerX,
                 $centerY,
                 $template->city_count,
                 $template->spacing,
-                $template->planning_preferences ?? [],
+                $this->preferences($template->planning_preferences),
             );
         });
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     * @return list<array{key:string,type:string,x:int,y:int,alliance_key:string,rotation?:int}>
+     */
+    private function objects(array $rows): array
+    {
+        $objects = [];
+        foreach ($rows as $row) {
+            $key = $row['key'] ?? null;
+            $type = $row['type'] ?? null;
+            $x = $row['x'] ?? null;
+            $y = $row['y'] ?? null;
+            $objectAllianceKey = $row['alliance_key'] ?? null;
+            $rotation = $row['rotation'] ?? null;
+            if (! is_string($key) || $key === ''
+                || ! is_string($type) || $type === ''
+                || ! is_int($x) || ! is_int($y)
+                || ! is_string($objectAllianceKey) || $objectAllianceKey === ''
+                || ($rotation !== null && ! is_int($rotation))) {
+                throw ValidationException::withMessages([
+                    'existing_objects' => 'Existing Hive objects must use valid typed coordinates and identities.',
+                ]);
+            }
+
+            $object = [
+                'key' => $key,
+                'type' => $type,
+                'x' => $x,
+                'y' => $y,
+                'alliance_key' => $objectAllianceKey,
+            ];
+            if ($rotation !== null) {
+                $object['rotation'] = $rotation;
+            }
+            $objects[] = $object;
+        }
+
+        return $objects;
+    }
+
+    /** @return array<string, mixed> */
+    private function preferences(mixed $value): array
+    {
+        if ($value === null) {
+            return [];
+        }
+        if (! is_array($value) || array_is_list($value)) {
+            throw new \LogicException('Persisted Hive template preferences are invalid.');
+        }
+
+        $preferences = [];
+        foreach ($value as $key => $item) {
+            if (! is_string($key)) {
+                throw new \LogicException('Persisted Hive template preferences are invalid.');
+            }
+            $preferences[$key] = $item;
+        }
+
+        return $preferences;
     }
 }
