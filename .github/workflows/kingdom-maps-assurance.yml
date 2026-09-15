@@ -45,10 +45,65 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  fix-product-copy:
+    name: Fix Territory product copy
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out PR head
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Apply and verify product copy
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('resources/js/localization/messages/territory/en.ts')
+          source = path.read_text()
+          old = 'Persistence is revision-pinned and fails closed until real authorized artwork bytes can be embedded.'
+          new = 'Saved visual output is tied to a published revision and stays unavailable until real authorized artwork can be embedded.'
+          if old in source:
+              path.write_text(source.replace(old, new, 1))
+          elif new not in source:
+              raise SystemExit('Territory rendition help copy target not found')
+          PY
+          npx prettier resources/js/localization/messages/territory/en.ts --write
+          npm run check:product-language
+          npm run check:territory-localization
+
+      - name: Commit copy fix
+        shell: bash
+        run: |
+          if git diff --quiet -- resources/js/localization/messages/territory/en.ts; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add resources/js/localization/messages/territory/en.ts
+          git commit -m 'fix(territory): use product language for rendition help'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+
   kingdom-maps:
     name: KingdomMaps release and geometry
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
 
     services:
       postgres:
