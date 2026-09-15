@@ -43,7 +43,7 @@ final readonly class SaveTerritoryAnnotations
 
             $normalized = $this->annotations->normalize(
                 $annotations,
-                $context->plan->planAlliances()->pluck('plan_key')->all(),
+                $this->allianceKeys($context->plan->planAlliances()->pluck('plan_key')->all()),
             );
 
             TerritoryPlanAnnotation::query()->where('territory_plan_id', $planId)->delete();
@@ -86,5 +86,19 @@ final readonly class SaveTerritoryAnnotations
                 'layout_checksum' => $this->snapshots->checksum($snapshot),
             ];
         });
+    }
+
+    /** @return list<string> */
+    private function allianceKeys(array $values): array
+    {
+        $keys = [];
+        foreach ($values as $value) {
+            if (! is_string($value) || $value === '') {
+                throw new \LogicException('Persisted Territory Alliance keys are invalid.');
+            }
+            $keys[] = $value;
+        }
+
+        return $keys;
     }
 }
