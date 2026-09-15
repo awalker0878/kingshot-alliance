@@ -67,6 +67,7 @@ final readonly class CloneTerritoryPlan
                 is_array($planData['planning_preferences'] ?? null)
                     ? $planData['planning_preferences']
                     : [],
+                is_array($snapshot['annotations'] ?? null) ? $snapshot['annotations'] : [],
             );
         });
     }
