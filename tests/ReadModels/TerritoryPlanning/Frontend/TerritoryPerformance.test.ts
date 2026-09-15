@@ -106,7 +106,9 @@ test('KM-17 dense reference scene records bounded build, pointer, frame and memo
   const sceneBuildMs = performance.now() - buildStarted;
   const heapDeltaBytes = Math.max(0, process.memoryUsage().heapUsed - heapBefore);
 
-  assert.equal(scene.entities.length, RESOURCE_COUNT + PLAN_OBJECT_COUNT);
+  assert.equal(scene.entities.filter((entity) => entity.layer === 'resources').length, RESOURCE_COUNT);
+  assert.equal(scene.entities.filter((entity) => entity.layer === 'planned').length, PLAN_OBJECT_COUNT);
+  assert.ok(scene.entities.length >= RESOURCE_COUNT + PLAN_OBJECT_COUNT);
   assert.ok(sceneBuildMs <= MAX_SCENE_BUILD_MS, `scene build ${sceneBuildMs.toFixed(2)} ms`);
   assert.ok(
     heapDeltaBytes <= MAX_HEAP_DELTA_BYTES,
