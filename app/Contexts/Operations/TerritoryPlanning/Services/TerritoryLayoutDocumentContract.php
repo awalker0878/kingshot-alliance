@@ -33,10 +33,7 @@ final readonly class TerritoryLayoutDocumentContract
             throw ValidationException::withMessages(['document' => 'The document contains unsupported fields.']);
         }
 
-        $annotationRows = $raw['annotations'] ?? [];
-        if (! is_array($annotationRows)) {
-            throw ValidationException::withMessages(['annotations' => 'Annotations must be a list.']);
-        }
+        $annotationRows = $this->annotationRows($raw['annotations'] ?? []);
         unset($raw['annotations']);
 
         $core = $this->layout->decode(json_encode(
@@ -45,12 +42,39 @@ final readonly class TerritoryLayoutDocumentContract
         ));
         $allianceKeys = [];
         foreach ($core['alliances'] as $alliance) {
-            if (is_array($alliance) && isset($alliance['key']) && is_string($alliance['key'])) {
-                $allianceKeys[] = $alliance['key'];
+            $key = $alliance['key'] ?? null;
+            if (! is_string($key) || $key === '') {
+                throw new \LogicException('Normalized Territory Alliance keys are invalid.');
             }
+            $allianceKeys[] = $key;
         }
         $core['annotations'] = $this->annotations->normalize($annotationRows, $allianceKeys);
 
         return $core;
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function annotationRows(mixed $value): array
+    {
+        if (! is_array($value) || ! array_is_list($value)) {
+            throw ValidationException::withMessages(['annotations' => 'Annotations must be a list.']);
+        }
+
+        $rows = [];
+        foreach ($value as $row) {
+            if (! is_array($row) || array_is_list($row)) {
+                throw ValidationException::withMessages(['annotations' => 'Every annotation must be an object.']);
+            }
+            $entry = [];
+            foreach ($row as $key => $item) {
+                if (! is_string($key)) {
+                    throw ValidationException::withMessages(['annotations' => 'Annotation field names must be strings.']);
+                }
+                $entry[$key] = $item;
+            }
+            $rows[] = $entry;
+        }
+
+        return $rows;
     }
 }
