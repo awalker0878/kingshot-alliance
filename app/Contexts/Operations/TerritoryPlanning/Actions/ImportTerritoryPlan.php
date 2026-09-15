@@ -66,6 +66,7 @@ final readonly class ImportTerritoryPlan
             $alliances = $this->rows($preview['alliances'] ?? null);
             $groups = $this->rows($preview['groups'] ?? null);
             $objects = $this->rows($preview['objects'] ?? null);
+            $annotations = $this->rows($preview['annotations'] ?? null);
             $preferences = $preview['planning_preferences'] ?? null;
             if (! is_array($preferences)) {
                 throw $this->invalidImport('The normalized imported layout is incomplete.');
@@ -79,6 +80,7 @@ final readonly class ImportTerritoryPlan
                 $groups,
                 $objects,
                 $preferences,
+                $annotations,
             );
 
             $plan = $context->plan->refresh();
@@ -94,6 +96,7 @@ final readonly class ImportTerritoryPlan
                     'document_checksum' => hash('sha256', $document),
                     'alliance_count' => count($alliances),
                     'object_count' => count($objects),
+                    'annotation_count' => count($annotations),
                     'result_revision' => $receipt->revision,
                 ],
             );
