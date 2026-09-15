@@ -12,10 +12,13 @@ const territoryReconciliationFingerprints: Record<string, string> = {
   mobile: 'e35cb779b2eec3bdf92f455d78268847cde23c827c410b3eaa60b0f40fbca383',
 };
 
+const territoryVisualTime = new Date('2026-09-14T12:00:00Z');
+
 async function activateVisualGovernor(
   page: Page,
   email = 'territory-visual@example.test',
 ): Promise<void> {
+  await page.clock.setFixedTime(territoryVisualTime);
   await page.goto('/login');
   await page.locator('#email').fill(email);
   await page.locator('#password').fill('password');
