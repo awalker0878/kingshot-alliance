@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contexts\Operations\TerritoryPlanning\Services;
 
-use JsonException;
 use Illuminate\Validation\ValidationException;
+use JsonException;
 
 final readonly class TerritoryLayoutDocumentContract
 {
