@@ -26,7 +26,7 @@ async function openExplorer(page: Page): Promise<void> {
     let activated = false;
     for (let index = 0; index < switchCount; index += 1) {
       await switches.nth(index).click();
-      const listbox = page.getByRole('listbox').filter({ visible: true }).last();
+      const listbox = page.locator('[role="listbox"]:visible').last();
       if ((await listbox.count()) && (await listbox.getByRole('option').count())) {
         await listbox.getByRole('option').first().click();
         await page.waitForLoadState('networkidle');
@@ -92,7 +92,12 @@ test('@km16 Explorer exposes semantic keyboard, touch, responsive and RTL journe
     const touchXBefore = Number(await xCoordinate.inputValue());
     const box = await minimap.boundingBox();
     expect(box).not.toBeNull();
-    await minimap.tap({ position: { x: Math.max(1, (box?.width ?? 2) * 0.75), y: Math.max(1, (box?.height ?? 2) * 0.5) } });
+    await minimap.tap({
+      position: {
+        x: Math.max(1, (box?.width ?? 2) * 0.75),
+        y: Math.max(1, (box?.height ?? 2) * 0.5),
+      },
+    });
     await expect.poll(async () => Number(await xCoordinate.inputValue())).not.toBe(touchXBefore);
   }
 
