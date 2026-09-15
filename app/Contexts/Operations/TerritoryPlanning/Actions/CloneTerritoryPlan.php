@@ -36,16 +36,12 @@ final readonly class CloneTerritoryPlan
 
             $planData = $snapshot['plan'] ?? null;
             if (! is_array($planData)) {
-                throw ValidationException::withMessages([
-                    'plan' => 'The source Territory plan snapshot is invalid and cannot be cloned.',
-                ]);
+                throw $this->invalidSnapshot();
             }
 
             $ownerAllianceId = $planData['owner_alliance_id'] ?? null;
             if ($ownerAllianceId !== null && ! is_string($ownerAllianceId)) {
-                throw ValidationException::withMessages([
-                    'plan' => 'The source Territory plan owner is invalid and cannot be cloned.',
-                ]);
+                throw $this->invalidSnapshot();
             }
 
             $created = $this->create->handle(
@@ -60,15 +56,64 @@ final readonly class CloneTerritoryPlan
             return $this->save->handle(
                 $actorPlayerId,
                 $created->planId,
-                $created->revision, (string) Str::uuid(),
-                is_array($snapshot['alliances'] ?? null) ? $snapshot['alliances'] : [],
-                is_array($snapshot['groups'] ?? null) ? $snapshot['groups'] : [],
-                is_array($snapshot['objects'] ?? null) ? $snapshot['objects'] : [],
-                is_array($planData['planning_preferences'] ?? null)
-                    ? $planData['planning_preferences']
-                    : [],
-                is_array($snapshot['annotations'] ?? null) ? $snapshot['annotations'] : [],
+                $created->revision,
+                (string) Str::uuid(),
+                $this->rows($snapshot['alliances'] ?? null),
+                $this->rows($snapshot['groups'] ?? null),
+                $this->rows($snapshot['objects'] ?? null),
+                $this->map($planData['planning_preferences'] ?? []),
+                $this->rows($snapshot['annotations'] ?? []),
             );
         });
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function rows(mixed $value): array
+    {
+        if (! is_array($value) || ! array_is_list($value)) {
+            throw $this->invalidSnapshot();
+        }
+
+        $rows = [];
+        foreach ($value as $row) {
+            if (! is_array($row) || array_is_list($row)) {
+                throw $this->invalidSnapshot();
+            }
+            $entry = [];
+            foreach ($row as $key => $item) {
+                if (! is_string($key)) {
+                    throw $this->invalidSnapshot();
+                }
+                $entry[$key] = $item;
+            }
+            $rows[] = $entry;
+        }
+
+        return $rows;
+    }
+
+    /** @return array<string, mixed> */
+    private function map(mixed $value): array
+    {
+        if (! is_array($value) || array_is_list($value)) {
+            throw $this->invalidSnapshot();
+        }
+
+        $result = [];
+        foreach ($value as $key => $item) {
+            if (! is_string($key)) {
+                throw $this->invalidSnapshot();
+            }
+            $result[$key] = $item;
+        }
+
+        return $result;
+    }
+
+    private function invalidSnapshot(): ValidationException
+    {
+        return ValidationException::withMessages([
+            'plan' => 'The source Territory plan snapshot is invalid and cannot be cloned.',
+        ]);
     }
 }
