@@ -17,7 +17,7 @@ const emit = defineEmits<{
     <li v-for="entity in props.entities" :key="entity.key">
       <button
         type="button"
-        class="block min-h-11 w-full border-b border-[var(--ks-border)] px-2 py-2 text-left text-sm focus-visible:outline-2 focus-visible:outline-offset-[-2px]"
+        class="block min-h-11 w-full border-b border-[var(--ks-border)] px-2 py-2 text-start text-sm focus-visible:outline-2 focus-visible:outline-offset-[-2px]"
         :aria-pressed="selectedKey === entity.key"
         @click="emit('inspect', entity)"
       >
