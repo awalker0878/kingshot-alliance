@@ -22,8 +22,8 @@ final readonly class InstantiateTerritoryHiveTemplate
     ) {}
 
     /**
-     * @param list<array<string,mixed>> $existingObjects
-     * @return array<string,mixed>
+     * @param  list<array<string, mixed>>  $existingObjects
+     * @return array<string, mixed>
      */
     public function handle(
         string $actorPlayerId,
