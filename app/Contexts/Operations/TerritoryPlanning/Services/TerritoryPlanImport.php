@@ -6,6 +6,7 @@ namespace App\Contexts\Operations\TerritoryPlanning\Services;
 
 use App\Contexts\GameWorld\KingdomMaps\Queries\KingdomMapDatasetQuery;
 use App\Contexts\GameWorld\KingdomMaps\Services\PlacementValidator;
+use Illuminate\Validation\ValidationException;
 
 final readonly class TerritoryPlanImport
 {
@@ -52,13 +53,13 @@ final readonly class TerritoryPlanImport
     private function validationObjects(mixed $value): array
     {
         if (! is_array($value) || ! array_is_list($value)) {
-            throw new \LogicException('Normalized Territory objects must be a list.');
+            throw $this->invalidObjects();
         }
 
         $objects = [];
         foreach ($value as $row) {
             if (! is_array($row) || array_is_list($row)) {
-                throw new \LogicException('Normalized Territory objects must be objects.');
+                throw $this->invalidObjects();
             }
             $key = $row['key'] ?? null;
             $type = $row['type'] ?? null;
@@ -70,12 +71,12 @@ final readonly class TerritoryPlanImport
             if (! is_string($key) || ! is_string($type)
                 || ! is_int($x) || ! is_int($y)
                 || ! is_string($allianceKey) || ! is_int($rotation)
-                || ! is_array($metadata) || array_is_list($metadata)) {
-                throw new \LogicException('Normalized Territory object types are invalid.');
+                || ! is_array($metadata) || ($metadata !== [] && array_is_list($metadata))) {
+                throw $this->invalidObjects();
             }
             $variantKey = $metadata['variant_key'] ?? null;
             if ($variantKey !== null && ! is_string($variantKey)) {
-                throw new \LogicException('Normalized Territory object variants are invalid.');
+                throw $this->invalidObjects();
             }
 
             $objects[] = [
@@ -90,5 +91,12 @@ final readonly class TerritoryPlanImport
         }
 
         return $objects;
+    }
+
+    private function invalidObjects(): ValidationException
+    {
+        return ValidationException::withMessages([
+            'import' => 'The normalized Territory layout contains invalid object data.',
+        ]);
     }
 }
