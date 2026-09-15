@@ -9,9 +9,13 @@ use App\Contexts\Operations\TerritoryPlanning\Actions\CreateTerritoryRendition;
 use App\Contexts\Operations\TerritoryPlanning\Actions\InstantiateTerritoryHiveTemplate;
 use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryAnnotations;
 use App\Contexts\Operations\TerritoryPlanning\Actions\SaveTerritoryHiveTemplate;
+use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryArtifactQuery;
+use App\Contexts\Operations\TerritoryPlanning\Queries\TerritoryPlanQuery;
+use App\Contexts\Operations\TerritoryPlanning\Services\TerritoryCoordinateTableAdapter;
 use App\Shared\Infrastructure\Http\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 final class TerritoryArtifactController extends Controller
 {
@@ -35,6 +39,19 @@ final class TerritoryArtifactController extends Controller
             (int) $data['expected_revision'],
             $data['annotations'],
         )));
+    }
+
+    public function templates(
+        string $plan,
+        PlayerContext $players,
+        TerritoryArtifactQuery $artifacts,
+    ): JsonResponse {
+        $player = $players->playerOrNull();
+        abort_unless($player !== null, 403);
+
+        return $this->privateNoStore(response()->json([
+            'templates' => $artifacts->templates($player->playerId, $plan),
+        ]));
     }
 
     public function saveTemplate(
@@ -93,6 +110,33 @@ final class TerritoryArtifactController extends Controller
         )));
     }
 
+    public function renditions(
+        string $plan,
+        PlayerContext $players,
+        TerritoryArtifactQuery $artifacts,
+    ): JsonResponse {
+        $player = $players->playerOrNull();
+        abort_unless($player !== null, 403);
+
+        return $this->privateNoStore(response()->json([
+            'renditions' => $artifacts->renditions($player->playerId, $plan),
+        ]));
+    }
+
+    public function renditionShow(
+        string $plan,
+        string $rendition,
+        PlayerContext $players,
+        TerritoryArtifactQuery $artifacts,
+    ): JsonResponse {
+        $player = $players->playerOrNull();
+        abort_unless($player !== null, 403);
+
+        return $this->privateNoStore(response()->json([
+            'rendition' => $artifacts->rendition($player->playerId, $plan, $rendition),
+        ]));
+    }
+
     public function rendition(
         Request $request,
         string $plan,
@@ -121,8 +165,72 @@ final class TerritoryArtifactController extends Controller
         return $this->privateNoStore(response()->json(['rendition' => $rendition]));
     }
 
+    public function coordinateTable(
+        string $plan,
+        PlayerContext $players,
+        TerritoryPlanQuery $plans,
+        TerritoryCoordinateTableAdapter $coordinates,
+    ): Response {
+        $player = $players->playerOrNull();
+        abort_unless($player !== null, 403);
+        $detail = $plans->detail($player->playerId, $plan);
+        $csv = $coordinates->encode($this->rows($detail['objects'] ?? null));
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="territory-coordinates.csv"',
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    public function coordinatePreview(
+        Request $request,
+        string $plan,
+        PlayerContext $players,
+        TerritoryPlanQuery $plans,
+        TerritoryCoordinateTableAdapter $coordinates,
+    ): JsonResponse {
+        $player = $players->playerOrNull();
+        abort_unless($player !== null, 403);
+        $data = $request->validate([
+            'csv' => ['required', 'string', 'max:1000000'],
+        ]);
+        $plans->authorizeView($player->playerId, $plan);
+        $rows = $coordinates->decode($data['csv']);
+
+        return $this->privateNoStore(response()->json([
+            'rows' => $rows,
+            'row_count' => count($rows),
+        ]));
+    }
+
     private function privateNoStore(JsonResponse $response): JsonResponse
     {
         return $response->header('Cache-Control', 'private, no-store');
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function rows(mixed $value): array
+    {
+        if (! is_array($value) || ! array_is_list($value)) {
+            throw new \LogicException('Territory plan detail objects are invalid.');
+        }
+        $rows = [];
+        foreach ($value as $row) {
+            if (! is_array($row) || array_is_list($row)) {
+                throw new \LogicException('Territory plan detail objects are invalid.');
+            }
+            $entry = [];
+            foreach ($row as $key => $item) {
+                if (! is_string($key)) {
+                    throw new \LogicException('Territory plan detail objects are invalid.');
+                }
+                $entry[$key] = $item;
+            }
+            $rows[] = $entry;
+        }
+
+        return $rows;
     }
 }
