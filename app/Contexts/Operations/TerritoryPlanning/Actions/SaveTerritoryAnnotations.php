@@ -24,7 +24,7 @@ final readonly class SaveTerritoryAnnotations
     ) {}
 
     /**
-     * @param list<array<string, mixed>> $annotations
+     * @param  list<array<string, mixed>>  $annotations
      * @return array{revision:int,snapshot:array<string,mixed>,layout_checksum:string}
      */
     public function handle(string $actorPlayerId, string $planId, int $expectedRevision, array $annotations): array
@@ -83,8 +83,9 @@ final readonly class SaveTerritoryAnnotations
         });
     }
 
-    /** @param list<array<string,mixed>> $rows
-     *  @return list<array{key:string,kind:string,alliance_key:?string,text:?string,x:int,y:int,target_x:?int,target_y:?int,sort_order:int}>
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     * @return list<array{key:string,kind:string,alliance_key:?string,text:?string,x:int,y:int,target_x:?int,target_y:?int,sort_order:int}>
      */
     private function normalize(array $rows): array
     {
