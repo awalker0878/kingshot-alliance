@@ -92,7 +92,7 @@ const messages = {
       persistedRenditions: 'Persisted renditions',
       persistArtworkSvg: 'Persist artwork SVG',
       renditionHelp:
-        'Persistence is revision-pinned and fails closed until real authorized artwork bytes can be embedded.',
+        'Saved visual output is tied to a published revision and stays unavailable until real authorized artwork can be embedded.',
       created: 'Created',
       revision: 'Revision',
       type: 'Type',
