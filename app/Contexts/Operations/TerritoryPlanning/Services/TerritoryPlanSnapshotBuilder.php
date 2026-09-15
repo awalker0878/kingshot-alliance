@@ -6,33 +6,20 @@ namespace App\Contexts\Operations\TerritoryPlanning\Services;
 
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlan;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanAlliance;
+use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanAnnotation;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanGroup;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanObject;
 
 final class TerritoryPlanSnapshotBuilder
 {
-    /**
-     * @return array{
-     *     schema_version: 2,
-     *     plan: array{
-     *         id: string,
-     *         scope: string,
-     *         kingdom_id: string,
-     *         owner_alliance_id: string|null,
-     *         name: string,
-     *         head_revision: int,
-     *         map_dataset_id: string,
-     *         map_dataset_checksum: string,
-     *         planning_preferences: array<string, mixed>
-     *     },
-     *     alliances: list<array<string, mixed>>,
-     *     groups: list<array<string, mixed>>,
-     *     objects: list<array<string, mixed>>
-     * }
-     */
+    /** @return array<string, mixed> */
     public function build(TerritoryPlan $plan): array
     {
-        $plan->load(['planAlliances' => static fn ($query) => $query->orderBy('plan_key'), 'groups' => static fn ($query) => $query->orderBy('plan_key'), 'objects' => static fn ($query) => $query->orderBy('plan_key')]);
+        $plan->load([
+            'planAlliances' => static fn ($query) => $query->orderBy('plan_key'),
+            'groups' => static fn ($query) => $query->orderBy('plan_key'),
+            'objects' => static fn ($query) => $query->orderBy('plan_key'),
+        ]);
 
         $allianceKeyById = [];
         $alliances = [];
@@ -40,7 +27,6 @@ final class TerritoryPlanSnapshotBuilder
             if (! $row instanceof TerritoryPlanAlliance) {
                 continue;
             }
-
             $allianceKeyById[$row->id] = $row->plan_key;
             $alliances[] = [
                 'key' => $row->plan_key,
@@ -61,7 +47,6 @@ final class TerritoryPlanSnapshotBuilder
             if (! $row instanceof TerritoryPlanGroup) {
                 continue;
             }
-
             $groupKeyById[$row->id] = $row->plan_key;
             $groups[] = ['key' => $row->plan_key, 'label' => $row->label];
         }
@@ -71,17 +56,14 @@ final class TerritoryPlanSnapshotBuilder
             if (! $row instanceof TerritoryPlanObject) {
                 continue;
             }
-
             $allianceKey = $allianceKeyById[$row->territory_plan_alliance_id] ?? null;
             if (! is_string($allianceKey)) {
                 continue;
             }
-
             $groupKey = $row->group_id === null ? null : ($groupKeyById[$row->group_id] ?? null);
             if ($row->group_id !== null && ! is_string($groupKey)) {
                 continue;
             }
-
             $objects[] = [
                 'key' => $row->plan_key,
                 'alliance_key' => $allianceKey,
@@ -97,6 +79,25 @@ final class TerritoryPlanSnapshotBuilder
                 'metadata' => $row->metadata ?? [],
             ];
         }
+
+        $annotations = TerritoryPlanAnnotation::query()
+            ->where('territory_plan_id', $plan->id)
+            ->orderBy('sort_order')
+            ->orderBy('plan_key')
+            ->get()
+            ->map(static fn (TerritoryPlanAnnotation $row): array => [
+                'key' => $row->plan_key,
+                'kind' => $row->kind,
+                'alliance_key' => $row->alliance_key,
+                'text' => $row->text,
+                'x' => (int) $row->coordinate_x,
+                'y' => (int) $row->coordinate_y,
+                'target_x' => $row->target_x === null ? null : (int) $row->target_x,
+                'target_y' => $row->target_y === null ? null : (int) $row->target_y,
+                'sort_order' => (int) $row->sort_order,
+            ])
+            ->values()
+            ->all();
 
         return [
             'schema_version' => TerritoryLayoutContract::SCHEMA_VERSION,
@@ -114,6 +115,7 @@ final class TerritoryPlanSnapshotBuilder
             'alliances' => $alliances,
             'groups' => $groups,
             'objects' => $objects,
+            'annotations' => $annotations,
         ];
     }
 
