@@ -29,12 +29,12 @@ final class TerritoryArtifactController extends Controller
             'annotations.*' => ['array'],
         ]);
 
-        return response()->json($save->handle(
+        return $this->privateNoStore(response()->json($save->handle(
             $player->playerId,
             $plan,
             (int) $data['expected_revision'],
             $data['annotations'],
-        ));
+        )));
     }
 
     public function saveTemplate(
@@ -62,7 +62,7 @@ final class TerritoryArtifactController extends Controller
             $data['planning_preferences'],
         );
 
-        return response()->json(['template' => $template]);
+        return $this->privateNoStore(response()->json(['template' => $template]));
     }
 
     public function instantiateTemplate(
@@ -82,7 +82,7 @@ final class TerritoryArtifactController extends Controller
             'center_y' => ['required', 'integer:strict', 'between:-1000000,1000000'],
         ]);
 
-        return response()->json($instantiate->handle(
+        return $this->privateNoStore(response()->json($instantiate->handle(
             $player->playerId,
             $plan,
             $template,
@@ -90,7 +90,7 @@ final class TerritoryArtifactController extends Controller
             $data['alliance_key'],
             (int) $data['center_x'],
             (int) $data['center_y'],
-        ))->header('Cache-Control', 'private, no-store');
+        )));
     }
 
     public function rendition(
@@ -118,6 +118,11 @@ final class TerritoryArtifactController extends Controller
             $data['metadata'],
         );
 
-        return response()->json(['rendition' => $rendition]);
+        return $this->privateNoStore(response()->json(['rendition' => $rendition]));
+    }
+
+    private function privateNoStore(JsonResponse $response): JsonResponse
+    {
+        return $response->header('Cache-Control', 'private, no-store');
     }
 }
