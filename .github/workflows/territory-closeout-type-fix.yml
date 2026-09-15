@@ -31,10 +31,20 @@ jobs:
           path = Path('resources/js/pages/Kingdom/Territory/Tools.vue')
           text = path.read_text()
           old_options = "const options: { image?: Parameters<typeof exportModule.buildSvg>[4]['image'] } = {};"
-          new_options = "const options: { image?: NonNullable<Parameters<typeof exportModule.buildSvg>[4]>['image'] } = {};"
+          new_options = "const options: Parameters<typeof artworkRuntime.attachExportArtwork>[0] = {};"
           if old_options not in text:
               raise SystemExit('export options type target not found')
           text = text.replace(old_options, new_options, 1)
+          old_guard = """    const attached = await artworkRuntime.attachExportArtwork(options);\n    if (!attached) {"""
+          new_guard = """    const attached = await artworkRuntime.attachExportArtwork(options);\n    if (!attached || !options.image) {"""
+          if old_guard not in text:
+              raise SystemExit('artwork guard target not found')
+          text = text.replace(old_guard, new_guard, 1)
+          old_build_options = """      options,\n    );\n    const payload = await jsonRequest(`/territory/${props.territory.plan.id}/renditions`, 'POST', {"""
+          new_build_options = """      { image: options.image },\n    );\n    const payload = await jsonRequest(`/territory/${props.territory.plan.id}/renditions`, 'POST', {"""
+          if old_build_options not in text:
+              raise SystemExit('build options target not found')
+          text = text.replace(old_build_options, new_build_options, 1)
           old_bytes = """function bytesFromBase64(value: string): Uint8Array {\n  const binary = atob(value);\n  return Uint8Array.from(binary, (character) => character.charCodeAt(0));\n}"""
           new_bytes = """function bytesFromBase64(value: string): Uint8Array<ArrayBuffer> {\n  const binary = atob(value);\n  const bytes = new Uint8Array(binary.length);\n  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);\n  return bytes;\n}"""
           if old_bytes not in text:
