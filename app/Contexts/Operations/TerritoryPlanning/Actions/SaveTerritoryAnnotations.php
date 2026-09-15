@@ -88,7 +88,10 @@ final readonly class SaveTerritoryAnnotations
         });
     }
 
-    /** @return list<string> */
+    /**
+     * @param  array<array-key, mixed>  $values
+     * @return list<string>
+     */
     private function allianceKeys(array $values): array
     {
         $keys = [];
