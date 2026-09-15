@@ -31,9 +31,7 @@ function navigate(event: MouseEvent): void {
   const rect = svg.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
   const x = props.bounds.x + ((event.clientX - rect.left) / rect.width) * props.bounds.width;
-  const y =
-    props.bounds.y +
-    (1 - (event.clientY - rect.top) / rect.height) * props.bounds.height;
+  const y = props.bounds.y + (1 - (event.clientY - rect.top) / rect.height) * props.bounds.height;
   emit('navigate', { x: Math.round(x), y: Math.round(y) });
 }
 </script>
