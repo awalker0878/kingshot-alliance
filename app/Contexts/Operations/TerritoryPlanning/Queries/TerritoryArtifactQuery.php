@@ -5,12 +5,45 @@ declare(strict_types=1);
 namespace App\Contexts\Operations\TerritoryPlanning\Queries;
 
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryHiveTemplate;
+use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryPlanAnnotation;
 use App\Contexts\Operations\TerritoryPlanning\Models\TerritoryRendition;
 use DateTimeInterface;
 
 final readonly class TerritoryArtifactQuery
 {
     public function __construct(private TerritoryPlanQuery $plans) {}
+
+    /** @return list<array<string, mixed>> */
+    public function annotations(string $actorPlayerId, string $planId): array
+    {
+        $this->plans->authorizeView($actorPlayerId, $planId);
+        $rows = [];
+        foreach (
+            TerritoryPlanAnnotation::query()
+                ->where('territory_plan_id', $planId)
+                ->orderBy('sort_order')
+                ->orderBy('plan_key')
+                ->limit(500)
+                ->get() as $annotation
+        ) {
+            if (! $annotation instanceof TerritoryPlanAnnotation) {
+                continue;
+            }
+            $rows[] = [
+                'key' => (string) $annotation->plan_key,
+                'kind' => (string) $annotation->kind,
+                'alliance_key' => $annotation->alliance_key === null ? null : (string) $annotation->alliance_key,
+                'text' => $annotation->text === null ? null : (string) $annotation->text,
+                'x' => (int) $annotation->coordinate_x,
+                'y' => (int) $annotation->coordinate_y,
+                'target_x' => $annotation->target_x === null ? null : (int) $annotation->target_x,
+                'target_y' => $annotation->target_y === null ? null : (int) $annotation->target_y,
+                'sort_order' => (int) $annotation->sort_order,
+            ];
+        }
+
+        return $rows;
+    }
 
     /** @return list<array<string, mixed>> */
     public function templates(string $actorPlayerId, string $planId): array
