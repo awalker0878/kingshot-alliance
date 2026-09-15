@@ -31,6 +31,17 @@ final class TerritoryPlanningVisualFixture
             'game_player_id' => 'GOV-TERRITORY-A',
             'current_name' => 'Map Warden',
         ]);
+        $reviewer = User::factory()->create([
+            'name' => 'Territory Reviewer',
+            'email' => 'territory-reviewer@example.test',
+            'timezone' => 'UTC',
+        ]);
+        Player::query()->create([
+            'user_id' => $reviewer->id,
+            'current_kingdom_id' => $kingdom->id,
+            'game_player_id' => 'GOV-TERRITORY-B',
+            'current_name' => 'North Reviewer',
+        ]);
         $allianceId = app(CreateAlliance::class)->handle(
             (int) $player->user_id,
             (string) $player->id,
