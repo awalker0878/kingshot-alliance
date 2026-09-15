@@ -9,12 +9,14 @@ on:
       - 'app/ReadModels/TerritoryPlanning/**'
       - 'bootstrap/providers.php'
       - 'resources/data/kingdom-maps/**'
+      - 'resources/data/kingdom-map-art/**'
       - 'resources/js/features/territory-planner/**'
       - 'resources/js/pages/Kingdom/Territory/**'
       - 'tests/Contexts/Operations/TerritoryPlanning/**'
       - 'tests/ReadModels/TerritoryPlanning/**'
       - 'tests/Contexts/GameWorld/KingdomMaps/**'
       - 'scripts/check-territory-geometry-parity.mjs'
+      - 'scripts/check-kingdom-map-art.mjs'
       - '.github/workflows/kingdom-maps-assurance.yml'
   push:
     branches:
@@ -22,12 +24,14 @@ on:
     paths:
       - 'app/Contexts/GameWorld/KingdomMaps/**'
       - 'resources/data/kingdom-maps/**'
+      - 'resources/data/kingdom-map-art/**'
       - 'resources/js/features/territory-planner/**'
       - 'resources/js/pages/Kingdom/Territory/**'
       - 'tests/Contexts/Operations/TerritoryPlanning/**'
       - 'tests/ReadModels/TerritoryPlanning/**'
       - 'tests/Contexts/GameWorld/KingdomMaps/**'
       - 'scripts/check-territory-geometry-parity.mjs'
+      - 'scripts/check-kingdom-map-art.mjs'
       - '.github/workflows/kingdom-maps-assurance.yml'
   workflow_dispatch:
 
@@ -121,3 +125,6 @@ jobs:
 
       - name: Verify PHP/browser geometry parity
         run: npm run check:territory-geometry
+
+      - name: Verify authorized Kingdom Map artwork delivery
+        run: npm run check:kingdom-map-art:strict
