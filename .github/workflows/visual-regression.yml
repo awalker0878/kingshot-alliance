@@ -83,6 +83,17 @@ jobs:
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Detect strict artwork readiness for T15
+        shell: bash
+        run: |
+          if npm run check:kingdom-map-art:strict; then
+            echo 'KINGSHOT_T15_ARTWORK_READY=1' >> "$GITHUB_ENV"
+            echo 'Authorized artwork is complete; T15 artwork-bearing export will execute.'
+          else
+            echo 'KINGSHOT_T15_ARTWORK_READY=0' >> "$GITHUB_ENV"
+            echo '::notice::T15 artwork-bearing export remains skipped because the strict artwork delivery gate is not satisfied.'
+          fi
+
       - name: Prepare visual database
         shell: bash
         run: |

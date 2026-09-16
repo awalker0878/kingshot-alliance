@@ -39,6 +39,22 @@ export default defineConfig({
       name: 'mobile',
       use: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true },
     },
+    {
+      name: 'tablet',
+      grep: /@km16/,
+      use: { viewport: { width: 1024, height: 768 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true },
+    },
+    {
+      name: 'rtl-tablet',
+      grep: /@km16/,
+      use: {
+        viewport: { width: 1024, height: 768 },
+        deviceScaleFactor: 1,
+        hasTouch: true,
+        isMobile: true,
+        locale: 'ar-IQ',
+      },
+    },
   ],
   outputDir: 'test-results/visual',
 });
