@@ -34,7 +34,7 @@ jobs:
           git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/hardening-source/tree-sha.txt"
           git ls-tree -r HEAD > "$RUNNER_TEMP/hardening-source/tree.txt"
           git ls-files -z | tar --null -T - -czf "$RUNNER_TEMP/hardening-source/source.tar.gz"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: hard098-source
           path: ${{ runner.temp }}/hardening-source
