@@ -37,7 +37,7 @@ jobs:
           tar -C /tmp/tools -czf /out/postgresql-runtime.tar.gz .
           SCRIPT
           (cd "$RUNNER_TEMP/kingdom-map-database" && sha256sum *.tar.gz > SHA256SUMS)
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: '24'
       - name: Package Node-selected npm CLI
