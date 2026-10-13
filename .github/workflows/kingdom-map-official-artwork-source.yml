@@ -114,7 +114,7 @@ jobs:
           (root / 'sources.json').write_text(json.dumps({'pages': records, 'images': images, 'total_image_bytes': total, 'total_linked_images': len(image_sources), 'notice': 'User-authorized Kingshot artwork; inspection inputs only. No official mechanics, complete family coverage, third-party rights or production approval is inferred from this capture.'}, indent=2) + '\n')
           print('Captured', len(images), 'linked image references;', total, 'bytes')
           PY
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: kingdom-map-official-artwork-source
           path: ${{ runner.temp }}/official-artwork

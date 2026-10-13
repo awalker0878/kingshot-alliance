@@ -59,7 +59,7 @@ jobs:
           (root / 'sources.json').write_text(json.dumps({'game': 'kingshot', 'records': records, 'notice': 'Source bytes are inspection inputs, not an official game-data or artwork-completeness claim. No upstream application code is executed or committed by this workflow.'}, indent=2) + '\n')
           print(json.dumps(records, indent=2))
           PY
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: kingdom-map-resource-source
           path: ${{ runner.temp }}/source
