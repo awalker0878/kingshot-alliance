@@ -18,9 +18,12 @@ The event-command extension now belongs explicitly to Event Management, the only
 
 The first pull-request run also exposed newly published dependency advisories. The follow-up updates the three affected Composer packages (`league/commonmark` 2.10.4, `livewire/livewire` 4.4.8 and `symfony/http-foundation` 8.1.9) and the affected npm dependency chains. ESLint's Vue plugin moves to version 10 with explicit browser, Node and service-worker globals. Audit thresholds and application PHP requirements are unchanged.
 
+The production image also upgrades inherited `curl` and `libcurl` to at least Alpine's 8.23.0-r0 packages. The image scan found CVE-2026-92392 in the base image's 8.22.0-r0 packages even though application dependency audits passed.
+
 ## Validation and limits
 
 - `npm run check` includes lint, formatting, TypeScript, 198 source-contract tests, localization, accessibility, geometry/export/art structure, production build and unchanged performance budgets.
+- At commit `bee4700`, PHP 8.5 CI passed all 2,101 tests and 99,670 assertions; frontend CI, dependency review, Architecture V3 and CodeQL passed. The container job passed image build, ephemeral staging, and backup/restore before its curl vulnerability finding. Image-scan acceptance must be rerun after the package upgrade.
 - At commit `1a70b72`, KingdomMaps CI passed the territory owner/read-model tests and the visual run passed all six previously failing Explorer accessibility/layout scenarios. The strict artwork gate still correctly rejects 24 source-missing families.
 - PHP 8.5/PostgreSQL and the full browser application are validated by the existing pull-request CI workflows. A temporary PHP 8.3 CLI was used only to regenerate and audit the Composer lock with platform requirements ignored during resolution; the three patched packages retain PHP requirements compatible with the application's unchanged PHP 8.5 requirement. CI remains the runtime acceptance gate.
 - Both dependency audits report no known vulnerabilities after the updates. Full browser acceptance remains open: initial runs had screenshot-fingerprint mismatches and timezone-test setup errors. The test now handles a missing Governor switcher and reads the actual initial page payload, avoiding an invalid versionless Inertia request.
