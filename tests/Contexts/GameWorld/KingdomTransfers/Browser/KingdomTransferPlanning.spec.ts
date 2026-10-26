@@ -5,7 +5,12 @@ import { normalizeReadinessReceipt } from '../Support/normalizeReadinessReceipt'
 
 // Use complete raster work for exact tiled comparisons; do not depend on partial damage reuse.
 // This changes only this spec's browser rendering profile, not application CSS or assertions.
-test.use({ launchOptions: { args: ['--disable-partial-raster'] } });
+test.use({
+  launchOptions: {
+    executablePath: process.env.PLAYWRIGHT_CHROME_EXECUTABLE_PATH,
+    args: ['--disable-partial-raster'],
+  },
+});
 
 const transferVisualFingerprints: Record<string, string> = {
   desktop: 'b1de7819934ebc8ffe4d90943f5960196d6ef60273ccf68074b6346d8fb23c35',
