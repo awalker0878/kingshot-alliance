@@ -49,7 +49,7 @@ export default defineConfig({
     },
     {
       name: 'tablet',
-      grep: /@km16/,
+      grep: /@km16|@room-art/,
       use: {
         viewport: { width: 1024, height: 768 },
         deviceScaleFactor: 1,
@@ -59,7 +59,7 @@ export default defineConfig({
     },
     {
       name: 'rtl-tablet',
-      grep: /@km16/,
+      grep: /@km16|@room-art/,
       use: {
         viewport: { width: 1024, height: 768 },
         deviceScaleFactor: 1,

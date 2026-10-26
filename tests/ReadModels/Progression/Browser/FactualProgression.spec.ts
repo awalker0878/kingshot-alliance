@@ -2,19 +2,17 @@ import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 
-const factualProgressionVisualFingerprints: Record<
-  string,
-  { library: string; governor: string }
-> = {
-  desktop: {
-    library: 'f3a8c27a39e1c641e6cb570cc82f86d2b26fd08a33f5227a0d6c2b386be9573d',
-    governor: '2e02000083aa6d49387129b41bda4222253e583d9d0b9ecfe90252cdacf4e97d',
-  },
-  mobile: {
-    library: 'c549584809471cfad5b8cb751be4d30c06518149d9846d0700f2cf1979de39e1',
-    governor: 'd1b26470c9fb5167b6fbee520caaff114b87e148d1adb2a178189afc4fe941f1',
-  },
-};
+const factualProgressionVisualFingerprints: Record<string, { library: string; governor: string }> =
+  {
+    desktop: {
+      library: 'f3a8c27a39e1c641e6cb570cc82f86d2b26fd08a33f5227a0d6c2b386be9573d',
+      governor: '2e02000083aa6d49387129b41bda4222253e583d9d0b9ecfe90252cdacf4e97d',
+    },
+    mobile: {
+      library: 'c549584809471cfad5b8cb751be4d30c06518149d9846d0700f2cf1979de39e1',
+      governor: 'd1b26470c9fb5167b6fbee520caaff114b87e148d1adb2a178189afc4fe941f1',
+    },
+  };
 
 async function loginAndActivateGovernor(page: Page): Promise<void> {
   await page.goto('/login');
@@ -41,20 +39,20 @@ async function expectNoHorizontalOverflow(page: Page): Promise<void> {
   expect(overflow).toBeFalsy();
 }
 
-async function fingerprint(surface: Locator): Promise<string> {
+async function fingerprint(surface: Locator, path: string): Promise<string> {
   const screenshot = await surface.screenshot({
     animations: 'disabled',
     caret: 'hide',
     scale: 'css',
+    path,
   });
 
   return createHash('sha256').update(screenshot).digest('hex');
 }
 
-test('Factual Progression library, Governor view, and Goal Planner remain complete on desktop and mobile', async (
-  { page },
-  testInfo,
-) => {
+test('Factual Progression library, Governor view, and Goal Planner remain complete on desktop and mobile', async ({
+  page,
+}, testInfo) => {
   await loginAndActivateGovernor(page);
 
   await page.goto('/progression?family=academy_research&family_q=Fortified%20Mail%20VI');
@@ -69,10 +67,15 @@ test('Factual Progression library, Governor view, and Goal Planner remain comple
   await expectNoHorizontalOverflow(page);
 
   const expected = factualProgressionVisualFingerprints[testInfo.project.name];
-  expect.soft(
-    await fingerprint(page.locator('main')),
-    `Update Factual Progression library fingerprint for ${testInfo.project.name}`,
-  ).toBe(expected.library);
+  expect
+    .soft(
+      await fingerprint(
+        page.locator('main'),
+        testInfo.outputPath('factual-progression-library.png'),
+      ),
+      `Update Factual Progression library fingerprint for ${testInfo.project.name}`,
+    )
+    .toBe(expected.library);
 
   await page.goto('/progression/governor');
   await page.waitForLoadState('networkidle');
@@ -86,16 +89,25 @@ test('Factual Progression library, Governor view, and Goal Planner remain comple
   ).toBeVisible();
   await expectNoHorizontalOverflow(page);
 
-  expect.soft(
-    await fingerprint(page.locator('main')),
-    `Update Governor progression fingerprint for ${testInfo.project.name}`,
-  ).toBe(expected.governor);
+  expect
+    .soft(
+      await fingerprint(
+        page.locator('main'),
+        testInfo.outputPath('factual-progression-governor.png'),
+      ),
+      `Update Governor progression fingerprint for ${testInfo.project.name}`,
+    )
+    .toBe(expected.governor);
 
-  await page.goto('/progression/governor/planner?family=governor_gear&subject=hood&target=step%3A3');
+  await page.goto(
+    '/progression/governor/planner?family=governor_gear&subject=hood&target=step%3A3',
+  );
   await page.waitForLoadState('networkidle');
   await page.evaluate(() => document.fonts.ready);
 
-  await expect(page.getByRole('heading', { name: 'Progression Goal Planner', level: 1 })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Progression Goal Planner', level: 1 }),
+  ).toBeVisible();
   await expect(page.getByTestId('planner-current-state')).toContainText('Current state is unknown');
   await expect(page.getByTestId('planner-target-state')).toContainText('Blue ★1');
   await expect(page.getByTestId('planner-calculator-gate')).toContainText('Calculator ready');

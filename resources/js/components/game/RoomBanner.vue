@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import RoomArtwork, { type RoomScene } from './RoomArtwork.vue';
+
 withDefaults(
   defineProps<{
     eyebrow: string;
     title: string;
     subtitle?: string;
     image: string;
+    scene?: RoomScene;
     compact?: boolean;
   }>(),
   { subtitle: '', compact: false },
@@ -12,8 +15,13 @@ withDefaults(
 </script>
 
 <template>
-  <section class="ks-room-banner" :class="{ 'ks-room-banner--compact': compact }">
-    <img class="ks-room-banner__art" :src="image" alt="" aria-hidden="true" />
+  <section
+    class="ks-room-banner"
+    :class="{ 'ks-room-banner--compact': compact }"
+    :data-scene="scene"
+  >
+    <RoomArtwork v-if="scene" :scene="scene" />
+    <img v-else class="ks-room-banner__art" :src="image" alt="" aria-hidden="true" />
     <div class="ks-room-banner__content">
       <p class="ks-room-banner__eyebrow">{{ eyebrow }}</p>
       <h1 class="ks-room-banner__title">{{ title }}</h1>

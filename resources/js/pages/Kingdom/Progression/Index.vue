@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import RoomArtwork from '@/components/game/RoomArtwork.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
@@ -135,8 +136,9 @@ function clearFilters(): void {
       class="mx-auto w-full max-w-[96rem] space-y-6 px-4 py-6 sm:px-6 lg:px-8"
     >
       <section
-        class="overflow-hidden rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[rgba(5,13,13,.88)] p-5 shadow-xl sm:p-7"
+        class="ks-artwork-panel overflow-hidden rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[rgba(5,13,13,.88)] p-5 shadow-xl sm:p-7"
       >
+        <RoomArtwork scene="progression-forge" />
         <div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-start">
           <div>
             <p class="text-xs font-extrabold tracking-[.18em] text-[var(--ks-gold)] uppercase">

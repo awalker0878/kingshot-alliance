@@ -355,6 +355,7 @@ onBeforeUnmount(() => {
       :eyebrow="t('territory.eyebrow')"
       :title="territory.map.source_label"
       :subtitle="t('territory.mapEvidenceHelp')"
+      scene="territory-command"
       image="/images/kingshot/v4/kingdom-transfer.svg"
     >
       <template #actions>
