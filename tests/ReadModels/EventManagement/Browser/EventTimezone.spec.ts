@@ -27,9 +27,7 @@ test('event agenda and details honor the account timezone when the browser diffe
   await page.goto('/events');
   await page.waitForLoadState('networkidle');
   await expect(page.getByTestId('event-display-timezone')).toHaveText('Your time · UTC');
-  const response = await page.request.get('/events', { headers: { 'X-Inertia': 'true' } });
-  expect(response.ok()).toBeTruthy();
-  const payload = await response.json();
+  const payload = JSON.parse((await page.locator('script[data-page="app"]').textContent()) ?? '{}');
   expect(payload.props.userTimezone).toBe('UTC');
   const event = payload.props.events.find(
     (item: { title: string }) => item.title === 'Event Command Visual',

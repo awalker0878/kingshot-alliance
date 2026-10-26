@@ -17,7 +17,9 @@ concurrency:
 jobs:
   visual:
     name: Playwright visual regression
-    runs-on: ubuntu-latest
+    # Screenshot baselines were reviewed on Ubuntu 24.04. Keep the OS/font
+    # stack stable instead of inheriting ubuntu-latest image migrations.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     services:
@@ -54,7 +56,6 @@ jobs:
       GIFT_CODES_MODERATION: true
       GIFT_CODES_REDEMPTION_WORKSPACE: true
       PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
-      PLAYWRIGHT_USE_SYSTEM_CHROME: true
 
     steps:
       - name: Check out repository
@@ -82,6 +83,20 @@ jobs:
 
       - name: Install locked frontend dependencies
         run: npm ci --no-audit --no-fund
+
+      - name: Install reviewed visual browser
+        shell: bash
+        run: |
+          visual_chrome_version='152.0.7977.82'
+          visual_chrome_archive="${RUNNER_TEMP}/visual-chrome.zip"
+          curl --fail --location --silent --show-error \
+            "https://storage.googleapis.com/chrome-for-testing-public/${visual_chrome_version}/linux64/chrome-linux64.zip" \
+            --output "$visual_chrome_archive"
+          printf '%s  %s\n' '0704631fb3e4f741092e08f55272f90abc3e307f991f05f332924364415b02e0' "$visual_chrome_archive" | sha256sum --check
+          unzip -q "$visual_chrome_archive" -d "${RUNNER_TEMP}/visual-chrome"
+          visual_chrome_path="${RUNNER_TEMP}/visual-chrome/chrome-linux64/chrome"
+          "$visual_chrome_path" --version
+          echo "PLAYWRIGHT_CHROME_EXECUTABLE_PATH=${visual_chrome_path}" >> "$GITHUB_ENV"
 
       - name: Detect strict artwork readiness for T15
         shell: bash
