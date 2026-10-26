@@ -16,10 +16,14 @@ This first implementation batch repairs release regressions and localization/tim
 
 The event-command extension now belongs explicitly to Event Management, the only page supplied with that projection. It loads asynchronously so other room banners do not acquire an Events dependency and the page remains within the existing performance budget.
 
+The first pull-request run also exposed newly published dependency advisories. The follow-up updates the three affected Composer packages (`league/commonmark` 2.10.4, `livewire/livewire` 4.4.8 and `symfony/http-foundation` 8.1.9) and the affected npm dependency chains. ESLint's Vue plugin moves to version 10 with explicit browser, Node and service-worker globals. Audit thresholds and application PHP requirements are unchanged.
+
 ## Validation and limits
 
 - `npm run check` includes lint, formatting, TypeScript, 198 source-contract tests, localization, accessibility, geometry/export/art structure, production build and unchanged performance budgets.
-- PHP 8.5/PostgreSQL and the full browser application are validated by the existing pull-request CI workflows. The implementation workspace does not have those runtimes.
+- At commit `1a70b72`, KingdomMaps CI passed the territory owner/read-model tests and the visual run passed all six previously failing Explorer accessibility/layout scenarios. The strict artwork gate still correctly rejects 24 source-missing families.
+- PHP 8.5/PostgreSQL and the full browser application are validated by the existing pull-request CI workflows. A temporary PHP 8.3 CLI was used only to regenerate and audit the Composer lock with platform requirements ignored during resolution; the three patched packages retain PHP requirements compatible with the application's unchanged PHP 8.5 requirement. CI remains the runtime acceptance gate.
+- Both dependency audits report no known vulnerabilities after the updates. Full browser acceptance remains open: the first run had screenshot-fingerprint mismatches and a new timezone-test setup error. The latter is corrected by checking whether a Governor switcher exists before reading it.
 - The localization gate checks literal keys and conditional literal alternatives. It reports dynamic calls for the existing domain-specific tests; it does not claim exhaustive dynamic-key verification or native-speaker review.
 - English fallback remains a resilience mechanism. Passing this gate does not mean every locale is fully translated.
 

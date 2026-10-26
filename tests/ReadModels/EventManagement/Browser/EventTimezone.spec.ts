@@ -11,7 +11,10 @@ test('event agenda and details honor the account timezone when the browser diffe
   await page.locator('button[type="submit"]').click();
   await page.waitForURL('**/dashboard');
   const switcher = page.locator('button[aria-haspopup="listbox"]:visible').first();
-  if (/select governor/i.test((await switcher.textContent()) ?? '')) {
+  if (
+    (await switcher.isVisible()) &&
+    /select governor/i.test((await switcher.textContent()) ?? '')
+  ) {
     await switcher.click();
     await page
       .getByRole('listbox', { name: 'Active Governor' })
