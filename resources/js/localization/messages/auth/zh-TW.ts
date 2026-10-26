@@ -79,7 +79,8 @@ const messages = {
       confirmDescription: '此操作會變更聯盟存取或權限，因此需要重新確認密碼。',
     },
     verification: {
-      description: '我們已將驗證連結寄到 {email}。執行受保護的帳戶操作前請先驗證電子郵件。',
+      description:
+        '我們已將驗證連結寄到下方的電子郵件地址。執行受保護的帳戶操作前請先驗證電子郵件。',
       sent: '新的驗證連結已寄出。',
     },
     twoFactor: {

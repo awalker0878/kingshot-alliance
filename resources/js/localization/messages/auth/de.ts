@@ -86,7 +86,7 @@ const messages = {
     },
     verification: {
       description:
-        'Wir haben einen Bestätigungslink an {email} gesendet. Bestätige die Adresse vor geschützten Kontoaktionen.',
+        'Wir haben einen Bestätigungslink an die unten angegebene E-Mail-Adresse gesendet. Bestätige die Adresse vor geschützten Kontoaktionen.',
       sent: 'Ein neuer Bestätigungslink wurde gesendet.',
     },
     twoFactor: {

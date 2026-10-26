@@ -86,7 +86,7 @@ const messages = {
     },
     verification: {
       description:
-        'Wysłaliśmy link weryfikacyjny na {email}. Zweryfikuj adres przed chronionymi czynnościami na koncie.',
+        'Wysłaliśmy link weryfikacyjny na poniższy adres e-mail. Zweryfikuj adres przed chronionymi czynnościami na koncie.',
       sent: 'Wysłano nowy link weryfikacyjny.',
     },
     twoFactor: {

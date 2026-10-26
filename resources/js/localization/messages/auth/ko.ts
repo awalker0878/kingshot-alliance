@@ -83,7 +83,7 @@ const messages = {
     },
     verification: {
       description:
-        '{email}로 인증 링크를 보냈습니다. 보호된 계정 작업 전에 이메일 주소를 인증하세요.',
+        '아래 이메일 주소로 인증 링크를 보냈습니다. 보호된 계정 작업 전에 이메일 주소를 인증하세요.',
       sent: '새 인증 링크를 보냈습니다.',
     },
     twoFactor: {

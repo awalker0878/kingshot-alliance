@@ -2,6 +2,10 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   events: {
+    time: {
+      yourTime: 'Waktu Anda · {zone}',
+      eventTime: 'Waktu acara · {zone}',
+    },
     history: {
       title: 'Riwayat event',
       subtitle:

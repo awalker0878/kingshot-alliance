@@ -84,7 +84,7 @@ const messages = {
     },
     verification: {
       description:
-        'Chúng tôi đã gửi liên kết xác minh đến {email}. Hãy xác minh địa chỉ trước các thao tác tài khoản được bảo vệ.',
+        'Chúng tôi đã gửi liên kết xác minh đến địa chỉ email bên dưới. Hãy xác minh địa chỉ trước các thao tác tài khoản được bảo vệ.',
       sent: 'Đã gửi liên kết xác minh mới.',
     },
     twoFactor: {

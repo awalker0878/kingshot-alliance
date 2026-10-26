@@ -48,10 +48,12 @@ export function domainsForPage(name: string): LocalizationDomain[] {
   const domains = new Set<LocalizationDomain>(['progression', 'assistant']);
   if (name.startsWith('Accounts/Access/')) domains.add('auth');
   if (name.startsWith('Accounts/Governor/')) domains.add('account');
+  if (name === 'Accounts/Governor/Profile') domains.add('auth');
   if (name.startsWith('Accounts/Notifications/')) domains.add('account');
   if (name.startsWith('Public/')) {
     domains.add('public');
     if (name.startsWith('Public/Recruitment/')) domains.add('recruitment');
+    if (name === 'Public/Recruitment/Apply') domains.add('auth');
     if (name.startsWith('Public/Alliance/')) domains.add('content');
   }
   if (name.startsWith('Dashboard/')) domains.add('alliance');
@@ -77,6 +79,7 @@ export function domainsForPage(name: string): LocalizationDomain[] {
     domains.add('kingdom');
     if (name.startsWith('Intelligence/Roster/')) domains.add('roster');
     if (name.startsWith('Intelligence/Contributions/')) domains.add('contributions');
+    if (name === 'Intelligence/Contributions/History') domains.add('events');
   }
   if (name.startsWith('Kingdom/')) {
     domains.add('kingdom');
@@ -86,6 +89,7 @@ export function domainsForPage(name: string): LocalizationDomain[] {
   if (name.startsWith('Platform/')) {
     domains.add('platform');
     if (name.startsWith('Platform/EventTypes/')) domains.add('events');
+    if (name === 'Platform/Administration/Index') domains.add('events');
   }
   return [...domains];
 }

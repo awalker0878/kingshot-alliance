@@ -87,7 +87,7 @@ const messages = {
     },
     verification: {
       description:
-        'Nous avons envoyé un lien de vérification à {email}. Vérifiez l’adresse avant les actions de compte protégées.',
+        'Nous avons envoyé un lien de vérification à l’adresse e-mail ci-dessous. Vérifiez l’adresse avant les actions de compte protégées.',
       sent: 'Un nouveau lien de vérification a été envoyé.',
     },
     twoFactor: {

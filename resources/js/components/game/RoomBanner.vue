@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import PageCommandExtension from '@/components/navigation/PageCommandExtension.vue';
-
 withDefaults(
   defineProps<{
     eyebrow: string;
@@ -29,5 +27,4 @@ withDefaults(
     </div>
     <div v-if="$slots.aside" class="ks-room-banner__aside"><slot name="aside" /></div>
   </section>
-  <PageCommandExtension />
 </template>

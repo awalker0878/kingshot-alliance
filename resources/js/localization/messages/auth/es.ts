@@ -87,7 +87,7 @@ const messages = {
     },
     verification: {
       description:
-        'Enviamos un enlace de verificación a {email}. Verifica la dirección antes de realizar acciones protegidas.',
+        'Enviamos un enlace de verificación a la dirección de correo que aparece abajo. Verifica la dirección antes de realizar acciones protegidas.',
       sent: 'Se ha enviado un nuevo enlace de verificación.',
     },
     twoFactor: {

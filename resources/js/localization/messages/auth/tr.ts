@@ -86,7 +86,7 @@ const messages = {
     },
     verification: {
       description:
-        '{email} adresine bir doğrulama bağlantısı gönderdik. Korumalı hesap işlemlerinden önce adresi doğrulayın.',
+        'Aşağıdaki e-posta adresine bir doğrulama bağlantısı gönderdik. Korumalı hesap işlemlerinden önce adresi doğrulayın.',
       sent: 'Yeni bir doğrulama bağlantısı gönderildi.',
     },
     twoFactor: {

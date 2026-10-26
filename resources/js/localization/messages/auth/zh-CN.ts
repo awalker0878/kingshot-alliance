@@ -79,7 +79,7 @@ const messages = {
       confirmDescription: '此操作会更改联盟访问或权限，因此需要重新确认密码。',
     },
     verification: {
-      description: '我们已向 {email} 发送验证链接。执行受保护的账户操作前请先验证邮箱。',
+      description: '我们已向下方的电子邮箱发送验证链接。执行受保护的账户操作前请先验证邮箱。',
       sent: '新的验证链接已发送。',
     },
     twoFactor: {

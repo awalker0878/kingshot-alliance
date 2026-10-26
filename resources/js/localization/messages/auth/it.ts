@@ -83,7 +83,7 @@ const messages = {
     },
     verification: {
       description:
-        'Abbiamo inviato un link di verifica a {email}. Verifica l’indirizzo prima delle azioni protette sull’account.',
+        'Abbiamo inviato un link di verifica all’indirizzo e-mail qui sotto. Verifica l’indirizzo prima delle azioni protette sull’account.',
       sent: 'È stato inviato un nuovo link di verifica.',
     },
     twoFactor: {

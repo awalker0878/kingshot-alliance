@@ -85,7 +85,7 @@ const messages = {
     },
     verification: {
       description:
-        'Kami mengirim tautan verifikasi ke {email}. Verifikasi alamat sebelum melakukan tindakan akun yang dilindungi.',
+        'Kami mengirim tautan verifikasi ke alamat email di bawah ini. Verifikasi alamat sebelum melakukan tindakan akun yang dilindungi.',
       sent: 'Tautan verifikasi baru telah dikirim.',
     },
     twoFactor: {
