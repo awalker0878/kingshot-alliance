@@ -24,17 +24,13 @@ for (const room of rooms) {
     await page.locator('#password').fill('password');
     await page.locator('button[type="submit"]').click();
     await page.waitForURL('**/dashboard');
+    await page.waitForLoadState('networkidle');
     const switcher = page.locator('button[aria-haspopup="listbox"]:visible').first();
-    if (
-      (await switcher.isVisible()) &&
-      /select governor/i.test((await switcher.textContent()) ?? '')
-    ) {
+    // Activate the fixture Governor through the UI regardless of the browser's
+    // startup language. English labels do not identify the Arabic switcher.
+    if (await switcher.isVisible()) {
       await switcher.click();
-      await page
-        .getByRole('listbox', { name: 'Active Governor' })
-        .getByRole('option')
-        .first()
-        .click();
+      await page.getByRole('listbox').getByRole('option').first().click();
       await page.waitForLoadState('networkidle');
     }
 

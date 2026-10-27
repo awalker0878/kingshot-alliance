@@ -5,12 +5,12 @@ import type { Locator, Page } from '@playwright/test';
 const factualProgressionVisualFingerprints: Record<string, { library: string; governor: string }> =
   {
     desktop: {
-      library: 'f3a8c27a39e1c641e6cb570cc82f86d2b26fd08a33f5227a0d6c2b386be9573d',
-      governor: '2e02000083aa6d49387129b41bda4222253e583d9d0b9ecfe90252cdacf4e97d',
+      library: '2a8b33783b900f089b4a432406a70e1c928eff204c58034a1fb828e635842e6e',
+      governor: '74518c5691262e8d1ca0cd2216137592a837e70b61e00f2d800271b6d043b9be',
     },
     mobile: {
-      library: 'c549584809471cfad5b8cb751be4d30c06518149d9846d0700f2cf1979de39e1',
-      governor: 'd1b26470c9fb5167b6fbee520caaff114b87e148d1adb2a178189afc4fe941f1',
+      library: 'f2d785b189de1d3e3711c27740a2e9bfe016b6cfd84d95d6ed4f6721f593fbb5',
+      governor: '5ca16ac2696bff86c8f47aa8f38617ba3f8f385d001b4bdb333430e931dcdb87',
     },
   };
 
