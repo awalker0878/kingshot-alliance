@@ -8,7 +8,6 @@ const messages = {
     expired: 'Scaduto',
     deliveryQueued: 'In coda',
     deliveryHistory: 'Cronologia delle consegne',
-
     eyebrow: 'Integrazioni alleanza',
     title: 'Credenziali API e webhook',
     activeCredentials: 'Credenziali attive',
@@ -24,6 +23,119 @@ const messages = {
     status: 'Stato',
     attempts: 'Tentativi',
     lastError: 'Ultimo errore',
+    subtitle:
+      "Gestisci l'accesso API, i webhooks firmati, i limiti delle alleanze e i risultati di consegna recenti per {alliance}.",
+    credentialLimit: 'Limite di credenziali API',
+    webhookLimit: 'Limite del webhook',
+    saveCredentialNow: 'Salva questa credenziale API ora',
+    credentialOneTime: 'Il token non può essere recuperato nuovamente dopo questa risposta.',
+    saveWebhookNow: 'Salva questa chiave di firma webhook ora',
+    webhookOneTime:
+      "Utilizzare questo segreto per verificare l'intestazione X-Kingshot-Signature. Non può essere recuperato di nuovo.",
+    commandApi: 'Bot & API accesso',
+    botReadyReads: 'Dati disponibili dei bot',
+    commandApiHelp:
+      "Utilizzare questi endpoint JSON da Discord, Telegram o un'altra integrazione approvata. Ogni credenziale API riceve solo gli ambiti selezionati di seguito.",
+    commandApiBoundary:
+      'Le richieste di scrittura richiedono una credenziale API autorizzata, una connessione governatore verificata e una chiave di idempotenza. Le normali autorizzazioni di alleanza e evento sono ancora valide.',
+    scopeAlliance: "Identità dell'alleanza e impostazioni pubbliche.",
+    scopeEvents: 'Occorrenze di eventi di alleanza.',
+    scopeContributions: "Record di contributi dell'alleanza approvati.",
+    scopeCommands:
+      'Dati di panoramica, inclusi eventi, codici regalo, guide e stato del reclutamento.',
+    scopeGiftCodes: 'Codici regalo attivi e il passaggio ufficiale del riscatto.',
+    scopeContent: 'Pubblicate guide alle alleanze e informazioni sulle fonti.',
+    scopeActorLinks:
+      'Utilizzare i codici di accoppiamento del governatore Discord o Telegram una tantum.',
+    scopeEventParticipation:
+      "Invia la disponibilità dell'evento e le modifiche alla registrazione per un governatore collegato verificato.",
+    apiEnabled: 'API accesso è abilitato.',
+    apiDisabled: 'L’accesso all’API è disabilitato per questa Alleanza.',
+    apiLimitHelp: "Fino a {limit} credenziali attive API sono consentite dal piano dell'alleanza.",
+    creatingCredential: 'Creazione delle credenziali API…',
+    name: 'Nome',
+    expiresAt: 'Scade il',
+    optional: 'Facoltativo',
+    scopes: 'Ambiti',
+    prefix: 'Prefisso',
+    lastUsed: 'Ultimo utilizzo',
+    never: 'Mai',
+    state: 'Stato',
+    active: 'Attivo',
+    revoked: 'Revocato',
+    revoking: 'Revocazione…',
+    revokeTitle: "Revocare l'accesso API?",
+    revokeDescription:
+      'Revocare immediatamente {name}. Le richieste che lo utilizzano smetteranno di funzionare.',
+    credentialCreated: 'È stata creata la credenziale API. Salva il token una tantum ora.',
+    credentialRevoked: 'Le credenziali API sono state revocate.',
+    noCredentials: 'Non sono state create credenziali API.',
+    webhooksEnabled: 'I webhooks sono abilitati.',
+    webhooksDisabled: 'I webhooks sono disabilitati per questa alleanza.',
+    webhookLimitHelp:
+      'Sono consentiti fino a {limit} webhooks attivi. È richiesto un URL di consegna.',
+    creatingWebhook: 'Aggiunta di webhook…',
+    webhookCreated: 'Il webhook è stato creato. Salva la sua chiave di firma una tantum ora.',
+    webhookRevoked: 'Il webhook è stato revocato.',
+    webhookTestQueued: "Una consegna di prova firmata è stata messa in coda per l'URL selezionato.",
+    webhookDeliveryRetried:
+      'La consegna non riuscita è stata messa in coda per un altro tentativo.',
+    operationFailed: "Impossibile completare l'azione di connessione.",
+    httpsEndpoint: 'URL di consegna',
+    events: 'Eventi',
+    eventsHelp:
+      'Scegli uno o più eventi webhook supportati oppure seleziona * per il catalogo completo.',
+    eventAllDescription:
+      'Ricevi tutti gli eventi attuali e futuri nel catalogo pubblico dei webhook.',
+    eventContentPublished: 'Viene pubblicata una notizia o un avviso di alleanza.',
+    eventCreated: 'Viene creato un evento di alleanza.',
+    eventUpdated: "Un programma di eventi dell'alleanza o modifiche alla configurazione.",
+    eventCancelled: "Un evento dell'alleanza viene annullato.",
+    eventMemberUpdated: "Lo stato di un membro o il rango dell'alleanza cambia.",
+    eventMemberLeft: "Un governatore lascia l'appartenenza o il roster osservato.",
+    eventCandidateStageChanged: 'Un candidato di reclutamento si sposta in una fase diversa.',
+    eventCandidateJoined: "Un candidato accettato per il reclutamento entra nell'alleanza.",
+    eventGiftCodeCreated: "Un nuovo codice regalo di origine entra nell'elenco condiviso.",
+    eventGiftCodeProvenanceAdded:
+      'Le nuove informazioni di origine sono allegate a un codice regalo esistente.',
+    eventGiftCodeStatusChanged:
+      'Lo stato del codice regalo cambia dopo la scadenza o la prova del governatore.',
+    eventGiftCodeExpiryChanged: 'Una revisione di scadenza del codice regalo qualificato cambia.',
+    eventBroadcastScheduleUpdated:
+      "Una regola di avviso ricorrente dell'alleanza viene creata o modificata.",
+    eventBroadcastScheduleCancelled:
+      "Una regola di Avviso ricorrente dell'alleanza viene annullata.",
+    eventBroadcastRunQueued: 'Un avviso di alleanza pianificato è in coda per i suoi destinatari.',
+    eventBroadcastDeliverySucceeded:
+      "Un canale di notifica esterno dell'alleanza conferma la consegna.",
+    eventBroadcastDeliveryFailed:
+      'Un tentativo di consegna di un avviso di alleanza esterno non riesce.',
+    noWebhooks: 'Non sono stati creati webhooks.',
+    sendTest: 'Invia test firmato',
+    sendingTest: 'Invio del test…',
+    rotateSecret: 'Ruota la chiave di firma',
+    rotatingSecret: 'Chiave rotante…',
+    rotateSecretTitle: 'Ruotare questa chiave di firma?',
+    rotateSecretDescription:
+      'Sostituire immediatamente la chiave di firma per {name}. Aggiornare il ricevitore prima della sua prossima consegna.',
+    secretRotated: 'Chiave di firma ruotata',
+    deliveryHelp:
+      "Ultimi tentativi di consegna webhook registrati. L'apertura di questa cronologia non li invia di nuovo.",
+    responseCode: 'HTTP',
+    lastAttempt: "L'ultimo tentativo",
+    deliveredAt: 'Consegnato',
+    noError: 'Nessun errore registrato',
+    noDeliveries: 'Non sono stati registrati tentativi di consegna di webhook.',
+    retryDelivery: 'Riprova la consegna',
+    retryingDelivery: 'Riprova in coda…',
+    actions: 'Azioni',
+    deliveryPending: 'In attesa',
+    deliveryDelivering: 'Consegna',
+    deliveryDelivered: 'Consegnato',
+    deliveryFailed: 'Fallito',
+    deliveryUnknown: 'Sconosciuto',
+    enabled: 'Attivato',
+    disabled: 'Disattivato',
   },
 } satisfies MessageCatalogue;
 

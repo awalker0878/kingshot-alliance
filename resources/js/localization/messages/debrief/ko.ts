@@ -41,6 +41,25 @@ const messages = {
     noPreviousHelp: '완료된 이전 곰 사냥이 있으면 비교가 표시됩니다.',
     history: '기록',
     runHistory: '곰 사냥 기록',
+    signals: {
+      evidence: '증거 상태',
+      factualSignals: '기록된 비교',
+      reviewPending: '하나 이상의 가져온 governor 행은 여전히 ID 검토가 필요합니다.',
+      newPersonalBest: '허용된 결과에서 새로운 개인 최고 기록',
+      damageDirection: '손상 {direction}',
+      rallyDirection: '랠리 참가 {direction}',
+      evidenceStates: {
+        accepted: '허용된 스크린샷 결과',
+        recorded_without_accepted_evidence: '허용된 스크린샷 증거 없이 기록된 결과',
+        unavailable: '기록된 결과 없음',
+      },
+      directions: {
+        unknown: '비교할 수 없음',
+        increased: '증가',
+        decreased: '감소',
+        unchanged: '변경되지 않음',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

@@ -115,6 +115,13 @@ export async function loadCatalogue(
   if (existing) return existing;
   const request = importDomainCatalogue(domain, locale).then(async (module) => {
     let catalogue = module.default;
+    // Translated catalogues include the full English extension surface. Applying
+    // an English-only extension here would overwrite the selected language.
+    if (locale !== defaultLocale) {
+      catalogues.set(key, catalogue);
+      pending.delete(key);
+      return catalogue;
+    }
     if (domain === 'assistant') catalogue = await assistantCatalogue(catalogue, locale);
     if (domain === 'events') catalogue = await eventsCatalogue(catalogue, locale);
     if (domain === 'transfers') catalogue = await transfersCatalogue(catalogue);

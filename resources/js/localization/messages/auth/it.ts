@@ -9,6 +9,8 @@ const messages = {
       submit: 'Accedi',
       createAccount: 'Crea account',
       invitation: 'Hai un invito?',
+      email: 'Email',
+      password: 'Password',
     },
     register: {
       title: 'Crea account',
@@ -16,6 +18,8 @@ const messages = {
       passwordConfirmation: 'Conferma password',
       submit: 'Crea account',
       existingAccount: 'Hai già un account?',
+      email: 'Email',
+      password: 'Password',
     },
     password: {
       forgotTitle: 'Reimposta la password',
@@ -80,17 +84,58 @@ const messages = {
       confirmNewPassword: 'Conferma nuova password',
       confirmDescription:
         'Questa azione modifica accesso o autorizzazioni dell’alleanza, quindi devi confermare di nuovo la password.',
+      recoveryKicker: "RECUPERO DELL'ACCOUNT",
+      recoveryNeutral:
+        "Se esiste una credenziale di password idonea per quell'e-mail, invieremo istruzioni sicure per il ripristino della password.",
+      checkInboxKicker: 'CONTROLLA LA TUA INBOX',
+      checkInboxHeading: 'Istruzioni di recupero richieste',
+      checkInboxDescription:
+        "Se esiste una credenziale di password idonea per l'indirizzo inserito, le istruzioni per la reimpostazione della password sono state inviate. Per motivi di sicurezza, non possiamo confermare se un account esiste o quali metodi utilizza.",
+      resetKicker: 'REIMPOSTAZIONE SICURA DELLA PASSWORD',
+      accountEmail: "Email dell'account",
+      requirements: 'La password deve includere:',
+      requirementLength: 'Almeno 12 caratteri',
+      requirementUpper: 'Una lettera maiuscola',
+      requirementLower: 'Una lettera minuscola',
+      requirementNumber: 'Un numero',
+      showPassword: 'Mostra la password',
+      hidePassword: 'Nascondi la password',
+      validationSummary: 'Controllare i campi evidenziati prima di continuare.',
     },
     verification: {
       description:
         'Abbiamo inviato un link di verifica all’indirizzo e-mail qui sotto. Verifica l’indirizzo prima delle azioni protette sull’account.',
       sent: 'È stato inviato un nuovo link di verifica.',
+      kicker: 'VERIFICA DELLA EMAIL',
+      instructions:
+        'Apri il messaggio e segui il link per completare la verifica del tuo indirizzo email.',
+      securityNote:
+        'Kingshot Alliance non ti chiederà mai la password tramite un messaggio di verifica via email.',
+      resendIn: 'Puoi inviarlo di nuovo in {seconds}s',
+      useAnotherAccount: 'Esci e usa un altro account',
     },
     twoFactor: {
       kicker: 'Controllo di sicurezza',
       description: 'Inserisci il codice attuale di sei cifre dalla tua app di autenticazione.',
       verifyCode: 'Verifica codice',
       useRecoveryCode: 'Usa codice di recupero',
+    },
+    social: {
+      continueWithGoogle: 'Continua con Google',
+      createWithGoogle: 'Creare Kingshot Alliance conto con Google',
+      or: 'o',
+    },
+    passkeys: {
+      signIn: 'Accedi con una chiave di accesso',
+      authenticating: 'Verifica della chiave di accesso…',
+    },
+    confirm: {
+      title: 'Conferma la password',
+      description:
+        "Utilizza uno dei metodi di accesso allegati prima di procedere con questa modifica sensibile dell'account.",
+      usePassword: 'Conferma con password',
+      useGoogle: 'Conferma con Google',
+      usePasskey: 'Conferma con una chiave di accesso',
     },
   },
 } satisfies MessageCatalogue;

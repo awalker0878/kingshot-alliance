@@ -8,7 +8,8 @@ The English catalogues are authoritative. The application supports English and 1
 - Server-language checkpoint: `bac0a9a1bbf399c0213b4e0ee6572b18a70882ae`.
 - That checkpoint passed [CI](https://github.com/awalker0878/kingshot-alliance/actions/runs/40682049852) and [browser regression](https://github.com/awalker0878/kingshot-alliance/actions/runs/40682049761).
 - Saved generation batch: [40730353999](https://github.com/awalker0878/kingshot-alliance/actions/runs/40730353999); immutable pre-translation baseline `910544783e5c6897ea26a7aa239dcde8f0789cc1`.
-- Remaining: generate and review language drafts, fill every locale catalogue, prevent English extensions overwriting translated values, add completeness enforcement, then run frontend, PHP and browser regression on the completed change.
+- All 16 draft jobs completed successfully. All locale catalogues, English-key server messages and account email catalogues have now been filled. Targeted review repairs terminology, omitted placeholders, English retention and identified semantic errors. Full native-speaker editorial review remains pending.
+- Final validation: run frontend, PHP and browser regression on the completed change.
 - Known independent limitation: the strict map-art gate still awaits 24 source-art families.
 
 ## Generate drafts
@@ -30,3 +31,5 @@ Recover the latest Translation drafts run's `translation-input-*` and `translati
 ## Compile without overwriting existing translations
 
 Export the immutable baseline before compiling or recompiling: `node scripts/localization/export-input.mjs .translation-baseline-input 910544783e5c6897ea26a7aa239dcde8f0789cc1`. This records both raw catalogues and effective catalogues after overlays. Retain raw localized values hidden by an English overlay only when the English source has not changed. Never use already-generated catalogues as the preservation baseline.
+
+Compile with `node scripts/localization/compile-catalogues.mjs .translation-baseline-input .translation-output`. Optional fourth argument selects one locale. Compilation checks every entry before writing any files, and saves a diagnostic report beside the drafts. Run `npm run check:localization-completeness` to inspect raw catalogues, runtime overlays, English-key server messages and parameter parity without English fallback. PHP catalogue tests cover account and framework messages. Locale-specific unchanged words are explicitly listed in `unchanged.json`; never add an untranslated sentence to that list.

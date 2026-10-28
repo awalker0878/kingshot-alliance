@@ -10,6 +10,7 @@ const messages = {
       submit: 'Masuk',
       createAccount: 'Buat akun',
       invitation: 'Punya undangan?',
+      email: 'Surel',
     },
     register: {
       title: 'Buat akun',
@@ -18,6 +19,7 @@ const messages = {
       passwordConfirmation: 'Konfirmasi kata sandi',
       submit: 'Buat akun',
       existingAccount: 'Sudah punya akun?',
+      email: 'Surel',
     },
     password: {
       forgotTitle: 'Atur ulang kata sandi',
@@ -82,17 +84,57 @@ const messages = {
       confirmNewPassword: 'Konfirmasi kata sandi baru',
       confirmDescription:
         'Tindakan ini mengubah akses atau izin aliansi, jadi kata sandimu harus dikonfirmasi kembali.',
+      recoveryKicker: 'PENGUMUMAN AKUNTANSI',
+      recoveryNeutral:
+        'Jika ada kredensial sandi yang sah untuk surel itu, kami akan mengirimkan instruksi reset sandi yang aman.',
+      checkInboxKicker: 'Periksa kotak masuk Anda',
+      checkInboxHeading: 'Instruksi pemulihan diminta',
+      checkInboxDescription:
+        'Jika ada kredensial sandi yang sah untuk alamat yang Anda masukkan, instruksi reset sandi telah dikirim. Untuk keamanan, kami tidak bisa mengkonfirmasi apakah akun ada atau metode apa yang digunakan.',
+      resetKicker: 'SECURE Password RESET',
+      accountEmail: 'Email akun',
+      requirements: 'Kata sandi Anda harus mencakup:',
+      requirementLength: 'Setidaknya 12 karakter',
+      requirementUpper: 'Huruf besar',
+      requirementLower: 'Huruf kecil',
+      requirementNumber: 'Sebuah angka',
+      showPassword: 'Tampilkan sandi',
+      hidePassword: 'Sembunyikan kata sandi',
+      validationSummary: 'Lihat kembali bidang yang ditandai sebelum melanjutkan.',
     },
     verification: {
       description:
         'Kami mengirim tautan verifikasi ke alamat email di bawah ini. Verifikasi alamat sebelum melakukan tindakan akun yang dilindungi.',
       sent: 'Tautan verifikasi baru telah dikirim.',
+      kicker: 'VERIFIKASI SULTAN',
+      instructions: 'Buka pesan dan ikuti tautan untuk menyelesaikan verifikasi alamat surel Anda.',
+      securityNote:
+        'Kingshot Alliance tidak akan pernah meminta sandi Anda melalui pesan verifikasi email.',
+      resendIn: 'Kau bisa mengirimkan kembali dalam {seconds} detik',
+      useAnotherAccount: 'Keluar dan gunakan akun lain',
     },
     twoFactor: {
       kicker: 'Pemeriksaan keamanan',
       description: 'Masukkan kode enam digit saat ini dari aplikasi autentikatormu.',
       verifyCode: 'Verifikasi kode',
       useRecoveryCode: 'Gunakan kode pemulihan',
+    },
+    social: {
+      continueWithGoogle: 'Lanjutkan dengan Google',
+      createWithGoogle: 'Buat akun Kingshot Alliance dengan Google',
+      or: 'atau',
+    },
+    passkeys: {
+      signIn: 'Masuk dengan kunci akses',
+      authenticating: 'Memeriksa kunci akses…',
+    },
+    confirm: {
+      title: 'Konfirmasi kata sandi',
+      description:
+        'Gunakan salah satu metode login yang terlampir sebelum melanjutkan dengan perubahan akun sensitif ini.',
+      usePassword: 'Konfirmasi dengan sandi',
+      useGoogle: 'Konfirmasi dengan Google',
+      usePasskey: 'Konfirmasi dengan kunci akses',
     },
   },
 } satisfies MessageCatalogue;

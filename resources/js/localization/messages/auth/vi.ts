@@ -10,6 +10,7 @@ const messages = {
       submit: 'Đăng nhập',
       createAccount: 'Tạo tài khoản',
       invitation: 'Bạn có lời mời?',
+      email: 'Email',
     },
     register: {
       title: 'Tạo tài khoản',
@@ -18,6 +19,7 @@ const messages = {
       passwordConfirmation: 'Xác nhận mật khẩu',
       submit: 'Tạo tài khoản',
       existingAccount: 'Đã có tài khoản?',
+      email: 'Email',
     },
     password: {
       forgotTitle: 'Đặt lại mật khẩu',
@@ -81,17 +83,57 @@ const messages = {
       confirmNewPassword: 'Xác nhận mật khẩu mới',
       confirmDescription:
         'Hành động này thay đổi quyền truy cập hoặc quyền hạn của liên minh, vì vậy bạn phải xác nhận lại mật khẩu.',
+      recoveryKicker: 'KHÓA KHÔNG THỂ ĐƯỢC LÀM LẠI',
+      recoveryNeutral:
+        'Nếu có mật khẩu hợp lệ cho email đó, chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu an toàn.',
+      checkInboxKicker: 'Kiểm tra hộp thư của bạn',
+      checkInboxHeading: 'Yêu cầu hướng dẫn khôi phục',
+      checkInboxDescription:
+        'Nếu có một thông tin mật khẩu hợp lệ cho địa chỉ bạn nhập, các hướng dẫn đặt lại mật khẩu đã được gửi. Vì lý do an ninh, chúng tôi không thể xác nhận liệu một tài khoản có tồn tại hay không hay nó sử dụng phương pháp nào.',
+      resetKicker: 'Đặt lại mật khẩu an toàn',
+      accountEmail: 'Thư điện tử tài khoản',
+      requirements: 'Mật khẩu của bạn phải bao gồm:',
+      requirementLength: 'Ít nhất 12 ký tự',
+      requirementUpper: 'Một chữ cái lớn',
+      requirementLower: 'Một chữ cái nhỏ',
+      requirementNumber: 'Một con số',
+      showPassword: 'Hiện mật khẩu',
+      hidePassword: 'Ẩn mật khẩu',
+      validationSummary: 'Xem lại các ô tô đậm trước khi tiếp tục.',
     },
     verification: {
       description:
         'Chúng tôi đã gửi liên kết xác minh đến địa chỉ email bên dưới. Hãy xác minh địa chỉ trước các thao tác tài khoản được bảo vệ.',
       sent: 'Đã gửi liên kết xác minh mới.',
+      kicker: 'KẾT QUẢ TƯ VẤN',
+      instructions: 'Mở tin nhắn và đi theo liên kết để hoàn thành xác thực địa chỉ email của bạn.',
+      securityNote:
+        'Kingshot Alliance sẽ không bao giờ hỏi mật khẩu của bạn thông qua một thông điệp xác nhận email.',
+      resendIn: 'Anh có thể gửi lại trong {seconds} giây.',
+      useAnotherAccount: 'Thoát ra và sử dụng tài khoản khác',
     },
     twoFactor: {
       kicker: 'Kiểm tra bảo mật',
       description: 'Nhập mã sáu chữ số hiện tại từ ứng dụng xác thực của bạn.',
       verifyCode: 'Xác minh mã',
       useRecoveryCode: 'Dùng mã khôi phục',
+    },
+    social: {
+      continueWithGoogle: 'Tiếp tục với Google',
+      createWithGoogle: 'Tạo tài khoản Kingshot Alliance với Google',
+      or: 'hoặc',
+    },
+    passkeys: {
+      signIn: 'Đăng nhập bằng khóa truy cập',
+      authenticating: 'Đang kiểm tra khóa truy cập…',
+    },
+    confirm: {
+      title: 'Xác nhận mật khẩu',
+      description:
+        'Hãy dùng một trong những phương pháp đăng nhập gắn liền trước khi tiếp tục thay đổi tài khoản nhạy cảm này.',
+      usePassword: 'Kiểm tra mật khẩu',
+      useGoogle: 'Kiểm tra với Google',
+      usePasskey: 'Xác nhận bằng khóa truy cập',
     },
   },
 } satisfies MessageCatalogue;

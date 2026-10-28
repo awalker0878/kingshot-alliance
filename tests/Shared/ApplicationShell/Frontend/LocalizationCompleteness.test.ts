@@ -2,8 +2,20 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   catalogueProblems,
+  hasInventedNumber,
   preservedTranslation,
 } from '../../../../scripts/lib/localization-completeness.mjs';
+
+test('translation cannot invent dates, quantities or unrelated version numbers', () => {
+  assert.equal(hasInventedNumber('Published at', 'Veröffentlicht am 1. Mai 2017'), true);
+  assert.equal(
+    hasInventedNumber('This browser does not report passkey support.', '不支持HTML5视频'),
+    true,
+  );
+  assert.equal(hasInventedNumber('Phase II', '第2阶段'), false);
+  assert.equal(hasInventedNumber('{count} messages', '{count} messages'), false);
+  assert.equal(hasInventedNumber('One more attempt', '1 weiterer Versuch'), false);
+});
 
 test('missing translations cannot pass by falling back to English', () => {
   assert.equal(catalogueProblems({ label: 'Save' }, {}).at(0).reason, 'missing');

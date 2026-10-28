@@ -83,17 +83,57 @@ const messages = {
       confirmNewPassword: 'Potwierdź nowe hasło',
       confirmDescription:
         'Ta czynność zmienia dostęp lub uprawnienia w sojuszu, dlatego trzeba ponownie potwierdzić hasło.',
+      recoveryKicker: 'Odzyskiwanie konta',
+      recoveryNeutral:
+        'Jeśli istnieją kwalifikujące się dane logowania do tego e-maila, wyślemy bezpieczne instrukcje resetowania hasła.',
+      checkInboxKicker: 'Sprawdź swoją skrzynkę odbiorczą',
+      checkInboxHeading: 'Żądane instrukcje odzyskiwania',
+      checkInboxDescription:
+        'Jeśli istnieją ważne dane logowania dla wprowadzonego adresu, instrukcje resetowania hasła zostały wysłane. Ze względów bezpieczeństwa nie możemy potwierdzić, czy konto istnieje, ani jakich metod ono używa.',
+      resetKicker: 'Bezpieczne resetowanie hasła',
+      accountEmail: 'Adres e-mail konta',
+      requirements: 'Twoje hasło musi zawierać:',
+      requirementLength: 'Co najmniej 12 znaków',
+      requirementUpper: 'Wielka litera',
+      requirementLower: 'Mała litera',
+      requirementNumber: 'Liczba',
+      showPassword: 'Pokaż hasło',
+      hidePassword: 'Ukryj hasło',
+      validationSummary: 'Przed kontynuowaniem sprawdź podświetlone pola.',
     },
     verification: {
       description:
         'Wysłaliśmy link weryfikacyjny na poniższy adres e-mail. Zweryfikuj adres przed chronionymi czynnościami na koncie.',
       sent: 'Wysłano nowy link weryfikacyjny.',
+      kicker: 'WERYFIKACJA EMAIL',
+      instructions: 'Otwórz wiadomość i kliknij link, aby zakończyć weryfikację adresu e-mail.',
+      securityNote:
+        'Kingshot Alliance nigdy nie poprosi o podanie hasła w wiadomości e-mail z weryfikacją.',
+      resendIn: 'Możesz wysłać ponownie w {seconds}s',
+      useAnotherAccount: 'Wyloguj się i użyj innego konta',
     },
     twoFactor: {
       kicker: 'Kontrola bezpieczeństwa',
       description: 'Wpisz aktualny sześciocyfrowy kod z aplikacji uwierzytelniającej.',
       verifyCode: 'Zweryfikuj kod',
       useRecoveryCode: 'Użyj kodu odzyskiwania',
+    },
+    social: {
+      continueWithGoogle: 'Kontynuuj z Google',
+      createWithGoogle: 'Utwórz konto Kingshot Alliance z Google',
+      or: 'lub',
+    },
+    passkeys: {
+      signIn: 'Zaloguj się kluczem dostępu',
+      authenticating: 'Sprawdzanie klucza dostępu…',
+    },
+    confirm: {
+      title: 'Potwierdź hasło',
+      description:
+        'Przed kontynuowaniem tej wrażliwej zmiany konta użyj jednej z dołączonych metod logowania.',
+      usePassword: 'Potwierdź hasłem',
+      useGoogle: 'Potwierdź z Google',
+      usePasskey: 'Potwierdź kluczem dostępu',
     },
   },
 } satisfies MessageCatalogue;

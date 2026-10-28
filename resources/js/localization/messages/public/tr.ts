@@ -68,6 +68,37 @@ const messages = {
     chooseOption: 'Bir seçenek seçin',
     submit: 'Başvuruyu gönder',
     submitting: 'Gönderiliyor…',
+    attributionBoard: 'Kamu personeli alımı kurulu',
+    attributionAlliancePage: 'İttifak kamu sayfası',
+    attributionShareLink: 'İttifak paylaşım bağlantısı',
+    attributionBotCommand: 'alliance bot command',
+    attributionHelp:
+      'Bu görünen kaynak etiketi, ittifaka hangi iş bulma bağlantılarının çalıştığını anlamaya yardımcı olur. Sizi tanımlayıp izlememektedir.',
+  },
+  recruitmentBoard: {
+    eyebrow: 'İttifak keşfi',
+    title: 'Bir ittifak bul.',
+    body: 'Kamu personeli alımı yapan ittifakları keşfedin. Listeyi filtreleyebilirsiniz, mevcut görüşü paylaşabilirsiniz ve her ittifakın kendi soruları üzerinden başvuru yapabilirsiniz.',
+    search: 'Ara',
+    searchPlaceholder: 'ittifak adı, işe alma unvanı veya tanıtım',
+    kingdom: 'Krallık',
+    allKingdoms: 'Tüm krallıklar',
+    language: 'Dil',
+    allLanguages: 'Tüm diller',
+    applyFilters: 'Filtreleri uygula',
+    clearFilters: 'Filtreleri temizle',
+    copyLink: 'Filtrelenmiş bağlantıyı kopyala',
+    copied: 'Link kopyalandı',
+    resultCount: '{count} işbirliğine katılmak',
+    capped:
+      'İlk 100 karşılaşmayı gösteriyor. Daha odaklanmış bir sonuç görmek için filtreleri daraltın.',
+    noMatchesTitle: 'Yeni eleman alacak ittifaklar eşleşmedi',
+    noMatchesBody:
+      'Bir filtreyi temizlemeyi deneyin veya daha fazla ittifak kamu personeli alımı için seçildiğinde tekrar kontrol edin.',
+    viewAlliance: 'İttifak Görünümü',
+    apply: 'Uygula',
+    publicOnly: 'Sadece kamu personeli alımı için seçilen ittifaklar gösterilir',
+    listedByAlliance: 'İttifak personeli tarafından listelenmiş.',
   },
 } satisfies MessageCatalogue;
 

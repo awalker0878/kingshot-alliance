@@ -83,17 +83,57 @@ const messages = {
       confirmNewPassword: 'Yeni şifreyi onayla',
       confirmDescription:
         'Bu işlem ittifak erişimini veya izinlerini değiştirir, bu nedenle şifrenizi yeniden doğrulamalısınız.',
+      recoveryKicker: 'Hesap Geri Alımı',
+      recoveryNeutral:
+        'Eğer bu e-posta için geçerli bir şifre kimlik bilgisi varsa, güvenli bir şifre geri yükleme talimatı göndereceğiz.',
+      checkInboxKicker: 'Poştunu kontrol et.',
+      checkInboxHeading: 'Geri alma talimatları isteniyor',
+      checkInboxDescription:
+        'Giriş yaptığınız adres için geçerli bir şifre kimlik bilgisi mevcutsa, şifre yeniden başlatma talimatları gönderildi. Güvenlik açısından, bir hesabın var olup olmadığını veya hangi yöntemleri kullandığını doğrulayamayız.',
+      resetKicker: 'GÜVENLİ ŞİFRE AÇIKLAMASI',
+      accountEmail: 'Hesap e-posta',
+      requirements: 'Şifreniz şunu içermelidir:',
+      requirementLength: 'En az 12 karakter',
+      requirementUpper: 'Büyük harf',
+      requirementLower: 'Küçük harf',
+      requirementNumber: 'Bir sayı.',
+      showPassword: 'Şifreyi göster',
+      hidePassword: 'Şifreyi Gizle',
+      validationSummary: 'Devam etmeden önce işaretlenen alanları inceleyin.',
     },
     verification: {
       description:
         'Aşağıdaki e-posta adresine bir doğrulama bağlantısı gönderdik. Korumalı hesap işlemlerinden önce adresi doğrulayın.',
       sent: 'Yeni bir doğrulama bağlantısı gönderildi.',
+      kicker: 'E-MAIL TESTİ',
+      instructions: 'E-posta adresinizi doğrulamak için mesajı açın ve bağlantıyı izleyin.',
+      securityNote:
+        'Kingshot Alliance e-posta doğrulama mesajı yoluyla asla şifrenizi sormayacaktır.',
+      resendIn: '{seconds} saniye içinde tekrar gönderebilirsin.',
+      useAnotherAccount: 'Çık ve başka bir hesap kullan',
     },
     twoFactor: {
       kicker: 'Güvenlik kontrolü',
       description: 'Kimlik doğrulama uygulamanızdaki güncel altı haneli kodu girin.',
       verifyCode: 'Kodu doğrula',
       useRecoveryCode: 'Kurtarma kodunu kullan',
+    },
+    social: {
+      continueWithGoogle: 'Google ile devam et.',
+      createWithGoogle: 'Google ile Kingshot Alliance hesabı oluştur',
+      or: 'veya',
+    },
+    passkeys: {
+      signIn: 'Geçiş anahtarıyla giriş yap',
+      authenticating: 'Geçiş anahtarı kontrol ediliyor…',
+    },
+    confirm: {
+      title: 'Şifrenizi onaylayın',
+      description:
+        'Bu hassas hesap değişikliğine devam etmeden önce bağlanmış olan giriş yöntemlerinizden birini kullanın.',
+      usePassword: 'Şifre ile doğrula',
+      useGoogle: 'Google ile doğrulayın',
+      usePasskey: 'Geçiş anahtarıyla doğrula',
     },
   },
 } satisfies MessageCatalogue;

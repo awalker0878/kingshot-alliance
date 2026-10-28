@@ -84,17 +84,58 @@ const messages = {
       confirmNewPassword: 'Confirmar nueva contraseña',
       confirmDescription:
         'Esta acción cambia el acceso o los permisos de alianza, por lo que debes confirmar de nuevo tu contraseña.',
+      recoveryKicker: 'RECUPERACIÓN DE CUENTA',
+      recoveryNeutral:
+        'Si existe una credencial de contraseña elegible para ese correo electrónico, le enviaremos instrucciones seguras para restablecer la contraseña.',
+      checkInboxKicker: 'Comprueba tu bandeja de entrada',
+      checkInboxHeading: 'Instrucciones de recuperación solicitadas',
+      checkInboxDescription:
+        'Si existe una contraseña válida para la dirección que ingresó, se han enviado las instrucciones para restablecer la contraseña. Por razones de seguridad, no podemos confirmar si una cuenta existe o qué métodos utiliza.',
+      resetKicker: 'Restablecimiento de contraseña seguro',
+      accountEmail: 'Correo electrónico de la cuenta',
+      requirements: 'Su contraseña debe incluir:',
+      requirementLength: 'Al menos 12 caracteres',
+      requirementUpper: 'Una letra mayúscula',
+      requirementLower: 'Una letra minúscula',
+      requirementNumber: 'Un número',
+      showPassword: 'Mostrar contraseña *',
+      hidePassword: 'Ocultar contraseña',
+      validationSummary: 'Revise los campos resaltados antes de continuar.',
     },
     verification: {
       description:
         'Enviamos un enlace de verificación a la dirección de correo que aparece abajo. Verifica la dirección antes de realizar acciones protegidas.',
       sent: 'Se ha enviado un nuevo enlace de verificación.',
+      kicker: 'Verificación de correo electrónico',
+      instructions:
+        'Abre el mensaje y sigue el enlace para finalizar la verificación de tu dirección de correo electrónico.',
+      securityNote:
+        'Kingshot Alliance nunca le pedirá su contraseña a través de un mensaje de verificación por correo electrónico.',
+      resendIn: 'Puedes volver a enviar en {seconds}s',
+      useAnotherAccount: 'Cerrar sesión y usar otra cuenta',
     },
     twoFactor: {
       kicker: 'Comprobación de seguridad',
       description: 'Introduce el código actual de seis dígitos de tu aplicación de autenticación.',
       verifyCode: 'Verificar código',
       useRecoveryCode: 'Usar código de recuperación',
+    },
+    social: {
+      continueWithGoogle: 'Continuar con Google',
+      createWithGoogle: 'Crear cuenta Kingshot Alliance con Google',
+      or: 'o',
+    },
+    passkeys: {
+      signIn: 'Iniciar sesión con una clave de acceso',
+      authenticating: 'Comprobando la clave de acceso…',
+    },
+    confirm: {
+      title: 'Confirmar contraseña',
+      description:
+        'Utilice uno de los métodos de inicio de sesión adjuntos antes de continuar con este cambio de cuenta confidencial.',
+      usePassword: 'Confirmar con contraseña',
+      useGoogle: 'Confirmar con Google',
+      usePasskey: 'Confirmar con una clave de acceso',
     },
   },
 } satisfies MessageCatalogue;

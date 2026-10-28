@@ -80,17 +80,56 @@ const messages = {
       confirmNewPassword: '새 비밀번호 확인',
       confirmDescription:
         '이 작업은 연맹 접근 또는 권한을 변경하므로 비밀번호를 다시 확인해야 합니다.',
+      recoveryKicker: '계정 복구',
+      recoveryNeutral:
+        '해당 이메일에 해당하는 비밀번호 자격 증명이 존재하는 경우, 보안 비밀번호 재설정 지침을 보내드립니다.',
+      checkInboxKicker: '받은 편지함 확인',
+      checkInboxHeading: '복구 지침 요청됨',
+      checkInboxDescription:
+        '입력한 주소에 해당하는 암호 자격 증명이 존재하는 경우 암호 재설정 지침이 전송되었습니다. 보안상의 이유로, 계정이 존재하는지 또는 어떤 방법을 사용하는지 확인할 수 없습니다.',
+      resetKicker: '보안 암호 재설정',
+      accountEmail: '계정 이메일',
+      requirements: '비밀번호에는 다음 사항이 포함되어야 합니다.',
+      requirementLength: '최소 12자',
+      requirementUpper: '대문자',
+      requirementLower: '소문자',
+      requirementNumber: '숫자',
+      showPassword: '비밀번호 보이기',
+      hidePassword: '비밀번호 숨기기',
+      validationSummary: '계속하기 전에 강조 표시된 필드를 검토하십시오.',
     },
     verification: {
       description:
         '아래 이메일 주소로 인증 링크를 보냈습니다. 보호된 계정 작업 전에 이메일 주소를 인증하세요.',
       sent: '새 인증 링크를 보냈습니다.',
+      kicker: '이메일 확인',
+      instructions: '메시지를 열고 링크를 따라 이메일 주소 확인을 완료합니다.',
+      securityNote:
+        'Kingshot Alliance은 이메일 확인 메시지를 통해 절대로 비밀번호를 요청하지 않습니다.',
+      resendIn: '{seconds}초 안에 다시 보낼 수 있습니다',
+      useAnotherAccount: '로그아웃하고 다른 계정 사용',
     },
     twoFactor: {
       kicker: '보안 확인',
       description: '인증 앱의 현재 6자리 코드를 입력하세요.',
       verifyCode: '코드 확인',
       useRecoveryCode: '복구 코드 사용',
+    },
+    social: {
+      continueWithGoogle: 'Google로 계속',
+      createWithGoogle: 'Google와 함께 Kingshot Alliance 계정을 만듭니다.',
+      or: '또는',
+    },
+    passkeys: {
+      signIn: '패스키로 로그인',
+      authenticating: '패스키 확인 중…',
+    },
+    confirm: {
+      title: '비밀번호 확인',
+      description: '이 민감한 계정 변경을 계속하기 전에 첨부된 로그인 방법 중 하나를 사용하십시오.',
+      usePassword: '비밀번호로 확인',
+      useGoogle: 'Google로 확인',
+      usePasskey: '패스키로 확인',
     },
   },
 } satisfies MessageCatalogue;

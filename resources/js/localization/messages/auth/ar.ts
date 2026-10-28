@@ -79,17 +79,56 @@ const messages = {
       confirmNewPassword: 'تأكيد كلمة المرور الجديدة',
       confirmDescription:
         'هذا الإجراء يغيّر وصول التحالف أو الأذونات، لذا يجب إعادة تأكيد كلمة المرور.',
+      recoveryKicker: 'استرداد الحساب',
+      recoveryNeutral:
+        'وإذا كانت هناك كلمة مرور مؤهلة لذلك البريد الإلكتروني، سنرسل تعليمات آمنة لإعادة تعيين كلمة المرور.',
+      checkInboxKicker: 'تحقق من صندوق البريد الخاص بك',
+      checkInboxHeading: 'طلب إصدار تعليمات بالاسترداد',
+      checkInboxDescription:
+        'إذا كانت هناك كلمة مرور مؤهلة للعنوان الذي أدخلته، فقد أرسلت تعليمات إعادة تعيين كلمة المرور. لأسباب أمنية، لا يمكننا التأكد مما إذا كان الحساب موجودا أو ما هي الطرق التي يستخدمها.',
+      resetKicker: 'كلمة المرور',
+      accountEmail: 'البريد الإلكتروني للحساب',
+      requirements: 'يجب أن تتضمن كلمة المرور:',
+      requirementLength: '12 حرفا على الأقل',
+      requirementUpper: 'حرف كبير',
+      requirementLower: 'حرف صغير',
+      requirementNumber: 'عدد',
+      showPassword: 'أظهر كلمة المرور',
+      hidePassword: 'إخفاء كلمة المرور',
+      validationSummary: 'راجع الحقول المحددة قبل المضي قدما.',
     },
     verification: {
       description:
         'أرسلنا رابط تحقق إلى عنوان البريد الإلكتروني أدناه. تحقّق من العنوان قبل تنفيذ إجراءات الحساب المحمية.',
       sent: 'تم إرسال رابط تحقق جديد.',
+      kicker: 'التحقق من البريد الإلكتروني',
+      instructions: 'افتح الرسالة واتبع الرابط لإكمال التحقق من عنوان بريدك الإلكتروني.',
+      securityNote:
+        'Kingshot Alliance لن يطلب أبدا كلمة المرور الخاصة بك من خلال رسالة التحقق من البريد الإلكتروني.',
+      resendIn: 'يمكنك أن تعيد إرساله في {seconds} ثانية',
+      useAnotherAccount: 'الخروج واستخدام حساب آخر',
     },
     twoFactor: {
       kicker: 'فحص أمني',
       description: 'أدخل الرمز الحالي المكوّن من ستة أرقام من تطبيق المصادقة.',
       verifyCode: 'تحقق من الرمز',
       useRecoveryCode: 'استخدم رمز الاسترداد',
+    },
+    social: {
+      continueWithGoogle: 'تواصل مع Google',
+      createWithGoogle: 'إنشاء حساب Kingshot Alliance مع Google',
+      or: 'أو',
+    },
+    passkeys: {
+      signIn: 'تسجيل الدخول بمفتاح المرور',
+      authenticating: 'جارٍ التحقق من مفتاح المرور…',
+    },
+    confirm: {
+      title: 'تأكيد كلمة المرور',
+      description: 'استخدم أحد طرق الدخول المرفقة قبل المضي قدماً مع هذا التغيير الحساس في الحساب.',
+      usePassword: 'كلمة المرور',
+      useGoogle: 'يرجى التأكد من Google',
+      usePasskey: 'التأكيد بمفتاح المرور',
     },
   },
 } satisfies MessageCatalogue;
