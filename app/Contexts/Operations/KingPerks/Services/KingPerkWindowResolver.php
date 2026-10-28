@@ -25,7 +25,7 @@ final class KingPerkWindowResolver
             || $event->scope !== EventScope::Kingdom
             || $event->eventType?->slug !== 'kingdom-of-power') {
             throw ValidationException::withMessages([
-                'event' => 'King Perks are only available for Kingdom-scoped Kingdom of Power Events.',
+                'event' => (string) __('King Perks are only available for Kingdom-scoped Kingdom of Power Events.'),
             ]);
         }
 
@@ -48,7 +48,7 @@ final class KingPerkWindowResolver
 
         if (! is_numeric($minutes) || (int) $minutes < 1) {
             throw ValidationException::withMessages([
-                'event' => 'The Kingdom of Power Event does not define a preparation window.',
+                'event' => (string) __('The Kingdom of Power Event does not define a preparation window.'),
             ]);
         }
 

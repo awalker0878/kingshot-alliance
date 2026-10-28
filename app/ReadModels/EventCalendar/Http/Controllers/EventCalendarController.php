@@ -323,7 +323,7 @@ final class EventCalendarController extends Controller
     private function player(): PlayerReference
     {
         $player = $this->playerContext->playerOrNull();
-        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before opening Events.');
+        abort_unless($player instanceof PlayerReference, 409, (string) __('Select a Player before opening Events.'));
 
         return $player;
     }

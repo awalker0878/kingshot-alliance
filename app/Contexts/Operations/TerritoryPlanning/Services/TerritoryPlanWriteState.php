@@ -45,7 +45,7 @@ final readonly class TerritoryPlanWriteState
         $this->assertTransaction();
         $route = TerritoryPlan::query()->whereKey($planId)->firstOrFail(['id', 'scope', 'kingdom_id', 'owner_alliance_id']);
         if ($route->scope !== $scope || $route->kingdom_id !== $kingdomId || $route->owner_alliance_id !== $allianceId) {
-            throw ValidationException::withMessages(['territory_plan_revision_id' => 'The Event and Territory plan must have the same owning scope.']);
+            throw ValidationException::withMessages(['territory_plan_revision_id' => (string) __('The Event and Territory plan must have the same owning scope.')]);
         }
 
         return $this->lockRoute($actorPlayerId, $route);
@@ -103,7 +103,7 @@ final readonly class TerritoryPlanWriteState
             if (($exception->errorInfo[0] ?? null) !== '55P03') {
                 throw $exception;
             }
-            throw ValidationException::withMessages(['alliances' => 'A linked Alliance is changing. Retry this plan update.']);
+            throw ValidationException::withMessages(['alliances' => (string) __('A linked Alliance is changing. Retry this plan update.')]);
         }
     }
 
@@ -116,7 +116,7 @@ final readonly class TerritoryPlanWriteState
             if (($exception->errorInfo[0] ?? null) !== '55P03') {
                 throw $exception;
             }
-            throw ValidationException::withMessages(['objects' => 'A linked Governor is changing. Retry this plan update.']);
+            throw ValidationException::withMessages(['objects' => (string) __('A linked Governor is changing. Retry this plan update.')]);
         }
     }
 

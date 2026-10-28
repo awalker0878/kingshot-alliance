@@ -68,7 +68,7 @@ final readonly class MembershipGovernanceHistoryQuery
             $at = $position['at'] ?? null;
             $id = $position['id'] ?? null;
             if (! is_string($at) || ! is_string($id)) {
-                throw ValidationException::withMessages(['cursor' => 'The member history cursor is incomplete.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The member history cursor is incomplete.')]);
             }
             $query->where(static function (Builder $row) use ($at, $id): void {
                 $row->where('created_at', '<', $at)->orWhere(static function (Builder $tie) use ($at, $id): void {

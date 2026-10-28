@@ -35,7 +35,7 @@ final readonly class RespondToEvent
     ): void {
         if ($availableFrom !== null && $availableUntil !== null && $availableUntil->lessThan($availableFrom)) {
             throw ValidationException::withMessages([
-                'available_until' => 'Availability end must not be before availability start.',
+                'available_until' => (string) __('Availability end must not be before availability start.'),
             ]);
         }
 

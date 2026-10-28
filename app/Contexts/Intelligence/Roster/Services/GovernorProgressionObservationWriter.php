@@ -46,15 +46,15 @@ final readonly class GovernorProgressionObservationWriter
         string $idempotencyKey,
     ): GovernorProgressionEvidenceRecordResult {
         if (! $kind->isGovernorProgression()) {
-            throw ValidationException::withMessages(['kind' => 'Roster accepts only explicit Governor Progression evidence kinds through this writer.']);
+            throw ValidationException::withMessages(['kind' => (string) __('Roster accepts only explicit Governor Progression evidence kinds through this writer.')]);
         }
         if (preg_match('/^[a-f0-9]{64}$/', $idempotencyKey) !== 1) {
-            throw ValidationException::withMessages(['idempotency_key' => 'The destination idempotency key is invalid.']);
+            throw ValidationException::withMessages(['idempotency_key' => (string) __('The destination idempotency key is invalid.')]);
         }
         try {
             $captured = CarbonImmutable::parse($capturedAt)->utc();
         } catch (Throwable) {
-            throw ValidationException::withMessages(['captured_at' => 'The Governor progression observation time is invalid.']);
+            throw ValidationException::withMessages(['captured_at' => (string) __('The Governor progression observation time is invalid.')]);
         }
 
         return DB::transaction(function () use ($actorPlayerId, $allianceId, $rosterEntryId, $evidenceId, $reviewId, $kind, $schemaVersion, $progressionDatasetId, $progressionDatasetChecksum, $captured, $payload, $idempotencyKey): GovernorProgressionEvidenceRecordResult {
@@ -72,7 +72,7 @@ final readonly class GovernorProgressionObservationWriter
                     || (string) $existing->evidence_id !== $evidenceId
                     || (string) $existing->review_id !== $reviewId
                     || $existing->evidence_kind !== $kind) {
-                    throw ValidationException::withMessages(['idempotency_key' => 'The destination idempotency key is already bound to different reviewed meaning.']);
+                    throw ValidationException::withMessages(['idempotency_key' => (string) __('The destination idempotency key is already bound to different reviewed meaning.')]);
                 }
 
                 return new GovernorProgressionEvidenceRecordResult(
@@ -93,7 +93,7 @@ final readonly class GovernorProgressionObservationWriter
                 progressionDatasetId: $progressionDatasetId,
                 progressionDatasetChecksum: $progressionDatasetChecksum,
             )) {
-                throw ValidationException::withMessages(['evidence' => 'The exact approved Governor Progression review provenance is no longer valid for this destination scope.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('The exact approved Governor Progression review provenance is no longer valid for this destination scope.')]);
             }
 
             $validatedPayload = $this->validator->validate(

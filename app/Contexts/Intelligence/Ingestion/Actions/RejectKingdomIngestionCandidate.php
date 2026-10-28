@@ -61,7 +61,7 @@ final readonly class RejectKingdomIngestionCandidate
             }
             if ($candidate->state !== KingdomIngestionCandidateState::Quarantined) {
                 throw ValidationException::withMessages([
-                    'candidate' => 'Only quarantined ingestion candidates can be rejected.',
+                    'candidate' => (string) __('Only quarantined ingestion candidates can be rejected.'),
                 ]);
             }
 

@@ -19,29 +19,29 @@ final class TerritoryLayoutContract
     public function decode(string $json): array
     {
         if (strlen($json) > self::MAX_DOCUMENT_BYTES) {
-            throw ValidationException::withMessages(['import' => 'The layout document exceeds the five-megabyte limit.']);
+            throw ValidationException::withMessages(['import' => (string) __('The layout document exceeds the five-megabyte limit.')]);
         }
         try {
             $document = json_decode($json, true, 32, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
-            throw ValidationException::withMessages(['import' => 'The layout must be valid JSON with at most 32 levels of nesting.']);
+            throw ValidationException::withMessages(['import' => (string) __('The layout must be valid JSON with at most 32 levels of nesting.')]);
         }
         if (! is_array($document) || ($document['schema_version'] ?? null) !== self::SCHEMA_VERSION) {
-            throw ValidationException::withMessages(['import' => 'Only Territory Layout schema version 2 is supported.']);
+            throw ValidationException::withMessages(['import' => (string) __('Only Territory Layout schema version 2 is supported.')]);
         }
         $this->fields($document, ['schema_version', 'plan', 'alliances', 'groups', 'objects'], 'import');
         $plan = $document['plan'] ?? null;
         if (! is_array($plan)) {
-            throw ValidationException::withMessages(['import' => 'A layout document must contain plan data.']);
+            throw ValidationException::withMessages(['import' => (string) __('A layout document must contain plan data.')]);
         }
         $this->fields($plan, ['id', 'scope', 'kingdom_id', 'owner_alliance_id', 'name', 'head_revision', 'map_dataset_id', 'map_dataset_checksum', 'planning_preferences'], 'import');
         if (! is_string($plan['map_dataset_id'] ?? null) || $plan['map_dataset_id'] === '' || strlen($plan['map_dataset_id']) > 120
             || ! is_string($plan['map_dataset_checksum'] ?? null) || ! preg_match('/^[a-f0-9]{64}$/', $plan['map_dataset_checksum'])) {
-            throw ValidationException::withMessages(['import' => 'An exact map dataset ID and SHA-256 checksum are required.']);
+            throw ValidationException::withMessages(['import' => (string) __('An exact map dataset ID and SHA-256 checksum are required.')]);
         }
         $preferences = $plan['planning_preferences'] ?? [];
         if (! is_array($preferences)) {
-            throw ValidationException::withMessages(['planning_preferences' => 'Planning preferences must be an object.']);
+            throw ValidationException::withMessages(['planning_preferences' => (string) __('Planning preferences must be an object.')]);
         }
         $layout = $this->normalize($this->rows($document['alliances'] ?? null), $this->rows($document['groups'] ?? null), $this->rows($document['objects'] ?? null), $preferences);
         $plan['planning_preferences'] = $layout['planning_preferences'];
@@ -54,17 +54,17 @@ final class TerritoryLayoutContract
     private function rows(mixed $value): array
     {
         if (! is_array($value) || ! array_is_list($value)) {
-            throw ValidationException::withMessages(['import' => 'Layout collections must be JSON lists.']);
+            throw ValidationException::withMessages(['import' => (string) __('Layout collections must be JSON lists.')]);
         }
         $rows = [];
         foreach ($value as $row) {
             if (! is_array($row)) {
-                throw ValidationException::withMessages(['import' => 'Every layout entry must be an object.']);
+                throw ValidationException::withMessages(['import' => (string) __('Every layout entry must be an object.')]);
             }
             $entry = [];
             foreach ($row as $key => $item) {
                 if (! is_string($key)) {
-                    throw ValidationException::withMessages(['import' => 'Layout entry field names must be strings.']);
+                    throw ValidationException::withMessages(['import' => (string) __('Layout entry field names must be strings.')]);
                 }
                 $entry[$key] = $item;
             }
@@ -84,11 +84,11 @@ final class TerritoryLayoutContract
     {
         foreach (['alliances' => $alliances, 'groups' => $groups, 'objects' => $objects] as $field => $rows) {
             if (! array_is_list($rows)) {
-                throw ValidationException::withMessages([$field => 'Layout collections must be JSON lists.']);
+                throw ValidationException::withMessages([$field => (string) __('Layout collections must be JSON lists.')]);
             }
             foreach ($rows as $row) {
                 if (! is_array($row) || array_is_list($row)) {
-                    throw ValidationException::withMessages([$field => 'Every layout entry must be an object.']);
+                    throw ValidationException::withMessages([$field => (string) __('Every layout entry must be an object.')]);
                 }
                 $allowed = match ($field) {
                     'alliances' => ['key', 'alliance_id', 'external_name', 'external_tag', 'display_name', 'presentation_color', 'sort_order', 'visible', 'locked'],
@@ -99,19 +99,19 @@ final class TerritoryLayoutContract
                 foreach ($row as $key => $value) {
                     if (in_array($key, ['x', 'y', 'rotation', 'sort_order'], true)) {
                         if (! is_int($value) || abs($value) > 1000000) {
-                            throw ValidationException::withMessages([$field => 'Coordinates, rotations and sort orders must be bounded JSON integers.']);
+                            throw ValidationException::withMessages([$field => (string) __('Coordinates, rotations and sort orders must be bounded JSON integers.')]);
                         }
                     } elseif (in_array($key, ['visible', 'locked'], true)) {
                         if (! is_bool($value)) {
-                            throw ValidationException::withMessages([$field => 'Layer visibility and locks must be JSON booleans.']);
+                            throw ValidationException::withMessages([$field => (string) __('Layer visibility and locks must be JSON booleans.')]);
                         }
                     } elseif ($key !== 'metadata' && $value !== null && (! is_string($value) || mb_strlen($value) > 160)) {
-                        throw ValidationException::withMessages([$field => 'Identity and label values must be bounded strings.']);
+                        throw ValidationException::withMessages([$field => (string) __('Identity and label values must be bounded strings.')]);
                     }
                 }
                 if ($field === 'objects') {
                     if (! is_int($row['x'] ?? null) || ! is_int($row['y'] ?? null)) {
-                        throw ValidationException::withMessages(['objects' => 'Every planned object needs integer X and Y coordinates.']);
+                        throw ValidationException::withMessages(['objects' => (string) __('Every planned object needs integer X and Y coordinates.')]);
                     }
                     $this->metadata($row);
                 }
@@ -120,7 +120,7 @@ final class TerritoryLayoutContract
         $this->fields($preferences, ['preferred_bear_radius_tiles', 'march_seconds_per_tile', 'selected_bear_trap_by_alliance'], 'planning_preferences');
         foreach (['preferred_bear_radius_tiles', 'march_seconds_per_tile'] as $field) {
             if (array_key_exists($field, $preferences) && (! is_int($preferences[$field]) && ! is_float($preferences[$field]) || ! is_finite((float) $preferences[$field]))) {
-                throw ValidationException::withMessages(['planning_preferences' => 'Planning distances and times must be finite JSON numbers.']);
+                throw ValidationException::withMessages(['planning_preferences' => (string) __('Planning distances and times must be finite JSON numbers.')]);
             }
         }
     }
@@ -130,28 +130,28 @@ final class TerritoryLayoutContract
     {
         $metadata = $row['metadata'] ?? [];
         if (! is_array($metadata)) {
-            throw ValidationException::withMessages(['objects' => 'Object metadata must be an object.']);
+            throw ValidationException::withMessages(['objects' => (string) __('Object metadata must be an object.')]);
         }
         $this->fields($metadata, ['locked', 'variant_key', 'slot_state', 'external_identity_key'], 'objects');
         if (array_key_exists('locked', $metadata) && ! is_bool($metadata['locked'])) {
-            throw ValidationException::withMessages(['objects' => 'Object locks must be booleans.']);
+            throw ValidationException::withMessages(['objects' => (string) __('Object locks must be booleans.')]);
         }
         $type = $row['type'] ?? null;
         $variant = $metadata['variant_key'] ?? null;
         if ($variant !== null && ! in_array($variant, $type === 'headquarters' ? ['badland_headquarters', 'plains_headquarters'] : ['default'], true)) {
-            throw ValidationException::withMessages(['objects' => 'This object variant is unsupported.']);
+            throw ValidationException::withMessages(['objects' => (string) __('This object variant is unsupported.')]);
         }
         $state = $metadata['slot_state'] ?? null;
         if ($state !== null && ($type !== 'governor_city' || ! in_array($state, ['open', 'reserved', 'assigned'], true))) {
-            throw ValidationException::withMessages(['objects' => 'Only Governor cities can have a supported slot state.']);
+            throw ValidationException::withMessages(['objects' => (string) __('Only Governor cities can have a supported slot state.')]);
         }
         $identity = $metadata['external_identity_key'] ?? null;
         if ($identity !== null && ($type !== 'governor_city' || ! is_string($identity) || trim($identity) === '' || mb_strlen($identity) > 120 || ($row['player_id'] ?? null) !== null)) {
-            throw ValidationException::withMessages(['objects' => 'A plan-local Governor identity must be a bounded city identity without a linked Governor.']);
+            throw ValidationException::withMessages(['objects' => (string) __('A plan-local Governor identity must be a bounded city identity without a linked Governor.')]);
         }
         $assigned = ($row['player_id'] ?? null) !== null || $identity !== null || ($row['external_player_name'] ?? null) !== null;
         if (($state === 'open' && $assigned) || ($state === 'assigned' && ! $assigned)) {
-            throw ValidationException::withMessages(['objects' => 'The Governor slot state and identity must agree.']);
+            throw ValidationException::withMessages(['objects' => (string) __('The Governor slot state and identity must agree.')]);
         }
     }
 
@@ -162,7 +162,7 @@ final class TerritoryLayoutContract
     private function fields(array $value, array $allowed, string $field): void
     {
         if (array_diff(array_keys($value), $allowed) !== []) {
-            throw ValidationException::withMessages([$field => 'The document contains unsupported fields.']);
+            throw ValidationException::withMessages([$field => (string) __('The document contains unsupported fields.')]);
         }
     }
 
@@ -192,7 +192,7 @@ final class TerritoryLayoutContract
     {
         if ($items === [] || count($items) > 50) {
             throw ValidationException::withMessages([
-                'alliances' => 'A plan requires between 1 and 50 Alliance layers.',
+                'alliances' => (string) __('A plan requires between 1 and 50 Alliance layers.'),
             ]);
         }
 
@@ -219,13 +219,13 @@ final class TerritoryLayoutContract
                 || ($allianceId !== null && $externalName !== null)
             ) {
                 throw ValidationException::withMessages([
-                    'alliances' => 'Every Alliance layer needs a unique valid key, display name, and exactly one linked or external identity.',
+                    'alliances' => (string) __('Every Alliance layer needs a unique valid key, display name, and exactly one linked or external identity.'),
                 ]);
             }
 
             if ($allianceId !== null && isset($linkedAllianceIds[$allianceId])) {
                 throw ValidationException::withMessages([
-                    'alliances' => 'A linked Alliance can appear only once in a plan.',
+                    'alliances' => (string) __('A linked Alliance can appear only once in a plan.'),
                 ]);
             }
 
@@ -237,7 +237,7 @@ final class TerritoryLayoutContract
             $color = strtolower(trim((string) ($item['presentation_color'] ?? '#4da3ff')));
             if (! preg_match('/^#[0-9a-f]{6}$/', $color)) {
                 throw ValidationException::withMessages([
-                    'alliances' => 'Alliance presentation colors must use #RRGGBB.',
+                    'alliances' => (string) __('Alliance presentation colors must use #RRGGBB.'),
                 ]);
             }
 
@@ -265,7 +265,7 @@ final class TerritoryLayoutContract
     {
         if (count($items) > 500) {
             throw ValidationException::withMessages([
-                'groups' => 'A plan may contain at most 500 groups.',
+                'groups' => (string) __('A plan may contain at most 500 groups.'),
             ]);
         }
 
@@ -276,7 +276,7 @@ final class TerritoryLayoutContract
             $key = trim((string) ($item['key'] ?? ''));
             if ($key === '' || mb_strlen($key) > 120 || isset($keys[$key])) {
                 throw ValidationException::withMessages([
-                    'groups' => 'Every group requires a unique valid key.',
+                    'groups' => (string) __('Every group requires a unique valid key.'),
                 ]);
             }
 
@@ -284,7 +284,7 @@ final class TerritoryLayoutContract
             $label = $this->nullableString($item['label'] ?? null);
             if ($label !== null && mb_strlen($label) > 160) {
                 throw ValidationException::withMessages([
-                    'groups' => 'Group labels must be 160 characters or fewer.',
+                    'groups' => (string) __('Group labels must be 160 characters or fewer.'),
                 ]);
             }
 
@@ -304,7 +304,7 @@ final class TerritoryLayoutContract
     {
         if (count($items) > 5000) {
             throw ValidationException::withMessages([
-                'objects' => 'A plan may contain at most 5000 planned objects.',
+                'objects' => (string) __('A plan may contain at most 5000 planned objects.'),
             ]);
         }
 
@@ -327,7 +327,7 @@ final class TerritoryLayoutContract
                 || ($groupKey !== null && ! isset($groupKeys[$groupKey]))
             ) {
                 throw ValidationException::withMessages([
-                    'objects' => 'Every object needs unique valid identity and valid Alliance/group references.',
+                    'objects' => (string) __('Every object needs unique valid identity and valid Alliance/group references.'),
                 ]);
             }
 
@@ -336,14 +336,14 @@ final class TerritoryLayoutContract
                 TerritoryObjectType::from($type);
             } catch (ValueError) {
                 throw ValidationException::withMessages([
-                    'objects' => 'A planned object uses an unsupported type.',
+                    'objects' => (string) __('A planned object uses an unsupported type.'),
                 ]);
             }
 
             $rotation = (int) ($item['rotation'] ?? 0);
             if (! in_array($rotation, [0, 90, 180, 270], true)) {
                 throw ValidationException::withMessages([
-                    'objects' => 'Object rotation must be 0, 90, 180, or 270 degrees.',
+                    'objects' => (string) __('Object rotation must be 0, 90, 180, or 270 degrees.'),
                 ]);
             }
 
@@ -352,12 +352,12 @@ final class TerritoryLayoutContract
             $label = $this->nullableString($item['label'] ?? null);
             if ($externalPlayerName !== null && mb_strlen($externalPlayerName) > 160) {
                 throw ValidationException::withMessages([
-                    'objects' => 'External Governor names must be 160 characters or fewer.',
+                    'objects' => (string) __('External Governor names must be 160 characters or fewer.'),
                 ]);
             }
             if ($label !== null && mb_strlen($label) > 160) {
                 throw ValidationException::withMessages([
-                    'objects' => 'Object labels must be 160 characters or fewer.',
+                    'objects' => (string) __('Object labels must be 160 characters or fewer.'),
                 ]);
             }
             if (
@@ -365,12 +365,12 @@ final class TerritoryLayoutContract
                 && ($playerId !== null || $externalPlayerName !== null)
             ) {
                 throw ValidationException::withMessages([
-                    'objects' => 'Only Governor cities may carry Governor identity.',
+                    'objects' => (string) __('Only Governor cities may carry Governor identity.'),
                 ]);
             }
             if ($playerId !== null && $externalPlayerName !== null) {
                 throw ValidationException::withMessages([
-                    'objects' => 'A Governor city must use either a linked Governor or an external Governor label, not both.',
+                    'objects' => (string) __('A Governor city must use either a linked Governor or an external Governor label, not both.'),
                 ]);
             }
 
@@ -410,7 +410,7 @@ final class TerritoryLayoutContract
             $radius = (float) $preferences['preferred_bear_radius_tiles'];
             if ($radius <= 0 || $radius > 1200) {
                 throw ValidationException::withMessages([
-                    'planning_preferences' => 'Preferred Bear radius must be between 0 and 1200 tiles.',
+                    'planning_preferences' => (string) __('Preferred Bear radius must be between 0 and 1200 tiles.'),
                 ]);
             }
             $allowed['preferred_bear_radius_tiles'] = $radius;
@@ -423,7 +423,7 @@ final class TerritoryLayoutContract
             $seconds = (float) $preferences['march_seconds_per_tile'];
             if ($seconds <= 0 || $seconds > 60) {
                 throw ValidationException::withMessages([
-                    'planning_preferences' => 'March-time planning assumption must be between 0 and 60 seconds per tile.',
+                    'planning_preferences' => (string) __('March-time planning assumption must be between 0 and 60 seconds per tile.'),
                 ]);
             }
             $allowed['march_seconds_per_tile'] = $seconds;
@@ -433,7 +433,7 @@ final class TerritoryLayoutContract
         if ($selection !== null) {
             if (! is_array($selection)) {
                 throw ValidationException::withMessages([
-                    'planning_preferences' => 'Selected Bear Traps must be keyed by Alliance layer.',
+                    'planning_preferences' => (string) __('Selected Bear Traps must be keyed by Alliance layer.'),
                 ]);
             }
 
@@ -454,7 +454,7 @@ final class TerritoryLayoutContract
                     || ! isset($trapKeysByAlliance[$allianceKey][$trapKey])
                 ) {
                     throw ValidationException::withMessages([
-                        'planning_preferences' => 'A selected Bear Trap must belong to the selected Alliance layer.',
+                        'planning_preferences' => (string) __('A selected Bear Trap must belong to the selected Alliance layer.'),
                     ]);
                 }
                 $normalizedSelection[$allianceKey] = $trapKey;

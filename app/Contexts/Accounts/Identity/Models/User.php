@@ -96,7 +96,7 @@ final class User extends Authenticatable implements AuditActor, AuthenticatedAcc
     public function ensureActive(): void
     {
         if (! $this->isActive()) {
-            throw ValidationException::withMessages(['account' => 'This account has already been deleted.']);
+            throw ValidationException::withMessages(['account' => (string) __('This account has already been deleted.')]);
         }
     }
 

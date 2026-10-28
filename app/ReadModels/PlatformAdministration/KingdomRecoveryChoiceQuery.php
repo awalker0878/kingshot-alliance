@@ -24,17 +24,17 @@ final readonly class KingdomRecoveryChoiceQuery
         $this->authorization->authorize($this->accounts->require($actorId));
         $search = trim($search);
         if (! in_array($kind, ['kingdoms', 'players'], true) || mb_strlen($search) > 160 || ($selectedId !== null && ! $this->isId($selectedId))) {
-            throw ValidationException::withMessages(['choices' => 'The recovery choice request is invalid.']);
+            throw ValidationException::withMessages(['choices' => (string) __('The recovery choice request is invalid.')]);
         }
         if ($kind === 'players') {
             if (! $this->isId($kingdomId) || ! DB::table('kingdoms')->where('id', $kingdomId)->where('status', 'active')->exists()) {
-                throw ValidationException::withMessages(['kingdom_id' => 'Choose a current active Kingdom.']);
+                throw ValidationException::withMessages(['kingdom_id' => (string) __('Choose a current active Kingdom.')]);
             }
             $base = DB::table('players')->where('current_kingdom_id', $kingdomId)->whereNull('canonical_player_id')
                 ->selectRaw("id, current_name || CASE WHEN game_player_id IS NULL THEN '' ELSE ' · ' || game_player_id END as name");
         } else {
             if ($kingdomId !== null) {
-                throw ValidationException::withMessages(['kingdom_id' => 'Kingdom choices do not accept a parent Kingdom.']);
+                throw ValidationException::withMessages(['kingdom_id' => (string) __('Kingdom choices do not accept a parent Kingdom.')]);
             }
             $base = DB::table('kingdoms')->where('status', 'active')->selectRaw("id, '#' || number::text as name");
         }
@@ -51,7 +51,7 @@ final readonly class KingdomRecoveryChoiceQuery
             $after = $position['after'] ?? null;
             $through = $position['through'] ?? null;
             if (count($position) !== 2 || ! $this->isId($after) || ! $this->isId($through) || strcmp($after, $through) > 0) {
-                throw ValidationException::withMessages(['cursor' => 'The recovery choice cursor is invalid.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The recovery choice cursor is invalid.')]);
             }
             $query->where('id', '>', $after);
         }

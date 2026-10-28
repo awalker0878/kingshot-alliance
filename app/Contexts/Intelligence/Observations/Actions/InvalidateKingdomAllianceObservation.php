@@ -43,15 +43,15 @@ final readonly class InvalidateKingdomAllianceObservation
                 ->lockForUpdate()
                 ->firstOrFail();
             if ($tracking->state !== TrackedKingdomAllianceState::Active) {
-                throw ValidationException::withMessages(['observation' => 'Only observations for actively tracked game-side alliances can be invalidated.']);
+                throw ValidationException::withMessages(['observation' => (string) __('Only observations for actively tracked game-side alliances can be invalidated.')]);
             }
             if ((string) $tracking->kingdom_id !== $scope->kingdomId) {
-                throw ValidationException::withMessages(['observation' => 'Historical Kingdom context is read-only. Archive the tracking relationship instead.']);
+                throw ValidationException::withMessages(['observation' => (string) __('Historical Kingdom context is read-only. Archive the tracking relationship instead.')]);
             }
 
             $reference = $this->references->requireActiveCanonical((string) $tracking->kingdom_alliance_id);
             if ($reference->kingdomId !== (string) $tracking->kingdom_id) {
-                throw ValidationException::withMessages(['observation' => 'The tracked alliance reference no longer matches its captured Kingdom context.']);
+                throw ValidationException::withMessages(['observation' => (string) __('The tracked alliance reference no longer matches its captured Kingdom context.')]);
             }
 
             $observation = KingdomAllianceObservation::query()
@@ -63,7 +63,7 @@ final readonly class InvalidateKingdomAllianceObservation
             $observationCanonical = $this->references->requireCanonical((string) $observation->kingdom_alliance_id);
             if ($observationCanonical->kingdomAllianceId !== $reference->kingdomAllianceId) {
                 throw ValidationException::withMessages([
-                    'observation' => 'The observation belongs to a different canonical Alliance identity.',
+                    'observation' => (string) __('The observation belongs to a different canonical Alliance identity.'),
                 ]);
             }
             if ($observation->invalidated_at !== null) {
@@ -86,7 +86,7 @@ final readonly class InvalidateKingdomAllianceObservation
                 $latestCanonical = $this->references->requireCanonical((string) $latest->kingdom_alliance_id);
                 if ($latestCanonical->kingdomAllianceId !== $reference->kingdomAllianceId) {
                     throw ValidationException::withMessages([
-                        'observation' => 'Accepted observation history crossed canonical Alliance identities unexpectedly.',
+                        'observation' => (string) __('Accepted observation history crossed canonical Alliance identities unexpectedly.'),
                     ]);
                 }
                 $this->updateIdentity->handle(

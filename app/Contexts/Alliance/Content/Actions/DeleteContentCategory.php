@@ -36,7 +36,7 @@ final readonly class DeleteContentCategory
 
             if ($category->items()->exists()) {
                 throw ValidationException::withMessages([
-                    'category' => 'Move or archive content before deleting this category.',
+                    'category' => (string) __('Move or archive content before deleting this category.'),
                 ]);
             }
 

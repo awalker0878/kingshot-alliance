@@ -6,6 +6,7 @@ namespace App\Contexts\Accounts\EmailVerification\Services;
 
 use App\Contexts\Accounts\EmailVerification\Notifications\KingshotAllianceEmailChangedNotice;
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Shared\Infrastructure\Http\SupportedLocale;
 use App\Shared\Infrastructure\Messaging\Outbox\Events\OutboxPublished;
 use App\Shared\Infrastructure\Messaging\Outbox\Models\OutboxMessage;
 use App\Shared\Infrastructure\Messaging\Outbox\Services\OutboxRecorder;
@@ -26,7 +27,7 @@ final readonly class EmailChangedNoticeOutbox
             eventType: self::EVENT_TYPE,
             allianceId: null,
             aggregate: $user,
-            payload: ['encrypted_recipient' => Crypt::encryptString(json_encode([
+            payload: ['locale' => app()->getLocale(), 'encrypted_recipient' => Crypt::encryptString(json_encode([
                 'previous_email' => $previousEmail,
                 'new_email' => (string) $user->email,
             ], JSON_THROW_ON_ERROR))],
@@ -61,7 +62,7 @@ final readonly class EmailChangedNoticeOutbox
         }
 
         Notification::route('mail', $recipient['previous_email'])
-            ->notify(new KingshotAllianceEmailChangedNotice($recipient['new_email']));
+            ->notify((new KingshotAllianceEmailChangedNotice($recipient['new_email']))->locale(SupportedLocale::orDefault($event->payload['locale'] ?? null)));
     }
 
     public function forgetAccount(int $userId): void

@@ -34,7 +34,7 @@ final readonly class ResolveTransferPlayer
             try {
                 $this->kingdoms->lockActiveShared($sourceKingdomId);
             } catch (ModelNotFoundException) {
-                throw ValidationException::withMessages(['source_kingdom' => 'The selected source Kingdom is archived or unavailable.']);
+                throw ValidationException::withMessages(['source_kingdom' => (string) __('The selected source Kingdom is archived or unavailable.')]);
             }
             $current = $currentPlayerId === null ? null : Player::query()
                 ->whereKey($currentPlayerId)
@@ -45,12 +45,12 @@ final readonly class ResolveTransferPlayer
             $player = $current;
             if ($stableId !== null && $current instanceof Player) {
                 if ($current->game_player_id !== null && $current->game_player_id !== $stableId) {
-                    throw ValidationException::withMessages(['game_player_id' => 'Withdraw and recreate the participant to change the Player identity.']);
+                    throw ValidationException::withMessages(['game_player_id' => (string) __('Withdraw and recreate the participant to change the Player identity.')]);
                 }
                 // A conflicting identity is only a rejection witness. Locking
                 // it after the current Player creates opposing edit cycles.
                 if (Player::query()->where('game_player_id', $stableId)->whereNull('canonical_player_id')->where('id', '<>', $current->id)->exists()) {
-                    throw ValidationException::withMessages(['game_player_id' => 'That game Player ID belongs to a different Player. Withdraw and recreate the participant to change identity.']);
+                    throw ValidationException::withMessages(['game_player_id' => (string) __('That game Player ID belongs to a different Player. Withdraw and recreate the participant to change identity.')]);
                 }
             } elseif ($stableId !== null) {
                 $player = Player::query()->where('game_player_id', $stableId)->whereNull('canonical_player_id')->lockForUpdate()->first();
@@ -75,13 +75,13 @@ final readonly class ResolveTransferPlayer
             return;
         }
         if ($this->governance->hasActiveAssignmentsForPlayer($playerId, $currentKingdomId)) {
-            throw ValidationException::withMessages(['source_kingdom' => 'That Player still has effective Kingdom roles in the current Kingdom. Revoke those roles before changing the Player source Kingdom.']);
+            throw ValidationException::withMessages(['source_kingdom' => (string) __('That Player still has effective Kingdom roles in the current Kingdom. Revoke those roles before changing the Player source Kingdom.')]);
         }
         if ($this->memberships->hasAnyActiveForPlayer($playerId)) {
-            throw ValidationException::withMessages(['source_kingdom' => 'That Player has an active Alliance membership. End the membership before changing the Player source Kingdom.']);
+            throw ValidationException::withMessages(['source_kingdom' => (string) __('That Player has an active Alliance membership. End the membership before changing the Player source Kingdom.')]);
         }
         if ($this->roster->hasActiveOrTrackedOutsideKingdom($playerId, $sourceKingdomId)) {
-            throw ValidationException::withMessages(['source_kingdom' => 'That Player is active or tracked on a roster in another Kingdom. Resolve that roster before changing the Player source Kingdom.']);
+            throw ValidationException::withMessages(['source_kingdom' => (string) __('That Player is active or tracked on a roster in another Kingdom. Resolve that roster before changing the Player source Kingdom.')]);
         }
     }
 }

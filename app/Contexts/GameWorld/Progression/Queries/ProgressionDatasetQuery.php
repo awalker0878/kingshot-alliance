@@ -67,17 +67,17 @@ final class ProgressionDatasetQuery
     public function require(string $datasetId, ?string $expectedChecksum = null): ProgressionDataset
     {
         if (preg_match('/^[a-z0-9][a-z0-9._-]{1,119}$/', $datasetId) !== 1) {
-            throw ValidationException::withMessages(['progression_dataset_id' => 'The selected progression dataset is invalid.']);
+            throw ValidationException::withMessages(['progression_dataset_id' => (string) __('The selected progression dataset is invalid.')]);
         }
 
         $directory = base_path(self::DIRECTORY.'/'.$datasetId);
         if (! is_dir($directory)) {
-            throw ValidationException::withMessages(['progression_dataset_id' => 'The selected progression dataset is unavailable.']);
+            throw ValidationException::withMessages(['progression_dataset_id' => (string) __('The selected progression dataset is unavailable.')]);
         }
 
         $dataset = $this->load($directory);
         if ($expectedChecksum !== null && ! hash_equals($dataset->checksum, $expectedChecksum)) {
-            throw ValidationException::withMessages(['progression_dataset_id' => 'The selected progression dataset changed and must be reloaded.']);
+            throw ValidationException::withMessages(['progression_dataset_id' => (string) __('The selected progression dataset changed and must be reloaded.')]);
         }
 
         return $dataset;

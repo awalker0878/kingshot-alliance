@@ -43,10 +43,10 @@ final readonly class SaveRallyGroup
     ): void {
         $name = trim($name);
         if ($name === '' || mb_strlen($name) > 120) {
-            throw ValidationException::withMessages(['name' => 'Rally group name is required and must be 120 characters or fewer.']);
+            throw ValidationException::withMessages(['name' => (string) __('Rally group name is required and must be 120 characters or fewer.')]);
         }
         if ($maxJoiners !== null && $maxJoiners < 1) {
-            throw ValidationException::withMessages(['max_joiners' => 'Maximum joiners must be at least one.']);
+            throw ValidationException::withMessages(['max_joiners' => (string) __('Maximum joiners must be at least one.')]);
         }
 
         DB::transaction(function () use ($actorPlayerId, $occurrenceId, $allianceId, $name, $maxJoiners, $recommendedFormationId, $notes, $sortOrder, $groupId): void {
@@ -91,7 +91,7 @@ final readonly class SaveRallyGroup
                     ->count();
                 if ($activeJoiners > $maxJoiners) {
                     throw ValidationException::withMessages([
-                        'max_joiners' => 'Maximum joiners cannot be lower than the current active joiner count.',
+                        'max_joiners' => (string) __('Maximum joiners cannot be lower than the current active joiner count.'),
                     ]);
                 }
             }

@@ -31,13 +31,13 @@ final readonly class ChangePassword
 
             if (! $locked->supportsPasswordAuthentication()) {
                 throw ValidationException::withMessages([
-                    'current_password' => 'This account does not have a local password.',
+                    'current_password' => (string) __('This account does not have a local password.'),
                 ]);
             }
 
             if (! Hash::check($currentPassword, (string) $locked->password)) {
                 throw ValidationException::withMessages([
-                    'current_password' => 'The password is incorrect.',
+                    'current_password' => (string) __('The password is incorrect.'),
                 ]);
             }
 

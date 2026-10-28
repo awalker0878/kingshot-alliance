@@ -34,7 +34,7 @@ final class CreateRecruitmentDecisionTemplate
         bool $isActive = true,
     ): string {
         if (! in_array($decisionStage, [RecruitmentStage::Accepted, RecruitmentStage::Declined], true)) {
-            throw ValidationException::withMessages(['decision_stage' => 'Decision templates must be for accepted or declined candidates.']);
+            throw ValidationException::withMessages(['decision_stage' => (string) __('Decision templates must be for accepted or declined candidates.')]);
         }
 
         $cleanName = RecruitmentInput::requiredText($name, 'name', RecruitmentInput::LIMITS['templateName']);

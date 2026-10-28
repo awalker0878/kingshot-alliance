@@ -45,7 +45,7 @@ final readonly class InstantiateTerritoryHiveTemplate
             }
             if ($template->map_dataset_id !== $context->plan->map_dataset_id
                 || ! hash_equals($template->map_dataset_checksum, $context->plan->map_dataset_checksum)) {
-                throw ValidationException::withMessages(['template' => 'This Hive template is pinned to a different map release.']);
+                throw ValidationException::withMessages(['template' => (string) __('This Hive template is pinned to a different map release.')]);
             }
             $dataset = $this->datasets->require($template->map_dataset_id, $template->map_dataset_checksum);
 
@@ -83,7 +83,7 @@ final readonly class InstantiateTerritoryHiveTemplate
                 || ! is_string($objectAllianceKey) || $objectAllianceKey === ''
                 || ($rotation !== null && ! is_int($rotation))) {
                 throw ValidationException::withMessages([
-                    'existing_objects' => 'Existing Hive objects must use valid typed coordinates and identities.',
+                    'existing_objects' => (string) __('Existing Hive objects must use valid typed coordinates and identities.'),
                 ]);
             }
 

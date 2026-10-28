@@ -38,10 +38,10 @@ final readonly class CreateEventReminderRule
         ?string $pollId = null,
     ): void {
         if ($minutesBefore < 1 || $minutesBefore > 10080) {
-            throw ValidationException::withMessages(['minutes_before' => 'Reminder lead time must be between 1 minute and 7 days.']);
+            throw ValidationException::withMessages(['minutes_before' => (string) __('Reminder lead time must be between 1 minute and 7 days.')]);
         }
         if ($channel !== 'in_app') {
-            throw ValidationException::withMessages(['channel' => 'Only in-app Event reminders are currently supported.']);
+            throw ValidationException::withMessages(['channel' => (string) __('Only in-app Event reminders are currently supported.')]);
         }
 
         DB::transaction(function () use ($actorPlayerId, $eventId, $minutesBefore, $audience, $channel, $trigger, $pollId): void {
@@ -50,29 +50,29 @@ final readonly class CreateEventReminderRule
             $event = $context->event;
 
             if ($audience === EventReminderAudience::Target && $event->scopeEnum() !== EventScope::Player) {
-                throw ValidationException::withMessages(['audience' => 'Target reminders are available only for Player-scoped Events.']);
+                throw ValidationException::withMessages(['audience' => (string) __('Target reminders are available only for Player-scoped Events.')]);
             }
             if ($audience === EventReminderAudience::Responded
                 && ! $this->workflows->supports($event, EventWorkflowDimension::Participation)) {
-                throw ValidationException::withMessages(['audience' => 'This Event does not collect responses.']);
+                throw ValidationException::withMessages(['audience' => (string) __('This Event does not collect responses.')]);
             }
             if ($audience === EventReminderAudience::Registered
                 && ! $this->workflows->supports($event, EventWorkflowDimension::Participation)) {
-                throw ValidationException::withMessages(['audience' => 'This Event does not use registration.']);
+                throw ValidationException::withMessages(['audience' => (string) __('This Event does not use registration.')]);
             }
             if ($audience === EventReminderAudience::Rostered
                 && ! $this->workflows->supports($event, EventWorkflowDimension::Roster)) {
-                throw ValidationException::withMessages(['audience' => 'This Event does not use rosters.']);
+                throw ValidationException::withMessages(['audience' => (string) __('This Event does not use rosters.')]);
             }
 
             $poll = null;
             if ($trigger === EventReminderTrigger::BeforeStart) {
                 if ($pollId !== null) {
-                    throw ValidationException::withMessages(['poll' => 'Event-start reminders cannot reference a poll.']);
+                    throw ValidationException::withMessages(['poll' => (string) __('Event-start reminders cannot reference a poll.')]);
                 }
             } else {
                 if ($pollId === null || $pollId === '') {
-                    throw ValidationException::withMessages(['poll' => 'Poll-close reminders require a poll.']);
+                    throw ValidationException::withMessages(['poll' => (string) __('Poll-close reminders require a poll.')]);
                 }
 
                 $poll = EventPoll::query()
@@ -81,7 +81,7 @@ final readonly class CreateEventReminderRule
                     ->sharedLock()
                     ->firstOrFail();
                 if ($poll->closes_at === null) {
-                    throw ValidationException::withMessages(['poll' => 'Poll-close reminders require a closing poll from this Event.']);
+                    throw ValidationException::withMessages(['poll' => (string) __('Poll-close reminders require a closing poll from this Event.')]);
                 }
             }
 

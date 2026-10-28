@@ -49,7 +49,7 @@ final readonly class CompleteAccountLogin
         if (! $guard instanceof SessionGuard) {
             throw new LogicException('Account login requires the maintained web session guard.');
         }
-        abort_if($guard->check(), 409, 'An authenticated account cannot start a new sign-in.');
+        abort_if($guard->check(), 409, (string) __('An authenticated account cannot start a new sign-in.'));
         $errorKey = $proof->requiresMultiFactor ? 'code' : ($proof->method === 'google' ? 'google' : 'email');
         $mfaMethod = $proof->method === 'passkey' ? 'user_verifying_passkey' : null;
         $user = DB::transaction(function () use ($request, $proof, $remember, $code, $recoveryCode, $errorKey, &$mfaMethod): User {
@@ -60,7 +60,7 @@ final readonly class CompleteAccountLogin
                 } elseif ($recoveryCode !== null && $this->twoFactor->verifyRecoveryCode($user, $recoveryCode)) {
                     $mfaMethod = 'recovery_code';
                 } else {
-                    throw ValidationException::withMessages(['code' => 'The authentication code is invalid.']);
+                    throw ValidationException::withMessages(['code' => (string) __('The authentication code is invalid.')]);
                 }
             }
             if ($remember && empty($user->getRememberToken())) {
@@ -81,7 +81,7 @@ final readonly class CompleteAccountLogin
                 DB::transaction(function () use ($request, $user, $proof, $remember, $recoveryCode, $mfaMethod, $errorKey): void {
                     $current = $this->currentAccount($request, $proof, $errorKey);
                     if ($mfaMethod === 'recovery_code' && ! $this->twoFactor->consumeRecoveryCode($current, (string) $recoveryCode)) {
-                        throw ValidationException::withMessages(['code' => 'The authentication code is invalid.']);
+                        throw ValidationException::withMessages(['code' => (string) __('The authentication code is invalid.')]);
                     }
                     if ($remember && empty($current->getRememberToken())) {
                         $preparedToken = $user->getRememberToken();
@@ -130,7 +130,7 @@ final readonly class CompleteAccountLogin
         $user = User::query()->whereKey($proof->userId)->lockForUpdate()->first();
         if ($user === null || ! $this->proofs->matches($user, $proof)) {
             $this->challenges->clear($request);
-            throw ValidationException::withMessages([$errorKey => 'This sign-in request expired or changed. Please sign in again.']);
+            throw ValidationException::withMessages([$errorKey => (string) __('This sign-in request expired or changed. Please sign in again.')]);
         }
 
         return $user;

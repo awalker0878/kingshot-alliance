@@ -36,7 +36,7 @@ final readonly class CreateKingdomRole
             $context = $this->writeState->lockExclusiveScope($actorPlayerId, $kingdomId);
             $this->authorization->authorizeContext($context, KingdomPermission::RoleManage);
             if (KingdomRole::query()->where('kingdom_id', $kingdomId)->where('key', $key)->lockForUpdate()->exists()) {
-                throw ValidationException::withMessages(['name' => 'A Kingdom role with this key already exists.']);
+                throw ValidationException::withMessages(['name' => (string) __('A Kingdom role with this key already exists.')]);
             }
 
             $permissionIds = $this->delegation->permissionIds($actorPlayerId, $kingdomId, $permissionKeys);

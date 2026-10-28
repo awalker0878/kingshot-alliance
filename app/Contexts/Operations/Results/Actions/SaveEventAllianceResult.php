@@ -50,13 +50,13 @@ final readonly class SaveEventAllianceResult
             $this->mutations->authorizeManager($context);
             $this->workflows->require($context->event, EventWorkflowDimension::Results);
             if ($context->event->scopeEnum() !== EventScope::Kingdom || $context->target->kingdomId === null) {
-                throw ValidationException::withMessages(['alliance' => 'Alliance result rows are supported only inside Kingdom Events.']);
+                throw ValidationException::withMessages(['alliance' => (string) __('Alliance result rows are supported only inside Kingdom Events.')]);
             }
 
             $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->where('event_id', $context->event->id)->lockForUpdate()->firstOrFail();
             $alliance = $this->alliances->lockCurrent($allianceId);
             if (! $alliance->active() || $alliance->kingdomId !== $context->target->kingdomId) {
-                throw ValidationException::withMessages(['alliance' => 'Alliance result must belong to the active Kingdom Event target.']);
+                throw ValidationException::withMessages(['alliance' => (string) __('Alliance result must belong to the active Kingdom Event target.')]);
             }
 
             $record = EventAllianceResult::query()->where('occurrence_id', $occurrence->id)->where('alliance_id', $allianceId)->lockForUpdate()->first();
@@ -97,16 +97,16 @@ final readonly class SaveEventAllianceResult
     private function validate(?string $outcome, ?int $score, ?int $rank, ?string $notes): void
     {
         if ($outcome !== null && mb_strlen(trim($outcome)) > 80) {
-            throw ValidationException::withMessages(['outcome' => 'Outcome must be 80 characters or fewer.']);
+            throw ValidationException::withMessages(['outcome' => (string) __('Outcome must be 80 characters or fewer.')]);
         }
         if ($score !== null && $score < 0) {
-            throw ValidationException::withMessages(['score' => 'Score cannot be negative.']);
+            throw ValidationException::withMessages(['score' => (string) __('Score cannot be negative.')]);
         }
         if ($rank !== null && $rank < 1) {
-            throw ValidationException::withMessages(['rank' => 'Rank must be at least one.']);
+            throw ValidationException::withMessages(['rank' => (string) __('Rank must be at least one.')]);
         }
         if ($notes !== null && mb_strlen(trim($notes)) > 10000) {
-            throw ValidationException::withMessages(['notes' => 'Result notes must be 10000 characters or fewer.']);
+            throw ValidationException::withMessages(['notes' => (string) __('Result notes must be 10000 characters or fewer.')]);
         }
     }
 }

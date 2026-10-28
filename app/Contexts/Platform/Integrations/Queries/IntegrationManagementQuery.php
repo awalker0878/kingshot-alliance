@@ -99,7 +99,7 @@ final readonly class IntegrationManagementQuery
             $after = $position['after'] ?? null;
             $through = $position['through'] ?? null;
             if (count($position) !== 2 || ! $this->isId($after) || ! $this->isId($through) || strcmp($after, $through) > 0) {
-                throw ValidationException::withMessages(['cursor' => 'The integration catalogue cursor is invalid.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The integration catalogue cursor is invalid.')]);
             }
             $query->where('id', '<', $after);
         }

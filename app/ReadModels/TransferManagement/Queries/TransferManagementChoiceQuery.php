@@ -41,15 +41,15 @@ final readonly class TransferManagementChoiceQuery
         }
         $search = trim($search);
         if (mb_strlen($search) > 160 || ($selectedId !== null && ! $this->isId($selectedId))) {
-            throw ValidationException::withMessages(['q' => 'The transfer choice request is invalid.']);
+            throw ValidationException::withMessages(['q' => (string) __('The transfer choice request is invalid.')]);
         }
         if ($kind === TransferChoiceKind::Windows) {
             if ($planId !== null) {
-                throw ValidationException::withMessages(['plan' => 'Window choices are independent of an existing plan.']);
+                throw ValidationException::withMessages(['plan' => (string) __('Window choices are independent of an existing plan.')]);
             }
         } else {
             if ($planId === null || ! $this->isId($planId)) {
-                throw ValidationException::withMessages(['plan' => 'A current mutable transfer plan is required.']);
+                throw ValidationException::withMessages(['plan' => (string) __('A current mutable transfer plan is required.')]);
             }
             // Re-check the exact current plan, not a previously selected client's scope.
             TransferPlan::query()->where('alliance_id', $allianceId)->whereKey($planId)
@@ -60,12 +60,12 @@ final readonly class TransferManagementChoiceQuery
         $participant = null;
         if ($kind === TransferChoiceKind::Cohorts) {
             if (! $this->isId($participantId)) {
-                throw ValidationException::withMessages(['participant' => 'A current participant is required.']);
+                throw ValidationException::withMessages(['participant' => (string) __('A current participant is required.')]);
             }
             $participant = TransferParticipant::query()->where('alliance_id', $allianceId)
                 ->where('transfer_plan_id', $planId)->whereKey($participantId)->firstOrFail();
         } elseif ($participantId !== null) {
-            throw ValidationException::withMessages(['participant' => 'This choice does not accept a participant.']);
+            throw ValidationException::withMessages(['participant' => (string) __('This choice does not accept a participant.')]);
         }
         $base = match ($kind) {
             TransferChoiceKind::Cohorts => $this->assignments->compatible($participant ?? throw new \LogicException('Participant required.'))->select(['id', 'name'])->toBase(),
@@ -94,7 +94,7 @@ final readonly class TransferManagementChoiceQuery
             $after = $position['after'] ?? null;
             $through = $position['through'] ?? null;
             if (count($position) !== 2 || ! $this->isId($after) || ! $this->isId($through) || strcmp($after, $through) > 0) {
-                throw ValidationException::withMessages(['cursor' => 'The transfer choice cursor is invalid.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The transfer choice cursor is invalid.')]);
             }
             $choices->where('id', '>', $after);
         }

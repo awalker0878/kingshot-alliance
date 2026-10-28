@@ -39,7 +39,7 @@ final readonly class SetGiftCodeSourceAcquisitionControls
         }
         if ($source->classification === 'independent' && $controls['authority_promotion_enabled']) {
             throw ValidationException::withMessages([
-                'authority_promotion_enabled' => 'Independent sources cannot enable authority promotion.',
+                'authority_promotion_enabled' => (string) __('Independent sources cannot enable authority promotion.'),
             ]);
         }
 

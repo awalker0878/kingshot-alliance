@@ -52,10 +52,10 @@ final readonly class RecordTransferKingdomCapacity
             TransferWindow::query()->where('alliance_id', $allianceId)->whereKey($windowId)->lockForUpdate()->firstOrFail();
             $kingdom = $this->kingdoms->handle($kingdomNumber);
             if ($kingdom === null) {
-                throw ValidationException::withMessages(['kingdom' => 'A target Kingdom is required.']);
+                throw ValidationException::withMessages(['kingdom' => (string) __('A target Kingdom is required.')]);
             }
             if ($specialInvitesAvailable !== null && $specialInvitesAvailable > TransferOfficialRulebook::MAX_SPECIAL_INVITES) {
-                throw ValidationException::withMessages(['special_invites_available' => 'Special Invite inventory cannot exceed the official maximum of 3.']);
+                throw ValidationException::withMessages(['special_invites_available' => (string) __('Special Invite inventory cannot exceed the official maximum of 3.')]);
             }
 
             $condition = TransferKingdomConditionObservation::query()
@@ -70,15 +70,15 @@ final readonly class RecordTransferKingdomCapacity
                 ? $this->rules->capacity($condition->classification)
                 : null;
             if ($ordinaryInvitesUsed !== null && $official !== null && $ordinaryInvitesUsed > $official['ordinary_invites']) {
-                throw ValidationException::withMessages(['ordinary_invites_used' => 'Observed Ordinary Invite use exceeds the official capacity for this Kingdom classification.']);
+                throw ValidationException::withMessages(['ordinary_invites_used' => (string) __('Observed Ordinary Invite use exceeds the official capacity for this Kingdom classification.')]);
             }
             if ($transferOpensUsed !== null && $official !== null && $transferOpensUsed > $official['transfer_opens']) {
-                throw ValidationException::withMessages(['transfer_opens_used' => 'Observed Transfer Opens use exceeds the official capacity for this Kingdom classification.']);
+                throw ValidationException::withMessages(['transfer_opens_used' => (string) __('Observed Transfer Opens use exceeds the official capacity for this Kingdom classification.')]);
             }
 
             $sourceReference = trim($sourceReference);
             if ($sourceReference === '') {
-                throw ValidationException::withMessages(['source_reference' => 'A source reference is required.']);
+                throw ValidationException::withMessages(['source_reference' => (string) __('A source reference is required.')]);
             }
             $evidenceId = $this->evidence->assertUsable($allianceId, $sourceType, $evidenceId);
             $observed = CarbonImmutable::parse($observedAt)->utc();

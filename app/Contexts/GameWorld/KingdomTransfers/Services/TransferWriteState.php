@@ -47,7 +47,7 @@ final readonly class TransferWriteState
                 if ($kingdomId === $facts->kingdomId) {
                     throw new AuthorizationException;
                 }
-                throw ValidationException::withMessages(['completion' => 'The transfer destination Kingdom is unavailable.']);
+                throw ValidationException::withMessages(['completion' => (string) __('The transfer destination Kingdom is unavailable.')]);
             }
         }
 

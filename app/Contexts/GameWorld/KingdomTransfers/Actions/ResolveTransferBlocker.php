@@ -73,10 +73,10 @@ final readonly class ResolveTransferBlocker
     private function assertMutable(string $allianceKingdomId, TransferPlan $plan): void
     {
         if (! in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true)) {
-            throw ValidationException::withMessages(['blocker' => 'Blockers can only change while the transfer cycle is Draft or Open.']);
+            throw ValidationException::withMessages(['blocker' => (string) __('Blockers can only change while the transfer cycle is Draft or Open.')]);
         }
         if ($allianceKingdomId !== (string) $plan->home_kingdom_id) {
-            throw ValidationException::withMessages(['blocker' => 'The transfer cycle home Kingdom does not match the Alliance Kingdom.']);
+            throw ValidationException::withMessages(['blocker' => (string) __('The transfer cycle home Kingdom does not match the Alliance Kingdom.')]);
         }
     }
 }

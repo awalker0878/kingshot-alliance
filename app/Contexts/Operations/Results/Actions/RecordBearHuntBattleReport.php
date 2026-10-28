@@ -59,7 +59,7 @@ final readonly class RecordBearHuntBattleReport
             $context = $this->eventWriteState->lockEventScope($actorPlayerId, (string) $route->event_id);
             $this->authorization->authorizeManager($context);
             if ($context->event->scopeEnum() !== EventScope::Alliance || $context->target->allianceId === null) {
-                throw ValidationException::withMessages(['event' => 'Screenshot Intake supports Alliance Bear Hunt Events only.']);
+                throw ValidationException::withMessages(['event' => (string) __('Screenshot Intake supports Alliance Bear Hunt Events only.')]);
             }
             $eventType = EventType::query()
                 ->with('workflowDimensions')
@@ -67,18 +67,18 @@ final readonly class RecordBearHuntBattleReport
                 ->sharedLock()
                 ->firstOrFail();
             if ($eventType->slug !== 'bear-hunt') {
-                throw ValidationException::withMessages(['event' => 'This occurrence is not a Bear Hunt Event.']);
+                throw ValidationException::withMessages(['event' => (string) __('This occurrence is not a Bear Hunt Event.')]);
             }
             if ($eventType->supportsWorkflow(EventWorkflowDimension::ScreenshotEvidence) === false
                 || $eventType->supportsWorkflow(EventWorkflowDimension::Results) === false) {
-                throw ValidationException::withMessages(['event' => 'This Bear Hunt profile does not support the reviewed screenshot-to-results workflow.']);
+                throw ValidationException::withMessages(['event' => (string) __('This Bear Hunt profile does not support the reviewed screenshot-to-results workflow.')]);
             }
             $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->where('event_id', $context->event->id)->lockForUpdate()->firstOrFail();
 
             $existing = BearHuntBattleReport::query()->where('idempotency_key', $idempotencyKey)->lockForUpdate()->first();
             if ($existing instanceof BearHuntBattleReport) {
                 if ((string) $existing->occurrence_id !== $occurrenceId || $existing->report_fingerprint !== $reportFingerprint) {
-                    throw ValidationException::withMessages(['idempotency_key' => 'The idempotency key was already used for a different Bear Hunt report.']);
+                    throw ValidationException::withMessages(['idempotency_key' => (string) __('The idempotency key was already used for a different Bear Hunt report.')]);
                 }
                 $playerResults = $this->projector->recompute($occurrenceId, $actorPlayerId);
                 $metadata = [
@@ -101,7 +101,7 @@ final readonly class RecordBearHuntBattleReport
             }
             $fingerprintCollision = BearHuntBattleReport::query()->where('occurrence_id', $occurrenceId)->where('report_fingerprint', $reportFingerprint)->lockForUpdate()->first();
             if ($fingerprintCollision instanceof BearHuntBattleReport) {
-                throw ValidationException::withMessages(['report' => 'This Bear Hunt battle report has already been committed.']);
+                throw ValidationException::withMessages(['report' => (string) __('This Bear Hunt battle report has already been committed.')]);
             }
 
             $normalized = [];
@@ -109,17 +109,17 @@ final readonly class RecordBearHuntBattleReport
             foreach ($entries as $entry) {
                 $playerId = trim((string) $entry['player_id']);
                 if ($playerId === '' || isset($seen[$playerId])) {
-                    throw ValidationException::withMessages(['entries' => 'Every report entry requires one unique Governor.']);
+                    throw ValidationException::withMessages(['entries' => (string) __('Every report entry requires one unique Governor.')]);
                 }
                 $damage = (int) $entry['damage_points'];
                 $rank = array_key_exists('reported_rank', $entry) && $entry['reported_rank'] !== null ? (int) $entry['reported_rank'] : null;
                 if ($damage < 0 || ($rank !== null && ($rank < 1 || $rank > 999))) {
-                    throw ValidationException::withMessages(['entries' => 'Bear Hunt damage/rank values are invalid.']);
+                    throw ValidationException::withMessages(['entries' => (string) __('Bear Hunt damage/rank values are invalid.')]);
                 }
                 $player = $context->actor->playerId === $playerId ? $context->actor : $this->players->lockCurrent($playerId);
                 $activePresence = $this->roster->lockActiveRosterPresence($context->target->allianceId, $playerId);
                 if (! $this->participants->eligibleAgainstTarget($context->target, $player, $activePresence)) {
-                    throw ValidationException::withMessages(['entries' => 'A reviewed Governor is no longer eligible for this Bear Hunt.']);
+                    throw ValidationException::withMessages(['entries' => (string) __('A reviewed Governor is no longer eligible for this Bear Hunt.')]);
                 }
                 $frozen = $this->contexts->existing((string) $occurrence->id, $playerId);
                 if (! $frozen instanceof EventPlayerContext) {
@@ -176,17 +176,17 @@ final readonly class RecordBearHuntBattleReport
     {
         foreach ([$sourceEvidenceId, $sourceCommitAttemptId] as $id) {
             if (preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/i', $id) !== 1) {
-                throw ValidationException::withMessages(['source' => 'Evidence source identifiers must be ULIDs.']);
+                throw ValidationException::withMessages(['source' => (string) __('Evidence source identifiers must be ULIDs.')]);
             }
         }
         if (preg_match('/^[a-f0-9]{64}$/', $idempotencyKey) !== 1 || preg_match('/^[a-f0-9]{64}$/', $reportFingerprint) !== 1) {
-            throw ValidationException::withMessages(['report' => 'Bear Hunt report keys must be lowercase SHA-256 values.']);
+            throw ValidationException::withMessages(['report' => (string) __('Bear Hunt report keys must be lowercase SHA-256 values.')]);
         }
         if ($timestamp !== null && mb_strlen(trim($timestamp)) > 64) {
-            throw ValidationException::withMessages(['report_timestamp' => 'Report timestamp text must be 64 characters or fewer.']);
+            throw ValidationException::withMessages(['report_timestamp' => (string) __('Report timestamp text must be 64 characters or fewer.')]);
         }
         if ($entries === [] || count($entries) > 100) {
-            throw ValidationException::withMessages(['entries' => 'A Bear Hunt report must contain between 1 and 100 reviewed Governors.']);
+            throw ValidationException::withMessages(['entries' => (string) __('A Bear Hunt report must contain between 1 and 100 reviewed Governors.')]);
         }
     }
 }

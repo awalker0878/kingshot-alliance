@@ -16,7 +16,7 @@ final class RecruitmentTextInput
     {
         $body = trim($body);
         if ($body === '') {
-            throw ValidationException::withMessages(['body' => 'Recruitment note text is required.']);
+            throw ValidationException::withMessages(['body' => (string) __('Recruitment note text is required.')]);
         }
         if (mb_strlen($body) > self::NOTE_MAX_LENGTH) {
             throw ValidationException::withMessages(['body' => 'Recruitment notes must not exceed '.self::NOTE_MAX_LENGTH.' characters.']);

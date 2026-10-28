@@ -42,7 +42,7 @@ final class AddRecruitmentNote
 
             if ($currentCandidate->merged_into_id !== null) {
                 throw ValidationException::withMessages([
-                    'candidate' => 'Notes must be added to the current merged candidate record.',
+                    'candidate' => (string) __('Notes must be added to the current merged candidate record.'),
                 ]);
             }
 

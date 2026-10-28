@@ -28,7 +28,7 @@ final readonly class TwoFactorManager
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
             $locked->ensureActive();
             if ($locked->two_factor_confirmed_at !== null) {
-                throw ValidationException::withMessages(['two_factor' => 'Two-factor authentication is already enabled.']);
+                throw ValidationException::withMessages(['two_factor' => (string) __('Two-factor authentication is already enabled.')]);
             }
             $locked->forceFill([
                 'two_factor_secret' => $secret,
@@ -55,11 +55,11 @@ final readonly class TwoFactorManager
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
             $locked->ensureActive();
             if ($locked->two_factor_confirmed_at !== null) {
-                throw ValidationException::withMessages(['two_factor' => 'Two-factor authentication is already enabled.']);
+                throw ValidationException::withMessages(['two_factor' => (string) __('Two-factor authentication is already enabled.')]);
             }
             $secret = (string) $locked->two_factor_secret;
             if ($secret === '' || ! $this->totp->verify($secret, $code)) {
-                throw ValidationException::withMessages(['code' => 'The authentication code is invalid.']);
+                throw ValidationException::withMessages(['code' => (string) __('The authentication code is invalid.')]);
             }
             $plainCodes = $this->generateRecoveryCodes();
             $locked->forceFill([
@@ -92,7 +92,7 @@ final readonly class TwoFactorManager
             $locked = User::query()->lockForUpdate()->findOrFail($user->id);
             $locked->ensureActive();
             if ($locked->two_factor_confirmed_at === null || (string) $locked->two_factor_secret === '') {
-                throw ValidationException::withMessages(['two_factor' => 'Two-factor authentication is not enabled.']);
+                throw ValidationException::withMessages(['two_factor' => (string) __('Two-factor authentication is not enabled.')]);
             }
             $plainCodes = $this->generateRecoveryCodes();
             $locked->forceFill([

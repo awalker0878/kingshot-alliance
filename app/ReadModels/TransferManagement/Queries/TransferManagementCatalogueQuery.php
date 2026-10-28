@@ -36,7 +36,7 @@ final readonly class TransferManagementCatalogueQuery
         $scope = implode('|', ['transfer-catalogue', $actorId, $allianceId, $kind->value, $planId ?? '']);
         if ($plan === null && ! in_array($kind, [TransferCatalogueKind::Windows, TransferCatalogueKind::Plans], true)) {
             if ($cursor !== null) {
-                throw ValidationException::withMessages(['cursor' => 'This catalogue requires a selected plan.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('This catalogue requires a selected plan.')]);
             }
 
             return [...(new PageSlice([], null, 25))->toArray(), 'total' => 0];
@@ -68,7 +68,7 @@ final readonly class TransferManagementCatalogueQuery
             $after = $position['after'] ?? null;
             $through = $position['through'] ?? null;
             if (count($position) !== 2 || ! $this->isId($after) || ! $this->isId($through) || strcmp($after, $through) > 0) {
-                throw ValidationException::withMessages(['cursor' => 'The catalogue cursor is invalid.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The catalogue cursor is invalid.')]);
             }
             $query->where('id', '>', $after);
         }

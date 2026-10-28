@@ -43,7 +43,7 @@ final readonly class KingPerkAutoScheduler
         $plan = DB::transaction(function () use ($actorPlayerId, $planId): array {
             [$current] = $this->writeState->managerPlan($actorPlayerId, $planId);
             if (! in_array($current->status, [KingPerkPlanStatus::Draft, KingPerkPlanStatus::Published, KingPerkPlanStatus::Active], true)) {
-                throw ValidationException::withMessages(['plan' => 'This King Perks plan can no longer be scheduled.']);
+                throw ValidationException::withMessages(['plan' => (string) __('This King Perks plan can no longer be scheduled.')]);
             }
 
             return [
@@ -57,10 +57,10 @@ final readonly class KingPerkAutoScheduler
         $start = $from->utc();
         $end = $until->utc();
         if (! $end->greaterThan($start)) {
-            throw ValidationException::withMessages(['until' => 'Auto-schedule end must be after its start.']);
+            throw ValidationException::withMessages(['until' => (string) __('Auto-schedule end must be after its start.')]);
         }
         if ($start->lt($plan['window_starts_at']) || $end->gt($plan['window_ends_at'])) {
-            throw ValidationException::withMessages(['from' => 'Auto-schedule window must fit inside Kingdom of Power preparation.']);
+            throw ValidationException::withMessages(['from' => (string) __('Auto-schedule window must fit inside Kingdom of Power preparation.')]);
         }
 
         $limit = max(1, min(500, $limit));

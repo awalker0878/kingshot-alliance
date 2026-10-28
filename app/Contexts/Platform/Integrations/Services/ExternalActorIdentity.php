@@ -33,7 +33,7 @@ final class ExternalActorIdentity
         $normalized = strtoupper(str_replace(['-', ' '], '', trim($code)));
         if (! preg_match('/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{12}$/', $normalized)) {
             throw ValidationException::withMessages([
-                'code' => 'The pairing code is invalid or incomplete.',
+                'code' => (string) __('The pairing code is invalid or incomplete.'),
             ]);
         }
 
@@ -52,7 +52,7 @@ final class ExternalActorIdentity
         $normalized = trim($subject);
         if (! preg_match('/^[1-9][0-9]{4,24}$/', $normalized)) {
             throw ValidationException::withMessages([
-                'external_subject' => 'A stable numeric provider user ID is required.',
+                'external_subject' => (string) __('A stable numeric provider user ID is required.'),
             ]);
         }
 

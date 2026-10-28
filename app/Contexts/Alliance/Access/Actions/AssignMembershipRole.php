@@ -39,7 +39,7 @@ final readonly class AssignMembershipRole
                 ->firstOrFail();
 
             if ($membership->status !== MembershipStatus::Active) {
-                throw ValidationException::withMessages(['membership' => 'Only active memberships can receive specialist roles.']);
+                throw ValidationException::withMessages(['membership' => (string) __('Only active memberships can receive specialist roles.')]);
             }
 
             $role = Role::query()
@@ -50,11 +50,11 @@ final readonly class AssignMembershipRole
                 ->firstOrFail();
 
             if ($role->archived_at !== null) {
-                throw ValidationException::withMessages(['role' => 'Archived specialist roles cannot be assigned.']);
+                throw ValidationException::withMessages(['role' => (string) __('Archived specialist roles cannot be assigned.')]);
             }
 
             if (! $this->delegation->allows($context->membership, $context->alliance, $role, (string) $membership->player_id === $actorPlayerId)) {
-                throw ValidationException::withMessages(['role' => 'You cannot delegate this specialist role to this member.']);
+                throw ValidationException::withMessages(['role' => (string) __('You cannot delegate this specialist role to this member.')]);
             }
 
             if (! $membership->roles()->where('roles.id', $role->id)->exists()) {

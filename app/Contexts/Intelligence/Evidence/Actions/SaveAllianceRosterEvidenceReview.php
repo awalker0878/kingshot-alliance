@@ -39,10 +39,10 @@ final readonly class SaveAllianceRosterEvidenceReview
         bool $allowSemanticDuplicate = false,
     ): string {
         if ($rows === []) {
-            throw ValidationException::withMessages(['rows' => 'Review at least one visible Governor row.']);
+            throw ValidationException::withMessages(['rows' => (string) __('Review at least one visible Governor row.')]);
         }
         if (count($rows) > 300) {
-            throw ValidationException::withMessages(['rows' => 'A single roster screenshot review is limited to 300 rows.']);
+            throw ValidationException::withMessages(['rows' => (string) __('A single roster screenshot review is limited to 300 rows.')]);
         }
 
         $captured = Carbon::parse($capturedAt);
@@ -63,7 +63,7 @@ final readonly class SaveAllianceRosterEvidenceReview
                 ->firstOrFail();
 
             if (in_array($evidence->lifecycle_status, [EvidenceLifecycleStatus::Committed, EvidenceLifecycleStatus::Deleted], true)) {
-                throw ValidationException::withMessages(['evidence' => 'This screenshot cannot receive another review.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('This screenshot cannot receive another review.')]);
             }
 
             $duplicate = AllianceRosterEvidenceReview::query()
@@ -140,19 +140,19 @@ final readonly class SaveAllianceRosterEvidenceReview
         foreach ($rows as $index => $row) {
             $name = trim((string) ($row['observed_name'] ?? ''));
             if ($name === '') {
-                throw ValidationException::withMessages(["rows.{$index}.observed_name" => 'Governor name is required.']);
+                throw ValidationException::withMessages(["rows.{$index}.observed_name" => (string) __('Governor name is required.')]);
             }
             $rank = isset($row['observed_rank']) && $row['observed_rank'] !== '' ? strtolower((string) $row['observed_rank']) : null;
             if ($rank !== null && ! in_array($rank, ['r1', 'r2', 'r3', 'r4', 'r5'], true)) {
-                throw ValidationException::withMessages(["rows.{$index}.observed_rank" => 'Visible Alliance rank must be R1–R5.']);
+                throw ValidationException::withMessages(["rows.{$index}.observed_rank" => (string) __('Visible Alliance rank must be R1–R5.')]);
             }
             $power = $row['power'] ?? null;
             if ($power !== null && (! is_numeric($power) || (int) $power < 0)) {
-                throw ValidationException::withMessages(["rows.{$index}.power" => 'Visible power must be a non-negative integer.']);
+                throw ValidationException::withMessages(["rows.{$index}.power" => (string) __('Visible power must be a non-negative integer.')]);
             }
             $rosterEntryId = isset($row['roster_entry_id']) && $row['roster_entry_id'] !== '' ? (string) $row['roster_entry_id'] : null;
             if ($rosterEntryId !== null && ! isset($knownRosterEntries[$rosterEntryId])) {
-                throw ValidationException::withMessages(["rows.{$index}.roster_entry_id" => 'The linked roster entry is outside this Alliance.']);
+                throw ValidationException::withMessages(["rows.{$index}.roster_entry_id" => (string) __('The linked roster entry is outside this Alliance.')]);
             }
             $normalized[] = [
                 'observed_name' => $name,

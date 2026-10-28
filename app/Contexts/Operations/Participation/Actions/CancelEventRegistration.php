@@ -33,7 +33,7 @@ final readonly class CancelEventRegistration
 
             if (! $registration instanceof EventRegistration || $registration->status === EventRegistrationStatus::Cancelled) {
                 throw ValidationException::withMessages([
-                    'registration' => 'This Player is not currently registered.',
+                    'registration' => (string) __('This Player is not currently registered.'),
                 ]);
             }
 

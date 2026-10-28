@@ -47,10 +47,10 @@ final readonly class RetryGovernorProgressionEvidenceProcessing
                 ->lockForUpdate()
                 ->firstOrFail();
             if ($evidence->lifecycle_status !== EvidenceLifecycleStatus::Failed) {
-                throw ValidationException::withMessages(['evidence' => 'Only failed Governor Progression Evidence processing can be retried.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('Only failed Governor Progression Evidence processing can be retried.')]);
             }
             if ($evidence->path === null) {
-                throw ValidationException::withMessages(['evidence' => 'Deleted or redacted Evidence cannot be processed again.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('Deleted or redacted Evidence cannot be processed again.')]);
             }
             $evidence->forceFill(['lifecycle_status' => EvidenceLifecycleStatus::Uploaded])->save();
             $metadata = [

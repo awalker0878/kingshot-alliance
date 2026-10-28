@@ -104,7 +104,10 @@ async function governorLifecycleCatalogue(
   return mergeCatalogue(base, governorLifecycleLabels(locale));
 }
 
-async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<MessageCatalogue> {
+export async function loadCatalogue(
+  domain: LocalizationDomain,
+  locale: LocaleCode,
+): Promise<MessageCatalogue> {
   const key = cacheKey(domain, locale);
   const cached = catalogues.get(key);
   if (cached) return cached;
@@ -135,8 +138,8 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
   return request;
 }
 export async function loadDomain(locale: LocaleCode, domain: LocalizationDomain): Promise<void> {
-  await loadOne(domain, defaultLocale);
-  if (locale !== defaultLocale) await loadOne(domain, locale);
+  await loadCatalogue(domain, defaultLocale);
+  if (locale !== defaultLocale) await loadCatalogue(domain, locale);
 }
 export async function loadDomains(
   locale: LocaleCode,

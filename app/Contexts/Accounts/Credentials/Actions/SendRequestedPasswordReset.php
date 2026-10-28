@@ -6,6 +6,7 @@ namespace App\Contexts\Accounts\Credentials\Actions;
 
 use App\Contexts\Accounts\Credentials\Notifications\ResetKingshotAlliancePassword;
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Shared\Infrastructure\Http\SupportedLocale;
 use App\Shared\Infrastructure\Messaging\Outbox\Events\OutboxPublished;
 use Illuminate\Auth\Events\PasswordResetLinkSent;
 use Illuminate\Support\Facades\Crypt;
@@ -54,7 +55,7 @@ final class SendRequestedPasswordReset
         }
 
         try {
-            $delivery['user']->notify(new ResetKingshotAlliancePassword($delivery['token']));
+            $delivery['user']->notify((new ResetKingshotAlliancePassword($delivery['token']))->locale(SupportedLocale::orDefault($event->payload['locale'] ?? null)));
         } catch (Throwable) {
             // A transport exception may contain the recovery URL; retain no original message or cause.
             throw new RuntimeException('Password reset email delivery failed.');

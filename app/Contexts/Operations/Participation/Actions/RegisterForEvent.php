@@ -32,7 +32,7 @@ final readonly class RegisterForEvent
             $window = $this->window->for($context->event, $occurrence);
             if (! $window['is_open']) {
                 throw ValidationException::withMessages([
-                    'registration' => 'Registration is not currently open for this occurrence.',
+                    'registration' => (string) __('Registration is not currently open for this occurrence.'),
                 ]);
             }
 

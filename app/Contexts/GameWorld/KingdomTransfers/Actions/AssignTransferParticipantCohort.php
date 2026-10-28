@@ -29,17 +29,17 @@ final readonly class AssignTransferParticipantCohort
             $this->authority->authorizeContext($context, TransferPermission::Manage);
             $plan = TransferPlan::query()->where('alliance_id', $allianceId)->whereKey($planId)->sharedLock()->firstOrFail();
             if (! in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true) || $context->kingdomId() !== (string) $plan->home_kingdom_id) {
-                throw ValidationException::withMessages(['participant' => 'This transfer plan is not mutable.']);
+                throw ValidationException::withMessages(['participant' => (string) __('This transfer plan is not mutable.')]);
             }$id = $cohortId === null ? null : trim($cohortId);
             $id = $id === '' ? null : $id;
             $cohort = $id === null ? null : TransferCohort::query()->where('alliance_id', $allianceId)->where('transfer_plan_id', $planId)->where('state', TransferCohortState::Active->value)->whereKey($id)->sharedLock()->first();
             if ($id !== null && ! $cohort instanceof TransferCohort) {
-                throw ValidationException::withMessages(['transfer_cohort_id' => 'The selected transfer cohort must be active in this plan.']);
+                throw ValidationException::withMessages(['transfer_cohort_id' => (string) __('The selected transfer cohort must be active in this plan.')]);
             }$participant = TransferParticipant::query()->where('alliance_id', $allianceId)->where('transfer_plan_id', $planId)->whereKey($participantId)->lockForUpdate()->firstOrFail();
             if ($participant->withdrawn_at !== null) {
-                throw ValidationException::withMessages(['participant' => 'Withdrawn Governors cannot be moved between cohorts.']);
+                throw ValidationException::withMessages(['participant' => (string) __('Withdrawn Governors cannot be moved between cohorts.')]);
             }if ($cohort instanceof TransferCohort && ! $this->assignments->compatible($participant)->whereKey($cohort->id)->exists()) {
-                throw ValidationException::withMessages(['transfer_cohort_id' => 'The cohort is not compatible with this Governor.']);
+                throw ValidationException::withMessages(['transfer_cohort_id' => (string) __('The cohort is not compatible with this Governor.')]);
             }$old = $participant->transfer_cohort_id;
             $new = $cohort?->id === null ? null : (string) $cohort->id;
             if ($old === $new) {

@@ -50,7 +50,7 @@ final class KingdomIntelligenceSharingReadController extends Controller
         $cursor = $validated['cursor'] ?? null;
         if ($cursor !== null && $target === null) {
             throw ValidationException::withMessages([
-                'cursor' => 'A shared history cursor requires its target.',
+                'cursor' => (string) __('A shared history cursor requires its target.'),
             ]);
         }
 

@@ -37,7 +37,7 @@ final readonly class ResendInvitation
 
             $invitation = Invitation::query()->whereKey($invitationId)->where('alliance_id', $context->alliance->id)->lockForUpdate()->firstOrFail();
             if (in_array($invitation->status, [InvitationStatus::Accepted, InvitationStatus::Revoked], true)) {
-                throw ValidationException::withMessages(['invitation' => 'Accepted or revoked invitations cannot be resent.']);
+                throw ValidationException::withMessages(['invitation' => (string) __('Accepted or revoked invitations cannot be resent.')]);
             }
 
             $this->eligibility->assertEligible($context->alliance, (string) $invitation->player_id, (string) $invitation->email, 'invitation', 'invitation');

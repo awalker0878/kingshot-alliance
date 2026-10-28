@@ -73,13 +73,13 @@ final readonly class SaveContentItem
 
             if ($contentItemId !== null && (string) $item->slug === ContentItem::ALLIANCE_RULES_SLUG) {
                 throw ValidationException::withMessages([
-                    'content' => 'Alliance Rules must be changed through the dedicated Alliance Rules workflow.',
+                    'content' => (string) __('Alliance Rules must be changed through the dedicated Alliance Rules workflow.'),
                 ]);
             }
 
             if (strtolower(trim($attributes['slug'])) === ContentItem::ALLIANCE_RULES_SLUG) {
                 throw ValidationException::withMessages([
-                    'slug' => 'The alliance-rules address is reserved for the Alliance Rules workflow.',
+                    'slug' => (string) __('The alliance-rules address is reserved for the Alliance Rules workflow.'),
                 ]);
             }
 
@@ -230,7 +230,7 @@ final readonly class SaveContentItem
 
         if (! $category instanceof ContentCategory) {
             throw ValidationException::withMessages([
-                'category_id' => 'The selected category does not belong to this alliance.',
+                'category_id' => (string) __('The selected category does not belong to this alliance.'),
             ]);
         }
     }

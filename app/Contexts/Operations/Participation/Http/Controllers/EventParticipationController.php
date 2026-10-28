@@ -103,7 +103,7 @@ final class EventParticipationController extends Controller
     private function activePlayer(PlayerContext $context): PlayerReference
     {
         $player = $context->playerOrNull();
-        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before performing Event operations.');
+        abort_unless($player instanceof PlayerReference, 409, (string) __('Select a Player before performing Event operations.'));
 
         return $player;
     }

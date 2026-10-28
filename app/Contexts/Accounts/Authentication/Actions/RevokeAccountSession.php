@@ -35,7 +35,7 @@ final readonly class RevokeAccountSession
             $currentHash = hash('sha256', $currentSessionId);
             if (hash_equals($record->session_id_hash, $currentHash)) {
                 throw ValidationException::withMessages([
-                    'session' => 'The current session cannot be revoked from this action.',
+                    'session' => (string) __('The current session cannot be revoked from this action.'),
                 ]);
             }
 

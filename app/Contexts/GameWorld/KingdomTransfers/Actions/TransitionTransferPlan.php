@@ -57,7 +57,7 @@ final readonly class TransitionTransferPlan
 
             if ($authority->kingdomId() !== (string) $plan->home_kingdom_id) {
                 throw ValidationException::withMessages([
-                    'plan' => 'The transfer cycle home Kingdom does not match the Alliance Kingdom.',
+                    'plan' => (string) __('The transfer cycle home Kingdom does not match the Alliance Kingdom.'),
                 ]);
             }
 
@@ -70,7 +70,7 @@ final readonly class TransitionTransferPlan
 
                 if ($conflict) {
                     throw ValidationException::withMessages([
-                        'plan' => 'This alliance already has an open transfer cycle.',
+                        'plan' => (string) __('This alliance already has an open transfer cycle.'),
                     ]);
                 }
             }
@@ -85,7 +85,7 @@ final readonly class TransitionTransferPlan
 
                 if ($incomplete) {
                     throw ValidationException::withMessages([
-                        'plan' => 'Complete or withdraw every active transfer participant before closing this cycle.',
+                        'plan' => (string) __('Complete or withdraw every active transfer participant before closing this cycle.'),
                     ]);
                 }
             }

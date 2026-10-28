@@ -50,12 +50,12 @@ final readonly class RunKingdomIngestionSubscription
             if ($batch->state !== KingdomIngestionBatchState::Pending) {
                 if (! in_array($batch->state, [KingdomIngestionBatchState::Completed, KingdomIngestionBatchState::Partial], true)) {
                     throw ValidationException::withMessages([
-                        'batch' => 'That source window already has a terminal ingestion outcome and cannot be rewritten.',
+                        'batch' => (string) __('That source window already has a terminal ingestion outcome and cannot be rewritten.'),
                     ]);
                 }
                 if ($batch->next_source_cursor !== $page->nextCursor) {
                     throw ValidationException::withMessages([
-                        'batch' => 'The source returned a different next cursor for an already completed source window.',
+                        'batch' => (string) __('The source returned a different next cursor for an already completed source window.'),
                     ]);
                 }
 
@@ -73,7 +73,7 @@ final readonly class RunKingdomIngestionSubscription
                     ->firstOrFail();
                 if ($lockedBatch->state !== KingdomIngestionBatchState::Pending) {
                     throw ValidationException::withMessages([
-                        'batch' => 'Only a pending ingestion batch can capture its next source cursor.',
+                        'batch' => (string) __('Only a pending ingestion batch can capture its next source cursor.'),
                     ]);
                 }
                 $lockedBatch->forceFill(['next_source_cursor' => $page->nextCursor])->save();
@@ -168,13 +168,13 @@ final readonly class RunKingdomIngestionSubscription
 
             if (! in_array($lockedBatch->state, [KingdomIngestionBatchState::Completed, KingdomIngestionBatchState::Partial], true)) {
                 throw ValidationException::withMessages([
-                    'batch' => 'The ingestion cursor can advance only after a successful or partial batch outcome.',
+                    'batch' => (string) __('The ingestion cursor can advance only after a successful or partial batch outcome.'),
                 ]);
             }
             if ($subscription->source_cursor !== $lockedBatch->source_cursor
                 && $subscription->source_cursor !== $lockedBatch->next_source_cursor) {
                 throw ValidationException::withMessages([
-                    'subscription' => 'The ingestion cursor changed concurrently; automatic rewind is blocked.',
+                    'subscription' => (string) __('The ingestion cursor changed concurrently; automatic rewind is blocked.'),
                 ]);
             }
 

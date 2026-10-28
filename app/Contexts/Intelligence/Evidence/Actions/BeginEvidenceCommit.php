@@ -45,7 +45,7 @@ final readonly class BeginEvidenceCommit
                 ->lockForUpdate()
                 ->firstOrFail();
             if ($review->getRawOriginal('status') !== EvidenceReviewStatus::Approved->value) {
-                throw ValidationException::withMessages(['review' => 'Resolve the review before committing this battle report.']);
+                throw ValidationException::withMessages(['review' => (string) __('Resolve the review before committing this battle report.')]);
             }
             $evidence = GameEvidence::query()
                 ->whereKey($review->evidence_id)
@@ -76,12 +76,12 @@ final readonly class BeginEvidenceCommit
                 ->orderBy('row_ordinal')
                 ->get();
             if ($rows->isEmpty()) {
-                throw ValidationException::withMessages(['review' => 'At least one reviewed Governor must be included before commit.']);
+                throw ValidationException::withMessages(['review' => (string) __('At least one reviewed Governor must be included before commit.')]);
             }
             $entries = [];
             foreach ($rows as $row) {
                 if ($row->player_id === null || $row->damage_points === null) {
-                    throw ValidationException::withMessages(['review' => 'Every included row requires a resolved Governor and damage value.']);
+                    throw ValidationException::withMessages(['review' => (string) __('Every included row requires a resolved Governor and damage value.')]);
                 }
                 $entries[] = [
                     'player_id' => (string) $row->player_id,

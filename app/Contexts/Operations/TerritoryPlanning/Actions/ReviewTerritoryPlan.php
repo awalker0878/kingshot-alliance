@@ -31,13 +31,13 @@ final readonly class ReviewTerritoryPlan
             $this->authorization->authorizeReview($context);
             $checksum = $this->snapshots->checksum($this->snapshots->build($context->plan));
             if (! hash_equals($checksum, $snapshotChecksum)) {
-                throw ValidationException::withMessages(['snapshot_checksum' => 'The reviewed content no longer matches the saved plan.']);
+                throw ValidationException::withMessages(['snapshot_checksum' => (string) __('The reviewed content no longer matches the saved plan.')]);
             }
             $review = TerritoryPlanReview::query()->firstOrCreate([
                 'territory_plan_id' => $planId, 'reviewer_player_id' => $actorPlayerId, 'head_revision' => $expectedRevision,
             ], ['snapshot_checksum' => $checksum, 'decision' => $decision, 'note' => $note]);
             if ($review->decision !== $decision || $review->snapshot_checksum !== $checksum || $review->note !== $note) {
-                throw ValidationException::withMessages(['review' => 'This revision already has a different review from you.']);
+                throw ValidationException::withMessages(['review' => (string) __('This revision already has a different review from you.')]);
             }
             if ($review->wasRecentlyCreated) {
                 $this->audit->record('territory.plan.reviewed', $context->actor, $context->plan, $context->plan->owner_alliance_id,

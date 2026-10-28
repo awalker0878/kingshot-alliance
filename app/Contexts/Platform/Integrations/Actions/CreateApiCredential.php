@@ -46,16 +46,16 @@ final readonly class CreateApiCredential
     ): IssuedApiCredential {
         $name = trim($name);
         if ($name === '') {
-            throw ValidationException::withMessages(['name' => 'API credential name is required.']);
+            throw ValidationException::withMessages(['name' => (string) __('API credential name is required.')]);
         }
 
         $scopes = array_values(array_unique(array_map('strval', $scopes)));
         if ($scopes === [] || array_diff($scopes, self::ALLOWED_SCOPES) !== []) {
-            throw ValidationException::withMessages(['scopes' => 'At least one supported API scope is required.']);
+            throw ValidationException::withMessages(['scopes' => (string) __('At least one supported API scope is required.')]);
         }
 
         if ($expiresAt !== null && $expiresAt->isPast()) {
-            throw ValidationException::withMessages(['expires_at' => 'API credential expiry must be in the future.']);
+            throw ValidationException::withMessages(['expires_at' => (string) __('API credential expiry must be in the future.')]);
         }
 
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $name, $scopes, $expiresAt): IssuedApiCredential {
@@ -63,7 +63,7 @@ final readonly class CreateApiCredential
 
             $settings = AlliancePlatformSetting::query()->whereKey($currentAlliance->allianceId)->lockForUpdate()->first();
             if ($settings !== null && ! $settings->api_access_enabled) {
-                throw ValidationException::withMessages(['api' => 'API access is disabled for this alliance.']);
+                throw ValidationException::withMessages(['api' => (string) __('API access is disabled for this alliance.')]);
             }
 
             $this->entitlements->assertApiCredentialCapacity((string) $currentAlliance->allianceId);

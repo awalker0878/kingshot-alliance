@@ -71,7 +71,7 @@ final readonly class KingdomIngestionAdapterRegistry
         }
 
         throw ValidationException::withMessages([
-            'adapter_key' => 'That automated-ingestion source adapter is not approved.',
+            'adapter_key' => (string) __('That automated-ingestion source adapter is not approved.'),
         ]);
     }
 
@@ -90,7 +90,7 @@ final readonly class KingdomIngestionAdapterRegistry
         }
 
         throw ValidationException::withMessages([
-            'adapter_key' => 'That automated-ingestion source adapter is not approved for scheduled acquisition.',
+            'adapter_key' => (string) __('That automated-ingestion source adapter is not approved for scheduled acquisition.'),
         ]);
     }
 

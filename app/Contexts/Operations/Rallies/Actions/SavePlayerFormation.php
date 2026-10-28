@@ -36,7 +36,7 @@ final readonly class SavePlayerFormation
     ): void {
         $name = trim($name);
         if ($name === '' || mb_strlen($name) > 120) {
-            throw ValidationException::withMessages(['name' => 'Formation name is required and must be 120 characters or fewer.']);
+            throw ValidationException::withMessages(['name' => (string) __('Formation name is required and must be 120 characters or fewer.')]);
         }
 
         $dataset = $progressionDatasetId !== null && trim($progressionDatasetId) !== ''
@@ -51,7 +51,7 @@ final readonly class SavePlayerFormation
             }
             $heroId = $this->progression->canonicalHeroId($candidate, $dataset);
             if ($heroId === null) {
-                throw ValidationException::withMessages(["heroes.$index" => 'Hero must exist in the pinned factual progression dataset.']);
+                throw ValidationException::withMessages(["heroes.$index" => (string) __('Hero must exist in the pinned factual progression dataset.')]);
             }
             if (! in_array($heroId, $canonicalHeroes, true)) {
                 $canonicalHeroes[] = $heroId;

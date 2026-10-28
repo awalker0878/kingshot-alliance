@@ -85,7 +85,7 @@ final class RecruitmentCandidate extends Model
     public function ensureNotAnonymized(): void
     {
         if ($this->anonymized_at !== null) {
-            throw ValidationException::withMessages(['candidate' => 'This recruitment record has been anonymized.']);
+            throw ValidationException::withMessages(['candidate' => (string) __('This recruitment record has been anonymized.')]);
         }
     }
 

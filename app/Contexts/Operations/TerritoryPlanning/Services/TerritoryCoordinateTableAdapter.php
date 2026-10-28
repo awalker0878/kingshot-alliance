@@ -42,12 +42,12 @@ final class TerritoryCoordinateTableAdapter
     public function decode(string $csv): array
     {
         if (strlen($csv) > self::MAX_BYTES) {
-            throw ValidationException::withMessages(['coordinates' => 'The coordinate table exceeds the one-megabyte limit.']);
+            throw ValidationException::withMessages(['coordinates' => (string) __('The coordinate table exceeds the one-megabyte limit.')]);
         }
 
         $stream = fopen('php://temp', 'w+b');
         if ($stream === false) {
-            throw ValidationException::withMessages(['coordinates' => 'The coordinate table could not be opened.']);
+            throw ValidationException::withMessages(['coordinates' => (string) __('The coordinate table could not be opened.')]);
         }
 
         try {
@@ -55,13 +55,13 @@ final class TerritoryCoordinateTableAdapter
             rewind($stream);
             $header = fgetcsv($stream, 0, ',', '"', '');
             if ($header === false) {
-                throw ValidationException::withMessages(['coordinates' => 'The coordinate table must contain a header row.']);
+                throw ValidationException::withMessages(['coordinates' => (string) __('The coordinate table must contain a header row.')]);
             }
             if (isset($header[0])) {
                 $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', (string) $header[0]) ?? (string) $header[0];
             }
             if ($header !== self::HEADER) {
-                throw ValidationException::withMessages(['coordinates' => 'The coordinate table header is unsupported or out of order.']);
+                throw ValidationException::withMessages(['coordinates' => (string) __('The coordinate table header is unsupported or out of order.')]);
             }
 
             $rows = [];
@@ -70,7 +70,7 @@ final class TerritoryCoordinateTableAdapter
                     continue;
                 }
                 if (count($rows) >= self::MAX_ROWS) {
-                    throw ValidationException::withMessages(['coordinates' => 'The coordinate table exceeds the 10,000-row limit.']);
+                    throw ValidationException::withMessages(['coordinates' => (string) __('The coordinate table exceeds the 10,000-row limit.')]);
                 }
                 if (count($row) !== count(self::HEADER)) {
                     throw ValidationException::withMessages(['coordinates' => 'Every coordinate row must contain exactly '.count(self::HEADER).' columns.']);
@@ -90,12 +90,12 @@ final class TerritoryCoordinateTableAdapter
     public function encode(array $objects): string
     {
         if (count($objects) > self::MAX_ROWS) {
-            throw ValidationException::withMessages(['coordinates' => 'The coordinate table exceeds the 10,000-row limit.']);
+            throw ValidationException::withMessages(['coordinates' => (string) __('The coordinate table exceeds the 10,000-row limit.')]);
         }
 
         $stream = fopen('php://temp', 'w+b');
         if ($stream === false) {
-            throw ValidationException::withMessages(['coordinates' => 'The coordinate table could not be opened.']);
+            throw ValidationException::withMessages(['coordinates' => (string) __('The coordinate table could not be opened.')]);
         }
 
         try {
@@ -137,7 +137,7 @@ final class TerritoryCoordinateTableAdapter
             rewind($stream);
             $result = stream_get_contents($stream);
             if ($result === false || strlen($result) > self::MAX_BYTES) {
-                throw ValidationException::withMessages(['coordinates' => 'The encoded coordinate table exceeds the one-megabyte limit.']);
+                throw ValidationException::withMessages(['coordinates' => (string) __('The encoded coordinate table exceeds the one-megabyte limit.')]);
             }
 
             return $result;
@@ -155,14 +155,14 @@ final class TerritoryCoordinateTableAdapter
         $key = $this->boundedRequired($row['key'] ?? '', 'key');
         $type = TerritoryObjectType::tryFrom((string) ($row['type'] ?? ''));
         if ($type === null) {
-            throw ValidationException::withMessages(['coordinates' => 'Every coordinate row must use a supported object type.']);
+            throw ValidationException::withMessages(['coordinates' => (string) __('Every coordinate row must use a supported object type.')]);
         }
 
         $x = $this->integer($row['x'] ?? '', 'x');
         $y = $this->integer($row['y'] ?? '', 'y');
         $rotation = $this->integer($row['rotation'] ?? '0', 'rotation');
         if (! in_array($rotation, [0, 90, 180, 270], true)) {
-            throw ValidationException::withMessages(['coordinates' => 'Rotation must be 0, 90, 180 or 270 degrees.']);
+            throw ValidationException::withMessages(['coordinates' => (string) __('Rotation must be 0, 90, 180 or 270 degrees.')]);
         }
 
         $variant = $this->boundedOptional($row['variant_key'] ?? '', 'variant_key');
@@ -170,7 +170,7 @@ final class TerritoryCoordinateTableAdapter
             ? ['badland_headquarters', 'plains_headquarters']
             : ['default'];
         if ($variant !== null && ! in_array($variant, $allowedVariants, true)) {
-            throw ValidationException::withMessages(['coordinates' => 'The coordinate row contains an unsupported object variant.']);
+            throw ValidationException::withMessages(['coordinates' => (string) __('The coordinate row contains an unsupported object variant.')]);
         }
 
         $playerId = $this->boundedOptional($row['player_id'] ?? '', 'player_id');
@@ -178,14 +178,14 @@ final class TerritoryCoordinateTableAdapter
         $externalIdentity = $this->boundedOptional($row['external_identity_key'] ?? '', 'external_identity_key');
         $slotState = $this->boundedOptional($row['slot_state'] ?? '', 'slot_state');
         if ($slotState !== null && ($type !== TerritoryObjectType::GovernorCity || ! in_array($slotState, ['open', 'reserved', 'assigned'], true))) {
-            throw ValidationException::withMessages(['coordinates' => 'Only Governor cities may use open, reserved or assigned slot states.']);
+            throw ValidationException::withMessages(['coordinates' => (string) __('Only Governor cities may use open, reserved or assigned slot states.')]);
         }
         if ($externalIdentity !== null && ($type !== TerritoryObjectType::GovernorCity || $playerId !== null)) {
-            throw ValidationException::withMessages(['coordinates' => 'Plan-local identities are only valid for unlinked Governor cities.']);
+            throw ValidationException::withMessages(['coordinates' => (string) __('Plan-local identities are only valid for unlinked Governor cities.')]);
         }
         $assigned = $playerId !== null || $externalName !== null || $externalIdentity !== null;
         if (($slotState === 'open' && $assigned) || ($slotState === 'assigned' && ! $assigned)) {
-            throw ValidationException::withMessages(['coordinates' => 'Governor slot state and identity must agree.']);
+            throw ValidationException::withMessages(['coordinates' => (string) __('Governor slot state and identity must agree.')]);
         }
 
         $metadata = [];

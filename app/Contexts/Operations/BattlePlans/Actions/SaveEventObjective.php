@@ -46,22 +46,22 @@ final readonly class SaveEventObjective
         $name = trim($name);
         $objectiveType = trim($objectiveType);
         if ($name === '' || mb_strlen($name) > 160) {
-            throw ValidationException::withMessages(['name' => 'Objective name is required and must be 160 characters or fewer.']);
+            throw ValidationException::withMessages(['name' => (string) __('Objective name is required and must be 160 characters or fewer.')]);
         }
         if (! preg_match('/^[a-z0-9]+(?:[-_][a-z0-9]+)*$/', $objectiveType) || mb_strlen($objectiveType) > 64) {
-            throw ValidationException::withMessages(['objective_type' => 'Objective type must use lowercase letters, numbers, hyphens, or underscores.']);
+            throw ValidationException::withMessages(['objective_type' => (string) __('Objective type must use lowercase letters, numbers, hyphens, or underscores.')]);
         }
         if ($description !== null && mb_strlen(trim($description)) > 10000) {
-            throw ValidationException::withMessages(['description' => 'Objective description must be 10000 characters or fewer.']);
+            throw ValidationException::withMessages(['description' => (string) __('Objective description must be 10000 characters or fewer.')]);
         }
         if ($priority < 0 || $priority > 100) {
-            throw ValidationException::withMessages(['priority' => 'Objective priority must be between 0 and 100.']);
+            throw ValidationException::withMessages(['priority' => (string) __('Objective priority must be between 0 and 100.')]);
         }
         if (($startsAt === null) !== ($endsAt === null)) {
-            throw ValidationException::withMessages(['starts_at' => 'Objective start and end must both be provided or both be empty.']);
+            throw ValidationException::withMessages(['starts_at' => (string) __('Objective start and end must both be provided or both be empty.')]);
         }
         if ($startsAt !== null && $endsAt !== null && ! $endsAt->greaterThan($startsAt)) {
-            throw ValidationException::withMessages(['ends_at' => 'Objective end must be after objective start.']);
+            throw ValidationException::withMessages(['ends_at' => (string) __('Objective end must be after objective start.')]);
         }
 
         DB::transaction(function () use ($actorPlayerId, $occurrenceId, $name, $objectiveType, $description, $priority, $startsAt, $endsAt, $status, $sortOrder, $metadata, $parentId, $objectiveId): void {
@@ -78,7 +78,7 @@ final readonly class SaveEventObjective
 
             if ($startsAt !== null && $endsAt !== null
                 && ($startsAt->lessThan($occurrence->starts_at) || $endsAt->greaterThan($occurrence->ends_at))) {
-                throw ValidationException::withMessages(['starts_at' => 'Objective timing must stay within the Event occurrence.']);
+                throw ValidationException::withMessages(['starts_at' => (string) __('Objective timing must stay within the Event occurrence.')]);
             }
 
             $record = $objectiveId !== null
@@ -90,7 +90,7 @@ final readonly class SaveEventObjective
                 $parent = EventObjective::query()->whereKey($parentId)->where('occurrence_id', $occurrence->id)->lockForUpdate()->firstOrFail();
                 if ($record->exists
                     && ((string) $record->id === (string) $parent->id || $this->isDescendant($parent, $record))) {
-                    throw ValidationException::withMessages(['parent_id' => 'An objective cannot be nested beneath itself or one of its descendants.']);
+                    throw ValidationException::withMessages(['parent_id' => (string) __('An objective cannot be nested beneath itself or one of its descendants.')]);
                 }
             }
 

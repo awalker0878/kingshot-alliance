@@ -33,7 +33,7 @@ final readonly class CreateKingdomIngestionSubscription
             [$scope, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
             if ($scope->kingdomId === '') {
                 throw ValidationException::withMessages([
-                    'adapter_key' => 'The alliance must have a current Kingdom before automated ingestion can be configured.',
+                    'adapter_key' => (string) __('The alliance must have a current Kingdom before automated ingestion can be configured.'),
                 ]);
             }
 
@@ -45,7 +45,7 @@ final readonly class CreateKingdomIngestionSubscription
 
             if ($existing instanceof KingdomIngestionSubscription) {
                 throw ValidationException::withMessages([
-                    'adapter_key' => 'That source adapter is already configured for the current Kingdom.',
+                    'adapter_key' => (string) __('That source adapter is already configured for the current Kingdom.'),
                 ]);
             }
 
@@ -67,7 +67,7 @@ final readonly class CreateKingdomIngestionSubscription
                     ->where('adapter_key', $adapter->key())
                     ->exists()) {
                     throw ValidationException::withMessages([
-                        'adapter_key' => 'That source adapter is already configured for the current Kingdom.',
+                        'adapter_key' => (string) __('That source adapter is already configured for the current Kingdom.'),
                     ]);
                 }
 

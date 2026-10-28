@@ -65,7 +65,7 @@ final readonly class AllianceRoleCatalogQuery
             $position = $this->cursors->decode($cursor, $this->scope($allianceId, $archived, $search));
             $key = $position['key'] ?? null;
             if (! is_string($key) || $key === '' || strlen($key) > 64) {
-                throw ValidationException::withMessages(['cursor' => 'The role cursor is incomplete.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The role cursor is incomplete.')]);
             }
             $query->where('key', '>', $key);
         }

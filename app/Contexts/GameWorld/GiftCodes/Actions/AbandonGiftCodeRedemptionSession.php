@@ -31,7 +31,7 @@ final readonly class AbandonGiftCodeRedemptionSession
                 ->lockForUpdate()
                 ->firstOrFail();
             if ($session->status === GiftCodeRedemptionSessionStatus::Completed) {
-                throw ValidationException::withMessages(['session' => 'A completed Gift Code session cannot be abandoned.']);
+                throw ValidationException::withMessages(['session' => (string) __('A completed Gift Code session cannot be abandoned.')]);
             }
             if ($session->status === GiftCodeRedemptionSessionStatus::Abandoned) {
                 return;
