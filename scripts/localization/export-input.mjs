@@ -1,19 +1,30 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { execFileSync } from 'node:child_process';
 import { createServer } from 'vite';
+import {
+  flattenMessages as flatten,
+  preservedTranslation,
+} from '../lib/localization-completeness.mjs';
 
-const root = process.cwd();
+let root = process.cwd();
 const output = path.resolve(process.argv[2] ?? '.translation-work/input');
+const baselineRef = process.argv[3];
+let temporary;
+if (baselineRef) {
+  // Export an immutable pre-translation revision so recompilation never treats a
+  // newly generated value as a pre-existing human translation.
+  const archive = execFileSync(
+    'git',
+    ['archive', baselineRef, 'resources/js/localization', 'app', 'lang/en'],
+    { maxBuffer: 64 * 1024 * 1024 },
+  );
+  temporary = fs.mkdtempSync(path.join(root, '.translation-baseline-'));
+  execFileSync('tar', ['-x', '-C', temporary], { input: archive });
+  root = temporary;
+}
 fs.mkdirSync(output, { recursive: true });
-const flatten = (node, prefix = '', result = {}) => {
-  for (const [key, value] of Object.entries(node)) {
-    const name = prefix ? `${prefix}.${key}` : key;
-    if (typeof value === 'string') result[name] = value;
-    else flatten(value, name, result);
-  }
-  return result;
-};
 const decodePhp = (value) => value.slice(1, -1).replace(/\\(['"\\])/g, '$1');
 const phpLiteral = '(?:\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*")';
 const sources = new Map();
@@ -34,22 +45,31 @@ const server = await createServer({
   appType: 'custom',
 });
 try {
-  const { localizationDomains: domains } = await server.ssrLoadModule(
+  const { localizationDomains: domains, importDomainCatalogue } = await server.ssrLoadModule(
     '/resources/js/localization/registry.ts',
   );
   const { localeCodes } = await server.ssrLoadModule('/resources/js/localization/locales.ts');
   const { loadCatalogue } = await server.ssrLoadModule('/resources/js/localization/loader.ts');
   const locales = localeCodes.filter((locale) => locale !== 'en');
   const effective = {},
+    base = {},
     memory = Object.fromEntries(locales.map((locale) => [locale, {}]));
   for (const domain of domains) {
     effective[domain] = {};
-    for (const locale of localeCodes)
+    base[domain] = {};
+    for (const locale of localeCodes) {
       effective[domain][locale] = flatten(await loadCatalogue(domain, locale));
+      base[domain][locale] = flatten((await importDomainCatalogue(domain, locale)).default);
+    }
     for (const locale of locales) {
       for (const [key, english] of Object.entries(effective[domain].en)) {
-        const local = effective[domain][locale][key];
-        if (!local || local === english) add(english, `${domain}:${key}`);
+        const local = preservedTranslation(
+          english,
+          effective[domain][locale][key],
+          base[domain].en[key],
+          base[domain][locale][key],
+        );
+        if (!local) add(english, `${domain}:${key}`);
         else {
           memory[locale][english] ??= [];
           if (!memory[locale][english].includes(local)) memory[locale][english].push(local);
@@ -75,6 +95,7 @@ try {
   for (const english of accounts) add(english, 'server:accounts');
   const input = {
     version: 1,
+    baselineRef: baselineRef ?? null,
     locales,
     items: [...sources.values()],
     memory,
@@ -83,6 +104,7 @@ try {
   };
   fs.writeFileSync(path.join(output, 'input.json'), JSON.stringify(input, null, 2));
   fs.writeFileSync(path.join(output, 'effective.json'), JSON.stringify(effective, null, 2));
+  fs.writeFileSync(path.join(output, 'base.json'), JSON.stringify(base, null, 2));
   console.log(
     JSON.stringify({
       uniqueSources: sources.size,
@@ -93,4 +115,5 @@ try {
   );
 } finally {
   await server.close();
+  if (temporary) fs.rmSync(temporary, { recursive: true });
 }

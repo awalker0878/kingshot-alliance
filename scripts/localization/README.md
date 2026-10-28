@@ -7,6 +7,7 @@ The English catalogues are authoritative. The application supports English and 1
 - Branch: `codex/audit-stabilization`; draft PR: [179](https://github.com/awalker0878/kingshot-alliance/pull/179).
 - Server-language checkpoint: `bac0a9a1bbf399c0213b4e0ee6572b18a70882ae`.
 - That checkpoint passed [CI](https://github.com/awalker0878/kingshot-alliance/actions/runs/40682049852) and [browser regression](https://github.com/awalker0878/kingshot-alliance/actions/runs/40682049761).
+- Saved generation batch: [40730353999](https://github.com/awalker0878/kingshot-alliance/actions/runs/40730353999); immutable pre-translation baseline `910544783e5c6897ea26a7aa239dcde8f0789cc1`.
 - Remaining: generate and review language drafts, fill every locale catalogue, prevent English extensions overwriting translated values, add completeness enforcement, then run frontend, PHP and browser regression on the completed change.
 - Known independent limitation: the strict map-art gate still awaits 24 source-art families.
 
@@ -25,3 +26,7 @@ A completed generation job is **not linguistic sign-off**. Review technical/game
 ## Recovery
 
 Recover the latest Translation drafts run's `translation-input-*` and `translation-draft-<locale>-*` artifacts before rerunning a locale. Each JSONL record includes its exact English source; each report includes the input SHA-256 and model revision. A partial output can be resumed with the same input and output path. Never substitute output from the rejected M2M100 experiment or from a different source inventory.
+
+## Compile without overwriting existing translations
+
+Export the immutable baseline before compiling or recompiling: `node scripts/localization/export-input.mjs .translation-baseline-input 910544783e5c6897ea26a7aa239dcde8f0789cc1`. This records both raw catalogues and effective catalogues after overlays. Retain raw localized values hidden by an English overlay only when the English source has not changed. Never use already-generated catalogues as the preservation baseline.
