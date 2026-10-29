@@ -110,7 +110,7 @@ final readonly class EventReminderAudienceResolver
     {
         $event = $occurrence->event;
         if ($event->scopeEnum() !== EventScope::Player || $event->player_id === null) {
-            throw ValidationException::withMessages(['audience' => 'Target reminders are available only for Player-scoped Events.']);
+            throw ValidationException::withMessages(['audience' => (string) __('Target reminders are available only for Player-scoped Events.')]);
         }
 
         return [(string) $event->player_id];

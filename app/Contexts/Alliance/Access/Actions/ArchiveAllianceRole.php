@@ -35,7 +35,7 @@ final readonly class ArchiveAllianceRole
                 ->firstOrFail();
 
             if ($role->is_system) {
-                throw ValidationException::withMessages(['role' => 'System specialist roles cannot be archived.']);
+                throw ValidationException::withMessages(['role' => (string) __('System specialist roles cannot be archived.')]);
             }
             if ($role->archived_at !== null) {
                 return (string) $role->id;

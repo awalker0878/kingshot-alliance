@@ -1,11 +1,13 @@
 import { defineConfig } from '@playwright/test';
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:8000';
+const chromeExecutable = process.env.PLAYWRIGHT_CHROME_EXECUTABLE_PATH;
 
 export default defineConfig({
   testDir: './tests',
   testMatch: '**/Browser/**/*.spec.ts',
-  snapshotPathTemplate: '{testDir}/{testFileDir}/__screenshots__/{testFileName}/{projectName}/{arg}{ext}',
+  snapshotPathTemplate:
+    '{testDir}/{testFileDir}/__screenshots__/{testFileName}/{projectName}/{arg}{ext}',
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
@@ -22,7 +24,8 @@ export default defineConfig({
   use: {
     baseURL,
     browserName: 'chromium',
-    channel: process.env.PLAYWRIGHT_USE_SYSTEM_CHROME ? 'chrome' : undefined,
+    channel: !chromeExecutable && process.env.PLAYWRIGHT_USE_SYSTEM_CHROME ? 'chrome' : undefined,
+    launchOptions: chromeExecutable ? { executablePath: chromeExecutable } : undefined,
     colorScheme: 'dark',
     reducedMotion: 'reduce',
     locale: 'en-CA',
@@ -37,16 +40,26 @@ export default defineConfig({
     },
     {
       name: 'mobile',
-      use: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true },
+      use: {
+        viewport: { width: 390, height: 844 },
+        deviceScaleFactor: 1,
+        hasTouch: true,
+        isMobile: true,
+      },
     },
     {
       name: 'tablet',
-      grep: /@km16/,
-      use: { viewport: { width: 1024, height: 768 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true },
+      grep: /@km16|@room-art/,
+      use: {
+        viewport: { width: 1024, height: 768 },
+        deviceScaleFactor: 1,
+        hasTouch: true,
+        isMobile: true,
+      },
     },
     {
       name: 'rtl-tablet',
-      grep: /@km16/,
+      grep: /@km16|@room-art/,
       use: {
         viewport: { width: 1024, height: 768 },
         deviceScaleFactor: 1,

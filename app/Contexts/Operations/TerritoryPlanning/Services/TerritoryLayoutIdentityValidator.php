@@ -29,7 +29,7 @@ final readonly class TerritoryLayoutIdentityValidator
                 || $only['external_name'] !== null
             ) {
                 throw ValidationException::withMessages([
-                    'alliances' => 'An Alliance-scoped plan must contain exactly its owning Alliance layer.',
+                    'alliances' => (string) __('An Alliance-scoped plan must contain exactly its owning Alliance layer.'),
                 ]);
             }
         }
@@ -43,7 +43,7 @@ final readonly class TerritoryLayoutIdentityValidator
             $reference = $this->writeState->lockLinkedAlliance($allianceId);
             if ($reference->kingdomId !== $kingdomId) {
                 throw ValidationException::withMessages([
-                    'alliances' => 'Linked Alliances must belong to the plan Kingdom.',
+                    'alliances' => (string) __('Linked Alliances must belong to the plan Kingdom.'),
                 ]);
             }
         }
@@ -74,13 +74,13 @@ final readonly class TerritoryLayoutIdentityValidator
             $linkedAllianceId = $allianceByKey[$object['alliance_key']] ?? null;
             if (! is_string($linkedAllianceId)) {
                 throw ValidationException::withMessages([
-                    'objects' => 'A linked Governor can only be placed on a linked Alliance layer.',
+                    'objects' => (string) __('A linked Governor can only be placed on a linked Alliance layer.'),
                 ]);
             }
 
             if (isset($players[$playerId])) {
                 throw ValidationException::withMessages([
-                    'objects' => 'A linked Governor may occupy only one city in a plan.',
+                    'objects' => (string) __('A linked Governor may occupy only one city in a plan.'),
                 ]);
             }
 
@@ -92,13 +92,13 @@ final readonly class TerritoryLayoutIdentityValidator
             $player = $this->writeState->lockLinkedPlayer($playerId);
             if ($player->kingdomId !== $kingdomId) {
                 throw ValidationException::withMessages([
-                    'objects' => 'Linked Governors must belong to the plan Kingdom.',
+                    'objects' => (string) __('Linked Governors must belong to the plan Kingdom.'),
                 ]);
             }
 
             if (! $this->memberships->lockActiveMember($allianceId, $playerId)) {
                 throw ValidationException::withMessages([
-                    'objects' => 'Linked Governors must be active members of their planned Alliance layer.',
+                    'objects' => (string) __('Linked Governors must be active members of their planned Alliance layer.'),
                 ]);
             }
         }

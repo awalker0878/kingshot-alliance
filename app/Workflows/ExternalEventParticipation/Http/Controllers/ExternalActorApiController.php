@@ -114,7 +114,7 @@ final class ExternalActorApiController extends Controller
         $key = $request->header('Idempotency-Key');
         if (! is_string($key) || ! preg_match('/^[A-Za-z0-9._:-]{8,128}$/', $key)) {
             throw ValidationException::withMessages([
-                'idempotency_key' => 'A valid Idempotency-Key header between 8 and 128 characters is required.',
+                'idempotency_key' => (string) __('A valid Idempotency-Key header between 8 and 128 characters is required.'),
             ]);
         }
 
@@ -124,7 +124,7 @@ final class ExternalActorApiController extends Controller
     private function attribute(Request $request, string $name): string
     {
         $value = $request->attributes->get($name);
-        abort_unless(is_string($value) && $value !== '', 500, 'API authentication context is missing.');
+        abort_unless(is_string($value) && $value !== '', 500, (string) __('API authentication context is missing.'));
 
         return $value;
     }

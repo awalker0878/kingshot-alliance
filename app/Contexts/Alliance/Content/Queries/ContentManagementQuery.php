@@ -47,7 +47,7 @@ final readonly class ContentManagementQuery
         $base = $this->items($allianceId)->with('category:id,alliance_id,name,slug');
         if ($status !== '') {
             if (! in_array($status, ['draft', 'scheduled', 'published', 'archived'], true)) {
-                throw ValidationException::withMessages(['status' => 'Choose a current content status.']);
+                throw ValidationException::withMessages(['status' => (string) __('Choose a current content status.')]);
             }
             $base->where('status', $status);
         }
@@ -173,7 +173,7 @@ final readonly class ContentManagementQuery
         if ($position !== null) {
             if (array_keys($position) !== ['after', 'through'] || ! is_string($position['after']) || ! is_string($position['through'])
                 || ! Str::isUlid($position['after']) || ! Str::isUlid($position['through']) || strcmp($position['after'], $position['through']) > 0) {
-                throw ValidationException::withMessages(['cursor' => 'The collection cursor does not identify a valid position.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The collection cursor does not identify a valid position.')]);
             }
             $through = $position['through'];
             $query->where('id', '<=', $through)->where('id', '<', $position['after']);
@@ -208,7 +208,7 @@ final readonly class ContentManagementQuery
     {
         $search = mb_strtolower(trim($search));
         if (mb_strlen($search) > 160) {
-            throw ValidationException::withMessages(['q' => 'Search is limited to 160 characters.']);
+            throw ValidationException::withMessages(['q' => (string) __('Search is limited to 160 characters.')]);
         }
         if ($search !== '') {
             $query->whereRaw(match ($column) {

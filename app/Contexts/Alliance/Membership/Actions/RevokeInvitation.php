@@ -36,7 +36,7 @@ final readonly class RevokeInvitation
 
             if ($invitation->status !== InvitationStatus::Pending) {
                 throw ValidationException::withMessages([
-                    'invitation' => 'Only pending invitations can be revoked.',
+                    'invitation' => (string) __('Only pending invitations can be revoked.'),
                 ]);
             }
 

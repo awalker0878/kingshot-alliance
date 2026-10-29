@@ -68,6 +68,39 @@ const messages = {
     chooseOption: 'Option auswählen',
     submit: 'Bewerbung senden',
     submitting: 'Wird gesendet…',
+    attributionBoard: 'Öffentliches Einstellungsgremium',
+    attributionAlliancePage: 'Öffentliche Seite der Allianz',
+    attributionShareLink: 'Allianz-Share-Link',
+    attributionBotCommand: 'Allianz-Bot-Befehl',
+    attributionHelp:
+      'Diese sichtbare Quellenbezeichnung hilft der Allianz zu verstehen, welche Rekrutierungsverbindungen funktionieren. Es identifiziert oder verfolgt Sie nicht.',
+    optional: 'Optional',
+  },
+  recruitmentBoard: {
+    eyebrow: 'Entdeckung der Allianz',
+    title: 'Finde eine Allianz',
+    body: 'Entdecken Sie Allianzen, die öffentliche Rekrutierung geöffnet haben. Filtern Sie die Liste, teilen Sie die aktuelle Ansicht und wenden Sie sich an die Fragen jeder Allianz.',
+    search: 'Suchen',
+    searchPlaceholder: 'Allianzname, Rekrutierungstitel oder Einführung',
+    kingdom: 'Königreich',
+    allKingdoms: 'Alle Königreiche',
+    language: 'Sprache',
+    allLanguages: 'Alle Sprachen',
+    applyFilters: 'Filter anwenden',
+    clearFilters: 'Filter löschen',
+    copyLink: 'Gefilterten Link kopieren',
+    copied: 'Link kopiert',
+    resultCount: '{count} Rekrutierung von Allianzen',
+    capped:
+      'Zeige die ersten 100 Treffer. Verfeinern Sie die Filter, um ein fokussierteres Ergebnis zu erhalten.',
+    noMatchesTitle: 'Keine Rekrutierungsallianzen passen',
+    noMatchesBody:
+      'Versuchen Sie, einen Filter zu löschen oder prüfen Sie erneut, wenn sich mehr Allianzen für die öffentliche Rekrutierung entscheiden.',
+    viewAlliance: 'Alle Allianz anzeigen',
+    apply: 'Anwenden',
+    publicOnly:
+      'Nur Allianzen, die sich für die öffentliche Rekrutierung entschieden haben, werden angezeigt.',
+    listedByAlliance: 'Vom Rekrutierungsteam der Allianz gelistet',
   },
 } satisfies MessageCatalogue;
 

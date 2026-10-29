@@ -47,10 +47,10 @@ final readonly class SaveRallyGuidanceRule
     ): void {
         $name = trim($name);
         if ($name === '' || mb_strlen($name) > 120) {
-            throw ValidationException::withMessages(['name' => 'Guidance name is required and must be 120 characters or fewer.']);
+            throw ValidationException::withMessages(['name' => (string) __('Guidance name is required and must be 120 characters or fewer.')]);
         }
         if ($effectiveFrom instanceof CarbonImmutable && $effectiveUntil instanceof CarbonImmutable && $effectiveUntil->lessThan($effectiveFrom)) {
-            throw ValidationException::withMessages(['effective_until' => 'Effective until must be on or after effective from.']);
+            throw ValidationException::withMessages(['effective_until' => (string) __('Effective until must be on or after effective from.')]);
         }
         $heroes = $this->normalizeHeroes($heroes);
 

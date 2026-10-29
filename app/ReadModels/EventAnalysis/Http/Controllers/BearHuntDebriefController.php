@@ -76,7 +76,7 @@ final class BearHuntDebriefController extends Controller
     private function player(): PlayerReference
     {
         $player = $this->playerContext->playerOrNull();
-        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before opening Bear Hunt Debrief.');
+        abort_unless($player instanceof PlayerReference, 409, (string) __('Select a Player before opening Bear Hunt Debrief.'));
 
         return $player;
     }

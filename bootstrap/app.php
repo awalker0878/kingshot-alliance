@@ -11,6 +11,7 @@ use App\Contexts\GameWorld\Players\Http\Middleware\RequireCurrentPlayerContextVe
 use App\Contexts\GameWorld\Players\Http\Middleware\ResolvePlayerContext;
 use App\Contexts\Platform\Administration\Http\Middleware\RequirePlatformAdministrator;
 use App\Contexts\Platform\Integrations\Http\Middleware\AuthenticateApiCredential;
+use App\Shared\Infrastructure\Http\Middleware\ResolveRequestLocale;
 use App\Shared\Infrastructure\Observability\Http\Middleware\AssignRequestContext;
 use App\Shared\Infrastructure\Observability\Http\Middleware\RecordRequestMetrics;
 use App\Shared\Infrastructure\Runtime\Http\Controllers\ReadinessController;
@@ -54,7 +55,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.credential' => AuthenticateApiCredential::class,
             'password.confirm' => RequireRecentAccountAuthentication::class,
         ]);
-        $middleware->append([AssignRequestContext::class, RecordRequestMetrics::class, SecurityHeaders::class]);
+        $middleware->encryptCookies(except: ['kingshot_locale']);
+        $middleware->append([AssignRequestContext::class, RecordRequestMetrics::class, SecurityHeaders::class, ResolveRequestLocale::class]);
         $middleware->appendToPriorityList(StartSession::class, TrackAccountSession::class);
         $middleware->web(append: [TrackAccountSession::class, ResolvePlayerContext::class, RequireCurrentPlayerContextVersion::class, HandleInertiaRequests::class]);
     })

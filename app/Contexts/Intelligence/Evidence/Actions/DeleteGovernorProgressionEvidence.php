@@ -54,7 +54,7 @@ final readonly class DeleteGovernorProgressionEvidence
                 EvidenceLifecycleStatus::Extracting,
                 EvidenceLifecycleStatus::Committing,
             ], true)) {
-                throw ValidationException::withMessages(['evidence' => 'Governor Progression Evidence cannot be deleted while processing or committing is active.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('Governor Progression Evidence cannot be deleted while processing or committing is active.')]);
             }
             $wasCommitted = GovernorProgressionEvidenceCommitAttempt::query()
                 ->where('evidence_id', $evidence->id)

@@ -53,6 +53,6 @@ final readonly class ConfirmGoogleAccount
             return true;
         });
 
-        abort_unless($confirmed, 403, 'Google reauthentication did not match this Kingshot Alliance account.');
+        abort_unless($confirmed, 403, (string) __('Google reauthentication did not match this Kingshot Alliance account.'));
     }
 }

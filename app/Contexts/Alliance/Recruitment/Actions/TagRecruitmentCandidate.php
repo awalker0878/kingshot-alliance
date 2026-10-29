@@ -28,11 +28,11 @@ final class TagRecruitmentCandidate
     {
         $normalizedName = Str::lower(trim($name));
         if ($normalizedName === '') {
-            throw ValidationException::withMessages(['tag' => 'A recruitment tag name is required.']);
+            throw ValidationException::withMessages(['tag' => (string) __('A recruitment tag name is required.')]);
         }
 
         if (mb_strlen($normalizedName) > 80) {
-            throw ValidationException::withMessages(['tag' => 'Recruitment tags may not exceed 80 characters.']);
+            throw ValidationException::withMessages(['tag' => (string) __('Recruitment tags may not exceed 80 characters.')]);
         }
 
         return DB::transaction(function () use ($actorPlayerId, $allianceId, $candidateId, $normalizedName): string {
@@ -49,7 +49,7 @@ final class TagRecruitmentCandidate
 
             if ($currentCandidate->merged_into_id !== null) {
                 throw ValidationException::withMessages([
-                    'candidate' => 'Tags must be changed on the current merged candidate record.',
+                    'candidate' => (string) __('Tags must be changed on the current merged candidate record.'),
                 ]);
             }
 

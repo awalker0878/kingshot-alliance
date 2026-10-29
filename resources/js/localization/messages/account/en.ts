@@ -267,6 +267,10 @@ const messages = {
       confirm:
         'Request account deletion? There is a seven-day cooling-off period and ownership/legal-hold checks apply.',
       requested: 'Your account deletion request was recorded.',
+      cancelled: 'Your account deletion request was cancelled.',
+      cancelTitle: 'Cancel account deletion',
+      cancelConfirm: 'Cancel the deletion request and keep your account?',
+      cancelButton: 'Keep my account',
       backToAccount: 'Back to account & security',
     },
   },

@@ -40,7 +40,7 @@ final readonly class AssignRallyPlayer
         ?string $notes = null,
     ): void {
         if ($slotNumber !== null && $slotNumber < 1) {
-            throw ValidationException::withMessages(['slot_number' => 'Slot number must be at least one.']);
+            throw ValidationException::withMessages(['slot_number' => (string) __('Slot number must be at least one.')]);
         }
 
         DB::transaction(function () use ($actorPlayerId, $occurrenceId, $groupId, $playerId, $role, $slotNumber, $notes): void {
@@ -101,7 +101,7 @@ final readonly class AssignRallyPlayer
                     ->whereIn('status', $occupying)
                     ->count();
                 if ($group->max_joiners !== null && $joiners >= (int) $group->max_joiners) {
-                    throw ValidationException::withMessages(['role' => 'This Rally group has reached its maximum joiners.']);
+                    throw ValidationException::withMessages(['role' => (string) __('This Rally group has reached its maximum joiners.')]);
                 }
             }
 
@@ -111,7 +111,7 @@ final readonly class AssignRallyPlayer
                 ->whereIn('status', $occupying)
                 ->when($assignmentId !== null, static fn ($query) => $query->where('id', '!=', $assignmentId))
                 ->exists()) {
-                throw ValidationException::withMessages(['role' => 'This Rally group already has an active lead.']);
+                throw ValidationException::withMessages(['role' => (string) __('This Rally group already has an active lead.')]);
             }
 
             if ($slotNumber !== null && RallyAssignment::query()
@@ -120,7 +120,7 @@ final readonly class AssignRallyPlayer
                 ->whereIn('status', $occupying)
                 ->when($assignmentId !== null, static fn ($query) => $query->where('id', '!=', $assignmentId))
                 ->exists()) {
-                throw ValidationException::withMessages(['slot_number' => 'This Rally slot is already occupied.']);
+                throw ValidationException::withMessages(['slot_number' => (string) __('This Rally slot is already occupied.')]);
             }
 
             $created = ! ($assignment instanceof RallyAssignment);

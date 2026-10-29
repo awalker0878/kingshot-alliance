@@ -51,16 +51,16 @@ final readonly class SaveEventPlayerResult
         EventMetricSource $metricSource = EventMetricSource::Manual,
     ): void {
         if ($outcome !== null && mb_strlen(trim($outcome)) > 80) {
-            throw ValidationException::withMessages(['outcome' => 'Outcome must be 80 characters or fewer.']);
+            throw ValidationException::withMessages(['outcome' => (string) __('Outcome must be 80 characters or fewer.')]);
         }
         if ($score !== null && $score < 0) {
-            throw ValidationException::withMessages(['score' => 'Score cannot be negative.']);
+            throw ValidationException::withMessages(['score' => (string) __('Score cannot be negative.')]);
         }
         if ($rank !== null && $rank < 1) {
-            throw ValidationException::withMessages(['rank' => 'Rank must be at least one.']);
+            throw ValidationException::withMessages(['rank' => (string) __('Rank must be at least one.')]);
         }
         if ($notes !== null && mb_strlen(trim($notes)) > 10000) {
-            throw ValidationException::withMessages(['notes' => 'Result notes must be 10000 characters or fewer.']);
+            throw ValidationException::withMessages(['notes' => (string) __('Result notes must be 10000 characters or fewer.')]);
         }
 
         DB::transaction(function () use ($actorPlayerId, $occurrenceId, $playerId, $outcome, $score, $rank, $notes, $metrics, $metricSource): void {
@@ -77,7 +77,7 @@ final readonly class SaveEventPlayerResult
                     && $context->target->allianceId !== null
                     && $this->roster->lockActiveRosterPresence($context->target->allianceId, $playerId);
                 if (! $this->participants->eligibleAgainstTarget($context->target, $player, $activeRosterPresence)) {
-                    throw ValidationException::withMessages(['player' => 'This Player is not eligible for the Event target.']);
+                    throw ValidationException::withMessages(['player' => (string) __('This Player is not eligible for the Event target.')]);
                 }
                 $this->contexts->freeze($occurrence, $player);
             }

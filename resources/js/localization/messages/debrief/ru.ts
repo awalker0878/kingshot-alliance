@@ -44,6 +44,27 @@ const messages = {
       'Сравнение появится после завершённой предыдущей Охоты на Медведя для этого Альянса.',
     history: 'История',
     runHistory: 'История Охоты на Медведя',
+    signals: {
+      evidence: 'Статус доказательств',
+      factualSignals: 'Зафиксированное сопоставление',
+      reviewPending:
+        'Одна или несколько импортированных строк губернатора все еще нуждаются в проверке идентичности.',
+      newPersonalBest: 'Новый личный рекорд из принятых результатов',
+      damageDirection: 'Повреждение {direction}',
+      rallyDirection: 'Участие в ралли {direction}',
+      evidenceStates: {
+        accepted: 'Принятый результат скриншота',
+        recorded_without_accepted_evidence:
+          'Записанный результат без приемлемых доказательств скриншотов',
+        unavailable: 'Нет зарегистрированных результатов',
+      },
+      directions: {
+        unknown: 'несопоставимые',
+        increased: 'увеличился',
+        decreased: 'уменьшился',
+        unchanged: 'без изменений',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

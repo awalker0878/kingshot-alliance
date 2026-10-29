@@ -44,7 +44,7 @@ final readonly class ClaimPlayerAccount
                 ->firstOrFail();
 
             if ($locked->user_id !== null && (int) $locked->user_id !== $userId) {
-                throw ValidationException::withMessages(['player' => 'This Player belongs to another account.']);
+                throw ValidationException::withMessages(['player' => (string) __('This Player belongs to another account.')]);
             }
 
             if ($locked->user_id === null) {

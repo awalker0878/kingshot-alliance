@@ -36,7 +36,7 @@ final readonly class SetRecruitmentReentryControl
         $reason = RecruitmentTextInput::reason($reason);
         $review = $reviewAt === null || trim($reviewAt) === '' ? null : Carbon::parse($reviewAt);
         if ($control === RecruitmentReentryControl::ReapplyAfter && $review === null) {
-            throw ValidationException::withMessages(['review_at' => 'A reapply-after control requires a review date.']);
+            throw ValidationException::withMessages(['review_at' => (string) __('A reapply-after control requires a review date.')]);
         }
         if ($control === RecruitmentReentryControl::Normal) {
             $reason = null;
@@ -55,7 +55,7 @@ final readonly class SetRecruitmentReentryControl
             $candidate->ensureNotAnonymized();
 
             if ($candidate->merged_into_id !== null) {
-                throw ValidationException::withMessages(['candidate' => 'This recruitment record cannot receive a re-entry control.']);
+                throw ValidationException::withMessages(['candidate' => (string) __('This recruitment record cannot receive a re-entry control.')]);
             }
 
             $before = [

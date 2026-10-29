@@ -1,0 +1,1459 @@
+{
+  "account:accountExperience.account.intro": {
+    "ko": "Kingshot Alliance 프로필, 로그인 방법, 보안 설정, 세션 및 계정 수명 주기를 관리합니다."
+  },
+  "account:notifications.open": {
+    "ar": "افتح",
+    "de": "Öffnen",
+    "es": "Abrir",
+    "fr": "Ouvrir",
+    "id": "Buka",
+    "it": "Apri",
+    "ja": "開く",
+    "ko": "열기",
+    "pl": "Otwórz",
+    "pt-BR": "Abrir",
+    "ru": "Открыть",
+    "th": "เปิด",
+    "tr": "Aç",
+    "vi": "Mở",
+    "zh-CN": "打开",
+    "zh-TW": "開啟"
+  },
+  "events:events.calendar.open": {
+    "ar": "افتح",
+    "de": "Öffnen",
+    "es": "Abrir",
+    "fr": "Ouvrir",
+    "id": "Buka",
+    "it": "Apri",
+    "ja": "開く",
+    "ko": "열기",
+    "pl": "Otwórz",
+    "pt-BR": "Abrir",
+    "ru": "Открыть",
+    "th": "เปิด",
+    "tr": "Aç",
+    "vi": "Mở",
+    "zh-CN": "打开",
+    "zh-TW": "開啟"
+  },
+  "content:contentExperience.view": {
+    "ar": "افتح",
+    "de": "Öffnen",
+    "es": "Abrir",
+    "fr": "Ouvrir",
+    "id": "Buka",
+    "it": "Apri",
+    "ja": "開く",
+    "ko": "열기",
+    "pl": "Otwórz",
+    "pt-BR": "Abrir",
+    "ru": "Открыть",
+    "th": "เปิด",
+    "tr": "Aç",
+    "vi": "Mở",
+    "zh-CN": "打开",
+    "zh-TW": "開啟"
+  },
+  "transfers:kingdomP7D.open": {
+    "ar": "افتح",
+    "de": "Öffnen",
+    "es": "Abrir",
+    "fr": "Ouvrir",
+    "id": "Buka",
+    "it": "Apri",
+    "ja": "開く",
+    "ko": "열기",
+    "pl": "Otwórz",
+    "pt-BR": "Abrir",
+    "ru": "Открыть",
+    "th": "เปิด",
+    "tr": "Aç",
+    "vi": "Mở",
+    "zh-CN": "打开",
+    "zh-TW": "開啟"
+  },
+  "events:events.pollStatuses.open": {
+    "ar": "مفتوح",
+    "de": "Offen",
+    "es": "Abierto",
+    "fr": "Ouvert",
+    "id": "Terbuka",
+    "it": "Aperto",
+    "ja": "受付中",
+    "ko": "공개",
+    "pl": "Otwarty",
+    "pt-BR": "Aberto",
+    "ru": "Открыто",
+    "th": "เปิด",
+    "tr": "Açık",
+    "vi": "Đang mở",
+    "zh-CN": "开放",
+    "zh-TW": "開放"
+  },
+  "transfers:kingdomP7D.stateOpen": {
+    "ar": "مفتوح",
+    "de": "Offen",
+    "es": "Abierto",
+    "fr": "Ouvert",
+    "id": "Terbuka",
+    "it": "Aperto",
+    "ja": "公開",
+    "ko": "공개",
+    "pl": "Otwarty",
+    "pt-BR": "Aberto",
+    "ru": "Открыто",
+    "th": "เปิด",
+    "tr": "Açık",
+    "vi": "Đang mở",
+    "zh-CN": "开放",
+    "zh-TW": "開放"
+  },
+  "transfers:kingdomP7D.state_open": {
+    "ar": "مفتوح",
+    "de": "Offen",
+    "es": "Abierto",
+    "fr": "Ouvert",
+    "id": "Terbuka",
+    "it": "Aperto",
+    "ja": "公開",
+    "ko": "공개",
+    "pl": "Otwarty",
+    "pt-BR": "Aberto",
+    "ru": "Открыто",
+    "th": "เปิด",
+    "tr": "Açık",
+    "vi": "Đang mở",
+    "zh-CN": "开放",
+    "zh-TW": "開放"
+  },
+  "public:publicAlliance.statusOpen": {
+    "ar": "مفتوح",
+    "de": "Offen",
+    "es": "Abierto",
+    "fr": "Ouvert",
+    "id": "Terbuka",
+    "it": "Aperto",
+    "ja": "募集中",
+    "ko": "공개",
+    "pl": "Otwarty",
+    "pt-BR": "Aberto",
+    "ru": "Открыто",
+    "th": "เปิด",
+    "tr": "Açık",
+    "vi": "Đang mở",
+    "zh-CN": "开放",
+    "zh-TW": "開放"
+  },
+  "kingdom:royalCourt.open": {
+    "ar": "شاغر",
+    "de": "Unbesetzt",
+    "es": "Vacante",
+    "fr": "Libre",
+    "id": "Kosong",
+    "it": "Vacante",
+    "ja": "空席",
+    "ko": "공석",
+    "pl": "Wolne",
+    "pt-BR": "Vago",
+    "ru": "Вакантно",
+    "th": "ว่าง",
+    "tr": "Boş",
+    "vi": "Còn trống",
+    "zh-CN": "空缺",
+    "zh-TW": "空缺"
+  },
+  "auth:auth.password.forgotTitle": {
+    "ar": "استرداد حسابك",
+    "de": "Dein Konto wiederherstellen",
+    "es": "Recuperar tu cuenta",
+    "fr": "Récupérer votre compte",
+    "id": "Pulihkan akun Anda",
+    "it": "Recupera il tuo account",
+    "ja": "アカウントを復旧",
+    "ko": "계정 복구",
+    "pl": "Odzyskaj swoje konto",
+    "pt-BR": "Recuperar sua conta",
+    "ru": "Восстановить аккаунт",
+    "th": "กู้คืนบัญชีของคุณ",
+    "tr": "Hesabını kurtar",
+    "vi": "Khôi phục tài khoản của bạn",
+    "zh-CN": "恢复你的账户",
+    "zh-TW": "復原你的帳戶"
+  },
+  "auth:auth.password.forgotDescription": {
+    "ar": "أدخل عنوان البريد الإلكتروني المرتبط بحسابك في Kingshot Alliance.",
+    "de": "Gib die E-Mail-Adresse ein, die mit deinem Kingshot Alliance-Konto verknüpft ist.",
+    "es": "Introduce el correo electrónico asociado a tu cuenta de Kingshot Alliance.",
+    "fr": "Saisissez l’adresse e-mail associée à votre compte Kingshot Alliance.",
+    "id": "Masukkan alamat email yang terkait dengan akun Kingshot Alliance Anda.",
+    "it": "Inserisci l’indirizzo email associato al tuo account Kingshot Alliance.",
+    "ja": "Kingshot Allianceアカウントに登録したメールアドレスを入力してください。",
+    "ko": "Kingshot Alliance 계정에 연결된 이메일 주소를 입력하세요.",
+    "pl": "Wpisz adres e-mail powiązany z Twoim kontem Kingshot Alliance.",
+    "pt-BR": "Digite o endereço de e-mail associado à sua conta Kingshot Alliance.",
+    "ru": "Введите адрес электронной почты, связанный с вашим аккаунтом Kingshot Alliance.",
+    "th": "ป้อนที่อยู่อีเมลที่เชื่อมโยงกับบัญชี Kingshot Alliance ของคุณ",
+    "tr": "Kingshot Alliance hesabına bağlı e-posta adresini gir.",
+    "vi": "Nhập địa chỉ email liên kết với tài khoản Kingshot Alliance của bạn.",
+    "zh-CN": "请输入与你的 Kingshot Alliance 账户关联的电子邮件地址。",
+    "zh-TW": "請輸入與你的 Kingshot Alliance 帳戶關聯的電子郵件地址。"
+  },
+  "auth:auth.password.sendResetLink": {
+    "ar": "إرسال تعليمات الاسترداد",
+    "de": "Anleitung zur Wiederherstellung senden",
+    "es": "Enviar instrucciones de recuperación",
+    "fr": "Envoyer les instructions de récupération",
+    "id": "Kirim petunjuk pemulihan",
+    "it": "Invia le istruzioni di recupero",
+    "ja": "復旧手順を送信",
+    "ko": "복구 안내 보내기",
+    "pl": "Wyślij instrukcje odzyskiwania",
+    "pt-BR": "Enviar instruções de recuperação",
+    "ru": "Отправить инструкции по восстановлению",
+    "th": "ส่งคำแนะนำในการกู้คืน",
+    "tr": "Kurtarma talimatlarını gönder",
+    "vi": "Gửi hướng dẫn khôi phục",
+    "zh-CN": "发送恢复说明",
+    "zh-TW": "傳送復原指引"
+  },
+  "auth:auth.password.confirmTitle": {
+    "ar": "تأكيد هويتك",
+    "de": "Bestätige deine Identität",
+    "es": "Confirma tu identidad",
+    "fr": "Confirmez votre identité",
+    "id": "Konfirmasikan identitas Anda",
+    "it": "Conferma la tua identità",
+    "ja": "本人確認",
+    "ko": "본인 확인",
+    "pl": "Potwierdź swoją tożsamość",
+    "pt-BR": "Confirme sua identidade",
+    "ru": "Подтвердите свою личность",
+    "th": "ยืนยันตัวตนของคุณ",
+    "tr": "Kimliğini doğrula",
+    "vi": "Xác nhận danh tính của bạn",
+    "zh-CN": "确认你的身份",
+    "zh-TW": "確認你的身分"
+  },
+  "auth:authExperience.confirm.title": {
+    "ar": "تأكيد هويتك",
+    "de": "Bestätige deine Identität",
+    "es": "Confirma tu identidad",
+    "fr": "Confirmez votre identité",
+    "id": "Konfirmasikan identitas Anda",
+    "it": "Conferma la tua identità",
+    "ja": "本人確認",
+    "ko": "본인 확인",
+    "pl": "Potwierdź swoją tożsamość",
+    "pt-BR": "Confirme sua identidade",
+    "ru": "Подтвердите свою личность",
+    "th": "ยืนยันตัวตนของคุณ",
+    "tr": "Kimliğini doğrula",
+    "vi": "Xác nhận danh tính của bạn",
+    "zh-CN": "确认你的身份",
+    "zh-TW": "確認你的身分"
+  },
+  "auth:authExperience.confirm.description": {
+    "ar": "استخدم إحدى طرق تسجيل الدخول المرتبطة بحسابك قبل متابعة هذا التغيير الحساس في الحساب.",
+    "de": "Verwende eine der mit deinem Konto verknüpften Anmeldemethoden, bevor du diese sicherheitsrelevante Kontoänderung fortsetzt.",
+    "es": "Usa uno de los métodos de inicio de sesión vinculados a tu cuenta antes de continuar con este cambio sensible en la cuenta.",
+    "fr": "Utilisez l’une des méthodes de connexion associées à votre compte avant de poursuivre cette modification sensible du compte.",
+    "id": "Gunakan salah satu metode masuk yang terhubung ke akun Anda sebelum melanjutkan perubahan sensitif pada akun ini.",
+    "it": "Usa uno dei metodi di accesso collegati al tuo account prima di continuare con questa modifica sensibile dell’account.",
+    "ja": "この重要なアカウント変更を続ける前に、アカウントに紐づくログイン方法のいずれかで本人確認を行ってください。",
+    "ko": "이 중요한 계정 변경을 계속하려면 계정에 연결된 로그인 방법 중 하나로 본인을 확인하세요.",
+    "pl": "Przed kontynuowaniem tej istotnej dla bezpieczeństwa zmiany konta użyj jednej z powiązanych z nim metod logowania.",
+    "pt-BR": "Use um dos métodos de acesso vinculados à sua conta antes de continuar com esta alteração sensível na conta.",
+    "ru": "Прежде чем продолжить это важное для безопасности изменение аккаунта, используйте один из привязанных к нему способов входа.",
+    "th": "ใช้วิธีลงชื่อเข้าใช้ที่เชื่อมโยงกับบัญชีของคุณวิธีใดวิธีหนึ่ง ก่อนดำเนินการเปลี่ยนแปลงบัญชีที่เกี่ยวข้องกับความปลอดภัยนี้ต่อ",
+    "tr": "Güvenlik açısından hassas olan bu hesap değişikliğine devam etmeden önce hesabına bağlı giriş yöntemlerinden birini kullan.",
+    "vi": "Sử dụng một trong các phương thức đăng nhập đã liên kết với tài khoản trước khi tiếp tục thay đổi nhạy cảm này.",
+    "zh-CN": "在继续进行这项敏感的账户更改前，请使用已关联到你账户的任一登录方式验证身份。",
+    "zh-TW": "在繼續進行這項敏感的帳戶變更前，請使用已連結至你帳戶的任一登入方式驗證身分。"
+  },
+  "auth:authExperience.shell.intro": {
+    "ar": "جنّد الحكام، وجهّز الفعاليات، وأدِر تحالفك، وتابع المملكة من مكان واحد.",
+    "de": "Rekrutiere Gouverneure, bereite Events vor, verwalte deine Allianz und behalte das Königreich an einem Ort im Blick.",
+    "es": "Recluta Gobernadores, prepara Eventos, gestiona tu Alianza y sigue la actividad del Reino en un solo lugar.",
+    "fr": "Recrutez des Gouverneurs, préparez des Événements, gérez votre Alliance et suivez l’activité du Royaume au même endroit.",
+    "id": "Rekrut Gubernur, siapkan Acara, kelola Aliansi Anda, dan pantau Kerajaan di satu tempat.",
+    "it": "Recluta Governatori, prepara Eventi, gestisci la tua Alleanza e segui il Regno in un unico posto.",
+    "ja": "総督の募集、イベントの準備、同盟の管理、王国の状況確認を一か所で行えます。",
+    "ko": "총독 모집, 이벤트 준비, 연맹 관리, 왕국 현황 확인을 한곳에서 진행하세요.",
+    "pl": "Rekrutuj Gubernatorów, przygotowuj Wydarzenia, zarządzaj Sojuszem i śledź sytuację w Królestwie w jednym miejscu.",
+    "pt-BR": "Recrute Governadores, prepare Eventos, gerencie sua Aliança e acompanhe o Reino em um só lugar.",
+    "ru": "Набирайте Губернаторов, готовьте События, управляйте Альянсом и следите за Королевством в одном месте.",
+    "th": "รับสมัครผู้ว่าการ เตรียมกิจกรรม จัดการพันธมิตร และติดตามความเคลื่อนไหวของอาณาจักรได้ในที่เดียว",
+    "tr": "Valileri topla, Etkinlikleri hazırla, İttifakını yönet ve Krallığı tek bir yerden takip et.",
+    "vi": "Tuyển mộ Thống đốc, chuẩn bị Sự kiện, quản lý Liên minh và theo dõi Vương quốc tại một nơi.",
+    "zh-CN": "在同一平台招募总督、筹备活动、管理联盟并掌握王国动态。",
+    "zh-TW": "在同一平台招募總督、籌備活動、管理聯盟並掌握王國動態。"
+  },
+  "auth:authExperience.login.intro": {
+    "ar": "سجّل الدخول بحسابك، ثم اختر الحاكم الذي تريد استخدامه.",
+    "de": "Melde dich mit deinem Konto an und wähle dann den Gouverneur aus, den du verwenden möchtest.",
+    "es": "Inicia sesión con tu cuenta y luego elige el Gobernador que quieres usar.",
+    "fr": "Connectez-vous à votre compte, puis choisissez le Gouverneur que vous souhaitez utiliser.",
+    "id": "Masuk dengan akun Anda, lalu pilih Gubernur yang ingin digunakan.",
+    "it": "Accedi al tuo account, poi scegli il Governatore che vuoi usare.",
+    "ja": "アカウントにログインしてから、使用する総督を選択してください。",
+    "ko": "계정으로 로그인한 다음 사용할 총독을 선택하세요.",
+    "pl": "Zaloguj się na swoje konto, a następnie wybierz Gubernatora, którego chcesz używać.",
+    "pt-BR": "Entre na sua conta e escolha o Governador que deseja usar.",
+    "ru": "Войдите в свой аккаунт, затем выберите Губернатора, которого хотите использовать.",
+    "th": "ลงชื่อเข้าใช้บัญชีของคุณ แล้วเลือกผู้ว่าการที่ต้องการใช้งาน",
+    "tr": "Hesabınla giriş yap, ardından kullanmak istediğin Valiyi seç.",
+    "vi": "Đăng nhập vào tài khoản, rồi chọn Thống đốc bạn muốn sử dụng.",
+    "zh-CN": "登录你的账户，然后选择要使用的总督。",
+    "zh-TW": "登入你的帳戶，然後選擇要使用的總督。"
+  },
+  "auth:authExperience.register.intro": {
+    "ar": "يمكن أن يضم الحساب الواحد عدة حكام. ترتبط رتبة التحالف ومهام المملكة دائمًا بالحاكم الذي تختاره.",
+    "de": "Ein Konto kann mehrere Gouverneure besitzen. Der Allianzrang und die Aufgaben im Königreich gehören immer zum ausgewählten Gouverneur.",
+    "es": "Una cuenta puede tener varios Gobernadores. El rango en la Alianza y las funciones en el Reino siempre corresponden al Gobernador que elijas.",
+    "fr": "Un compte peut posséder plusieurs Gouverneurs. Le rang dans l’Alliance et les fonctions dans le Royaume sont toujours ceux du Gouverneur choisi.",
+    "id": "Satu akun dapat memiliki beberapa Gubernur. Pangkat di Aliansi dan tugas di Kerajaan selalu mengikuti Gubernur yang Anda pilih.",
+    "it": "Un account può possedere più Governatori. Il grado nell’Alleanza e gli incarichi nel Regno dipendono sempre dal Governatore scelto.",
+    "ja": "一つのアカウントで複数の総督を所有できます。同盟内のランクと王国での役割は、常に選択した総督に紐づきます。",
+    "ko": "하나의 계정은 여러 총독을 보유할 수 있습니다. 연맹 내 직급과 왕국 내 임무는 항상 선택한 총독에 따라 결정됩니다.",
+    "pl": "Jedno konto może mieć kilku Gubernatorów. Ranga w Sojuszu i obowiązki w Królestwie zawsze dotyczą wybranego Gubernatora.",
+    "pt-BR": "Uma conta pode ter vários Governadores. O posto na Aliança e as funções no Reino sempre correspondem ao Governador que você escolher.",
+    "ru": "Один аккаунт может владеть несколькими Губернаторами. Ранг в Альянсе и обязанности в Королевстве всегда относятся к выбранному Губернатору.",
+    "th": "หนึ่งบัญชีสามารถมีผู้ว่าการได้หลายคน ยศในพันธมิตรและหน้าที่ในอาณาจักรจะอิงตามผู้ว่าการที่คุณเลือกเสมอ",
+    "tr": "Bir hesap birden fazla Valiye sahip olabilir. İttifaktaki rütbe ve Krallıktaki görevler her zaman seçtiğin Valiye bağlıdır.",
+    "vi": "Một tài khoản có thể sở hữu nhiều Thống đốc. Cấp bậc trong Liên minh và nhiệm vụ tại Vương quốc luôn thuộc về Thống đốc bạn chọn.",
+    "zh-CN": "一个账户可以拥有多个总督。联盟内的职级和王国职责始终以你选择的总督为准。",
+    "zh-TW": "一個帳戶可擁有多位總督。聯盟內的階級和王國職責一律以所選總督為準。"
+  },
+  "auth:authExperience.password.resetIntro": {
+    "ar": "اختر كلمة مرور جديدة لحساب Kingshot Alliance الموضح أدناه.",
+    "de": "Wähle ein neues Kingshot Alliance-Passwort für das unten angezeigte Konto.",
+    "es": "Elige una nueva contraseña de Kingshot Alliance para la cuenta que aparece abajo.",
+    "fr": "Choisissez un nouveau mot de passe Kingshot Alliance pour le compte ci-dessous.",
+    "id": "Pilih kata sandi Kingshot Alliance yang baru untuk akun di bawah ini.",
+    "it": "Scegli una nuova password di Kingshot Alliance per l’account qui sotto.",
+    "ja": "以下のアカウントに使用する新しいKingshot Allianceのパスワードを設定してください。",
+    "ko": "아래 계정에 사용할 새 Kingshot Alliance 비밀번호를 설정하세요.",
+    "pl": "Wybierz nowe hasło Kingshot Alliance dla poniższego konta.",
+    "pt-BR": "Escolha uma nova senha do Kingshot Alliance para a conta abaixo.",
+    "ru": "Выберите новый пароль Kingshot Alliance для указанного ниже аккаунта.",
+    "th": "เลือกรหัสผ่าน Kingshot Alliance ใหม่สำหรับบัญชีด้านล่าง",
+    "tr": "Aşağıdaki hesap için yeni bir Kingshot Alliance şifresi seç.",
+    "vi": "Chọn mật khẩu Kingshot Alliance mới cho tài khoản bên dưới.",
+    "zh-CN": "请为下方的账户设置新的 Kingshot Alliance 密码。",
+    "zh-TW": "請為下方的帳戶設定新的 Kingshot Alliance 密碼。"
+  },
+  "auth:authExperience.password.confirmDescription": {
+    "ar": "يغيّر هذا الإجراء الوصول المحمي إلى التحالف، لذا أكّد هويتك قبل المتابعة.",
+    "de": "Dies ändert den geschützten Zugriff auf die Allianz. Bestätige deshalb deine Identität, bevor du fortfährst.",
+    "es": "Esto cambia el acceso protegido a la Alianza. Confirma tu identidad antes de continuar.",
+    "fr": "Cette action modifie l’accès protégé à l’Alliance. Confirmez votre identité avant de continuer.",
+    "id": "Tindakan ini mengubah akses terlindungi ke Aliansi. Konfirmasikan identitas Anda sebelum melanjutkan.",
+    "it": "Questa azione modifica l’accesso protetto all’Alleanza. Conferma la tua identità prima di continuare.",
+    "ja": "この操作は同盟への保護されたアクセスを変更します。続行する前に本人確認を行ってください。",
+    "ko": "이 작업은 보호된 연맹 접근 권한을 변경합니다. 계속하기 전에 본인을 확인하세요.",
+    "pl": "Ta czynność zmienia chroniony dostęp do Sojuszu. Potwierdź swoją tożsamość, zanim przejdziesz dalej.",
+    "pt-BR": "Esta ação altera o acesso protegido à Aliança. Confirme sua identidade antes de continuar.",
+    "ru": "Это действие изменяет защищённый доступ к Альянсу. Подтвердите свою личность, прежде чем продолжить.",
+    "th": "การดำเนินการนี้จะเปลี่ยนสิทธิ์การเข้าถึงพันธมิตรที่มีการป้องกัน โปรดยืนยันตัวตนก่อนดำเนินการต่อ",
+    "tr": "Bu işlem İttifaka korumalı erişimi değiştirir. Devam etmeden önce kimliğini doğrula.",
+    "vi": "Thao tác này thay đổi quyền truy cập được bảo vệ vào Liên minh. Hãy xác nhận danh tính trước khi tiếp tục.",
+    "zh-CN": "此操作会更改受保护的联盟访问权限。请先确认身份，再继续操作。",
+    "zh-TW": "此操作會變更受保護的聯盟存取權限。請先確認身分，再繼續操作。"
+  },
+  "auth:authExperience.password.recoveryKicker": {
+    "ar": "استرداد الحساب",
+    "de": "Kontowiederherstellung",
+    "es": "RECUPERACIÓN DE CUENTA",
+    "fr": "RÉCUPÉRATION DU COMPTE",
+    "id": "PEMULIHAN AKUN",
+    "it": "RECUPERO DELL’ACCOUNT",
+    "ja": "アカウントの復旧",
+    "ko": "계정 복구",
+    "pl": "ODZYSKIWANIE KONTA",
+    "pt-BR": "RECUPERAÇÃO DE CONTA",
+    "ru": "ВОССТАНОВЛЕНИЕ АККАУНТА",
+    "th": "การกู้คืนบัญชี",
+    "tr": "HESAP KURTARMA",
+    "vi": "KHÔI PHỤC TÀI KHOẢN",
+    "zh-CN": "账户恢复",
+    "zh-TW": "帳戶復原"
+  },
+  "auth:authExperience.password.recoveryNeutral": {
+    "ar": "إذا كان استرداد كلمة المرور متاحًا لعنوان البريد الإلكتروني هذا، فسنرسل تعليمات آمنة لإعادة تعيينها.",
+    "de": "Wenn für diese E-Mail-Adresse eine Passwortwiederherstellung möglich ist, senden wir eine sichere Anleitung zum Zurücksetzen des Passworts.",
+    "es": "Si la recuperación de contraseña está disponible para ese correo electrónico, enviaremos instrucciones seguras para restablecerla.",
+    "fr": "Si la récupération du mot de passe est disponible pour cette adresse e-mail, nous enverrons des instructions sécurisées pour le réinitialiser.",
+    "id": "Jika pemulihan kata sandi tersedia untuk alamat email tersebut, kami akan mengirimkan petunjuk aman untuk mengatur ulang kata sandi.",
+    "it": "Se il recupero della password è disponibile per quell’indirizzo email, invieremo istruzioni sicure per reimpostarla.",
+    "ja": "このメールアドレスでパスワードの復旧が利用できる場合、安全に再設定するための手順を送信します。",
+    "ko": "해당 이메일 주소로 비밀번호를 복구할 수 있는 경우, 안전하게 재설정하는 방법을 보내드립니다.",
+    "pl": "Jeśli dla tego adresu e-mail dostępne jest odzyskiwanie hasła, wyślemy bezpieczne instrukcje jego resetowania.",
+    "pt-BR": "Se a recuperação de senha estiver disponível para esse endereço de e-mail, enviaremos instruções seguras para redefini-la.",
+    "ru": "Если для этого адреса электронной почты доступно восстановление пароля, мы отправим безопасные инструкции по его сбросу.",
+    "th": "หากที่อยู่อีเมลนี้สามารถใช้กู้คืนรหัสผ่านได้ เราจะส่งคำแนะนำในการตั้งรหัสผ่านใหม่อย่างปลอดภัย",
+    "tr": "Bu e-posta adresi için şifre kurtarma kullanılabiliyorsa, şifreyi güvenle sıfırlaman için talimatlar göndereceğiz.",
+    "vi": "Nếu địa chỉ email này có thể khôi phục mật khẩu, chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu an toàn.",
+    "zh-CN": "如果该电子邮件地址支持密码恢复，我们会发送安全的密码重置说明。",
+    "zh-TW": "如果該電子郵件地址支援密碼復原，我們會傳送安全的密碼重設指引。"
+  },
+  "auth:authExperience.password.checkInboxKicker": {
+    "ar": "تحقق من صندوق الوارد",
+    "de": "Prüfe deinen Posteingang",
+    "es": "REVISA TU BANDEJA DE ENTRADA",
+    "fr": "VÉRIFIEZ VOTRE BOÎTE DE RÉCEPTION",
+    "id": "PERIKSA KOTAK MASUK ANDA",
+    "it": "CONTROLLA LA POSTA IN ARRIVO",
+    "ja": "受信トレイを確認",
+    "ko": "받은 편지함 확인",
+    "pl": "SPRAWDŹ SKRZYNKĘ ODBIORCZĄ",
+    "pt-BR": "VERIFIQUE SUA CAIXA DE ENTRADA",
+    "ru": "ПРОВЕРЬТЕ ВХОДЯЩИЕ ПИСЬМА",
+    "th": "ตรวจสอบกล่องจดหมายเข้า",
+    "tr": "GELEN KUTUNU KONTROL ET",
+    "vi": "KIỂM TRA HỘP THƯ ĐẾN",
+    "zh-CN": "查看收件箱",
+    "zh-TW": "查看收件匣"
+  },
+  "auth:authExperience.password.checkInboxHeading": {
+    "ar": "تم طلب تعليمات الاسترداد",
+    "de": "Anleitung zur Wiederherstellung angefordert",
+    "es": "Instrucciones de recuperación solicitadas",
+    "fr": "Instructions de récupération demandées",
+    "id": "Petunjuk pemulihan telah diminta",
+    "it": "Istruzioni di recupero richieste",
+    "ja": "復旧手順の送信をリクエストしました",
+    "ko": "복구 안내를 요청했습니다",
+    "pl": "Poproszono o instrukcje odzyskiwania",
+    "pt-BR": "Instruções de recuperação solicitadas",
+    "ru": "Запрошены инструкции по восстановлению",
+    "th": "ส่งคำขอคำแนะนำในการกู้คืนแล้ว",
+    "tr": "Kurtarma talimatları istendi",
+    "vi": "Đã yêu cầu hướng dẫn khôi phục",
+    "zh-CN": "已请求账户恢复说明",
+    "zh-TW": "已申請帳戶復原指引"
+  },
+  "auth:authExperience.password.checkInboxDescription": {
+    "ar": "إذا كان استرداد كلمة المرور متاحًا للعنوان الذي أدخلته، فقد أُرسلت تعليمات إعادة تعيينها. لأسباب أمنية، لا يمكننا تأكيد وجود حساب أو طرق تسجيل الدخول التي يستخدمها.",
+    "de": "Wenn für die eingegebene Adresse eine Passwortwiederherstellung möglich ist, wurde eine Anleitung zum Zurücksetzen des Passworts gesendet. Aus Sicherheitsgründen können wir weder bestätigen, ob ein Konto existiert, noch welche Anmeldemethoden es verwendet.",
+    "es": "Si la recuperación de contraseña está disponible para la dirección introducida, se han enviado instrucciones para restablecerla. Por seguridad, no podemos confirmar si existe una cuenta ni qué métodos de inicio de sesión utiliza.",
+    "fr": "Si la récupération du mot de passe est disponible pour l’adresse saisie, des instructions de réinitialisation ont été envoyées. Pour des raisons de sécurité, nous ne pouvons confirmer ni l’existence d’un compte ni les méthodes de connexion qu’il utilise.",
+    "id": "Jika pemulihan kata sandi tersedia untuk alamat yang Anda masukkan, petunjuk pengaturan ulang kata sandi telah dikirim. Demi keamanan, kami tidak dapat mengonfirmasi apakah suatu akun ada atau metode masuk yang digunakannya.",
+    "it": "Se il recupero della password è disponibile per l’indirizzo inserito, sono state inviate le istruzioni per reimpostarla. Per motivi di sicurezza, non possiamo confermare l’esistenza di un account né i metodi di accesso che utilizza.",
+    "ja": "入力したメールアドレスでパスワードの復旧が利用できる場合、再設定の手順を送信しました。セキュリティ上の理由から、アカウントの有無や使用しているログイン方法はお伝えできません。",
+    "ko": "입력한 주소로 비밀번호를 복구할 수 있는 경우, 재설정 안내를 보냈습니다. 보안상의 이유로 계정의 존재 여부나 사용 중인 로그인 방법은 확인해 드릴 수 없습니다.",
+    "pl": "Jeśli dla podanego adresu dostępne jest odzyskiwanie hasła, wysłano instrukcje jego resetowania. Ze względów bezpieczeństwa nie możemy potwierdzić istnienia konta ani używanych przez nie metod logowania.",
+    "pt-BR": "Se a recuperação de senha estiver disponível para o endereço informado, as instruções para redefini-la foram enviadas. Por segurança, não podemos confirmar se uma conta existe nem quais métodos de acesso ela usa.",
+    "ru": "Если для введённого адреса доступно восстановление пароля, инструкции по его сбросу отправлены. В целях безопасности мы не можем подтвердить, существует ли аккаунт и какие способы входа он использует.",
+    "th": "หากที่อยู่อีเมลที่คุณป้อนสามารถใช้กู้คืนรหัสผ่านได้ เราได้ส่งคำแนะนำในการตั้งรหัสผ่านใหม่แล้ว ด้วยเหตุผลด้านความปลอดภัย เราไม่สามารถยืนยันได้ว่ามีบัญชีนั้นอยู่หรือบัญชีใช้วิธีลงชื่อเข้าใช้ใด",
+    "tr": "Girdiğin adres için şifre kurtarma kullanılabiliyorsa, şifre sıfırlama talimatları gönderildi. Güvenlik nedeniyle bir hesabın var olup olmadığını veya hangi giriş yöntemlerini kullandığını doğrulayamıyoruz.",
+    "vi": "Nếu địa chỉ bạn nhập có thể khôi phục mật khẩu, hướng dẫn đặt lại mật khẩu đã được gửi. Vì lý do bảo mật, chúng tôi không thể xác nhận liệu tài khoản có tồn tại hay tài khoản sử dụng phương thức đăng nhập nào.",
+    "zh-CN": "如果输入的电子邮件地址支持密码恢复，密码重置说明已发送。出于安全考虑，我们无法确认账户是否存在或其使用的登录方式。",
+    "zh-TW": "如果輸入的電子郵件地址支援密碼復原，密碼重設指引已傳送。基於安全考量，我們無法確認帳戶是否存在或其使用的登入方式。"
+  },
+  "auth:authExperience.password.resetKicker": {
+    "ar": "إعادة تعيين كلمة المرور بأمان",
+    "de": "Passwort sicher zurücksetzen",
+    "es": "RESTABLECIMIENTO SEGURO DE CONTRASEÑA",
+    "fr": "RÉINITIALISATION SÉCURISÉE DU MOT DE PASSE",
+    "id": "ATUR ULANG KATA SANDI DENGAN AMAN",
+    "it": "REIMPOSTAZIONE SICURA DELLA PASSWORD",
+    "ja": "安全なパスワード再設定",
+    "ko": "안전한 비밀번호 재설정",
+    "pl": "BEZPIECZNE RESETOWANIE HASŁA",
+    "pt-BR": "REDEFINIÇÃO SEGURA DE SENHA",
+    "ru": "БЕЗОПАСНЫЙ СБРОС ПАРОЛЯ",
+    "th": "ตั้งรหัสผ่านใหม่อย่างปลอดภัย",
+    "tr": "GÜVENLİ ŞİFRE SIFIRLAMA",
+    "vi": "ĐẶT LẠI MẬT KHẨU AN TOÀN",
+    "zh-CN": "安全重置密码",
+    "zh-TW": "安全重設密碼"
+  },
+  "auth:authExperience.password.requirementNumber": {
+    "ar": "رقم",
+    "de": "Eine Ziffer",
+    "es": "Un dígito",
+    "fr": "Un chiffre",
+    "id": "Satu angka",
+    "it": "Una cifra",
+    "ja": "数字",
+    "ko": "숫자",
+    "pl": "Cyfra",
+    "pt-BR": "Um dígito",
+    "ru": "Цифра",
+    "th": "ตัวเลข",
+    "tr": "Bir rakam",
+    "vi": "Một chữ số",
+    "zh-CN": "一个数字",
+    "zh-TW": "一個數字"
+  },
+  "auth:authExperience.verification.kicker": {
+    "ar": "التحقق من البريد الإلكتروني",
+    "de": "E-Mail-Bestätigung",
+    "es": "VERIFICACIÓN DEL CORREO ELECTRÓNICO",
+    "fr": "VÉRIFICATION DE L’ADRESSE E-MAIL",
+    "id": "VERIFIKASI EMAIL",
+    "it": "VERIFICA DELL’INDIRIZZO EMAIL",
+    "ja": "メールアドレスの確認",
+    "ko": "이메일 주소 확인",
+    "pl": "WERYFIKACJA ADRESU E-MAIL",
+    "pt-BR": "VERIFICAÇÃO DE E-MAIL",
+    "ru": "ПОДТВЕРЖДЕНИЕ ЭЛЕКТРОННОЙ ПОЧТЫ",
+    "th": "การยืนยันอีเมล",
+    "tr": "E-POSTA DOĞRULAMA",
+    "vi": "XÁC MINH EMAIL",
+    "zh-CN": "电子邮件验证",
+    "zh-TW": "電子郵件驗證"
+  },
+  "auth:authExperience.verification.securityNote": {
+    "ar": "لن يطلب منك Kingshot Alliance كلمة مرورك أبدًا عبر رسالة التحقق من البريد الإلكتروني.",
+    "de": "Kingshot Alliance wird dich in einer E-Mail zur Bestätigung deiner E-Mail-Adresse niemals nach deinem Passwort fragen.",
+    "es": "Kingshot Alliance nunca te pedirá tu contraseña en un mensaje de verificación del correo electrónico.",
+    "fr": "Kingshot Alliance ne vous demandera jamais votre mot de passe dans un message de vérification de votre adresse e-mail.",
+    "id": "Kingshot Alliance tidak akan pernah meminta kata sandi Anda melalui pesan verifikasi email.",
+    "it": "Kingshot Alliance non ti chiederà mai la password in un messaggio di verifica dell’indirizzo email.",
+    "ja": "Kingshot Allianceがメールアドレスの確認メッセージでパスワードをお尋ねすることはありません。",
+    "ko": "Kingshot Alliance는 이메일 주소 확인 메시지에서 비밀번호를 요청하지 않습니다.",
+    "pl": "Kingshot Alliance nigdy nie poprosi o Twoje hasło w wiadomości weryfikującej adres e-mail.",
+    "pt-BR": "O Kingshot Alliance nunca pedirá sua senha em uma mensagem de verificação de e-mail.",
+    "ru": "Kingshot Alliance никогда не попросит ваш пароль в письме для подтверждения адреса электронной почты.",
+    "th": "Kingshot Alliance จะไม่ขอรหัสผ่านของคุณผ่านข้อความยืนยันอีเมลเด็ดขาด",
+    "tr": "Kingshot Alliance, e-posta doğrulama mesajında asla şifreni istemez.",
+    "vi": "Kingshot Alliance sẽ không bao giờ yêu cầu mật khẩu của bạn qua thông báo xác minh email.",
+    "zh-CN": "Kingshot Alliance 绝不会在电子邮件验证消息中索要你的密码。",
+    "zh-TW": "Kingshot Alliance 絕不會在電子郵件驗證訊息中索取你的密碼。"
+  },
+  "auth:authExperience.verification.resendIn": {
+    "ar": "يمكنك إعادة الإرسال بعد {seconds} ثانية",
+    "de": "Du kannst in {seconds} Sekunden erneut senden",
+    "es": "Podrás reenviar en {seconds} segundos",
+    "fr": "Vous pourrez renvoyer le message dans {seconds} secondes",
+    "id": "Anda dapat mengirim ulang setelah {seconds} detik",
+    "it": "Potrai inviare di nuovo tra {seconds} secondi",
+    "ja": "{seconds}秒後に再送信できます",
+    "ko": "{seconds}초 후에 다시 보낼 수 있습니다",
+    "pl": "Możesz wysłać ponownie za {seconds} sekund",
+    "pt-BR": "Você poderá reenviar em {seconds} segundos",
+    "ru": "Повторная отправка будет доступна через {seconds} сек.",
+    "th": "ส่งซ้ำได้ในอีก {seconds} วินาที",
+    "tr": "{seconds} saniye sonra yeniden gönderebilirsin",
+    "vi": "Bạn có thể gửi lại sau {seconds} giây",
+    "zh-CN": "你可以在 {seconds} 秒后重新发送",
+    "zh-TW": "你可以在 {seconds} 秒後重新傳送"
+  },
+  "auth:authExperience.twoFactor.kicker": {
+    "ar": "أمان الحساب",
+    "de": "Kontosicherheit",
+    "es": "Seguridad de la cuenta",
+    "fr": "Sécurité du compte",
+    "id": "Keamanan akun",
+    "it": "Sicurezza dell’account",
+    "ja": "アカウントのセキュリティ",
+    "ko": "계정 보안",
+    "pl": "Bezpieczeństwo konta",
+    "pt-BR": "Segurança da conta",
+    "ru": "Безопасность аккаунта",
+    "th": "ความปลอดภัยของบัญชี",
+    "tr": "Hesap güvenliği",
+    "vi": "Bảo mật tài khoản",
+    "zh-CN": "账户安全",
+    "zh-TW": "帳戶安全"
+  },
+  "auth:authExperience.social.continueWithGoogle": {
+    "ar": "المتابعة باستخدام Google",
+    "de": "Weiter mit Google",
+    "es": "Continuar con Google",
+    "fr": "Continuer avec Google",
+    "id": "Lanjutkan dengan Google",
+    "it": "Continua con Google",
+    "ja": "Googleで続行",
+    "ko": "Google로 계속하기",
+    "pl": "Kontynuuj z Google",
+    "pt-BR": "Continuar com o Google",
+    "ru": "Продолжить через Google",
+    "th": "ดำเนินการต่อด้วย Google",
+    "tr": "Google ile devam et",
+    "vi": "Tiếp tục với Google",
+    "zh-CN": "使用 Google 继续",
+    "zh-TW": "使用 Google 繼續"
+  },
+  "auth:authExperience.social.createWithGoogle": {
+    "ar": "إنشاء حساب Kingshot Alliance باستخدام Google",
+    "de": "Kingshot Alliance-Konto mit Google erstellen",
+    "es": "Crear una cuenta de Kingshot Alliance con Google",
+    "fr": "Créer un compte Kingshot Alliance avec Google",
+    "id": "Buat akun Kingshot Alliance dengan Google",
+    "it": "Crea un account Kingshot Alliance con Google",
+    "ja": "GoogleでKingshot Allianceアカウントを作成",
+    "ko": "Google로 Kingshot Alliance 계정 만들기",
+    "pl": "Utwórz konto Kingshot Alliance przez Google",
+    "pt-BR": "Criar conta Kingshot Alliance com o Google",
+    "ru": "Создать аккаунт Kingshot Alliance через Google",
+    "th": "สร้างบัญชี Kingshot Alliance ด้วย Google",
+    "tr": "Google ile Kingshot Alliance hesabı oluştur",
+    "vi": "Tạo tài khoản Kingshot Alliance bằng Google",
+    "zh-CN": "使用 Google 创建 Kingshot Alliance 账户",
+    "zh-TW": "使用 Google 建立 Kingshot Alliance 帳戶"
+  },
+  "auth:authExperience.verification.description": {
+    "ar": "أرسلنا رابط تحقق آمنًا لحسابك في Kingshot Alliance إلى:",
+    "de": "Wir haben einen sicheren Bestätigungslink für dein Kingshot Alliance-Konto an diese Adresse gesendet:",
+    "es": "Enviamos un enlace de verificación seguro para tu cuenta de Kingshot Alliance a:",
+    "fr": "Nous avons envoyé un lien de vérification sécurisé pour votre compte Kingshot Alliance à :",
+    "id": "Kami telah mengirimkan tautan verifikasi yang aman untuk akun Kingshot Alliance Anda ke:",
+    "it": "Abbiamo inviato un link di verifica sicuro per il tuo account Kingshot Alliance a:",
+    "ja": "Kingshot Allianceアカウントの安全な確認リンクを次のメールアドレスに送信しました：",
+    "ko": "Kingshot Alliance 계정의 보안 확인 링크를 다음 이메일 주소로 보냈습니다:",
+    "pl": "Wysłaliśmy bezpieczny link weryfikacyjny dla Twojego konta Kingshot Alliance na adres:",
+    "pt-BR": "Enviamos um link seguro de verificação da sua conta Kingshot Alliance para:",
+    "ru": "Мы отправили безопасную ссылку для подтверждения аккаунта Kingshot Alliance на адрес:",
+    "th": "เราได้ส่งลิงก์ยืนยันที่ปลอดภัยสำหรับบัญชี Kingshot Alliance ของคุณไปที่:",
+    "tr": "Kingshot Alliance hesabın için güvenli bir doğrulama bağlantısını şu adrese gönderdik:",
+    "vi": "Chúng tôi đã gửi liên kết xác minh an toàn cho tài khoản Kingshot Alliance của bạn đến:",
+    "zh-CN": "我们已将 Kingshot Alliance 账户的安全验证链接发送至：",
+    "zh-TW": "我們已將 Kingshot Alliance 帳戶的安全驗證連結傳送至："
+  },
+  "auth:authExperience.social.or": {
+    "ja": "または"
+  },
+  "account:notifications.bulk.dismissLower": {
+    "de": "ausblenden",
+    "es": "descartar",
+    "fr": "ignorer",
+    "it": "ignora",
+    "pt-BR": "dispensar"
+  },
+  "alliance:allianceOperations.overview.transferLeadership": {
+    "de": "Führung übertragen"
+  },
+  "assistant:assistant.classifications.event_readiness": {
+    "id": "Kesiapan Acara"
+  },
+  "assistant:assistant.sources.event_readiness": {
+    "id": "Kesiapan Acara"
+  },
+  "assistant:assistant.sources.alliance_governance_history": {
+    "id": "Riwayat tata kelola Aliansi"
+  },
+  "content:contentExperience.managementEyebrow": {
+    "fr": "Publications de l’Alliance",
+    "id": "Publikasi Aliansi",
+    "pl": "Publikacje Sojuszu",
+    "vi": "Xuất bản nội dung Liên minh"
+  },
+  "content:contentExperience.memberContent": {
+    "id": "Konten anggota Aliansi"
+  },
+  "content:contentExperience.noticeReactions": {
+    "id": "Reaksi terhadap Pengumuman Aliansi",
+    "vi": "Cảm xúc về Thông báo Liên minh"
+  },
+  "content:contentExperience.rulesEmpty": {
+    "pt-BR": "Nenhuma regra da Aliança foi publicada ainda."
+  },
+  "core:giftCodes.communityDiscovery": {
+    "de": "Entdeckungen aus der Community"
+  },
+  "core:giftCodes.applicability": {
+    "id": "Berlaku untuk Kerajaan atau wilayah"
+  },
+  "core:application.dashboard.commandOwners.game_world.kingdom_transfers": {
+    "id": "Perpindahan Kerajaan"
+  },
+  "core:application.dashboard.officerBriefGroups.post_event_closeout": {
+    "pl": "Podsumowanie zamknięcia Wydarzenia",
+    "pt-BR": "Resumo de encerramento do Evento"
+  },
+  "core:giftCodes.copyPlayerId": {
+    "vi": "Sao chép ID người chơi"
+  },
+  "core:application.dashboard.commandReasons.eventBlockers": {
+    "vi": "Còn {count} vấn đề cản trở Sự kiện đã xác minh tiếp theo"
+  },
+  "events:events.phases.roster_lock": {
+    "de": "Aufstellung sperren"
+  },
+  "events:events.rallies.saveFormation": {
+    "de": "Formation speichern"
+  },
+  "events:events.rosters.unclaimed": {
+    "fr": "Gouverneur non revendiqué",
+    "it": "Governatore non rivendicato"
+  },
+  "events:events.types.tri_alliance_clash.name": {
+    "fr": "Affrontement des trois Alliances"
+  },
+  "events:events.create.templates": {
+    "id": "Templat Acara"
+  },
+  "events:events.create.template": {
+    "id": "Templat Acara"
+  },
+  "events:events.manage.participationEyebrow": {
+    "id": "Daftar peserta Acara",
+    "vi": "Danh sách người tham gia Sự kiện"
+  },
+  "events:events.manage.eventStart": {
+    "id": "Awal Acara"
+  },
+  "events:events.phases.eyebrow": {
+    "id": "Linimasa Acara",
+    "pl": "Harmonogram Wydarzenia",
+    "vi": "Lịch trình Sự kiện"
+  },
+  "events:events.rosters.eyebrow": {
+    "id": "Daftar peserta Acara",
+    "vi": "Danh sách người tham gia Sự kiện"
+  },
+  "events:events.rosters.manageTitle": {
+    "id": "Daftar peserta Acara",
+    "vi": "Danh sách người tham gia Sự kiện"
+  },
+  "events:events.types.hall_of_governors.name": {
+    "id": "Aula Gubernur"
+  },
+  "events:events.profile.values.screenshot_evidence": {
+    "pl": "Dowody w postaci zrzutów ekranu"
+  },
+  "events:events.create.eyebrow": {
+    "vi": "Lập kế hoạch Sự kiện"
+  },
+  "events:events.manage.eyebrow": {
+    "vi": "Lập kế hoạch Sự kiện"
+  },
+  "integrations:integrationExperience.scopeContent": {
+    "vi": "Hướng dẫn Liên minh và thông tin nguồn đã được xuất bản."
+  },
+  "kingdom:kingdomP7B.observedTag": {
+    "de": "Beobachtetes Kürzel"
+  },
+  "kingdom:kingdomP7B.missingObservation": {
+    "de": "Fehlender Spähbericht"
+  },
+  "kingdom:kingdomP7B.inGame": {
+    "de": "Im Spiel"
+  },
+  "kingdom:kingdomP7C.eyebrow": {
+    "de": "Freigaben im Königreich",
+    "id": "Berbagi dalam Kerajaan"
+  },
+  "kingdom:kingdomP7C.manageEyebrow": {
+    "de": "Freigaben im Königreich",
+    "id": "Berbagi dalam Kerajaan"
+  },
+  "kingdom:royalCourt.noShow": {
+    "de": "Nicht erschienen"
+  },
+  "kingdom:royalCourt.statuses.no_show": {
+    "de": "Nicht erschienen"
+  },
+  "kingdom:kingdomTracking.stableId": {
+    "fr": "Identifiant de l’Alliance dans le jeu"
+  },
+  "kingdom:kingdomP7A.rolesManage": {
+    "id": "Kelola peran Kerajaan"
+  },
+  "kingdom:kingdomTracking.allianceTag": {
+    "id": "Tag Aliansi"
+  },
+  "kingdom:kingdomP7B.timelineTitle": {
+    "vi": "Dòng thời gian tình báo Vương quốc"
+  },
+  "platform:platformGiftCodes.sources.pushLabel": {
+    "de": "Direktübermittlung",
+    "pl": "Przesyłanie bezpośrednie"
+  },
+  "platform:platformGiftCodes.sources.backfillLabel": {
+    "de": "Nachträgliches Laden",
+    "pl": "Uzupełnianie historii"
+  },
+  "platform:platformAdmin.nativeName": {
+    "de": "Name in der Landessprache"
+  },
+  "platform:platformAdmin.exportJson": {
+    "fr": "Exporter la fiche de l’Alliance",
+    "it": "Esporta la scheda dell’Alleanza"
+  },
+  "platform:platformGiftCodes.sources.discordGuildId": {
+    "id": "ID server Discord",
+    "tr": "Discord sunucu kimliği",
+    "vi": "ID máy chủ Discord"
+  },
+  "platform:platformAdmin.user": {
+    "pl": "Użytkownik"
+  },
+  "platform:platformGiftCodes.curators": {
+    "vi": "Người quản lý mã quà tặng"
+  },
+  "progression:progression.governorProgression": {
+    "de": "Gouverneursfortschritt",
+    "id": "Perkembangan Gubernur"
+  },
+  "progression:progression.governorGearUnlock": {
+    "id": "Pembukaan Perlengkapan Gubernur"
+  },
+  "progression:progression.planningIntent": {
+    "id": "Tujuan perencanaan pengguna"
+  },
+  "progression:progression.noScreenshotEvidence": {
+    "pl": "Nie przesłano żadnych zrzutów ekranu z postępów Gubernatora.",
+    "pt-BR": "Nenhuma captura de tela da progressão do Governador foi enviada."
+  },
+  "progression:progression.observedAllianceTag": {
+    "pt-BR": "Tag da Aliança observada"
+  },
+  "public:publicRecruitment.attributionAlliancePage": {
+    "id": "Halaman publik Aliansi"
+  },
+  "public:publicRecruitment.attributionShareLink": {
+    "id": "Tautan berbagi Aliansi"
+  },
+  "public:publicRecruitment.attributionBotCommand": {
+    "tr": "İttifak bot komutu"
+  },
+  "roster:rosterHistory.allianceChanged": {
+    "id": "Tag Aliansi"
+  },
+  "roster:rosterHistory.capability.events": {
+    "id": "Partisipasi Acara",
+    "vi": "Tham gia Sự kiện"
+  },
+  "territory:territory.tools.atomicEditing": {
+    "de": "Atomare Bearbeitung"
+  },
+  "territory:territory.recordReview": {
+    "de": "Prüfung protokollieren",
+    "pt-BR": "Registrar revisão"
+  },
+  "territory:territory.tools.bannerPad": {
+    "tr": "Sancak alanı"
+  },
+  "territory:territory.layer": {
+    "tr": "İttifak katmanı"
+  },
+  "transfers:kingdomP7D.requirementKey_transfer_cooldown": {
+    "de": "Wartezeit zwischen Transfers"
+  },
+  "transfers:kingdomP7D.homeKingdom": {
+    "id": "Kerajaan asal"
+  },
+  "transfers:kingdomP7D.manageEyebrow": {
+    "id": "Perpindahan Kerajaan"
+  },
+  "transfers:kingdomP7D.rosterEntry": {
+    "id": "Gubernur dalam daftar anggota Aliansi"
+  },
+  "transfers:kingdomP7D.sourceKingdom": {
+    "id": "Kerajaan sumber"
+  },
+  "transfers:kingdomP7D.participantTableCaption": {
+    "id": "Gubernur peserta Perpindahan Kerajaan",
+    "vi": "Thống đốc tham gia Chuyển Vương quốc"
+  },
+  "transfers:kingdomP7D.readinessEyebrow": {
+    "id": "Perpindahan Kerajaan"
+  },
+  "transfers:kingdomP7D.completionEyebrow": {
+    "id": "Perpindahan Kerajaan"
+  },
+  "transfers:kingdomP7D.kingdomNumbers": {
+    "id": "Nomor Kerajaan"
+  },
+  "transfers:kingdomP7D.targetKingdomCondition": {
+    "id": "Kondisi Kerajaan tujuan"
+  },
+  "transfers:kingdomP7D.kingdomClassification": {
+    "id": "Klasifikasi Kerajaan",
+    "vi": "Phân loại Vương quốc"
+  },
+  "transfers:kingdomP7D.observation_governor_power": {
+    "id": "Kekuatan Gubernur"
+  },
+  "transfers:kingdomP7D.observation_truegold_level": {
+    "id": "Tingkat Truegold Gubernur"
+  },
+  "transfers:kingdomP7D.readinessWorkflow": {
+    "id": "Alur kerja kesiapan Aliansi"
+  },
+  "transfers:kingdomP7D.participantsForCycle": {
+    "vi": "Thống đốc · {label}"
+  },
+  "account:notifications.resetOverride": {
+    "de": "Auf Kontovorgaben zurücksetzen",
+    "ar": "العودة إلى إعدادات الحساب",
+    "es": "Restablecer los valores de la cuenta",
+    "fr": "Rétablir les paramètres du compte",
+    "id": "Kembalikan ke pengaturan akun",
+    "it": "Ripristina le impostazioni dell’account",
+    "ja": "アカウントの既定値に戻す",
+    "ko": "계정 기본값으로 초기화",
+    "pl": "Przywróć ustawienia konta",
+    "pt-BR": "Restaurar configurações da conta",
+    "ru": "Вернуть настройки аккаунта",
+    "th": "กลับไปใช้ค่าเริ่มต้นของบัญชี",
+    "tr": "Hesap varsayılanlarına dön",
+    "vi": "Khôi phục thiết lập tài khoản",
+    "zh-CN": "恢复账户默认设置",
+    "zh-TW": "恢復帳戶預設值"
+  },
+  "events:events.command.actions.openRallies": {
+    "de": "Sammelangriffsplan öffnen"
+  },
+  "progression:progression.calculatorState.source_gap": {
+    "de": "Fehlender Quellenbeleg",
+    "pl": "Brak źródła"
+  },
+  "territory:territory.freshnessStale": {
+    "de": "Veraltete Beobachtung"
+  },
+  "core:giftCodes.acquisitionOperations.signatureFailures": {
+    "fr": "échecs de vérification de signature"
+  },
+  "core:giftCodes.acquisitionOperations.replays": {
+    "fr": "rejets de requêtes rejouées"
+  },
+  "account:notifications.governorOverrides": {
+    "fr": "Paramètres propres au Gouverneur actif",
+    "it": "Impostazioni specifiche del Governatore attivo",
+    "pl": "Ustawienia indywidualne aktywnego Gubernatora",
+    "ar": "إعدادات خاصة بالحاكم النشط",
+    "de": "Einstellungen für den aktiven Gouverneur",
+    "es": "Ajustes específicos del Gobernador activo",
+    "id": "Pengaturan khusus Gubernur aktif",
+    "ja": "使用中の総督の個別設定",
+    "ko": "활성 총독의 개별 설정",
+    "pt-BR": "Configurações específicas do Governador ativo",
+    "ru": "Настройки активного Губернатора",
+    "th": "การตั้งค่าเฉพาะผู้ว่าการที่ใช้งานอยู่",
+    "tr": "Aktif Valiye özel ayarlar",
+    "vi": "Thiết lập riêng của Thống đốc đang hoạt động",
+    "zh-CN": "当前总督的专属设置",
+    "zh-TW": "目前使用的總督的專屬設定"
+  },
+  "events:events.command.eyebrow": {
+    "fr": "Coordination des Événements",
+    "id": "Koordinasi Acara"
+  },
+  "events:events.command.closeoutEyebrow": {
+    "fr": "Coordination des Événements",
+    "id": "Koordinasi Acara"
+  },
+  "core:common.manageGovernors": {
+    "id": "Kelola Gubernur"
+  },
+  "core:giftCodes.allianceCoverage.eyebrow": {
+    "id": "Cakupan Aliansi"
+  },
+  "core:allianceExpansion.settingsEyebrow": {
+    "id": "Administrasi Aliansi"
+  },
+  "core:allianceExpansion.permissionLabels.alliance.manage": {
+    "id": "Kelola pengaturan Aliansi"
+  },
+  "core:allianceExpansion.permissionLabels.content.manage": {
+    "id": "Kelola konten Aliansi"
+  },
+  "core:allianceExpansion.historyTitle": {
+    "id": "Riwayat tata kelola Aliansi"
+  },
+  "core:governorLifecycle.kingdomIdentity": {
+    "id": "Identitas Kerajaan",
+    "vi": "Danh tính Vương quốc"
+  },
+  "core:governorLifecycle.releaseGovernor": {
+    "id": "Lepaskan Gubernur dari akun",
+    "it": "Scollega il Governatore dall’account",
+    "ar": "فصل الحاكم عن الحساب",
+    "de": "Gouverneur aus dem Konto freigeben",
+    "es": "Desvincular al Gobernador",
+    "fr": "Dissocier le Gouverneur",
+    "ja": "総督の紐づけを解除",
+    "ko": "총독 연결 해제",
+    "pl": "Odłącz Gubernatora",
+    "pt-BR": "Desvincular Governador",
+    "ru": "Отвязать Губернатора",
+    "th": "ยกเลิกการเชื่อมโยงผู้ว่าการ",
+    "tr": "Valinin hesapla bağlantısını kaldır",
+    "vi": "Hủy liên kết Thống đốc",
+    "zh-CN": "解除总督关联",
+    "zh-TW": "解除總督連結"
+  },
+  "account:common.manageGovernors": {
+    "id": "Kelola Gubernur"
+  },
+  "account:governorLifecycle.kingdomIdentity": {
+    "id": "Identitas Kerajaan",
+    "vi": "Danh tính Vương quốc"
+  },
+  "account:governorLifecycle.releaseGovernor": {
+    "id": "Lepaskan Gubernur dari akun",
+    "it": "Scollega il Governatore dall’account",
+    "ar": "فصل الحاكم عن الحساب",
+    "de": "Gouverneur aus dem Konto freigeben",
+    "es": "Desvincular al Gobernador",
+    "fr": "Dissocier le Gouverneur",
+    "ja": "総督の紐づけを解除",
+    "ko": "총독 연결 해제",
+    "pl": "Odłącz Gubernatora",
+    "pt-BR": "Desvincular Governador",
+    "ru": "Отвязать Губернатора",
+    "th": "ยกเลิกการเชื่อมโยงผู้ว่าการ",
+    "tr": "Valinin hesapla bağlantısını kaldır",
+    "vi": "Hủy liên kết Thống đốc",
+    "zh-CN": "解除总督关联",
+    "zh-TW": "解除總督連結"
+  },
+  "alliance:allianceExpansion.settingsEyebrow": {
+    "id": "Administrasi Aliansi"
+  },
+  "alliance:allianceExpansion.permissionLabels.alliance.manage": {
+    "id": "Kelola pengaturan Aliansi"
+  },
+  "alliance:allianceExpansion.permissionLabels.content.manage": {
+    "id": "Kelola konten Aliansi"
+  },
+  "alliance:allianceExpansion.historyTitle": {
+    "id": "Riwayat tata kelola Aliansi"
+  },
+  "events:events.command.owners.alliance.content": {
+    "id": "Konten Aliansi"
+  },
+  "transfers:kingdomP7D.targetKingdomNumber": {
+    "id": "Nomor Kerajaan tujuan"
+  },
+  "transfers:kingdomP7D.evidenceKind_transfer_target_kingdom_rules": {
+    "id": "Aturan perpindahan ke Kerajaan tujuan"
+  },
+  "core:allianceExpansion.event": {
+    "pl": "Wydarzenie"
+  },
+  "alliance:allianceExpansion.event": {
+    "pl": "Wydarzenie"
+  },
+  "core:receipts.alliance-roster-evidence-reviewed": {
+    "pt-BR": "Revisão da captura de tela da lista de membros da Aliança salva."
+  },
+  "core:allianceExpansion.recruitmentEyebrow": {
+    "pt-BR": "Controle de recrutamento da Aliança",
+    "vi": "Quản lý tuyển mộ trong Liên minh"
+  },
+  "alliance:receipts.alliance-roster-evidence-reviewed": {
+    "pt-BR": "Revisão da captura de tela da lista de membros da Aliança salva."
+  },
+  "alliance:allianceExpansion.recruitmentEyebrow": {
+    "pt-BR": "Controle de recrutamento da Aliança",
+    "vi": "Quản lý tuyển mộ trong Liên minh"
+  },
+  "core:giftCodes.workspace.copyPlayerId": {
+    "vi": "Sao chép ID người chơi"
+  },
+  "core:governanceExpansion.eyebrow": {
+    "vi": "Quyền hạn trong Vương quốc theo từng người chơi"
+  },
+  "account:notifications.types.giftCodeTrustChanged": {
+    "vi": "Độ tin cậy của mã quà tặng đã thay đổi"
+  },
+  "kingdom:governanceExpansion.eyebrow": {
+    "vi": "Quyền hạn trong Vương quốc theo từng người chơi"
+  },
+  "core:governorLifecycle.releaseTitle": {
+    "ar": "فصل الحاكم عن الحساب",
+    "de": "Aus dem Konto freigeben",
+    "es": "Desvincular de la cuenta",
+    "fr": "Dissocier du compte",
+    "id": "Lepaskan dari akun",
+    "it": "Scollega dall’account",
+    "ja": "アカウントとの紐づけを解除",
+    "ko": "계정 연결 해제",
+    "pl": "Odłącz od konta",
+    "pt-BR": "Desvincular da conta",
+    "ru": "Отвязать от аккаунта",
+    "th": "ยกเลิกการเชื่อมโยงกับบัญชี",
+    "tr": "Hesapla bağlantısını kaldır",
+    "vi": "Hủy liên kết với tài khoản",
+    "zh-CN": "解除与账户的关联",
+    "zh-TW": "解除與帳戶的連結"
+  },
+  "account:governorLifecycle.releaseTitle": {
+    "ar": "فصل الحاكم عن الحساب",
+    "de": "Aus dem Konto freigeben",
+    "es": "Desvincular de la cuenta",
+    "fr": "Dissocier du compte",
+    "id": "Lepaskan dari akun",
+    "it": "Scollega dall’account",
+    "ja": "アカウントとの紐づけを解除",
+    "ko": "계정 연결 해제",
+    "pl": "Odłącz od konta",
+    "pt-BR": "Desvincular da conta",
+    "ru": "Отвязать от аккаунта",
+    "th": "ยกเลิกการเชื่อมโยงกับบัญชี",
+    "tr": "Hesapla bağlantısını kaldır",
+    "vi": "Hủy liên kết với tài khoản",
+    "zh-CN": "解除与账户的关联",
+    "zh-TW": "解除與帳戶的連結"
+  },
+  "core:governorLifecycle.releasePreserves": {
+    "ar": "يؤدي التخلي عن الملكية إلى الإبقاء على هوية الحاكم في اللعبة وسجلها.",
+    "de": "Bei der Freigabe bleiben die dauerhafte Spielidentität und ihr Verlauf erhalten.",
+    "es": "Al renunciar a la propiedad se conservan la identidad del juego y su historial.",
+    "fr": "La renonciation à la propriété conserve l’identité dans le jeu et son historique.",
+    "id": "Melepaskan kepemilikan tetap mempertahankan identitas dalam game dan riwayatnya.",
+    "it": "La rinuncia alla proprietà conserva l’identità di gioco e la sua cronologia.",
+    "ja": "所有権を解除しても、ゲーム内の識別情報と履歴は保持されます。",
+    "ko": "소유권을 해제해도 게임 내 식별 정보와 이력은 유지됩니다.",
+    "pl": "Zrzeczenie się własności zachowuje tożsamość w grze i jej historię.",
+    "pt-BR": "Ao abrir mão da propriedade, a identidade no jogo e seu histórico são preservados.",
+    "ru": "При отказе от владения игровая идентичность и её история сохраняются.",
+    "th": "เมื่อสละสิทธิ์การเป็นเจ้าของ ข้อมูลตัวตนในเกมและประวัติจะยังคงอยู่",
+    "tr": "Sahiplikten vazgeçildiğinde oyun kimliği ve geçmişi korunur.",
+    "vi": "Khi từ bỏ quyền sở hữu, danh tính trong game và lịch sử vẫn được giữ lại.",
+    "zh-CN": "放弃所有权后，游戏身份及其历史记录仍会保留。",
+    "zh-TW": "放棄所有權後，遊戲身分及其歷史紀錄仍會保留。"
+  },
+  "account:governorLifecycle.releasePreserves": {
+    "ar": "يؤدي التخلي عن الملكية إلى الإبقاء على هوية الحاكم في اللعبة وسجلها.",
+    "de": "Bei der Freigabe bleiben die dauerhafte Spielidentität und ihr Verlauf erhalten.",
+    "es": "Al renunciar a la propiedad se conservan la identidad del juego y su historial.",
+    "fr": "La renonciation à la propriété conserve l’identité dans le jeu et son historique.",
+    "id": "Melepaskan kepemilikan tetap mempertahankan identitas dalam game dan riwayatnya.",
+    "it": "La rinuncia alla proprietà conserva l’identità di gioco e la sua cronologia.",
+    "ja": "所有権を解除しても、ゲーム内の識別情報と履歴は保持されます。",
+    "ko": "소유권을 해제해도 게임 내 식별 정보와 이력은 유지됩니다.",
+    "pl": "Zrzeczenie się własności zachowuje tożsamość w grze i jej historię.",
+    "pt-BR": "Ao abrir mão da propriedade, a identidade no jogo e seu histórico são preservados.",
+    "ru": "При отказе от владения игровая идентичность и её история сохраняются.",
+    "th": "เมื่อสละสิทธิ์การเป็นเจ้าของ ข้อมูลตัวตนในเกมและประวัติจะยังคงอยู่",
+    "tr": "Sahiplikten vazgeçildiğinde oyun kimliği ve geçmişi korunur.",
+    "vi": "Khi từ bỏ quyền sở hữu, danh tính trong game và lịch sử vẫn được giữ lại.",
+    "zh-CN": "放弃所有权后，游戏身份及其历史记录仍会保留。",
+    "zh-TW": "放棄所有權後，遊戲身分及其歷史紀錄仍會保留。"
+  },
+  "core:governorLifecycle.releaseConfirm": {
+    "ar": "هل تريد فصل {governor} عن هذا الحساب؟ ستُحفظ هويته في اللعبة وسجله.",
+    "de": "{governor} aus diesem Konto freigeben? Die Spielidentität und ihr Verlauf bleiben erhalten.",
+    "es": "¿Desvincular a {governor} de esta cuenta? Se conservarán la identidad del juego y su historial.",
+    "fr": "Dissocier {governor} de ce compte ? L’identité dans le jeu et son historique seront conservés.",
+    "id": "Lepaskan {governor} dari akun ini? Identitas dalam game dan riwayatnya akan tetap tersimpan.",
+    "it": "Scollegare {governor} da questo account? L’identità di gioco e la sua cronologia verranno conservate.",
+    "ja": "このアカウントから{governor}の紐づけを解除しますか？ゲーム内の識別情報と履歴は保持されます。",
+    "ko": "이 계정에서 {governor}의 연결을 해제할까요? 게임 내 식별 정보와 이력은 유지됩니다.",
+    "pl": "Odłączyć {governor} od tego konta? Tożsamość w grze i jej historia zostaną zachowane.",
+    "pt-BR": "Desvincular {governor} desta conta? A identidade no jogo e seu histórico serão preservados.",
+    "ru": "Отвязать {governor} от этого аккаунта? Игровая идентичность и её история сохранятся.",
+    "th": "ยกเลิกการเชื่อมโยง {governor} จากบัญชีนี้หรือไม่? ข้อมูลตัวตนในเกมและประวัติจะยังคงอยู่",
+    "tr": "{governor} adlı Valinin bu hesapla bağlantısı kaldırılsın mı? Oyun kimliği ve geçmişi korunacak.",
+    "vi": "Hủy liên kết {governor} với tài khoản này? Danh tính trong game và lịch sử vẫn sẽ được giữ lại.",
+    "zh-CN": "要解除 {governor} 与此账户的关联吗？游戏身份及其历史记录将被保留。",
+    "zh-TW": "要解除 {governor} 與此帳戶的連結嗎？遊戲身分及其歷史紀錄將會保留。"
+  },
+  "account:governorLifecycle.releaseConfirm": {
+    "ar": "هل تريد فصل {governor} عن هذا الحساب؟ ستُحفظ هويته في اللعبة وسجله.",
+    "de": "{governor} aus diesem Konto freigeben? Die Spielidentität und ihr Verlauf bleiben erhalten.",
+    "es": "¿Desvincular a {governor} de esta cuenta? Se conservarán la identidad del juego y su historial.",
+    "fr": "Dissocier {governor} de ce compte ? L’identité dans le jeu et son historique seront conservés.",
+    "id": "Lepaskan {governor} dari akun ini? Identitas dalam game dan riwayatnya akan tetap tersimpan.",
+    "it": "Scollegare {governor} da questo account? L’identità di gioco e la sua cronologia verranno conservate.",
+    "ja": "このアカウントから{governor}の紐づけを解除しますか？ゲーム内の識別情報と履歴は保持されます。",
+    "ko": "이 계정에서 {governor}의 연결을 해제할까요? 게임 내 식별 정보와 이력은 유지됩니다.",
+    "pl": "Odłączyć {governor} od tego konta? Tożsamość w grze i jej historia zostaną zachowane.",
+    "pt-BR": "Desvincular {governor} desta conta? A identidade no jogo e seu histórico serão preservados.",
+    "ru": "Отвязать {governor} от этого аккаунта? Игровая идентичность и её история сохранятся.",
+    "th": "ยกเลิกการเชื่อมโยง {governor} จากบัญชีนี้หรือไม่? ข้อมูลตัวตนในเกมและประวัติจะยังคงอยู่",
+    "tr": "{governor} adlı Valinin bu hesapla bağlantısı kaldırılsın mı? Oyun kimliği ve geçmişi korunacak.",
+    "vi": "Hủy liên kết {governor} với tài khoản này? Danh tính trong game và lịch sử vẫn sẽ được giữ lại.",
+    "zh-CN": "要解除 {governor} 与此账户的关联吗？游戏身份及其历史记录将被保留。",
+    "zh-TW": "要解除 {governor} 與此帳戶的連結嗎？遊戲身分及其歷史紀錄將會保留。"
+  },
+  "core:receipts.governor-released": {
+    "ar": "تم فصل الحاكم عن حسابك.",
+    "de": "Gouverneur aus deinem Konto freigegeben.",
+    "es": "Gobernador desvinculado de tu cuenta.",
+    "fr": "Gouverneur dissocié de votre compte.",
+    "id": "Gubernur telah dilepaskan dari akun Anda.",
+    "it": "Governatore scollegato dal tuo account.",
+    "ja": "アカウントから総督の紐づけを解除しました。",
+    "ko": "계정에서 총독의 연결을 해제했습니다.",
+    "pl": "Gubernator został odłączony od Twojego konta.",
+    "pt-BR": "Governador desvinculado da sua conta.",
+    "ru": "Губернатор отвязан от вашего аккаунта.",
+    "th": "ยกเลิกการเชื่อมโยงผู้ว่าการจากบัญชีของคุณแล้ว",
+    "tr": "Valinin hesabınla bağlantısı kaldırıldı.",
+    "vi": "Đã hủy liên kết Thống đốc với tài khoản của bạn.",
+    "zh-CN": "已解除总督与你账户的关联。",
+    "zh-TW": "已解除總督與你帳戶的連結。"
+  },
+  "account:receipts.governor-released": {
+    "ar": "تم فصل الحاكم عن حسابك.",
+    "de": "Gouverneur aus deinem Konto freigegeben.",
+    "es": "Gobernador desvinculado de tu cuenta.",
+    "fr": "Gouverneur dissocié de votre compte.",
+    "id": "Gubernur telah dilepaskan dari akun Anda.",
+    "it": "Governatore scollegato dal tuo account.",
+    "ja": "アカウントから総督の紐づけを解除しました。",
+    "ko": "계정에서 총독의 연결을 해제했습니다.",
+    "pl": "Gubernator został odłączony od Twojego konta.",
+    "pt-BR": "Governador desvinculado da sua conta.",
+    "ru": "Губернатор отвязан от вашего аккаунта.",
+    "th": "ยกเลิกการเชื่อมโยงผู้ว่าการจากบัญชีของคุณแล้ว",
+    "tr": "Valinin hesabınla bağlantısı kaldırıldı.",
+    "vi": "Đã hủy liên kết Thống đốc với tài khoản của bạn.",
+    "zh-CN": "已解除总督与你账户的关联。",
+    "zh-TW": "已解除總督與你帳戶的連結。"
+  },
+  "account:notifications.reminderRouting": {
+    "ar": "إعدادات الحساب الافتراضية وإعدادات الحاكم الخاصة",
+    "de": "Kontovorgaben und Einstellungen je Gouverneur",
+    "es": "Valores predeterminados de la cuenta y ajustes por Gobernador",
+    "fr": "Paramètres par défaut du compte et paramètres propres aux Gouverneurs",
+    "id": "Pengaturan bawaan akun dan pengaturan khusus Gubernur",
+    "it": "Impostazioni predefinite dell’account e impostazioni per Governatore",
+    "ja": "アカウントの既定値と総督別の設定",
+    "ko": "계정 기본값 및 총독별 설정",
+    "pl": "Domyślne ustawienia konta i ustawienia Gubernatorów",
+    "pt-BR": "Padrões da conta e configurações por Governador",
+    "ru": "Настройки аккаунта по умолчанию и настройки Губернаторов",
+    "th": "ค่าเริ่มต้นของบัญชีและการตั้งค่าเฉพาะผู้ว่าการ",
+    "tr": "Hesap varsayılanları ve Valiye özel ayarlar",
+    "vi": "Thiết lập mặc định của tài khoản và thiết lập riêng cho Thống đốc",
+    "zh-CN": "账户默认设置和总督专属设置",
+    "zh-TW": "帳戶預設值及總督專屬設定"
+  },
+  "account:notifications.preferenceHelp": {
+    "ar": "تُطبَّق إعدادات الحساب الافتراضية في كل مكان. تسري الإعدادات الخاصة بالحاكم النشط عليه وحده، ويمكن إعادة ضبطها لاستخدام إعدادات الحساب الافتراضية.",
+    "de": "Die Kontovorgaben gelten überall. Abweichende Einstellungen für den aktiven Gouverneur gelten nur für ihn. Du kannst sie zurücksetzen, um wieder die Kontovorgaben zu verwenden.",
+    "es": "Los valores predeterminados de la cuenta se aplican en todas partes. Los ajustes específicos del Gobernador activo solo se aplican a ese Gobernador y pueden restablecerse para usar los valores de la cuenta.",
+    "fr": "Les paramètres par défaut du compte s’appliquent partout. Les paramètres propres au Gouverneur actif ne s’appliquent qu’à lui et peuvent être réinitialisés pour reprendre ceux du compte.",
+    "id": "Pengaturan bawaan akun berlaku di semua tempat. Pengaturan khusus Gubernur aktif hanya berlaku untuk Gubernur tersebut dan dapat diatur ulang agar mengikuti pengaturan bawaan akun.",
+    "it": "Le impostazioni predefinite dell’account si applicano ovunque. Le impostazioni specifiche del Governatore attivo valgono solo per quel Governatore e possono essere ripristinate per usare quelle dell’account.",
+    "ja": "アカウントの既定値はすべてに適用されます。使用中の総督に設定した個別の値は、その総督にだけ適用されます。設定をリセットすると、アカウントの既定値が再び適用されます。",
+    "ko": "계정 기본값은 모든 곳에 적용됩니다. 활성 총독의 개별 설정은 해당 총독에게만 적용되며, 설정을 초기화하면 계정 기본값을 다시 사용합니다.",
+    "pl": "Domyślne ustawienia konta obowiązują wszędzie. Ustawienia indywidualne aktywnego Gubernatora dotyczą tylko tego Gubernatora. Można je zresetować, aby przywrócić domyślne ustawienia konta.",
+    "pt-BR": "As configurações padrão da conta se aplicam em todos os lugares. As configurações específicas do Governador ativo valem apenas para ele e podem ser redefinidas para usar os padrões da conta.",
+    "ru": "Настройки аккаунта по умолчанию действуют везде. Индивидуальные настройки активного Губернатора действуют только для него. Их можно сбросить, чтобы снова использовать настройки аккаунта.",
+    "th": "ค่าเริ่มต้นของบัญชีจะใช้ในทุกส่วน การตั้งค่าเฉพาะผู้ว่าการที่ใช้งานอยู่จะมีผลกับผู้ว่าการคนนั้นเท่านั้น และสามารถรีเซ็ตเพื่อกลับไปใช้ค่าเริ่มต้นของบัญชีได้",
+    "tr": "Hesabın varsayılan ayarları her yerde geçerlidir. Aktif Valiye özel ayarlar yalnızca o Vali için geçerlidir. Hesabın varsayılan ayarlarını yeniden kullanmak için bu ayarlar sıfırlanabilir.",
+    "vi": "Thiết lập mặc định của tài khoản áp dụng ở mọi nơi. Thiết lập riêng của Thống đốc đang hoạt động chỉ áp dụng cho Thống đốc đó và có thể đặt lại để dùng thiết lập mặc định của tài khoản.",
+    "zh-CN": "账户默认设置适用于所有地方。当前总督的专属设置仅适用于该总督；重置后将恢复使用账户默认设置。",
+    "zh-TW": "帳戶預設值會套用到所有地方。目前使用的總督的專屬設定只會套用到該總督；重設後將恢復使用帳戶預設值。"
+  },
+  "account:notifications.accountDefaults": {
+    "ar": "إعدادات الحساب الافتراضية",
+    "de": "Kontovorgaben",
+    "es": "Valores predeterminados de la cuenta",
+    "fr": "Paramètres par défaut du compte",
+    "id": "Pengaturan bawaan akun",
+    "it": "Impostazioni predefinite dell’account",
+    "ja": "アカウントの既定値",
+    "ko": "계정 기본값",
+    "pl": "Domyślne ustawienia konta",
+    "pt-BR": "Configurações padrão da conta",
+    "ru": "Настройки аккаунта по умолчанию",
+    "th": "ค่าเริ่มต้นของบัญชี",
+    "tr": "Hesabın varsayılan ayarları",
+    "vi": "Thiết lập mặc định của tài khoản",
+    "zh-CN": "账户默认设置",
+    "zh-TW": "帳戶預設值"
+  },
+  "account:notifications.inherited": {
+    "ar": "حسب إعدادات الحساب",
+    "de": "Aus den Kontovorgaben übernommen",
+    "es": "Heredado de la cuenta",
+    "fr": "Hérité du compte",
+    "id": "Mengikuti pengaturan akun",
+    "it": "Ereditato dall’account",
+    "ja": "アカウントの設定を使用",
+    "ko": "계정 설정 사용",
+    "pl": "Dziedziczone z konta",
+    "pt-BR": "Herdado da conta",
+    "ru": "Унаследовано от аккаунта",
+    "th": "ใช้การตั้งค่าของบัญชี",
+    "tr": "Hesap ayarları kullanılıyor",
+    "vi": "Dùng thiết lập tài khoản",
+    "zh-CN": "沿用账户设置",
+    "zh-TW": "沿用帳戶設定"
+  },
+  "account:notifications.enabled": {
+    "ar": "مفعّل",
+    "de": "Aktiviert",
+    "es": "Activado",
+    "fr": "Activé",
+    "id": "Diaktifkan",
+    "it": "Attivato",
+    "ja": "有効",
+    "ko": "활성화",
+    "pl": "Włączone",
+    "pt-BR": "Ativado",
+    "ru": "Включено",
+    "th": "เปิดใช้งาน",
+    "tr": "Etkin",
+    "vi": "Bật",
+    "zh-CN": "已启用",
+    "zh-TW": "已啟用"
+  },
+  "account:notifications.disabled": {
+    "ar": "معطّل",
+    "de": "Deaktiviert",
+    "es": "Desactivado",
+    "fr": "Désactivé",
+    "id": "Dinonaktifkan",
+    "it": "Disattivato",
+    "ja": "無効",
+    "ko": "비활성화",
+    "pl": "Wyłączone",
+    "pt-BR": "Desativado",
+    "ru": "Выключено",
+    "th": "ปิดใช้งาน",
+    "tr": "Devre dışı",
+    "vi": "Tắt",
+    "zh-CN": "已禁用",
+    "zh-TW": "已停用"
+  },
+  "account:notifications.bulk.selectVisible": {
+    "de": "Angezeigte auswählen",
+    "pt-BR": "Selecionar os itens exibidos"
+  },
+  "account:notifications.types.giftCodeAvailable": {
+    "th": "มีโค้ดของขวัญพร้อมใช้งาน"
+  },
+  "assistant:assistant.answers.bearHuntHistory": {
+    "pt-BR": "Encontrei {count} registros recentes de caçadas ao urso que você tem permissão para consultar. Os estados dos registros e das evidências aceitas estão indicados abaixo."
+  },
+  "content:contentExperience.broadcastState.queued": {
+    "ko": "수신자 처리가 완료되었습니다"
+  },
+  "content:contentExperience.rulesEyebrow": {
+    "vi": "Cách chúng ta cùng chơi"
+  },
+  "core:giftCodes.workspace.selectGovernor": {
+    "ar": "اختيار {governor}"
+  },
+  "core:giftCodes.redeemForGovernor": {
+    "ar": "استبدال الرموز للحاكم {governor}"
+  },
+  "core:receipts.content-broadcast-schedule-cancelled": {
+    "ko": "반복 연맹 공지가 취소되었습니다."
+  },
+  "core:receipts.kingdom-role-created": {
+    "pl": "Utworzono rolę królestwa."
+  },
+  "core:receipts.gift-code-session-item-skipped": {
+    "pl": "Pominięto kod podarunkowy w tym przebiegu.",
+    "pt-BR": "Código de presente ignorado nesta execução."
+  },
+  "core:receipts.event-objective-assigned": {
+    "pl": "Przypisano cel wydarzenia."
+  },
+  "core:receipts.kingdom-role-assigned": {
+    "pl": "Przypisano rolę królestwa."
+  },
+  "core:receipts.membership-role-assigned": {
+    "pl": "Przypisano rolę sojuszu."
+  },
+  "core:governanceExpansion.ineligible": {
+    "ru": "Не соответствуют требованиям: {count}"
+  },
+  "core:giftCodes.workspace.snoozeDay": {
+    "th": "เลื่อนการแจ้งเตือน 24 ชั่วโมง"
+  },
+  "core:giftCodes.availableCodes": {
+    "th": "โค้ดของขวัญที่พร้อมใช้งาน"
+  },
+  "core:giftCodes.workspace.eyebrow": {
+    "vi": "Không gian đổi mã quà tặng"
+  },
+  "core:giftCodes.workspace.openWorkspace": {
+    "vi": "Mở không gian đổi mã quà tặng"
+  },
+  "integrations:integrationExperience.commandApiBoundary": {
+    "ar": "تتطلب طلبات الكتابة بيانات اعتماد API مصرحًا بها، واتصالًا موثّقًا بالحاكم، ومفتاحًا لمنع تكرار تنفيذ الطلب. وتظل صلاحيات التحالف والحدث المعتادة سارية."
+  },
+  "kingdom:receipts.kingdom-role-created": {
+    "pl": "Utworzono rolę królestwa."
+  },
+  "kingdom:governanceExpansion.ineligible": {
+    "ru": "Не соответствуют требованиям: {count}"
+  },
+  "platform:platformAdmin.metricExhaustedOutbox": {
+    "th": "ข้อความในคิวส่งที่ใช้โควตาลองส่งซ้ำครบแล้ว"
+  },
+  "progression:progression.completeRosterWarning": {
+    "id": "Tandai lengkap hanya jika tangkapan layar ini benar-benar menampilkan seluruh daftar pahlawan. Hanya status ini yang dapat membuktikan bahwa pahlawan tertentu tidak terlihat dalam daftar."
+  },
+  "progression:progression.archer": {
+    "pt-BR": "Arqueiro",
+    "tr": "Okçu"
+  },
+  "recruitment:recruitment.transferCampaign.title": {
+    "vi": "Không gian làm việc cho chiến dịch chuyển vương quốc"
+  },
+  "territory:territory.tools.csvHelp": {
+    "th": "การแสดงตัวอย่างมีการตรวจสอบอย่างเข้มงวดและจำกัดขอบเขต การใช้พิกัดเป็นคำสั่งเดียวที่สำเร็จทั้งหมดหรือไม่เปลี่ยนแปลงเลย และจะปฏิบัติตามการล็อก"
+  },
+  "transfers:kingdomP7D.officialGroupHistory": {
+    "vi": "Lịch sử nhóm chuyển vương quốc chính thức"
+  },
+  "account:notifications.webhookUrl": {
+    "de": "Discord-Webhook-Adresse"
+  },
+  "account:notifications.botToken": {
+    "de": "Zugangstoken des Telegram-Bots"
+  },
+  "account:notifications.chatId": {
+    "de": "Telegram-Chat-Kennung"
+  },
+  "alliance:allianceOperations.events.icalFeed": {
+    "de": "iCalendar-Abonnement"
+  },
+  "events:events.catalogue.capacity": {
+    "de": "Standardgrenze für die Teilnehmerliste"
+  },
+  "events:events.types.swordland_showdown.name": {
+    "de": "Swordland Showdown"
+  },
+  "evidence:evidence.imagePreview": {
+    "de": "Originalaufnahme"
+  },
+  "integrations:integrationExperience.webhookLimit": {
+    "de": "Maximale Anzahl von Webhooks"
+  },
+  "kingdom:kingdomP7B.privateTerms": {
+    "de": "Bedingungen nur für Offiziere"
+  },
+  "progression:progression.maxHeroLevel": {
+    "de": "Maximale Heldenstufe"
+  },
+  "progression:progression.charmSlot": {
+    "de": "Amulettplatz"
+  },
+  "progression:progression.loadoutName": {
+    "de": "Name der Ausrüstungskonfiguration"
+  },
+  "territory:territory.tools.title": {
+    "de": "Layout-Werkzeuge"
+  },
+  "transfers:kingdomP7D.requirementKey_truegold_level": {
+    "de": "Truegold-Stufe"
+  },
+  "platform:platformGiftCodes.sources.pushDiscovery": {
+    "de": "Erkennung per Push"
+  },
+  "platform:platformGiftCodes.sources.headPolling": {
+    "de": "Abfrage per HEAD"
+  },
+  "platform:platformAdmin.queuePartition": {
+    "de": "Warteschlangenpartition"
+  },
+  "platform:platformAdmin.featureFlag": {
+    "de": "Funktionsschalter"
+  },
+  "platform:platformAdmin.featureKey": {
+    "de": "Funktionskennung"
+  },
+  "platform:platformAdmin.setFeature": {
+    "de": "Funktion festlegen"
+  },
+  "events:events.types.eternitys_reach.name": {
+    "pl": "Eternity's Reach"
+  }
+}

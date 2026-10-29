@@ -40,7 +40,7 @@ final readonly class RecordGiftCodeRedemptionOutcome
 
             if ($this->requiresPriorHandoff($provider, $outcome) && ! $this->hasOfficialHandoff($redemption)) {
                 throw ValidationException::withMessages([
-                    'result' => 'Open the official Gift Code Center for this Governor before recording its observed result.',
+                    'result' => (string) __('Open the official Gift Code Center for this Governor before recording its observed result.'),
                 ]);
             }
 

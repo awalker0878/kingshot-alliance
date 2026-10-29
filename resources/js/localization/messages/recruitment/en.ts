@@ -2,6 +2,7 @@ import type { MessageCatalogue } from '../../types';
 
 const messages = {
   recruitment: {
+    claimed: 'Account linked',
     searchChoices: 'Search choices',
     findChoices: 'Search',
     noChoices: 'No matching choices.',

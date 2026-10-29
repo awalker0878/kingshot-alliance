@@ -52,7 +52,7 @@ final readonly class BearHuntDebriefQuery
             || ! $event->eventType->supportsWorkflow(EventWorkflowDimension::Results)
             || ! $event->eventType->supportsWorkflow(EventWorkflowDimension::Debrief)) {
             throw ValidationException::withMessages([
-                'event' => 'Bear Hunt Debrief is available only for Alliance Bear Hunt occurrences.',
+                'event' => (string) __('Bear Hunt Debrief is available only for Alliance Bear Hunt occurrences.'),
             ]);
         }
 

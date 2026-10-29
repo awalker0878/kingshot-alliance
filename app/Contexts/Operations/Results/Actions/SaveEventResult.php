@@ -83,19 +83,19 @@ final readonly class SaveEventResult
     private function validate(?string $outcome, ?int $score, ?int $opponentScore, ?int $rank, ?string $notes): void
     {
         if ($outcome !== null && mb_strlen(trim($outcome)) > 80) {
-            throw ValidationException::withMessages(['outcome' => 'Outcome must be 80 characters or fewer.']);
+            throw ValidationException::withMessages(['outcome' => (string) __('Outcome must be 80 characters or fewer.')]);
         }
         if ($score !== null && $score < 0) {
-            throw ValidationException::withMessages(['score' => 'Score cannot be negative.']);
+            throw ValidationException::withMessages(['score' => (string) __('Score cannot be negative.')]);
         }
         if ($opponentScore !== null && $opponentScore < 0) {
-            throw ValidationException::withMessages(['opponent_score' => 'Opponent score cannot be negative.']);
+            throw ValidationException::withMessages(['opponent_score' => (string) __('Opponent score cannot be negative.')]);
         }
         if ($rank !== null && $rank < 1) {
-            throw ValidationException::withMessages(['rank' => 'Rank must be at least one.']);
+            throw ValidationException::withMessages(['rank' => (string) __('Rank must be at least one.')]);
         }
         if ($notes !== null && mb_strlen(trim($notes)) > 10000) {
-            throw ValidationException::withMessages(['notes' => 'Result notes must be 10000 characters or fewer.']);
+            throw ValidationException::withMessages(['notes' => (string) __('Result notes must be 10000 characters or fewer.')]);
         }
     }
 }

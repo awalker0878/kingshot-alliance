@@ -34,15 +34,15 @@ final readonly class IngestApprovedGiftCodeObservation
         abort_unless((bool) config('game_world.gift_codes.approved_source_ingestion', false), 404);
         $source = GiftCodeSourceRegistry::query()->findOrFail($sourceId);
         if (! $source->is_active || ! $source->ingestion_enabled || $source->revoked_at !== null) {
-            throw ValidationException::withMessages(['source' => 'The registered Gift Code source is not authorized for ingestion.']);
+            throw ValidationException::withMessages(['source' => (string) __('The registered Gift Code source is not authorized for ingestion.')]);
         }
 
         $code = trim($observation->code);
         if (! preg_match('/^[A-Za-z0-9_-]{3,64}$/', $code)) {
-            throw ValidationException::withMessages(['code' => 'The approved source produced an unsupported Gift Code format.']);
+            throw ValidationException::withMessages(['code' => (string) __('The approved source produced an unsupported Gift Code format.')]);
         }
         if (! in_array($observation->assertion, ['available', 'invalid', 'expires', 'reward', 'applicability'], true)) {
-            throw ValidationException::withMessages(['assertion' => 'The approved source produced an unsupported assertion.']);
+            throw ValidationException::withMessages(['assertion' => (string) __('The approved source produced an unsupported assertion.')]);
         }
         $this->assertSourceUrl($source, $observation->sourceUrl);
 
@@ -157,7 +157,7 @@ final readonly class IngestApprovedGiftCodeObservation
         $host = is_string($host) ? mb_strtolower(rtrim($host, '.')) : null;
         if ($canonical === '' || $host === null || ($host !== $canonical && ! str_ends_with($host, '.'.$canonical))) {
             throw ValidationException::withMessages([
-                'source_url' => 'The observation URL does not match the registered canonical source domain.',
+                'source_url' => (string) __('The observation URL does not match the registered canonical source domain.'),
             ]);
         }
     }

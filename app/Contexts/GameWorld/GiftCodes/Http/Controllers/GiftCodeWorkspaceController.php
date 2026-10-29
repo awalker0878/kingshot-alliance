@@ -51,7 +51,7 @@ final class GiftCodeWorkspaceController extends Controller
         $actor = $this->actor($request);
         $userId = $this->accountId($account);
         $ownedPlayers = $players->ownedByUser($userId);
-        abort_if($ownedPlayers === [], 409, 'At least one owned Governor is required for Gift Codes.');
+        abort_if($ownedPlayers === [], 409, (string) __('At least one owned Governor is required for Gift Codes.'));
         $playerIds = array_map(static fn (PlayerReference $player): string => $player->playerId, $ownedPlayers);
 
         $validated = $request->validate([

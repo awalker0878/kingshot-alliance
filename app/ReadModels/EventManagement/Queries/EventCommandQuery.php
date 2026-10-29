@@ -120,7 +120,7 @@ final readonly class EventCommandQuery
         if ($requestedOccurrenceId !== '') {
             $requested = EventOccurrence::query()->where('event_id', $event->id)->whereKey($requestedOccurrenceId)->first();
             if (! $requested instanceof EventOccurrence) {
-                throw ValidationException::withMessages(['occurrence' => 'The selected Event occurrence is not available for this Event.']);
+                throw ValidationException::withMessages(['occurrence' => (string) __('The selected Event occurrence is not available for this Event.')]);
             }
 
             return $requested;

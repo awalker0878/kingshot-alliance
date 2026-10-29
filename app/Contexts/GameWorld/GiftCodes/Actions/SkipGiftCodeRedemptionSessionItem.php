@@ -34,7 +34,7 @@ final readonly class SkipGiftCodeRedemptionSessionItem
             throw new AuthorizationException('This Gift Code session belongs to another account.');
         }
         if ($item->session->status !== GiftCodeRedemptionSessionStatus::Active) {
-            throw ValidationException::withMessages(['session' => 'This Gift Code session is no longer active.']);
+            throw ValidationException::withMessages(['session' => (string) __('This Gift Code session is no longer active.')]);
         }
         if ($item->state->terminal()) {
             return;

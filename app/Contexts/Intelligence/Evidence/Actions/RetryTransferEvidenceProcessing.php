@@ -45,12 +45,12 @@ final readonly class RetryTransferEvidenceProcessing
                 ->firstOrFail();
             if ($evidence->lifecycle_status !== EvidenceLifecycleStatus::Failed) {
                 throw ValidationException::withMessages([
-                    'evidence' => 'Only failed Transfer Evidence processing can be retried.',
+                    'evidence' => (string) __('Only failed Transfer Evidence processing can be retried.'),
                 ]);
             }
             if ($evidence->path === null) {
                 throw ValidationException::withMessages([
-                    'evidence' => 'Deleted or redacted Evidence cannot be processed again.',
+                    'evidence' => (string) __('Deleted or redacted Evidence cannot be processed again.'),
                 ]);
             }
 

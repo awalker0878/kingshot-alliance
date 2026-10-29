@@ -8,6 +8,7 @@ use App\Contexts\Accounts\EmailVerification\Enums\EmailVerificationTarget;
 use App\Contexts\Accounts\EmailVerification\Notifications\VerifyKingshotAllianceEmail;
 use App\Contexts\Accounts\EmailVerification\Notifications\VerifyPendingKingshotAllianceEmail;
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Shared\Infrastructure\Http\SupportedLocale;
 use App\Shared\Infrastructure\Messaging\Outbox\Events\OutboxPublished;
 use Illuminate\Support\Facades\Notification;
 use UnexpectedValueException;
@@ -41,9 +42,9 @@ final class SendRequestedEmailVerification
         // Outbox publication invokes consumers after its claim commits. Failure
         // propagates to the existing retry policy; signed links are made at send.
         if ($target === EmailVerificationTarget::Account) {
-            $user->notify(new VerifyKingshotAllianceEmail);
+            $user->notify((new VerifyKingshotAllianceEmail)->locale(SupportedLocale::orDefault($event->payload['locale'] ?? null)));
         } else {
-            Notification::route('mail', $email)->notify(new VerifyPendingKingshotAllianceEmail((int) $user->id, sha1($email)));
+            Notification::route('mail', $email)->notify((new VerifyPendingKingshotAllianceEmail((int) $user->id, sha1($email)))->locale(SupportedLocale::orDefault($event->payload['locale'] ?? null)));
         }
     }
 }

@@ -41,6 +41,27 @@ const messages = {
     noPreviousHelp: 'La comparación aparece tras una Caza del Oso anterior completada.',
     history: 'Historial',
     runHistory: 'Historial de Caza del Oso',
+    signals: {
+      evidence: 'Estado de la evidencia',
+      factualSignals: 'Comparación grabada',
+      reviewPending:
+        'Una o más filas de gobernador importadas aún necesitan revisión de identidad.',
+      newPersonalBest: 'Nuevo récord personal de resultados aceptados',
+      damageDirection: 'Daño {direction}',
+      rallyDirection: 'Participación en rally {direction}',
+      evidenceStates: {
+        accepted: 'Resultado de captura de pantalla aceptado',
+        recorded_without_accepted_evidence:
+          'Resultado registrado sin evidencia aceptada de captura de pantalla',
+        unavailable: 'No se registró ningún resultado',
+      },
+      directions: {
+        unknown: 'No comparable',
+        increased: 'aumentó',
+        decreased: 'disminuyó',
+        unchanged: 'sin cambios',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

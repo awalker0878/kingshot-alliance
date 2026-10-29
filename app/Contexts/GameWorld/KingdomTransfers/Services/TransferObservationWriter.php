@@ -51,7 +51,7 @@ final readonly class TransferObservationWriter
             ->firstOrFail();
         if ($participant->withdrawn_at !== null) {
             throw ValidationException::withMessages([
-                'participant' => 'Withdrawn participants cannot receive current transfer observations.',
+                'participant' => (string) __('Withdrawn participants cannot receive current transfer observations.'),
             ]);
         }
 
@@ -60,7 +60,7 @@ final readonly class TransferObservationWriter
             : ($participant->destination_kingdom_id === null ? null : (string) $participant->destination_kingdom_id);
         if ($kind->requiresTargetKingdom() && $targetId === null) {
             throw ValidationException::withMessages([
-                'target' => 'Set a target Kingdom before recording this observation.',
+                'target' => (string) __('Set a target Kingdom before recording this observation.'),
             ]);
         }
         $observationTarget = $kind->requiresTargetKingdom() ? $targetId : null;
@@ -68,33 +68,33 @@ final readonly class TransferObservationWriter
         $sourceReference = trim($sourceReference);
         if ($sourceReference === '') {
             throw ValidationException::withMessages([
-                'source_reference' => 'A source reference is required.',
+                'source_reference' => (string) __('A source reference is required.'),
             ]);
         }
         $evidenceId = $this->evidence->assertUsable($allianceId, $sourceType, $evidenceId);
         if ($kind->usesNumericValue() && (! is_int($value) || $value < 0)) {
             throw ValidationException::withMessages([
-                'value' => 'This observation requires a non-negative integer value.',
+                'value' => (string) __('This observation requires a non-negative integer value.'),
             ]);
         }
         if ($kind->usesBooleanValue() && ! is_bool($value)) {
             throw ValidationException::withMessages([
-                'value' => 'This observation requires a boolean value.',
+                'value' => (string) __('This observation requires a boolean value.'),
             ]);
         }
         if ($kind === TransferObservationKind::InvitationStatus && (! is_string($value) || TransferInvitationStatus::tryFrom($value) === null)) {
             throw ValidationException::withMessages([
-                'value' => 'Invitation status is invalid.',
+                'value' => (string) __('Invitation status is invalid.'),
             ]);
         }
         if ($kind === TransferObservationKind::TransferPassesRequired && is_int($value) && ($value < TransferOfficialRulebook::MIN_REQUIRED_TRANSFER_PASSES || $value > TransferOfficialRulebook::MAX_REQUIRED_TRANSFER_PASSES)) {
             throw ValidationException::withMessages([
-                'value' => 'Required Transfer Passes must be between 1 and 50 under the current official rule.',
+                'value' => (string) __('Required Transfer Passes must be between 1 and 50 under the current official rule.'),
             ]);
         }
         if ($kind === TransferObservationKind::TargetExistingCharacterCount && is_int($value) && $value > TransferOfficialRulebook::MAX_CHARACTERS_PER_KINGDOM) {
             throw ValidationException::withMessages([
-                'value' => 'A Kingdom can contain at most four characters for the same account.',
+                'value' => (string) __('A Kingdom can contain at most four characters for the same account.'),
             ]);
         }
 
@@ -104,7 +104,7 @@ final readonly class TransferObservationWriter
             : CarbonImmutable::parse($validUntil)->utc();
         if ($valid !== null && $valid->lt($observed)) {
             throw ValidationException::withMessages([
-                'valid_until' => 'Validity must end on or after the observation time.',
+                'valid_until' => (string) __('Validity must end on or after the observation time.'),
             ]);
         }
         $details = $details === null ? null : trim($details);

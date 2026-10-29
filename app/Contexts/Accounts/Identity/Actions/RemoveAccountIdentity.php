@@ -33,7 +33,7 @@ final readonly class RemoveAccountIdentity
 
             if ($provider === 'google' && ! $this->methods->canDisconnectGoogle($user)) {
                 throw ValidationException::withMessages([
-                    'google' => 'Add another sign-in method before disconnecting Google.',
+                    'google' => (string) __('Add another sign-in method before disconnecting Google.'),
                 ]);
             }
 

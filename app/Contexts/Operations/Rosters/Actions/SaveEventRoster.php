@@ -43,16 +43,16 @@ final readonly class SaveEventRoster
         ?string $rosterId = null,
     ): void {
         if (! preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $key)) {
-            throw ValidationException::withMessages(['key' => 'Roster key must use lowercase letters, numbers, and hyphens.']);
+            throw ValidationException::withMessages(['key' => (string) __('Roster key must use lowercase letters, numbers, and hyphens.')]);
         }
         if (! preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $assignmentGroup)) {
-            throw ValidationException::withMessages(['assignment_group' => 'Assignment group must use lowercase letters, numbers, and hyphens.']);
+            throw ValidationException::withMessages(['assignment_group' => (string) __('Assignment group must use lowercase letters, numbers, and hyphens.')]);
         }
         if (($name === null || trim($name) === '') && ($nameKey === null || trim($nameKey) === '')) {
-            throw ValidationException::withMessages(['name' => 'A roster name is required.']);
+            throw ValidationException::withMessages(['name' => (string) __('A roster name is required.')]);
         }
         if ($capacity !== null && $capacity < 1) {
-            throw ValidationException::withMessages(['capacity' => 'Roster capacity must be at least one.']);
+            throw ValidationException::withMessages(['capacity' => (string) __('Roster capacity must be at least one.')]);
         }
 
         $occupying = array_map(
@@ -81,23 +81,23 @@ final readonly class SaveEventRoster
             if ($parentId !== null) {
                 $parent = EventRoster::query()->whereKey($parentId)->where('occurrence_id', $occurrence->id)->lockForUpdate()->firstOrFail();
                 if ((string) $parent->assignment_group !== $assignmentGroup) {
-                    throw ValidationException::withMessages(['parent_id' => 'A parent roster must belong to the same assignment group.']);
+                    throw ValidationException::withMessages(['parent_id' => (string) __('A parent roster must belong to the same assignment group.')]);
                 }
                 if ($record->exists && $this->isDescendant($parent, $record)) {
-                    throw ValidationException::withMessages(['parent_id' => 'A roster cannot be nested beneath itself or one of its descendants.']);
+                    throw ValidationException::withMessages(['parent_id' => (string) __('A roster cannot be nested beneath itself or one of its descendants.')]);
                 }
             }
 
             if ($record->exists && (string) $record->assignment_group !== $assignmentGroup
                 && ($record->children()->exists() || $record->members()->whereIn('status', $occupying)->exists())) {
                 throw ValidationException::withMessages([
-                    'assignment_group' => 'Assignment group cannot change while the roster has child rosters or active assignments.',
+                    'assignment_group' => (string) __('Assignment group cannot change while the roster has child rosters or active assignments.'),
                 ]);
             }
 
             $activeCount = $record->exists ? $record->members()->whereIn('status', $occupying)->count() : 0;
             if ($capacity !== null && $activeCount > $capacity) {
-                throw ValidationException::withMessages(['capacity' => 'Roster capacity cannot be lower than its current active assignments.']);
+                throw ValidationException::withMessages(['capacity' => (string) __('Roster capacity cannot be lower than its current active assignments.')]);
             }
 
             if ($created) {

@@ -27,7 +27,7 @@ final readonly class ConnectGoogleAccount
         $subject = trim($verifiedSubject);
         $email = Str::lower(trim($verifiedEmail));
         if ($subject === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw ValidationException::withMessages(['google' => 'A verified Google identity is required.']);
+            throw ValidationException::withMessages(['google' => (string) __('A verified Google identity is required.')]);
         }
 
         try {
@@ -40,7 +40,7 @@ final readonly class ConnectGoogleAccount
                 if ($identity !== null) {
                     if (! hash_equals((string) $identity->provider_subject, $subject)) {
                         throw ValidationException::withMessages([
-                            'google' => 'A different Google account is already connected. Disconnect it before connecting another one.',
+                            'google' => (string) __('A different Google account is already connected. Disconnect it before connecting another one.'),
                         ]);
                     }
                     $this->recordIdentityUse->handle((int) $identity->id, $email, true);
@@ -82,7 +82,7 @@ final readonly class ConnectGoogleAccount
             );
 
             throw ValidationException::withMessages([
-                'google' => 'This Google account could not be connected safely because it is already in use.',
+                'google' => (string) __('This Google account could not be connected safely because it is already in use.'),
             ]);
         }
     }

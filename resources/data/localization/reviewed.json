@@ -1,0 +1,3909 @@
+{
+  "Governor": {
+    "ar": "الحاكم",
+    "de": "Gouverneur",
+    "es": "Gobernador",
+    "fr": "Gouverneur",
+    "id": "Gubernur",
+    "it": "Governatore",
+    "ja": "総督",
+    "ko": "총독",
+    "pl": "Gubernator",
+    "pt-BR": "Governador",
+    "ru": "Губернатор",
+    "th": "ผู้ว่าการ",
+    "tr": "Vali",
+    "vi": "Thống đốc",
+    "zh-CN": "总督",
+    "zh-TW": "總督"
+  },
+  "Governors": {
+    "ar": "الحكام",
+    "de": "Gouverneure",
+    "es": "Gobernadores",
+    "fr": "Gouverneurs",
+    "id": "Gubernur",
+    "it": "Governatori",
+    "ja": "総督",
+    "ko": "총독",
+    "pl": "Gubernatorzy",
+    "pt-BR": "Governadores",
+    "ru": "Губернаторы",
+    "th": "ผู้ว่าการ",
+    "tr": "Valiler",
+    "vi": "Thống đốc",
+    "zh-CN": "总督",
+    "zh-TW": "總督"
+  },
+  "Gift Code": {
+    "ar": "رمز هدية",
+    "de": "Geschenkcode",
+    "es": "Código de regalo",
+    "fr": "Code cadeau",
+    "id": "Kode hadiah",
+    "it": "Codice regalo",
+    "ja": "ギフトコード",
+    "ko": "기프트 코드",
+    "pl": "Kod podarunkowy",
+    "pt-BR": "Código de presente",
+    "ru": "Подарочный код",
+    "th": "โค้ดของขวัญ",
+    "tr": "Hediye kodu",
+    "vi": "Mã quà tặng",
+    "zh-CN": "礼包码",
+    "zh-TW": "禮包碼"
+  },
+  "Gift Codes": {
+    "ar": "رموز الهدايا",
+    "de": "Geschenkcodes",
+    "es": "Códigos de regalo",
+    "fr": "Codes cadeaux",
+    "id": "Kode hadiah",
+    "it": "Codici regalo",
+    "ja": "ギフトコード",
+    "ko": "기프트 코드",
+    "pl": "Kody podarunkowe",
+    "pt-BR": "Códigos de presente",
+    "ru": "Подарочные коды",
+    "th": "โค้ดของขวัญ",
+    "tr": "Hediye kodları",
+    "vi": "Mã quà tặng",
+    "zh-CN": "礼包码",
+    "zh-TW": "禮包碼"
+  },
+  "Redeemable codes": {
+    "ar": "رموز قابلة للاستبدال",
+    "de": "Einlösbare Codes",
+    "es": "Códigos canjeables",
+    "fr": "Codes utilisables",
+    "id": "Kode yang dapat ditukar",
+    "it": "Codici riscattabili",
+    "ja": "交換可能なコード",
+    "ko": "교환 가능한 코드",
+    "pl": "Kody do wykorzystania",
+    "pt-BR": "Códigos resgatáveis",
+    "ru": "Коды для активации",
+    "th": "โค้ดที่แลกได้",
+    "tr": "Kullanılabilir kodlar",
+    "vi": "Mã có thể đổi",
+    "zh-CN": "可兑换的礼包码",
+    "zh-TW": "可兌換的禮包碼"
+  },
+  "Redeemed": {
+    "ar": "تم الاستبدال",
+    "de": "Eingelöst",
+    "es": "Canjeado",
+    "fr": "Utilisé",
+    "id": "Sudah ditukar",
+    "it": "Riscattato",
+    "ja": "交換済み",
+    "ko": "교환 완료",
+    "pl": "Wykorzystano",
+    "pt-BR": "Resgatado",
+    "ru": "Активирован",
+    "th": "แลกแล้ว",
+    "tr": "Kullanıldı",
+    "vi": "Đã đổi",
+    "zh-CN": "已兑换",
+    "zh-TW": "已兌換"
+  },
+  "Already redeemed": {
+    "ar": "تم الاستبدال مسبقًا",
+    "de": "Bereits eingelöst",
+    "es": "Ya canjeado",
+    "fr": "Déjà utilisé",
+    "id": "Sudah pernah ditukar",
+    "it": "Già riscattato",
+    "ja": "交換済みです",
+    "ko": "이미 교환함",
+    "pl": "Już wykorzystano",
+    "pt-BR": "Já resgatado",
+    "ru": "Уже активирован",
+    "th": "แลกไปแล้ว",
+    "tr": "Zaten kullanıldı",
+    "vi": "Đã đổi trước đó",
+    "zh-CN": "已经兑换过",
+    "zh-TW": "已經兌換過"
+  },
+  "Ready to redeem": {
+    "ar": "جاهز للاستبدال",
+    "de": "Bereit zum Einlösen",
+    "es": "Listo para canjear",
+    "fr": "Prêt à utiliser",
+    "id": "Siap ditukar",
+    "it": "Pronto da riscattare",
+    "ja": "交換準備完了",
+    "ko": "교환 준비 완료",
+    "pl": "Gotowe do wykorzystania",
+    "pt-BR": "Pronto para resgatar",
+    "ru": "Готов к активации",
+    "th": "พร้อมแลก",
+    "tr": "Kullanıma hazır",
+    "vi": "Sẵn sàng đổi",
+    "zh-CN": "可兑换",
+    "zh-TW": "可兌換"
+  },
+  "Redeem all ready": {
+    "ar": "استبدال كل الرموز الجاهزة",
+    "de": "Alle bereiten Codes einlösen",
+    "es": "Canjear todos los códigos listos",
+    "fr": "Utiliser tous les codes prêts",
+    "id": "Tukar semua kode yang siap",
+    "it": "Riscatta tutti i codici pronti",
+    "ja": "交換可能なコードをすべて交換",
+    "ko": "준비된 코드 모두 교환",
+    "pl": "Wykorzystaj wszystkie gotowe kody",
+    "pt-BR": "Resgatar todos os códigos prontos",
+    "ru": "Активировать все готовые коды",
+    "th": "แลกโค้ดที่พร้อมทั้งหมด",
+    "tr": "Hazır kodların tümünü kullan",
+    "vi": "Đổi tất cả mã sẵn sàng",
+    "zh-CN": "兑换所有可用礼包码",
+    "zh-TW": "兌換所有可用禮包碼"
+  },
+  "Redeem expiring": {
+    "ar": "استبدال الرموز التي توشك على الانتهاء",
+    "de": "Bald ablaufende Codes einlösen",
+    "es": "Canjear los códigos que van a caducar",
+    "fr": "Utiliser les codes bientôt expirés",
+    "id": "Tukar kode yang segera kedaluwarsa",
+    "it": "Riscatta i codici in scadenza",
+    "ja": "期限が近いコードを交換",
+    "ko": "만료 임박 코드 교환",
+    "pl": "Wykorzystaj wkrótce wygasające kody",
+    "pt-BR": "Resgatar códigos prestes a expirar",
+    "ru": "Активировать истекающие коды",
+    "th": "แลกโค้ดที่ใกล้หมดอายุ",
+    "tr": "Süresi dolmak üzere olan kodları kullan",
+    "vi": "Đổi mã sắp hết hạn",
+    "zh-CN": "兑换即将过期的礼包码",
+    "zh-TW": "兌換即將到期的禮包碼"
+  },
+  "Redeem selected": {
+    "ar": "استبدال الرموز المحددة",
+    "de": "Ausgewählte Codes einlösen",
+    "es": "Canjear los códigos seleccionados",
+    "fr": "Utiliser les codes sélectionnés",
+    "id": "Tukar kode yang dipilih",
+    "it": "Riscatta i codici selezionati",
+    "ja": "選択したコードを交換",
+    "ko": "선택한 코드 교환",
+    "pl": "Wykorzystaj wybrane kody",
+    "pt-BR": "Resgatar códigos selecionados",
+    "ru": "Активировать выбранные коды",
+    "th": "แลกโค้ดที่เลือก",
+    "tr": "Seçili kodları kullan",
+    "vi": "Đổi mã đã chọn",
+    "zh-CN": "兑换所选礼包码",
+    "zh-TW": "兌換所選禮包碼"
+  },
+  "Chest": {
+    "ar": "صندوق كنز",
+    "de": "Truhe",
+    "es": "Cofre",
+    "fr": "Coffre",
+    "id": "Peti",
+    "it": "Forziere",
+    "ja": "宝箱",
+    "ko": "보물 상자",
+    "pl": "Skrzynia",
+    "pt-BR": "Baú",
+    "ru": "Сундук",
+    "th": "หีบสมบัติ",
+    "tr": "Sandık",
+    "vi": "Rương",
+    "zh-CN": "宝箱",
+    "zh-TW": "寶箱"
+  },
+  "Passkey": {
+    "ar": "مفتاح المرور",
+    "de": "Passkey",
+    "es": "Clave de acceso",
+    "fr": "Clé d’accès",
+    "id": "Kunci akses",
+    "it": "Chiave di accesso",
+    "ja": "パスキー",
+    "ko": "패스키",
+    "pl": "Klucz dostępu",
+    "pt-BR": "Chave de acesso",
+    "ru": "Ключ доступа",
+    "th": "พาสคีย์",
+    "tr": "Geçiş anahtarı",
+    "vi": "Khóa truy cập",
+    "zh-CN": "通行密钥",
+    "zh-TW": "通行金鑰"
+  },
+  "Passkey renamed.": {
+    "ar": "تمت إعادة تسمية مفتاح المرور.",
+    "de": "Passkey umbenannt.",
+    "es": "Se cambió el nombre de la clave de acceso.",
+    "fr": "Clé d’accès renommée.",
+    "id": "Nama kunci akses diubah.",
+    "it": "Chiave di accesso rinominata.",
+    "ja": "パスキーの名前を変更しました。",
+    "ko": "패스키 이름을 변경했습니다.",
+    "pl": "Zmieniono nazwę klucza dostępu.",
+    "pt-BR": "Chave de acesso renomeada.",
+    "ru": "Ключ доступа переименован.",
+    "th": "เปลี่ยนชื่อพาสคีย์แล้ว",
+    "tr": "Geçiş anahtarı yeniden adlandırıldı.",
+    "vi": "Đã đổi tên khóa truy cập.",
+    "zh-CN": "通行密钥已重命名。",
+    "zh-TW": "通行金鑰已重新命名。"
+  },
+  "Sign in with a passkey": {
+    "ar": "تسجيل الدخول بمفتاح المرور",
+    "de": "Mit Passkey anmelden",
+    "es": "Iniciar sesión con una clave de acceso",
+    "fr": "Se connecter avec une clé d’accès",
+    "id": "Masuk dengan kunci akses",
+    "it": "Accedi con una chiave di accesso",
+    "ja": "パスキーでログイン",
+    "ko": "패스키로 로그인",
+    "pl": "Zaloguj się kluczem dostępu",
+    "pt-BR": "Entrar com uma chave de acesso",
+    "ru": "Войти с ключом доступа",
+    "th": "เข้าสู่ระบบด้วยพาสคีย์",
+    "tr": "Geçiş anahtarıyla giriş yap",
+    "vi": "Đăng nhập bằng khóa truy cập",
+    "zh-CN": "使用通行密钥登录",
+    "zh-TW": "使用通行金鑰登入"
+  },
+  "Checking passkey…": {
+    "ar": "جارٍ التحقق من مفتاح المرور…",
+    "de": "Passkey wird geprüft…",
+    "es": "Comprobando la clave de acceso…",
+    "fr": "Vérification de la clé d’accès…",
+    "id": "Memeriksa kunci akses…",
+    "it": "Verifica della chiave di accesso…",
+    "ja": "パスキーを確認中…",
+    "ko": "패스키 확인 중…",
+    "pl": "Sprawdzanie klucza dostępu…",
+    "pt-BR": "Verificando a chave de acesso…",
+    "ru": "Проверка ключа доступа…",
+    "th": "กำลังตรวจสอบพาสคีย์…",
+    "tr": "Geçiş anahtarı kontrol ediliyor…",
+    "vi": "Đang kiểm tra khóa truy cập…",
+    "zh-CN": "正在验证通行密钥…",
+    "zh-TW": "正在驗證通行金鑰…"
+  },
+  "Confirm with a passkey": {
+    "ar": "التأكيد بمفتاح المرور",
+    "de": "Mit Passkey bestätigen",
+    "es": "Confirmar con una clave de acceso",
+    "fr": "Confirmer avec une clé d’accès",
+    "id": "Konfirmasi dengan kunci akses",
+    "it": "Conferma con una chiave di accesso",
+    "ja": "パスキーで確認",
+    "ko": "패스키로 확인",
+    "pl": "Potwierdź kluczem dostępu",
+    "pt-BR": "Confirmar com uma chave de acesso",
+    "ru": "Подтвердить ключом доступа",
+    "th": "ยืนยันด้วยพาสคีย์",
+    "tr": "Geçiş anahtarıyla doğrula",
+    "vi": "Xác nhận bằng khóa truy cập",
+    "zh-CN": "使用通行密钥确认",
+    "zh-TW": "使用通行金鑰確認"
+  },
+  "Password": {
+    "ar": "كلمة المرور",
+    "de": "Passwort",
+    "es": "Contraseña",
+    "fr": "Mot de passe",
+    "id": "Kata sandi",
+    "it": "Password",
+    "ja": "パスワード",
+    "ko": "비밀번호",
+    "pl": "Hasło",
+    "pt-BR": "Senha",
+    "ru": "Пароль",
+    "th": "รหัสผ่าน",
+    "tr": "Parola",
+    "vi": "Mật khẩu",
+    "zh-CN": "密码",
+    "zh-TW": "密碼"
+  },
+  "Kingdom ID": {
+    "ar": "معرّف المملكة",
+    "de": "Königreich-ID",
+    "es": "ID del reino",
+    "fr": "Identifiant du Royaume",
+    "id": "ID kerajaan",
+    "it": "ID del regno",
+    "ja": "王国ID",
+    "ko": "왕국 ID",
+    "pl": "ID królestwa",
+    "pt-BR": "ID do reino",
+    "ru": "ID королевства",
+    "th": "รหัสอาณาจักร",
+    "tr": "Krallık kimliği",
+    "vi": "ID vương quốc",
+    "zh-CN": "王国ID",
+    "zh-TW": "王國ID"
+  },
+  "Checksum": {
+    "ar": "المجموع الاختباري",
+    "de": "Prüfsumme",
+    "es": "Suma de comprobación",
+    "fr": "Somme de contrôle",
+    "id": "Checksum",
+    "it": "Somma di controllo",
+    "ja": "チェックサム",
+    "ko": "체크섬",
+    "pl": "Suma kontrolna",
+    "pt-BR": "Soma de verificação",
+    "ru": "Контрольная сумма",
+    "th": "ผลรวมตรวจสอบ",
+    "tr": "Sağlama toplamı",
+    "vi": "Tổng kiểm tra",
+    "zh-CN": "校验和",
+    "zh-TW": "校驗和"
+  },
+  "Dataset checksum": {
+    "ar": "المجموع الاختباري لمجموعة البيانات",
+    "de": "Prüfsumme des Datensatzes",
+    "es": "Suma de comprobación del conjunto de datos",
+    "fr": "Somme de contrôle du jeu de données",
+    "id": "Checksum kumpulan data",
+    "it": "Somma di controllo del set di dati",
+    "ja": "データセットのチェックサム",
+    "ko": "데이터 세트 체크섬",
+    "pl": "Suma kontrolna zbioru danych",
+    "pt-BR": "Soma de verificação do conjunto de dados",
+    "ru": "Контрольная сумма набора данных",
+    "th": "ผลรวมตรวจสอบชุดข้อมูล",
+    "tr": "Veri kümesi sağlama toplamı",
+    "vi": "Tổng kiểm tra bộ dữ liệu",
+    "zh-CN": "数据集校验和",
+    "zh-TW": "資料集校驗和"
+  },
+  "Read": {
+    "ar": "مقروء",
+    "de": "Gelesen",
+    "es": "Leído",
+    "fr": "Lu",
+    "id": "Sudah dibaca",
+    "it": "Letto",
+    "ja": "既読",
+    "ko": "읽음",
+    "pl": "Przeczytane",
+    "pt-BR": "Lido",
+    "ru": "Прочитано",
+    "th": "อ่านแล้ว",
+    "tr": "Okundu",
+    "vi": "Đã đọc",
+    "zh-CN": "已读",
+    "zh-TW": "已讀"
+  },
+  "Unread": {
+    "ar": "غير مقروء",
+    "de": "Ungelesen",
+    "es": "No leído",
+    "fr": "Non lu",
+    "id": "Belum dibaca",
+    "it": "Non letto",
+    "ja": "未読",
+    "ko": "읽지 않음",
+    "pl": "Nieprzeczytane",
+    "pt-BR": "Não lido",
+    "ru": "Не прочитано",
+    "th": "ยังไม่อ่าน",
+    "tr": "Okunmadı",
+    "vi": "Chưa đọc",
+    "zh-CN": "未读",
+    "zh-TW": "未讀"
+  },
+  "Mark read": {
+    "ar": "تحديد كمقروء",
+    "de": "Als gelesen markieren",
+    "es": "Marcar como leído",
+    "fr": "Marquer comme lu",
+    "id": "Tandai sudah dibaca",
+    "it": "Segna come letto",
+    "ja": "既読にする",
+    "ko": "읽음으로 표시",
+    "pl": "Oznacz jako przeczytane",
+    "pt-BR": "Marcar como lido",
+    "ru": "Отметить как прочитанное",
+    "th": "ทำเครื่องหมายว่าอ่านแล้ว",
+    "tr": "Okundu olarak işaretle",
+    "vi": "Đánh dấu đã đọc",
+    "zh-CN": "标为已读",
+    "zh-TW": "標為已讀"
+  },
+  "Mark unread": {
+    "ar": "تحديد كغير مقروء",
+    "de": "Als ungelesen markieren",
+    "es": "Marcar como no leído",
+    "fr": "Marquer comme non lu",
+    "id": "Tandai belum dibaca",
+    "it": "Segna come non letto",
+    "ja": "未読にする",
+    "ko": "읽지 않음으로 표시",
+    "pl": "Oznacz jako nieprzeczytane",
+    "pt-BR": "Marcar como não lido",
+    "ru": "Отметить как непрочитанное",
+    "th": "ทำเครื่องหมายว่ายังไม่อ่าน",
+    "tr": "Okunmadı olarak işaretle",
+    "vi": "Đánh dấu chưa đọc",
+    "zh-CN": "标为未读",
+    "zh-TW": "標為未讀"
+  },
+  "Previous": {
+    "ar": "السابق",
+    "de": "Zurück",
+    "es": "Anterior",
+    "fr": "Précédent",
+    "id": "Sebelumnya",
+    "it": "Precedente",
+    "ja": "前へ",
+    "ko": "이전",
+    "pl": "Poprzednia",
+    "pt-BR": "Anterior",
+    "ru": "Назад",
+    "th": "ก่อนหน้า",
+    "tr": "Önceki",
+    "vi": "Trước",
+    "zh-CN": "上一页",
+    "zh-TW": "上一頁"
+  },
+  "Next": {
+    "ar": "التالي",
+    "de": "Weiter",
+    "es": "Siguiente",
+    "fr": "Suivant",
+    "id": "Berikutnya",
+    "it": "Successivo",
+    "ja": "次へ",
+    "ko": "다음",
+    "pl": "Następna",
+    "pt-BR": "Próximo",
+    "ru": "Далее",
+    "th": "ถัดไป",
+    "tr": "Sonraki",
+    "vi": "Tiếp",
+    "zh-CN": "下一页",
+    "zh-TW": "下一頁"
+  },
+  "None": {
+    "ar": "لا شيء",
+    "de": "Keine",
+    "es": "Ninguno",
+    "fr": "Aucun",
+    "id": "Tidak ada",
+    "it": "Nessuno",
+    "ja": "なし",
+    "ko": "없음",
+    "pl": "Brak",
+    "pt-BR": "Nenhum",
+    "ru": "Нет",
+    "th": "ไม่มี",
+    "tr": "Yok",
+    "vi": "Không có",
+    "zh-CN": "无",
+    "zh-TW": "無"
+  },
+  "Saving…": {
+    "ar": "جارٍ الحفظ…",
+    "de": "Wird gespeichert…",
+    "es": "Guardando…",
+    "fr": "Enregistrement…",
+    "id": "Menyimpan…",
+    "it": "Salvataggio…",
+    "ja": "保存中…",
+    "ko": "저장 중…",
+    "pl": "Zapisywanie…",
+    "pt-BR": "Salvando…",
+    "ru": "Сохранение…",
+    "th": "กำลังบันทึก…",
+    "tr": "Kaydediliyor…",
+    "vi": "Đang lưu…",
+    "zh-CN": "正在保存…",
+    "zh-TW": "正在儲存…"
+  },
+  "Done": {
+    "ar": "تم",
+    "de": "Fertig",
+    "es": "Listo",
+    "fr": "Terminé",
+    "id": "Selesai",
+    "it": "Fatto",
+    "ja": "完了",
+    "ko": "완료",
+    "pl": "Gotowe",
+    "pt-BR": "Concluído",
+    "ru": "Готово",
+    "th": "เสร็จสิ้น",
+    "tr": "Tamamlandı",
+    "vi": "Xong",
+    "zh-CN": "完成",
+    "zh-TW": "完成"
+  },
+  "Draft": {
+    "ar": "مسودة",
+    "de": "Entwurf",
+    "es": "Borrador",
+    "fr": "Brouillon",
+    "id": "Draf",
+    "it": "Bozza",
+    "ja": "下書き",
+    "ko": "초안",
+    "pl": "Wersja robocza",
+    "pt-BR": "Rascunho",
+    "ru": "Черновик",
+    "th": "ฉบับร่าง",
+    "tr": "Taslak",
+    "vi": "Bản nháp",
+    "zh-CN": "草稿",
+    "zh-TW": "草稿"
+  },
+  "Locked": {
+    "ar": "مقفل",
+    "de": "Gesperrt",
+    "es": "Bloqueado",
+    "fr": "Verrouillé",
+    "id": "Terkunci",
+    "it": "Bloccato",
+    "ja": "ロック済み",
+    "ko": "잠김",
+    "pl": "Zablokowane",
+    "pt-BR": "Bloqueado",
+    "ru": "Заблокировано",
+    "th": "ล็อกแล้ว",
+    "tr": "Kilitli",
+    "vi": "Đã khóa",
+    "zh-CN": "已锁定",
+    "zh-TW": "已鎖定"
+  },
+  "Closed": {
+    "ar": "مغلق",
+    "de": "Geschlossen",
+    "es": "Cerrado",
+    "fr": "Fermé",
+    "id": "Ditutup",
+    "it": "Chiuso",
+    "ja": "終了",
+    "ko": "종료됨",
+    "pl": "Zamknięte",
+    "pt-BR": "Fechado",
+    "ru": "Закрыто",
+    "th": "ปิดแล้ว",
+    "tr": "Kapalı",
+    "vi": "Đã đóng",
+    "zh-CN": "已关闭",
+    "zh-TW": "已關閉"
+  },
+  "Readiness": {
+    "ar": "الجاهزية",
+    "de": "Bereitschaft",
+    "es": "Preparación",
+    "fr": "État de préparation",
+    "id": "Kesiapan",
+    "it": "Preparazione",
+    "ja": "準備状況",
+    "ko": "준비 상태",
+    "pl": "Gotowość",
+    "pt-BR": "Prontidão",
+    "ru": "Готовность",
+    "th": "ความพร้อม",
+    "tr": "Hazırlık durumu",
+    "vi": "Mức độ sẵn sàng",
+    "zh-CN": "准备状态",
+    "zh-TW": "準備狀態"
+  },
+  "Confidence": {
+    "ar": "درجة الثقة",
+    "de": "Konfidenz",
+    "es": "Nivel de confianza",
+    "fr": "Niveau de confiance",
+    "id": "Tingkat keyakinan",
+    "it": "Livello di confidenza",
+    "ja": "信頼度",
+    "ko": "신뢰도",
+    "pl": "Poziom pewności",
+    "pt-BR": "Nível de confiança",
+    "ru": "Уровень уверенности",
+    "th": "ระดับความเชื่อมั่น",
+    "tr": "Güven düzeyi",
+    "vi": "Độ tin cậy",
+    "zh-CN": "置信度",
+    "zh-TW": "信賴度"
+  },
+  "Evidence": {
+    "ar": "الأدلة",
+    "de": "Belege",
+    "es": "Pruebas",
+    "fr": "Éléments probants",
+    "id": "Bukti",
+    "it": "Prove",
+    "ja": "証拠",
+    "ko": "증거",
+    "pl": "Dowody",
+    "pt-BR": "Evidências",
+    "ru": "Подтверждения",
+    "th": "หลักฐาน",
+    "tr": "Kanıt",
+    "vi": "Bằng chứng",
+    "zh-CN": "证据",
+    "zh-TW": "證據"
+  },
+  "Source": {
+    "ar": "المصدر",
+    "de": "Quelle",
+    "es": "Fuente",
+    "fr": "Source",
+    "id": "Sumber",
+    "it": "Fonte",
+    "ja": "出典",
+    "ko": "출처",
+    "pl": "Źródło",
+    "pt-BR": "Fonte",
+    "ru": "Источник",
+    "th": "แหล่งที่มา",
+    "tr": "Kaynak",
+    "vi": "Nguồn",
+    "zh-CN": "来源",
+    "zh-TW": "來源"
+  },
+  "Retry": {
+    "ar": "إعادة المحاولة",
+    "de": "Erneut versuchen",
+    "es": "Reintentar",
+    "fr": "Réessayer",
+    "id": "Coba lagi",
+    "it": "Riprova",
+    "ja": "再試行",
+    "ko": "다시 시도",
+    "pl": "Ponów próbę",
+    "pt-BR": "Tentar novamente",
+    "ru": "Повторить",
+    "th": "ลองอีกครั้ง",
+    "tr": "Yeniden dene",
+    "vi": "Thử lại",
+    "zh-CN": "重试",
+    "zh-TW": "重試"
+  },
+  "Retry ready": {
+    "ar": "جاهز لإعادة المحاولة",
+    "de": "Bereit für erneuten Versuch",
+    "es": "Listo para reintentar",
+    "fr": "Prêt à réessayer",
+    "id": "Siap dicoba lagi",
+    "it": "Pronto per riprovare",
+    "ja": "再試行可能",
+    "ko": "재시도 가능",
+    "pl": "Gotowe do ponowienia",
+    "pt-BR": "Pronto para tentar novamente",
+    "ru": "Готово к повторной попытке",
+    "th": "พร้อมลองอีกครั้ง",
+    "tr": "Yeniden denemeye hazır",
+    "vi": "Sẵn sàng thử lại",
+    "zh-CN": "可重试",
+    "zh-TW": "可重試"
+  },
+  "{count} skipped": {
+    "ar": "تم تخطي {count}",
+    "de": "{count} übersprungen",
+    "es": "{count} omitidos",
+    "fr": "{count} ignorés",
+    "id": "{count} dilewati",
+    "it": "{count} saltati",
+    "ja": "{count}件をスキップ",
+    "ko": "{count}개 건너뜀",
+    "pl": "Pominięto: {count}",
+    "pt-BR": "{count} ignorados",
+    "ru": "Пропущено: {count}",
+    "th": "ข้าม {count} รายการ",
+    "tr": "{count} atlandı",
+    "vi": "Đã bỏ qua {count}",
+    "zh-CN": "已跳过 {count} 个",
+    "zh-TW": "已略過 {count} 個"
+  },
+  "Lv {value}": {
+    "ar": "المستوى {value}",
+    "de": "Stufe {value}",
+    "es": "Nv. {value}",
+    "fr": "Niv. {value}",
+    "id": "Lv {value}",
+    "it": "Liv. {value}",
+    "ja": "レベル {value}",
+    "ko": "레벨 {value}",
+    "pl": "Poz. {value}",
+    "pt-BR": "Nv. {value}",
+    "ru": "Ур. {value}",
+    "th": "ระดับ {value}",
+    "tr": "Sv. {value}",
+    "vi": "Cấp {value}",
+    "zh-CN": "等级 {value}",
+    "zh-TW": "等級 {value}"
+  },
+  "h": {
+    "ar": "س",
+    "de": "Std.",
+    "es": "h",
+    "fr": "h",
+    "id": "j",
+    "it": "h",
+    "ja": "時間",
+    "ko": "시간",
+    "pl": "godz.",
+    "pt-BR": "h",
+    "ru": "ч",
+    "th": "ชม.",
+    "tr": "sa.",
+    "vi": "giờ",
+    "zh-CN": "小时",
+    "zh-TW": "小時"
+  },
+  "Pin": {
+    "ar": "تثبيت",
+    "de": "Anheften",
+    "es": "Fijar",
+    "fr": "Épingler",
+    "id": "Sematkan",
+    "it": "Fissa",
+    "ja": "固定",
+    "ko": "고정",
+    "pl": "Przypnij",
+    "pt-BR": "Fixar",
+    "ru": "Закрепить",
+    "th": "ปักหมุด",
+    "tr": "Sabitle",
+    "vi": "Ghim",
+    "zh-CN": "置顶",
+    "zh-TW": "置頂"
+  },
+  "Snoozed": {
+    "ar": "مؤجل",
+    "de": "Zurückgestellt",
+    "es": "Pospuesto",
+    "fr": "Reporté",
+    "id": "Ditunda",
+    "it": "Posticipato",
+    "ja": "一時保留",
+    "ko": "일시 중지됨",
+    "pl": "Odłożone",
+    "pt-BR": "Adiado",
+    "ru": "Отложено",
+    "th": "เลื่อนเตือนแล้ว",
+    "tr": "Ertelendi",
+    "vi": "Đã tạm hoãn",
+    "zh-CN": "已延后",
+    "zh-TW": "已延後"
+  },
+  "Dismiss": {
+    "ar": "تجاهل",
+    "de": "Ausblenden",
+    "es": "Descartar",
+    "fr": "Ignorer",
+    "id": "Abaikan",
+    "it": "Ignora",
+    "ja": "非表示にする",
+    "ko": "닫기",
+    "pl": "Odrzuć",
+    "pt-BR": "Dispensar",
+    "ru": "Скрыть",
+    "th": "ปิดการแจ้งเตือน",
+    "tr": "Kapat",
+    "vi": "Bỏ qua",
+    "zh-CN": "忽略",
+    "zh-TW": "忽略"
+  },
+  "Speedup": {
+    "ar": "تسريع",
+    "de": "Beschleuniger",
+    "es": "Acelerador",
+    "fr": "Accélérateur",
+    "id": "Percepatan",
+    "it": "Acceleratore",
+    "ja": "加速アイテム",
+    "ko": "가속 아이템",
+    "pl": "Przyspieszenie",
+    "pt-BR": "Acelerador",
+    "ru": "Ускорение",
+    "th": "ไอเทมเร่งเวลา",
+    "tr": "Hızlandırma",
+    "vi": "Tăng tốc",
+    "zh-CN": "加速道具",
+    "zh-TW": "加速道具"
+  },
+  "Health": {
+    "ar": "حالة النظام",
+    "de": "Systemzustand",
+    "es": "Estado del sistema",
+    "fr": "État du système",
+    "id": "Kondisi sistem",
+    "it": "Stato del sistema",
+    "ja": "システムの状態",
+    "ko": "시스템 상태",
+    "pl": "Stan systemu",
+    "pt-BR": "Estado do sistema",
+    "ru": "Состояние системы",
+    "th": "สถานะระบบ",
+    "tr": "Sistem durumu",
+    "vi": "Tình trạng hệ thống",
+    "zh-CN": "系统状态",
+    "zh-TW": "系統狀態"
+  },
+  "Healthy": {
+    "ar": "يعمل بشكل سليم",
+    "de": "Funktionsfähig",
+    "es": "Funciona correctamente",
+    "fr": "Fonctionnel",
+    "id": "Berfungsi baik",
+    "it": "Funzionante",
+    "ja": "正常",
+    "ko": "정상",
+    "pl": "Działa prawidłowo",
+    "pt-BR": "Funcionando normalmente",
+    "ru": "Работает нормально",
+    "th": "ทำงานปกติ",
+    "tr": "Sağlıklı",
+    "vi": "Hoạt động bình thường",
+    "zh-CN": "运行正常",
+    "zh-TW": "運作正常"
+  },
+  "Commit": {
+    "ar": "تطبيق التغييرات",
+    "de": "Änderungen übernehmen",
+    "es": "Aplicar cambios",
+    "fr": "Valider les modifications",
+    "id": "Terapkan perubahan",
+    "it": "Applica modifiche",
+    "ja": "変更を適用",
+    "ko": "변경 사항 적용",
+    "pl": "Zastosuj zmiany",
+    "pt-BR": "Aplicar alterações",
+    "ru": "Применить изменения",
+    "th": "ใช้การเปลี่ยนแปลง",
+    "tr": "Değişiklikleri uygula",
+    "vi": "Áp dụng thay đổi",
+    "zh-CN": "应用更改",
+    "zh-TW": "套用變更"
+  },
+  "Actor": {
+    "ar": "منفّذ الإجراء",
+    "de": "Ausführender",
+    "es": "Autor de la acción",
+    "fr": "Auteur de l’action",
+    "id": "Pelaku tindakan",
+    "it": "Autore dell’azione",
+    "ja": "実行者",
+    "ko": "수행자",
+    "pl": "Wykonawca",
+    "pt-BR": "Autor da ação",
+    "ru": "Исполнитель",
+    "th": "ผู้ดำเนินการ",
+    "tr": "İşlemi yapan",
+    "vi": "Người thực hiện",
+    "zh-CN": "操作者",
+    "zh-TW": "操作者"
+  },
+  "Scope": {
+    "ar": "النطاق",
+    "de": "Geltungsbereich",
+    "es": "Ámbito",
+    "fr": "Périmètre",
+    "id": "Cakupan",
+    "it": "Ambito",
+    "ja": "範囲",
+    "ko": "범위",
+    "pl": "Zakres",
+    "pt-BR": "Escopo",
+    "ru": "Область действия",
+    "th": "ขอบเขต",
+    "tr": "Kapsam",
+    "vi": "Phạm vi",
+    "zh-CN": "范围",
+    "zh-TW": "範圍"
+  },
+  "Scopes": {
+    "ar": "النطاقات",
+    "de": "Geltungsbereiche",
+    "es": "Ámbitos",
+    "fr": "Périmètres",
+    "id": "Cakupan",
+    "it": "Ambiti",
+    "ja": "範囲",
+    "ko": "범위",
+    "pl": "Zakresy",
+    "pt-BR": "Escopos",
+    "ru": "Области действия",
+    "th": "ขอบเขต",
+    "tr": "Kapsamlar",
+    "vi": "Phạm vi",
+    "zh-CN": "范围",
+    "zh-TW": "範圍"
+  },
+  "Roster": {
+    "ar": "قائمة الأعضاء",
+    "de": "Mitgliederliste",
+    "es": "Lista de miembros",
+    "fr": "Liste des membres",
+    "id": "Daftar anggota",
+    "it": "Elenco membri",
+    "ja": "メンバー一覧",
+    "ko": "멤버 명단",
+    "pl": "Lista członków",
+    "pt-BR": "Lista de membros",
+    "ru": "Список участников",
+    "th": "รายชื่อสมาชิก",
+    "tr": "Üye listesi",
+    "vi": "Danh sách thành viên",
+    "zh-CN": "成员名单",
+    "zh-TW": "成員名單"
+  },
+  "Lead": {
+    "ar": "قائد التجمع",
+    "de": "Sammelangriffsleiter",
+    "es": "Líder de concentración",
+    "fr": "Chef du ralliement",
+    "id": "Pemimpin reli",
+    "it": "Capo del raduno",
+    "ja": "集結主催者",
+    "ko": "집결장",
+    "pl": "Dowódca zbiórki",
+    "pt-BR": "Líder do agrupamento",
+    "ru": "Лидер сбора",
+    "th": "ผู้นำการชุมนุม",
+    "tr": "Toplanma lideri",
+    "vi": "Người chỉ huy tập kết",
+    "zh-CN": "集结队长",
+    "zh-TW": "集結隊長"
+  },
+  "Joiner": {
+    "ar": "مشارك في التجمع",
+    "de": "Teilnehmer am Sammelangriff",
+    "es": "Participante de concentración",
+    "fr": "Participant au ralliement",
+    "id": "Peserta reli",
+    "it": "Partecipante al raduno",
+    "ja": "集結参加者",
+    "ko": "집결 참가자",
+    "pl": "Uczestnik zbiórki",
+    "pt-BR": "Participante do agrupamento",
+    "ru": "Участник сбора",
+    "th": "ผู้เข้าร่วมการชุมนุม",
+    "tr": "Toplanma katılımcısı",
+    "vi": "Người tham gia tập kết",
+    "zh-CN": "集结参与者",
+    "zh-TW": "集結參與者"
+  },
+  "Standby": {
+    "ar": "احتياط",
+    "de": "Bereitschaft",
+    "es": "En espera",
+    "fr": "En réserve",
+    "id": "Siaga",
+    "it": "In riserva",
+    "ja": "待機",
+    "ko": "대기",
+    "pl": "Rezerwa",
+    "pt-BR": "Reserva",
+    "ru": "Резерв",
+    "th": "เตรียมพร้อม",
+    "tr": "Yedek",
+    "vi": "Dự bị",
+    "zh-CN": "待命",
+    "zh-TW": "待命"
+  },
+  "Body": {
+    "ar": "نص الرسالة",
+    "de": "Nachrichtentext",
+    "es": "Cuerpo del mensaje",
+    "fr": "Corps du message",
+    "id": "Isi pesan",
+    "it": "Corpo del messaggio",
+    "ja": "メッセージ本文",
+    "ko": "메시지 본문",
+    "pl": "Treść wiadomości",
+    "pt-BR": "Corpo da mensagem",
+    "ru": "Текст сообщения",
+    "th": "เนื้อหาข้อความ",
+    "tr": "Mesaj metni",
+    "vi": "Nội dung tin nhắn",
+    "zh-CN": "消息正文",
+    "zh-TW": "訊息本文"
+  },
+  "Backfill": {
+    "ar": "استكمال البيانات السابقة",
+    "de": "Historische Daten nachladen",
+    "es": "Completar datos históricos",
+    "fr": "Récupérer les données historiques",
+    "id": "Lengkapi data historis",
+    "it": "Recupera dati storici",
+    "ja": "過去のデータを補完",
+    "ko": "과거 데이터 채우기",
+    "pl": "Uzupełnij dane historyczne",
+    "pt-BR": "Preencher dados históricos",
+    "ru": "Загрузить исторические данные",
+    "th": "เติมข้อมูลย้อนหลัง",
+    "tr": "Geçmiş verileri tamamla",
+    "vi": "Bổ sung dữ liệu lịch sử",
+    "zh-CN": "补充历史数据",
+    "zh-TW": "補齊歷史資料"
+  },
+  "Interchange": {
+    "ar": "تبادل البيانات",
+    "de": "Datenaustausch",
+    "es": "Intercambio de datos",
+    "fr": "Échange de données",
+    "id": "Pertukaran data",
+    "it": "Scambio di dati",
+    "ja": "データ交換",
+    "ko": "데이터 교환",
+    "pl": "Wymiana danych",
+    "pt-BR": "Intercâmbio de dados",
+    "ru": "Обмен данными",
+    "th": "การแลกเปลี่ยนข้อมูล",
+    "tr": "Veri alışverişi",
+    "vi": "Trao đổi dữ liệu",
+    "zh-CN": "数据交换",
+    "zh-TW": "資料交換"
+  },
+  "Reconciliation": {
+    "ar": "مطابقة البيانات",
+    "de": "Datenabgleich",
+    "es": "Conciliación de datos",
+    "fr": "Rapprochement des données",
+    "id": "Pencocokan data",
+    "it": "Riconciliazione dei dati",
+    "ja": "データ照合",
+    "ko": "데이터 대조",
+    "pl": "Uzgadnianie danych",
+    "pt-BR": "Conciliação de dados",
+    "ru": "Сверка данных",
+    "th": "การกระทบยอดข้อมูล",
+    "tr": "Veri mutabakatı",
+    "vi": "Đối soát dữ liệu",
+    "zh-CN": "数据核对",
+    "zh-TW": "資料核對"
+  },
+  "mark as read": {
+    "ar": "تحديد كمقروء",
+    "de": "Als gelesen markieren",
+    "es": "Marcar como leído",
+    "fr": "Marquer comme lu",
+    "id": "Tandai sudah dibaca",
+    "it": "Segna come letto",
+    "ja": "既読にする",
+    "ko": "읽음으로 표시",
+    "pl": "Oznacz jako przeczytane",
+    "pt-BR": "Marcar como lido",
+    "ru": "Отметить как прочитанное",
+    "th": "ทำเครื่องหมายว่าอ่านแล้ว",
+    "tr": "Okundu olarak işaretle",
+    "vi": "Đánh dấu đã đọc",
+    "zh-CN": "标为已读",
+    "zh-TW": "標為已讀"
+  },
+  "mark as unread": {
+    "ar": "تحديد كغير مقروء",
+    "de": "Als ungelesen markieren",
+    "es": "Marcar como no leído",
+    "fr": "Marquer comme non lu",
+    "id": "Tandai belum dibaca",
+    "it": "Segna come non letto",
+    "ja": "未読にする",
+    "ko": "읽지 않음으로 표시",
+    "pl": "Oznacz jako nieprzeczytane",
+    "pt-BR": "Marcar como não lido",
+    "ru": "Отметить как непрочитанное",
+    "th": "ทำเครื่องหมายว่ายังไม่อ่าน",
+    "tr": "Okunmadı olarak işaretle",
+    "vi": "Đánh dấu chưa đọc",
+    "zh-CN": "标为未读",
+    "zh-TW": "標為未讀"
+  },
+  "factual rows": {
+    "fr": "lignes de données factuelles"
+  },
+  "Due {date}": {
+    "fr": "Échéance : {date}",
+    "es": "Vence el {date}",
+    "ar": "الموعد النهائي {date}",
+    "vi": "Đến hạn {date}",
+    "zh-CN": "截止时间：{date}",
+    "zh-TW": "截止時間：{date}",
+    "th": "ครบกำหนด {date}"
+  },
+  "API access is disabled for this Alliance.": {
+    "fr": "L’accès à l’API est désactivé pour cette Alliance.",
+    "es": "El acceso a la API está deshabilitado para esta Alianza.",
+    "it": "L’accesso all’API è disabilitato per questa Alleanza.",
+    "de": "Der API-Zugriff ist für diese Allianz deaktiviert.",
+    "pt-BR": "O acesso à API está desativado para esta Aliança."
+  },
+  "API access is disabled for this alliance.": {
+    "fr": "L’accès à l’API est désactivé pour cette alliance.",
+    "es": "El acceso a la API está deshabilitado para esta alianza.",
+    "it": "L’accesso all’API è disabilitato per questa alleanza.",
+    "de": "Der API-Zugriff ist für diese Allianz deaktiviert.",
+    "pt-BR": "O acesso à API está desativado para esta aliança."
+  },
+  "Use your Kingshot Alliance account email and local password. You can add or remove this method without changing your User identity.": {
+    "fr": "Utilisez l’adresse e-mail de votre compte Kingshot Alliance et votre mot de passe local. Vous pouvez ajouter ou supprimer cette méthode sans changer votre identité utilisateur."
+  },
+  "{title} revision {revision} is current.": {
+    "fr": "La révision {revision} de {title} est à jour.",
+    "pl": "Wersja {revision} elementu {title} jest aktualna."
+  },
+  "Google must provide a stable identity and verified email address to sign in.": {
+    "fr": "Pour vous connecter, Google doit fournir une identité stable et une adresse e-mail vérifiée.",
+    "es": "Google debe proporcionar una identidad estable y una dirección de correo electrónico verificada para iniciar sesión.",
+    "it": "Per accedere, Google deve fornire un’identità stabile e un indirizzo email verificato.",
+    "pl": "Aby się zalogować, Google musi udostępnić stały identyfikator i zweryfikowany adres e-mail.",
+    "ru": "Для входа Google должен предоставить постоянный идентификатор и подтверждённый адрес электронной почты.",
+    "ko": "로그인하려면 Google에서 고정된 사용자 식별자와 인증된 이메일 주소를 제공해야 합니다."
+  },
+  "Enter an official HTTPS Discord webhook URL.": {
+    "fr": "Saisissez une URL HTTPS officielle de webhook Discord.",
+    "es": "Introduce una URL HTTPS oficial de webhook de Discord.",
+    "it": "Inserisci un URL HTTPS ufficiale di un webhook Discord.",
+    "pt-BR": "Insira uma URL HTTPS oficial de webhook do Discord.",
+    "ru": "Введите официальный HTTPS-адрес вебхука Discord.",
+    "ja": "Discordの公式HTTPS Webhook URLを入力してください。",
+    "th": "ป้อน URL เว็บฮุก Discord แบบ HTTPS อย่างเป็นทางการ"
+  },
+  "Abandon run": {
+    "fr": "Abandonner l’exécution"
+  },
+  "Alliance / tag": {
+    "fr": "Alliance / sigle"
+  },
+  "Alliance Brawl": {
+    "fr": "Bataille des Alliances"
+  },
+  "Alliance discovery": {
+    "fr": "Découverte d’Alliances"
+  },
+  "Alliance roster screenshots": {
+    "fr": "Captures de la liste des membres de l’Alliance"
+  },
+  "Ally": {
+    "fr": "Allié",
+    "es": "Aliado",
+    "id": "Sekutu",
+    "pl": "Sojusznik"
+  },
+  "Ambiguous": {
+    "fr": "Ambigu",
+    "es": "Ambiguo",
+    "de": "Mehrdeutig",
+    "pl": "Niejednoznaczne"
+  },
+  "Archer": {
+    "fr": "Archer",
+    "es": "Arquero",
+    "it": "Arciere",
+    "id": "Pemanah",
+    "de": "Bogenschütze",
+    "pl": "Łucznik",
+    "vi": "Cung thủ",
+    "pt-BR": "Arqueiro",
+    "tr": "Okçu"
+  },
+  "Archers %": {
+    "fr": "Archers (%)"
+  },
+  "Arrow": {
+    "fr": "Flèche",
+    "de": "Pfeil"
+  },
+  "Assertion": {
+    "fr": "Affirmation",
+    "es": "Afirmación",
+    "id": "Pernyataan",
+    "de": "Aussage",
+    "tr": "Beyan"
+  },
+  "Assign plan": {
+    "fr": "Attribuer un forfait"
+  },
+  "Banner image": {
+    "fr": "Image de bannière"
+  },
+  "Battle": {
+    "fr": "Bataille",
+    "es": "Batalla",
+    "de": "Schlacht"
+  },
+  "Bear Hunt performance": {
+    "fr": "Résultats de la chasse à l’ours",
+    "es": "Rendimiento en la caza del oso",
+    "it": "Risultati della caccia all’orso",
+    "pt-BR": "Desempenho na caça ao urso"
+  },
+  "Canonical": {
+    "fr": "Canonique",
+    "es": "Canónico",
+    "it": "Canonico",
+    "id": "Kanonis",
+    "de": "Maßgeblich",
+    "pl": "Kanoniczny",
+    "pt-BR": "Canônico",
+    "tr": "Esas alınan",
+    "vi": "Chính chuẩn"
+  },
+  "Cesares Fury": {
+    "fr": "Fureur de César",
+    "id": "Amarah Caesar",
+    "de": "Cäsars Zorn",
+    "pl": "Gniew Cezara",
+    "tr": "Sezar’ın Öfkesi",
+    "vi": "Cơn thịnh nộ của Caesar"
+  },
+  "Changed": {
+    "fr": "Modifié",
+    "de": "Geändert"
+  },
+  "Closeout clear": {
+    "fr": "Clôture sans blocage",
+    "es": "Cierre sin bloqueos",
+    "it": "Chiusura senza blocchi",
+    "pl": "Brak przeszkód do zamknięcia",
+    "pt-BR": "Encerramento sem impedimentos"
+  },
+  "Commit observed facts": {
+    "fr": "Valider les faits observés"
+  },
+  "Connect Google": {
+    "fr": "Connecter Google",
+    "de": "Google verbinden",
+    "pl": "Połącz z Google"
+  },
+  "Custom": {
+    "fr": "Personnalisé",
+    "es": "Personalizado",
+    "de": "Benutzerdefiniert",
+    "pl": "Niestandardowy"
+  },
+  "Daily digest": {
+    "fr": "Récapitulatif quotidien",
+    "it": "Riepilogo giornaliero",
+    "id": "Ringkasan harian",
+    "de": "Tägliche Zusammenfassung",
+    "pl": "Podsumowanie dzienne",
+    "pt-BR": "Resumo diário"
+  },
+  "Destination receipt": {
+    "fr": "Accusé de réception du destinataire"
+  },
+  "Dislike": {
+    "fr": "Je n’aime pas",
+    "de": "Gefällt mir nicht",
+    "pl": "Nie lubię"
+  },
+  "Distance delta": {
+    "fr": "Écart de distance"
+  },
+  "Drafts": {
+    "fr": "Brouillons"
+  },
+  "Duplicate blocked": {
+    "fr": "Doublon bloqué",
+    "de": "Duplikat blockiert"
+  },
+  "Effective": {
+    "fr": "Effectif"
+  },
+  "Eternity's Reach": {
+    "fr": "Portée de l’éternité",
+    "id": "Jangkauan keabadian",
+    "de": "Reichweite der Ewigkeit"
+  },
+  "Evidence workflow": {
+    "fr": "Processus de gestion des preuves"
+  },
+  "Failing": {
+    "fr": "En échec",
+    "de": "Fehlerhaft",
+    "pl": "Występują błędy"
+  },
+  "Failure": {
+    "fr": "Échec",
+    "de": "Fehler"
+  },
+  "Feature flag": {
+    "fr": "Option d’activation"
+  },
+  "Gate": {
+    "fr": "Condition d’accès",
+    "de": "Freigabebedingung"
+  },
+  "Head polling": {
+    "fr": "Vérification des derniers éléments",
+    "it": "Controllo degli elementi più recenti",
+    "id": "Pemeriksaan data terbaru",
+    "pl": "Sprawdzanie najnowszych danych",
+    "pt-BR": "Consulta dos dados mais recentes"
+  },
+  "Heroes": {
+    "fr": "Héros",
+    "es": "Héroes",
+    "de": "Helden",
+    "pl": "Bohaterowie"
+  },
+  "Identity match": {
+    "fr": "Correspondance d’identité",
+    "it": "Corrispondenza dell’identità"
+  },
+  "Invalid": {
+    "fr": "Non valide"
+  },
+  "Invitation expires {date}": {
+    "fr": "L’invitation expire le {date}",
+    "ar": "تنتهي صلاحية الدعوة في {date}",
+    "ru": "Приглашение истекает {date}",
+    "tr": "Davetin sona erme tarihi: {date}",
+    "zh-CN": "邀请到期时间：{date}",
+    "zh-TW": "邀請到期時間：{date}"
+  },
+  "Joined": {
+    "fr": "Inscrit"
+  },
+  "King’s Skill": {
+    "fr": "Compétence du Roi",
+    "it": "Abilità del Re",
+    "pl": "Umiejętność króla"
+  },
+  "Label": {
+    "fr": "Libellé",
+    "de": "Beschriftung",
+    "pl": "Etykieta"
+  },
+  "Leaderboard off": {
+    "fr": "Classement désactivé",
+    "it": "Classifica disattivata",
+    "id": "Papan peringkat nonaktif",
+    "pl": "Ranking wyłączony",
+    "pt-BR": "Ranking desativado"
+  },
+  "Leaderboard opted out": {
+    "fr": "Participation au classement refusée",
+    "it": "Partecipazione alla classifica rifiutata",
+    "pl": "Rezygnacja z rankingu",
+    "pt-BR": "Participação no ranking recusada"
+  },
+  "Like": {
+    "fr": "J’aime",
+    "es": "Me gusta",
+    "de": "Gefällt mir",
+    "pl": "Lubię to"
+  },
+  "Lock": {
+    "fr": "Verrouiller",
+    "de": "Sperren",
+    "pl": "Zablokuj"
+  },
+  "Logo image": {
+    "fr": "Image du logo"
+  },
+  "Mute external delivery until": {
+    "fr": "Suspendre l’envoi externe jusqu’au",
+    "pt-BR": "Suspender envios externos até"
+  },
+  "NOW": {
+    "fr": "MAINTENANT",
+    "de": "JETZT"
+  },
+  "No-show": {
+    "fr": "Absent sans prévenir",
+    "it": "Assente senza preavviso",
+    "de": "Unentschuldigt abwesend"
+  },
+  "Observed tag": {
+    "fr": "Sigle observé",
+    "pl": "Zaobserwowany skrót",
+    "de": "Beobachtetes Allianzkürzel"
+  },
+  "Off": {
+    "fr": "Désactivé",
+    "pl": "Wyłączone"
+  },
+  "On": {
+    "fr": "Activé",
+    "es": "Activado",
+    "id": "Aktif",
+    "de": "Aktiviert",
+    "pl": "Włączone",
+    "pt-BR": "Ativado"
+  },
+  "Open Debrief": {
+    "fr": "Ouvrir le bilan",
+    "de": "Nachbesprechung öffnen",
+    "pl": "Otwórz podsumowanie"
+  },
+  "Ordinary Invite": {
+    "fr": "Invitation ordinaire",
+    "it": "Invito ordinario",
+    "de": "Normale Einladung",
+    "pl": "Zwykłe zaproszenie"
+  },
+  "P95 Time-to-Code": {
+    "fr": "95e percentile du délai d’obtention du code",
+    "it": "95º percentile del tempo di acquisizione del codice",
+    "de": "95. Perzentil der Zeit bis zur Code-Erfassung",
+    "pl": "95. percentyl czasu pozyskania kodu"
+  },
+  "Page {page} of {pages}": {
+    "fr": "Page {page} sur {pages}",
+    "ja": "{page} / {pages}ページ"
+  },
+  "Passkey renamed": {
+    "fr": "Clé d’accès renommée"
+  },
+  "Passkeys": {
+    "fr": "Clés d’accès",
+    "it": "Chiavi di accesso",
+    "de": "Passkeys",
+    "pl": "Klucze dostępu"
+  },
+  "Persist artwork SVG": {
+    "fr": "Enregistrer l’illustration SVG",
+    "es": "Guardar ilustración SVG",
+    "it": "Salva l’illustrazione SVG",
+    "pl": "Zapisz grafikę SVG",
+    "pt-BR": "Salvar ilustração SVG"
+  },
+  "Plan annotations": {
+    "fr": "Annotations du plan"
+  },
+  "Poll": {
+    "fr": "Sondage",
+    "es": "Encuesta",
+    "de": "Umfrage",
+    "pl": "Ankieta"
+  },
+  "Prompt": {
+    "fr": "Consigne",
+    "es": "Instrucción",
+    "it": "Istruzione",
+    "id": "Instruksi",
+    "de": "Anweisung",
+    "pl": "Instrukcja",
+    "pt-BR": "Instrução"
+  },
+  "Push discovery": {
+    "fr": "Découverte des notifications push",
+    "it": "Rilevamento delle notifiche push",
+    "id": "Penemuan notifikasi push",
+    "pl": "Wykrywanie powiadomień push"
+  },
+  "Queue partition": {
+    "fr": "Partition de la file d’attente"
+  },
+  "Queuing test…": {
+    "fr": "Mise en file d’attente du test…"
+  },
+  "Record review": {
+    "fr": "Enregistrer l’examen",
+    "it": "Registra la revisione",
+    "pl": "Zapisz przegląd",
+    "de": "Prüfung erfassen"
+  },
+  "Release": {
+    "fr": "Libérer",
+    "es": "Liberar",
+    "de": "Freigeben",
+    "pl": "Zwolnij"
+  },
+  "Reopen": {
+    "fr": "Rouvrir",
+    "de": "Erneut öffnen",
+    "pl": "Otwórz ponownie"
+  },
+  "Reverify": {
+    "fr": "Vérifier à nouveau",
+    "es": "Volver a verificar",
+    "de": "Erneut überprüfen",
+    "pl": "Zweryfikuj ponownie"
+  },
+  "Roster screenshots": {
+    "fr": "Captures de la liste des membres",
+    "it": "Schermate dell’elenco membri",
+    "pt-BR": "Capturas da lista de membros"
+  },
+  "Run backfill": {
+    "fr": "Récupérer les données historiques",
+    "de": "Historische Daten nachladen",
+    "pl": "Uzupełnij dane historyczne"
+  },
+  "Running": {
+    "fr": "En cours",
+    "es": "En curso",
+    "de": "Läuft"
+  },
+  "Scan": {
+    "fr": "Analyser",
+    "de": "Scannen"
+  },
+  "Sent": {
+    "fr": "Envoyé",
+    "es": "Enviado",
+    "de": "Gesendet",
+    "pl": "Wysłano"
+  },
+  "Skip to content": {
+    "fr": "Aller au contenu"
+  },
+  "Skipped": {
+    "fr": "Ignoré",
+    "de": "Übersprungen"
+  },
+  "Slot": {
+    "fr": "Emplacement",
+    "de": "Platz",
+    "pl": "Miejsce",
+    "tr": "Yuva"
+  },
+  "Source gaps": {
+    "fr": "Lacunes des sources",
+    "it": "Lacune nelle fonti"
+  },
+  "Stage updated": {
+    "fr": "Étape mise à jour",
+    "pl": "Zaktualizowano etap"
+  },
+  "Subreddit": {
+    "fr": "Communauté Reddit",
+    "es": "Comunidad de Reddit",
+    "it": "Comunità Reddit",
+    "id": "Komunitas Reddit",
+    "de": "Reddit-Community",
+    "pl": "Społeczność Reddit",
+    "pt-BR": "Comunidade do Reddit",
+    "tr": "Reddit topluluğu",
+    "vi": "Cộng đồng Reddit"
+  },
+  "Swirl": {
+    "fr": "Tourbillon",
+    "es": "Remolino",
+    "id": "Pusaran",
+    "de": "Wirbel"
+  },
+  "Swordland Showdown": {
+    "fr": "Affrontement de Swordland",
+    "id": "Pertarungan Swordland",
+    "it": "Scontro di Swordland",
+    "de": "Swordland-Showdown",
+    "pl": "Starcie w Swordland",
+    "tr": "Swordland Mücadelesi",
+    "vi": "Trận chiến Swordland"
+  },
+  "Telegram chat ID": {
+    "fr": "Identifiant de la discussion Telegram",
+    "es": "ID del chat de Telegram",
+    "it": "ID della chat Telegram",
+    "id": "ID obrolan Telegram",
+    "de": "Telegram-Chat-ID",
+    "pl": "ID czatu Telegram",
+    "pt-BR": "ID do chat do Telegram",
+    "vi": "ID cuộc trò chuyện Telegram",
+    "ja": "TelegramチャットID",
+    "zh-CN": "Telegram聊天ID",
+    "zh-TW": "Telegram聊天ID"
+  },
+  "Treasure Raiders": {
+    "fr": "Pilleurs de trésors",
+    "id": "Penjarah harta",
+    "it": "Predoni del tesoro",
+    "pl": "Łowcy skarbów"
+  },
+  "Viking Vengeance": {
+    "fr": "Vengeance viking",
+    "es": "Venganza vikinga",
+    "it": "Vendetta vichinga",
+    "de": "Wikinger-Rache",
+    "pl": "Zemsta wikingów",
+    "ko": "바이킹의 복수"
+  },
+  "Visible-region bounds": {
+    "fr": "Limites de la région visible",
+    "it": "Limiti della regione visibile"
+  },
+  "Web Push": {
+    "fr": "Notifications push web",
+    "es": "Notificaciones push web",
+    "it": "Notifiche push web",
+    "id": "Notifikasi push web",
+    "de": "Web-Push-Benachrichtigungen",
+    "pl": "Powiadomienia push w przeglądarce",
+    "tr": "Web anlık bildirimleri"
+  },
+  "archive": {
+    "fr": "archiver"
+  },
+  "backfill": {
+    "fr": "récupération des données historiques",
+    "de": "Nachladen historischer Daten",
+    "pl": "uzupełnianie danych historycznych"
+  },
+  "duplicate": {
+    "fr": "doublon",
+    "pt-BR": "duplicado"
+  },
+  "off": {
+    "fr": "désactivé",
+    "es": "desactivado",
+    "pl": "wyłączone"
+  },
+  "on": {
+    "fr": "activé",
+    "es": "activado",
+    "it": "attivo",
+    "id": "aktif",
+    "de": "aktiviert",
+    "pl": "włączone",
+    "pt-BR": "ativado"
+  },
+  "push": {
+    "fr": "notification push",
+    "de": "Push-Benachrichtigung",
+    "pl": "powiadomienie push"
+  },
+  "trust revision {revision}": {
+    "fr": "révision de confiance {revision}",
+    "es": "revisión de confianza {revision}",
+    "id": "revisi kepercayaan {revision}",
+    "pt-BR": "revisão de confiança {revision}",
+    "tr": "Güven revizyonu {revision}",
+    "vi": "phiên bản độ tin cậy {revision}",
+    "ko": "신뢰도 개정판 {revision}",
+    "th": "ฉบับแก้ไขความน่าเชื่อถือ {revision}"
+  },
+  "{completed} of {total} completed": {
+    "fr": "{completed} sur {total} terminés",
+    "zh-CN": "已完成 {completed} / {total}",
+    "zh-TW": "已完成 {completed} / {total}",
+    "th": "เสร็จแล้ว {completed} จาก {total}"
+  },
+  "{count} active": {
+    "fr": "{count} actifs",
+    "vi": "{count} đang hoạt động",
+    "ja": "有効：{count}件",
+    "ko": "활성 {count}개",
+    "th": "ใช้งานอยู่ {count} รายการ"
+  },
+  "{minutes} minutes old": {
+    "fr": "il y a {minutes} minutes"
+  },
+  "{name} history": {
+    "fr": "Historique de {name}",
+    "ar": "سجل {name}",
+    "th": "ประวัติของ {name}"
+  },
+  "{name} observation": {
+    "fr": "Observation de {name}"
+  },
+  "Exclusive Gear max": {
+    "fr": "Niveau maximal de l’équipement exclusif"
+  },
+  "Kingdom sharing": {
+    "fr": "Partage au sein du Royaume",
+    "vi": "Chia sẻ trong vương quốc",
+    "de": "Freigaben im Königreich",
+    "id": "Berbagi dalam kerajaan"
+  },
+  "Event scheduled.": {
+    "fr": "Événement programmé.",
+    "es": "Evento programado.",
+    "it": "Evento programmato.",
+    "id": "Acara dijadwalkan.",
+    "ar": "تمت جدولة الحدث.",
+    "de": "Ereignis geplant.",
+    "pl": "Zaplanowano wydarzenie.",
+    "pt-BR": "Evento agendado.",
+    "ru": "Событие запланировано.",
+    "tr": "Etkinlik planlandı.",
+    "vi": "Đã lên lịch sự kiện.",
+    "ja": "イベントを予定に登録しました。",
+    "zh-CN": "活动已安排。",
+    "zh-TW": "活動已安排。",
+    "ko": "이벤트 일정이 등록되었습니다.",
+    "th": "กำหนดเวลากิจกรรมแล้ว"
+  },
+  "Kingdom position plan created.": {
+    "fr": "Plan des postes du Royaume créé."
+  },
+  "Platform Administrator access revoked.": {
+    "fr": "Accès d’administrateur de la plateforme révoqué."
+  },
+  "The next verified Event has {count} blocking readiness item(s). Its owner projection is shown below.": {
+    "fr": "Le prochain Événement vérifié présente {count} point(s) bloquant sa préparation. La vue du responsable est affichée ci-dessous.",
+    "ja": "次の確認済みイベントには、準備を妨げる項目が{count}件あります。担当者の状況表示は以下のとおりです。"
+  },
+  "Cancel {count} eligible Events and their future occurrences?": {
+    "es": "¿Cancelar {count} Eventos elegibles y sus futuras repeticiones?",
+    "it": "Annullare {count} Eventi idonei e le loro ricorrenze future?",
+    "pl": "Anulować {count} kwalifikujących się wydarzeń i ich przyszłe wystąpienia?"
+  },
+  "Retrieved": {
+    "es": "Recuperado",
+    "de": "Abgerufen",
+    "pl": "Pobrano"
+  },
+  "Hero": {
+    "es": "Héroe",
+    "id": "Pahlawan",
+    "de": "Held",
+    "pl": "Bohater"
+  },
+  "Star": {
+    "es": "Estrella",
+    "de": "Stern"
+  },
+  "Compare": {
+    "es": "Comparar"
+  },
+  "Resume": {
+    "es": "Reanudar",
+    "de": "Fortsetzen",
+    "pl": "Wznów"
+  },
+  "Participated": {
+    "es": "Participó"
+  },
+  "Rallies": {
+    "es": "Concentraciones"
+  },
+  "Substar": {
+    "es": "Subnivel de estrella",
+    "it": "Sottolivello della stella",
+    "id": "Subtingkat bintang",
+    "de": "Stern-Unterstufe",
+    "pl": "Podpoziom gwiazdki",
+    "pt-BR": "Subnível de estrela",
+    "vi": "Bậc phụ của sao"
+  },
+  "Moved": {
+    "es": "Trasladado",
+    "de": "Umgezogen"
+  },
+  "Reject": {
+    "es": "Rechazar",
+    "de": "Ablehnen"
+  },
+  "Expired": {
+    "es": "Caducado"
+  },
+  "Descending": {
+    "es": "Descendente",
+    "pl": "Malejąco"
+  },
+  "Record observation": {
+    "es": "Registrar observación"
+  },
+  "Observed used": {
+    "es": "Uso observado"
+  },
+  "Record scout finding": {
+    "es": "Registrar hallazgo de exploración"
+  },
+  "Sent {date}": {
+    "es": "Enviado el {date}",
+    "it": "Inviato il {date}",
+    "de": "Gesendet am {date}",
+    "pl": "Wysłano {date}",
+    "pt-BR": "Enviado em {date}",
+    "zh-CN": "发送时间：{date}",
+    "zh-TW": "傳送時間：{date}",
+    "ko": "발송 일시: {date}"
+  },
+  "Hero Generation": {
+    "it": "Generazione degli eroi",
+    "de": "Heldengeneration",
+    "pl": "Generacja bohaterów"
+  },
+  "Merchant Empire": {
+    "it": "Impero mercantile",
+    "id": "Kekaisaran dagang",
+    "de": "Handelsimperium",
+    "pl": "Imperium kupieckie"
+  },
+  "Dashboard": {
+    "it": "Pannello di controllo",
+    "de": "Übersicht"
+  },
+  "Home": {
+    "it": "Pagina iniziale"
+  },
+  "In progress": {
+    "it": "In corso"
+  },
+  "In app": {
+    "it": "Nell’app"
+  },
+  "Officer brief": {
+    "it": "Riepilogo per gli ufficiali",
+    "de": "Offiziersbericht",
+    "pt-BR": "Resumo para oficiais"
+  },
+  "Matchmaking": {
+    "it": "Abbinamento",
+    "id": "Pencocokan lawan",
+    "de": "Gegnersuche",
+    "pt-BR": "Pareamento"
+  },
+  "Debrief": {
+    "it": "Resoconto",
+    "id": "Laporan evaluasi",
+    "pt-BR": "Relatório pós-evento"
+  },
+  "Review delivery": {
+    "it": "Esamina la consegna",
+    "pl": "Sprawdź dostarczenie"
+  },
+  "Review due": {
+    "it": "Revisione in scadenza"
+  },
+  "Charm slot": {
+    "it": "Slot del talismano",
+    "pl": "Miejsce na talizman",
+    "tr": "Tılsım yuvası"
+  },
+  "Map screenshot": {
+    "it": "Schermata della mappa"
+  },
+  "Review needed": {
+    "it": "Revisione necessaria",
+    "pl": "Wymagany przegląd"
+  },
+  "Officer briefs": {
+    "it": "Riepiloghi per gli ufficiali"
+  },
+  "Target rank": {
+    "it": "Grado desiderato",
+    "id": "Pangkat tujuan"
+  },
+  "Roster screenshot": {
+    "it": "Schermata dell’elenco membri"
+  },
+  "Passkey name": {
+    "it": "Nome della chiave di accesso"
+  },
+  "Review due soon": {
+    "it": "Revisione in scadenza a breve"
+  },
+  "In-game": {
+    "it": "Nel gioco",
+    "pl": "W grze",
+    "de": "Im Spiel"
+  },
+  "Officer review due": {
+    "it": "Revisione degli ufficiali in scadenza"
+  },
+  "Target X": {
+    "it": "X di destinazione",
+    "de": "Ziel-X",
+    "pl": "Docelowa współrzędna X"
+  },
+  "Target Y": {
+    "it": "Y di destinazione",
+    "de": "Ziel-Y",
+    "pl": "Docelowa współrzędna Y"
+  },
+  "Governor Hero Generation": {
+    "it": "Generazione degli eroi del Governatore",
+    "id": "Generasi pahlawan Gubernur",
+    "tr": "Valinin kahraman nesli",
+    "vi": "Thế hệ anh hùng của Thống đốc"
+  },
+  "Revoke source": {
+    "it": "Revoca la fonte",
+    "pl": "Wycofaj źródło"
+  },
+  "Record holds": {
+    "it": "Registra le sospensioni"
+  },
+  "Bulk member administration": {
+    "it": "Gestione collettiva dei membri"
+  },
+  "Commit rank changes": {
+    "it": "Applica le modifiche ai gradi"
+  },
+  "Reset override": {
+    "it": "Reimposta la sostituzione",
+    "id": "Atur ulang penggantian",
+    "pl": "Zresetuj nadpisanie",
+    "de": "Überschreibung zurücksetzen"
+  },
+  "Legion 1": {
+    "it": "Legione 1",
+    "pl": "Legion 1"
+  },
+  "Legion 2": {
+    "it": "Legione 2",
+    "pl": "Legion 2"
+  },
+  "Swordland Summit League": {
+    "it": "Lega del vertice di Swordland",
+    "de": "Swordland-Gipfelliga",
+    "pl": "Liga szczytu Swordland"
+  },
+  "Saving schedule…": {
+    "it": "Salvataggio del programma…"
+  },
+  "Review overdue": {
+    "it": "Revisione scaduta",
+    "pl": "Termin przeglądu minął"
+  },
+  "Scout freshness": {
+    "it": "Aggiornamento dei dati di esplorazione"
+  },
+  "Screenshot image": {
+    "it": "Immagine della schermata"
+  },
+  "Persisted renditions": {
+    "it": "Versioni salvate"
+  },
+  "Linked roster entry": {
+    "it": "Voce collegata nell’elenco membri",
+    "pl": "Powiązany wpis na liście członków"
+  },
+  "Invalidate observation": {
+    "it": "Invalida l’osservazione"
+  },
+  "Open eligibility board": {
+    "it": "Apri il pannello di idoneità"
+  },
+  "Median Time-to-Code": {
+    "it": "Tempo mediano di acquisizione del codice",
+    "pl": "Mediana czasu pozyskania kodu"
+  },
+  "SECURE PASSWORD RESET": {
+    "it": "REIMPOSTAZIONE SICURA DELLA PASSWORD",
+    "id": "PENGATURAN ULANG KATA SANDI AMAN",
+    "pt-BR": "REDEFINIÇÃO SEGURA DE SENHA"
+  },
+  "Record ID": {
+    "it": "ID del record",
+    "de": "Datensatz-ID",
+    "pl": "ID rekordu"
+  },
+  "Google provider email": {
+    "it": "Email fornita da Google",
+    "pl": "Adres e-mail udostępniony przez Google",
+    "vi": "Email do Google cung cấp",
+    "ja": "Googleが提供するメールアドレス",
+    "th": "อีเมลที่ Google ระบุ"
+  },
+  "baseline {date}": {
+    "it": "riferimento del {date}",
+    "zh-CN": "基准日期：{date}",
+    "zh-TW": "基準日期：{date}"
+  },
+  "Instagram professional account ID": {
+    "it": "ID dell’account professionale Instagram",
+    "pt-BR": "ID da conta profissional do Instagram"
+  },
+  "Facebook Page ID": {
+    "id": "ID Halaman Facebook"
+  },
+  "Correction of {id}": {
+    "id": "Koreksi untuk {id}"
+  },
+  "Available from (UTC)": {
+    "id": "Tersedia mulai (UTC)",
+    "tr": "Kullanıma açılma zamanı (UTC)",
+    "vi": "Khả dụng từ (UTC)",
+    "ja": "利用開始日時（UTC）"
+  },
+  "HTTPS JSON feed path": {
+    "id": "Jalur umpan JSON HTTPS",
+    "ar": "مسار موجز JSON عبر HTTPS",
+    "vi": "Đường dẫn nguồn cấp JSON qua HTTPS",
+    "ja": "HTTPSのJSONフィードパス",
+    "th": "พาธฟีด JSON ผ่าน HTTPS"
+  },
+  "Power {power} · members {members}": {
+    "id": "Kekuatan {power} · anggota {members}",
+    "tr": "Güç {power} · üye {members}"
+  },
+  "Actual: {start} → {end}": {
+    "id": "Aktual: {start} → {end}",
+    "tr": "Gerçekleşen: {start} → {end}",
+    "vi": "Thực tế: {start} → {end}",
+    "ko": "실제: {start} → {end}",
+    "th": "เวลาจริง: {start} → {end}"
+  },
+  "Power {power} · Members {members}": {
+    "id": "Kekuatan {power} · Anggota {members}",
+    "ar": "القوة {power} · الأعضاء {members}",
+    "tr": "Güç {power} · Üye {members}"
+  },
+  "Roster result: {name} · {state}": {
+    "id": "Hasil daftar anggota: {name} · {state}",
+    "tr": "Üye listesi sonucu: {name} · {state}",
+    "th": "ผลลัพธ์รายชื่อสมาชิก: {name} · {state}"
+  },
+  "restore": {
+    "id": "pulihkan",
+    "pl": "przywróć"
+  },
+  "Tag": {
+    "id": "Singkatan aliansi",
+    "de": "Allianzkürzel",
+    "pl": "Skrót sojuszu"
+  },
+  "Field": {
+    "id": "Bidang",
+    "de": "Feld",
+    "pl": "Pole"
+  },
+  "authority": {
+    "id": "wewenang",
+    "vi": "thẩm quyền"
+  },
+  "Provider": {
+    "id": "Penyedia",
+    "de": "Anbieter"
+  },
+  "Hero Roulette": {
+    "id": "Rolet pahlawan",
+    "pl": "Ruletka bohaterów"
+  },
+  "Issue": {
+    "id": "Masalah",
+    "pl": "Problem"
+  },
+  "Item name": {
+    "id": "Nama item"
+  },
+  "Friendly": {
+    "id": "Bersahabat",
+    "de": "Befreundet",
+    "pl": "Przyjazny"
+  },
+  "Hero Gear": {
+    "id": "Perlengkapan pahlawan",
+    "de": "Heldenausrüstung",
+    "pl": "Wyposażenie bohatera",
+    "tr": "Kahraman ekipmanı"
+  },
+  "Source gap": {
+    "id": "Kesenjangan sumber",
+    "de": "Quellenlücke",
+    "pl": "Luka w źródłach"
+  },
+  "Power Cap": {
+    "id": "Batas kekuatan",
+    "de": "Machtgrenze",
+    "pl": "Limit mocy"
+  },
+  "last push": {
+    "id": "push terakhir",
+    "vi": "lần gửi đẩy gần nhất"
+  },
+  "last event": {
+    "id": "acara terakhir",
+    "vi": "sự kiện gần nhất"
+  },
+  "Objective type": {
+    "id": "Jenis sasaran"
+  },
+  "Objective description": {
+    "id": "Deskripsi sasaran"
+  },
+  "Objective start": {
+    "id": "Awal sasaran"
+  },
+  "Leaderboard on": {
+    "id": "Papan peringkat aktif",
+    "pl": "Ranking włączony",
+    "pt-BR": "Ranking ativado"
+  },
+  "Field confidence": {
+    "id": "Tingkat keyakinan bidang"
+  },
+  "Update loadout": {
+    "id": "Perbarui susunan perlengkapan",
+    "pl": "Zaktualizuj zestaw wyposażenia"
+  },
+  "user planning intent": {
+    "id": "maksud perencanaan pengguna"
+  },
+  "Reservation state": {
+    "id": "Status reservasi"
+  },
+  "Fixture corpus": {
+    "id": "Kumpulan data uji",
+    "tr": "Test verisi derlemi"
+  },
+  "replay rejections": {
+    "id": "penolakan pemutaran ulang",
+    "tr": "tekrar gönderim retleri",
+    "fr": "rejets des tentatives de répétition"
+  },
+  "Manage membership": {
+    "id": "Kelola keanggotaan"
+  },
+  "Distribute X": {
+    "id": "Sebarkan pada sumbu X",
+    "de": "Auf der X-Achse verteilen",
+    "pl": "Rozmieść na osi X"
+  },
+  "reconciliation gaps": {
+    "id": "kesenjangan pencocokan data"
+  },
+  "Manage recruitment": {
+    "id": "Kelola perekrutan"
+  },
+  "Re-entry control": {
+    "id": "Kontrol masuk kembali"
+  },
+  "Flamedragon Tyrant": {
+    "id": "Tiran naga api",
+    "vi": "Bạo chúa Hỏa Long"
+  },
+  "Manage Noticeboard": {
+    "id": "Kelola papan pengumuman"
+  },
+  "Mastery Forge max": {
+    "id": "Batas maksimum tempa keahlian",
+    "pl": "Maksymalny poziom kuźni mistrzostwa",
+    "tr": "Ustalık Ocağı azami seviyesi",
+    "vi": "Cấp tối đa của Lò rèn Tinh thông"
+  },
+  "Target factual state": {
+    "id": "Status faktual sasaran"
+  },
+  "Special Invite pending": {
+    "id": "Undangan khusus tertunda"
+  },
+  "Manage ranks and specialist roles": {
+    "id": "Kelola pangkat dan peran spesialis"
+  },
+  "Raw OCR": {
+    "id": "Hasil OCR mentah",
+    "ar": "نتيجة OCR الخام",
+    "pl": "Surowy wynik OCR",
+    "ja": "OCRの元の読み取り結果",
+    "zh-CN": "原始OCR文本",
+    "zh-TW": "原始OCR文字",
+    "th": "ข้อความ OCR ต้นฉบับ"
+  },
+  "Telegram bot token": {
+    "id": "Token bot Telegram",
+    "vi": "Mã thông báo bot Telegram"
+  },
+  "YouTube channel ID": {
+    "id": "ID kanal YouTube"
+  },
+  "Manage {alliance}": {
+    "id": "Kelola {alliance}",
+    "ja": "{alliance}を管理",
+    "zh-CN": "管理 {alliance}",
+    "zh-TW": "管理 {alliance}"
+  },
+  "Routing: {reason}": {
+    "id": "Perutean: {reason}",
+    "de": "Weiterleitung: {reason}",
+    "pl": "Kierowanie: {reason}",
+    "th": "การกำหนดเส้นทาง: {reason}"
+  },
+  "{count} active blockers": {
+    "id": "{count} penghambat aktif",
+    "ja": "有効な阻害要因：{count}件"
+  },
+  "X numeric user ID": {
+    "id": "ID pengguna numerik X"
+  },
+  "Retention anonymization due {date}": {
+    "id": "Anonimisasi retensi jatuh tempo {date}",
+    "ar": "موعد إخفاء الهوية وفق سياسة الاحتفاظ: {date}",
+    "ru": "Срок обезличивания по политике хранения: {date}",
+    "zh-CN": "按保留策略匿名化的截止时间：{date}",
+    "zh-TW": "依保留政策匿名化的截止時間：{date}"
+  },
+  "Clear selection": {
+    "ar": "إلغاء التحديد"
+  },
+  "Align, distribute and bulk coordinates": {
+    "ar": "محاذاة العناصر وتوزيعها وتعديل الإحداثيات جماعيًا"
+  },
+  "Copy Player ID": {
+    "ar": "نسخ معرّف اللاعب",
+    "zh-CN": "复制玩家ID",
+    "zh-TW": "複製玩家ID",
+    "vi": "Sao chép ID người chơi"
+  },
+  "Last officer {actor}": {
+    "ar": "آخر ضابط: {actor}",
+    "zh-CN": "上次操作的官员：{actor}",
+    "zh-TW": "上次操作的官員：{actor}"
+  },
+  "Position schedule {date}": {
+    "ar": "جدول المنصب: {date}",
+    "zh-CN": "职位日程：{date}",
+    "zh-TW": "職位日程：{date}"
+  },
+  "Missing Player ID": {
+    "ar": "معرّف اللاعب مفقود"
+  },
+  "Last verified {date}": {
+    "ar": "آخر تحقق: {date}",
+    "zh-CN": "上次验证：{date}",
+    "zh-TW": "上次驗證：{date}"
+  },
+  "Last successful delivery {date}": {
+    "ar": "آخر إرسال ناجح: {date}",
+    "zh-CN": "上次成功送达：{date}",
+    "zh-TW": "上次成功送達：{date}"
+  },
+  "Transfer completed {date}": {
+    "ar": "اكتمل الانتقال في {date}",
+    "ru": "Перенос завершён {date}",
+    "tr": "Transfer {date} tarihinde tamamlandı",
+    "zh-CN": "转移完成时间：{date}",
+    "zh-TW": "轉移完成時間：{date}",
+    "th": "ย้ายเสร็จแล้วเมื่อ {date}"
+  },
+  "Game Alliance ID": {
+    "ar": "معرّف التحالف في اللعبة",
+    "fr": "Identifiant de l’Alliance dans le jeu"
+  },
+  "Governors · {label}": {
+    "ar": "الحكام · {label}",
+    "zh-CN": "总督 · {label}",
+    "zh-TW": "總督 · {label}",
+    "vi": "Thống đốc · {label}"
+  },
+  "Your Kingshot Alliance email changed": {
+    "ar": "تم تغيير بريدك الإلكتروني في Kingshot Alliance"
+  },
+  "Observed or updated {date}": {
+    "ar": "تم الرصد أو التحديث في {date}",
+    "ru": "Наблюдение или обновление: {date}",
+    "zh-CN": "观测或更新时间：{date}",
+    "zh-TW": "觀測或更新時間：{date}"
+  },
+  "Last failed delivery {date}": {
+    "ar": "آخر إرسال فاشل: {date}",
+    "ru": "Последняя неудачная доставка: {date}",
+    "zh-CN": "上次发送失败：{date}",
+    "zh-TW": "上次傳送失敗：{date}"
+  },
+  "Rally participation {direction}": {
+    "ar": "المشاركة في التجمع {direction}",
+    "ja": "集結への参加 {direction}",
+    "zh-CN": "集结参与情况 {direction}",
+    "zh-TW": "集結參與情況 {direction}"
+  },
+  "Verify your Kingshot Alliance email": {
+    "ar": "تحقق من بريدك الإلكتروني في Kingshot Alliance"
+  },
+  "Reset your Kingshot Alliance password": {
+    "ar": "أعد تعيين كلمة مرور Kingshot Alliance",
+    "ja": "Kingshot Allianceのパスワードを再設定",
+    "zh-CN": "重设您的Kingshot Alliance密码",
+    "zh-TW": "重設您的Kingshot Alliance密碼",
+    "th": "รีเซ็ตรหัสผ่าน Kingshot Alliance ของคุณ"
+  },
+  "{count} contribution records selected": {
+    "ar": "تم تحديد {count} من سجلات المساهمات"
+  },
+  "Planning cohorts · {label}": {
+    "ar": "مجموعات التخطيط · {label}",
+    "zh-CN": "规划群组 · {label}",
+    "zh-TW": "規劃群組 · {label}"
+  },
+  "Verify your new Kingshot Alliance email": {
+    "ar": "تحقق من بريدك الإلكتروني الجديد في Kingshot Alliance",
+    "ja": "Kingshot Allianceの新しいメールアドレスを確認",
+    "zh-CN": "验证您的新Kingshot Alliance电子邮箱",
+    "zh-TW": "驗證您的新Kingshot Alliance電子郵件地址"
+  },
+  "Visual duplicate warning · distance {distance}": {
+    "ar": "تحذير من تكرار بصري · المسافة {distance}"
+  },
+  "{count} Governor observations are stale or missing": {
+    "ar": "توجد {count} من ملاحظات الحكام القديمة أو المفقودة"
+  },
+  "No audit records matched this correlation ID.": {
+    "ar": "لا توجد سجلات تدقيق تطابق معرّف الارتباط هذا.",
+    "de": "Keine Prüfprotokolle stimmen mit dieser Korrelations-ID überein.",
+    "ru": "Записей аудита с таким идентификатором корреляции не найдено.",
+    "tr": "Bu ilişkilendirme kimliğiyle eşleşen denetim kaydı bulunamadı.",
+    "ja": "この相関IDに一致する監査記録はありません。",
+    "zh-CN": "没有与此关联ID匹配的审计记录。",
+    "zh-TW": "沒有與此關聯ID相符的稽核紀錄。"
+  },
+  "Player ID {id}": {
+    "ar": "معرّف اللاعب {id}",
+    "zh-CN": "玩家ID：{id}",
+    "zh-TW": "玩家ID：{id}"
+  },
+  "Discord channel ID": {
+    "ar": "معرّف قناة Discord"
+  },
+  "Discord guild ID": {
+    "ar": "معرّف خادم Discord",
+    "ja": "DiscordサーバーID",
+    "zh-CN": "Discord服务器ID",
+    "zh-TW": "Discord伺服器ID",
+    "id": "ID server Discord",
+    "tr": "Discord sunucu kimliği",
+    "vi": "ID máy chủ Discord"
+  },
+  "{alliance} · Kingdom {kingdom}. Planning can be changed only while the current plan is Draft or Open.": {
+    "ar": "{alliance} · المملكة {kingdom}. يمكن تعديل التخطيط فقط عندما تكون الخطة الحالية مسودة أو مفتوحة.",
+    "tr": "{alliance} · Krallık {kingdom}. Planlama yalnızca mevcut plan Taslak veya Açık durumundayken değiştirilebilir.",
+    "zh-CN": "{alliance} · 王国 {kingdom}。只有当前计划处于草稿或开放状态时，才能修改规划。",
+    "zh-TW": "{alliance} · 王國 {kingdom}。只有目前計畫處於草稿或開放狀態時，才能修改規劃。"
+  },
+  "{alliance} · Kingdom {kingdom}. Record each Governor’s final move after readiness is Confirmed.": {
+    "ar": "{alliance} · المملكة {kingdom}. سجّل الانتقال النهائي لكل حاكم بعد تأكيد الجاهزية.",
+    "tr": "{alliance} · Krallık {kingdom}. Hazırlık durumu Onaylandı olduktan sonra her Valinin son taşınmasını kaydedin.",
+    "zh-CN": "{alliance} · 王国 {kingdom}。准备状态确认后，记录每位总督最终的转移情况。",
+    "zh-TW": "{alliance} · 王國 {kingdom}。準備狀態確認後，記錄每位總督最終的轉移情況。"
+  },
+  "{source} source · observed {observedAt}": {
+    "ar": "المصدر {source} · تم الرصد في {observedAt}",
+    "zh-CN": "来源：{source} · 观测时间：{observedAt}",
+    "zh-TW": "來源：{source} · 觀測時間：{observedAt}"
+  },
+  "{alliance} · Kingdom {kingdom}. Sharing is directional, limited to the same Kingdom, and enabled separately for each tracked Alliance.": {
+    "ar": "{alliance} · المملكة {kingdom}. المشاركة أحادية الاتجاه ومقتصرة على المملكة نفسها، وتُفعّل بشكل مستقل لكل تحالف تتم متابعته.",
+    "tr": "{alliance} · Krallık {kingdom}. Paylaşım tek yönlüdür, aynı Krallıkla sınırlıdır ve takip edilen her İttifak için ayrı ayrı etkinleştirilir.",
+    "zh-CN": "{alliance} · 王国 {kingdom}。共享是单向的，仅限同一王国，并且需要为每个跟踪的联盟分别启用。",
+    "zh-TW": "{alliance} · 王國 {kingdom}。共享是單向的，僅限同一王國，且需要為每個追蹤的聯盟分別啟用。"
+  },
+  "{attended} attended · {noShows} no-show": {
+    "ar": "حضر {attended} · تغيّب دون إشعار {noShows}",
+    "zh-CN": "出席 {attended} 人 · 无故缺席 {noShows} 人",
+    "zh-TW": "出席 {attended} 人 · 無故缺席 {noShows} 人"
+  },
+  "Scheduling window opens {date} · {status}": {
+    "ar": "تفتح نافذة الجدولة في {date} · {status}",
+    "ja": "予約受付開始：{date} · {status}"
+  },
+  "{alliance} · Kingdom {kingdom}. Officers explicitly set Alliance readiness; KingShot eligibility is evaluated separately.": {
+    "ar": "{alliance} · المملكة {kingdom}. يحدد الضباط جاهزية التحالف صراحةً؛ وتُقيّم أهلية KingShot بشكل منفصل.",
+    "tr": "{alliance} · Krallık {kingdom}. Subaylar İttifakın hazırlık durumunu açıkça belirler; KingShot uygunluğu ayrı değerlendirilir.",
+    "zh-CN": "{alliance} · 王国 {kingdom}。官员明确设置联盟的准备状态；KingShot的资格条件另行评估。",
+    "zh-TW": "{alliance} · 王國 {kingdom}。官員明確設定聯盟的準備狀態；KingShot的資格條件另行評估。"
+  },
+  "Planned speedups: {duration} · Status: {status}": {
+    "ar": "التسريعات المخططة: {duration} · الحالة: {status}"
+  },
+  "{duration} min appointment · {cooldown} min Governor cooldown after appointment end": {
+    "ar": "مدة التعيين {duration} دقيقة · فترة انتظار الحاكم بعد انتهاء التعيين {cooldown} دقيقة",
+    "de": "Amtszeit: {duration} Min. · Wartezeit für den Gouverneur nach Amtsende: {cooldown} Min."
+  },
+  "{succeeded} notifications updated. {failed} need review. {skipped} were already up to date.": {
+    "ar": "تم تحديث {succeeded} من الإشعارات. يحتاج {failed} إلى المراجعة. كانت {skipped} محدّثة بالفعل."
+  },
+  "Introduction": {
+    "ar": "مقدمة",
+    "es": "Introducción",
+    "fr": "Introduction",
+    "ru": "Введение",
+    "zh-CN": "简介",
+    "zh-TW": "簡介"
+  },
+  "accepted": {
+    "ar": "مقبول"
+  },
+  "Event start": {
+    "ar": "بداية الحدث",
+    "id": "Awal acara"
+  },
+  "Voting": {
+    "ar": "التصويت"
+  },
+  "Save vote": {
+    "ar": "حفظ التصويت"
+  },
+  "Scheduled for": {
+    "ar": "مجدول في",
+    "de": "Geplant für"
+  },
+  "Align bottom": {
+    "ar": "محاذاة إلى الأسفل"
+  },
+  "Event Reminders": {
+    "ar": "تذكيرات الأحداث"
+  },
+  "Save re-entry control": {
+    "ar": "حفظ إعدادات إعادة الدخول"
+  },
+  "System specialist roles are immutable.": {
+    "ar": "لا يمكن تعديل الأدوار التخصصية المعرّفة من النظام."
+  },
+  "Governor marked as having left the Alliance.": {
+    "ar": "تم تسجيل الحاكم على أنه غادر التحالف."
+  },
+  "Gift Code trust changed after this review loaded. Refresh and review the latest evidence before deciding.": {
+    "ar": "تغيّرت درجة الثقة برمز الهدية بعد تحميل هذه المراجعة. حدّث الصفحة وراجع أحدث الأدلة قبل اتخاذ القرار."
+  },
+  "The new R5 must be an active Player in this Alliance.": {
+    "ar": "يجب أن يكون صاحب رتبة R5 الجديد لاعبًا نشطًا في هذا التحالف."
+  },
+  "Attendance": {
+    "es": "Asistencia",
+    "ru": "Посещаемость"
+  },
+  "minutes before": {
+    "es": "minutos antes",
+    "fr": "minutes avant",
+    "it": "minuti prima",
+    "de": "Minuten vorher",
+    "pl": "minut przed",
+    "pt-BR": "minutos antes"
+  },
+  "Notes": {
+    "es": "Notas",
+    "ru": "Примечания"
+  },
+  "Summary": {
+    "es": "Resumen",
+    "ru": "Сводка"
+  },
+  "Transfer Windows": {
+    "es": "Periodos de transferencia",
+    "pl": "Okna transferowe"
+  },
+  "Accepted": {
+    "es": "Aceptado",
+    "fr": "Accepté",
+    "ru": "Принято"
+  },
+  "Last reviewed": {
+    "es": "Última revisión",
+    "pt-BR": "Última revisão"
+  },
+  "Valid until": {
+    "es": "Válido hasta",
+    "de": "Gültig bis",
+    "pt-BR": "Válido até"
+  },
+  "Uploaded at": {
+    "es": "Fecha de carga",
+    "pl": "Data przesłania",
+    "de": "Hochgeladen am",
+    "pt-BR": "Enviado em"
+  },
+  "consecutive failures": {
+    "es": "fallos consecutivos",
+    "fr": "échecs consécutifs",
+    "it": "errori consecutivi",
+    "de": "aufeinanderfolgende Fehler",
+    "pl": "kolejne błędy",
+    "pt-BR": "falhas consecutivas"
+  },
+  "Gift Code review queues": {
+    "es": "Colas de revisión de códigos de regalo"
+  },
+  "Shards to 5 stars": {
+    "es": "Fragmentos necesarios para alcanzar 5 estrellas",
+    "it": "Frammenti necessari per raggiungere 5 stelle"
+  },
+  "No Governor Progression screenshots have been uploaded.": {
+    "es": "No se han subido capturas del progreso del Gobernador.",
+    "pl": "Nie przesłano zrzutów ekranu postępów gubernatora.",
+    "pt-BR": "Nenhuma captura do progresso do Governador foi enviada."
+  },
+  "Select shown": {
+    "es": "Seleccionar los elementos mostrados",
+    "it": "Seleziona gli elementi visualizzati",
+    "de": "Angezeigte auswählen",
+    "pt-BR": "Selecionar os itens exibidos"
+  },
+  "Kingdom role created.": {
+    "es": "Rol del Reino creado.",
+    "it": "Ruolo del Regno creato.",
+    "pl": "Utworzono rolę królestwa."
+  },
+  "Kingdom position appointment created.": {
+    "es": "Nombramiento para un cargo del Reino creado.",
+    "fr": "Nomination à un poste du Royaume créée."
+  },
+  "Kingdom role assigned.": {
+    "es": "Rol del Reino asignado.",
+    "it": "Ruolo del Regno assegnato.",
+    "pl": "Przypisano rolę królestwa."
+  },
+  "Alliance role assigned.": {
+    "es": "Rol de la Alianza asignado.",
+    "it": "Ruolo dell’Alleanza assegnato.",
+    "pl": "Przypisano rolę sojuszu."
+  },
+  "days": {
+    "fr": "jours"
+  },
+  "Gift Code source evidence": {
+    "fr": "Preuves concernant la source du code cadeau"
+  },
+  "Gift Code item skipped for this run.": {
+    "fr": "Code cadeau ignoré pour cette exécution.",
+    "it": "Codice regalo saltato per questa esecuzione.",
+    "pl": "Pominięto kod podarunkowy w tym przebiegu.",
+    "pt-BR": "Código de presente ignorado nesta execução."
+  },
+  "Governor Gear": {
+    "it": "Equipaggiamento del Governatore",
+    "de": "Gouverneursausrüstung",
+    "pl": "Wyposażenie gubernatora"
+  },
+  "Already read": {
+    "it": "Già letto"
+  },
+  "Run non-ingesting smoke check": {
+    "it": "Esegui il controllo di base senza acquisire dati"
+  },
+  "The provided credentials are incorrect.": {
+    "id": "Kredensial yang diberikan salah."
+  },
+  "Add another sign-in method before disconnecting Google.": {
+    "de": "Füge eine weitere Anmeldemethode hinzu, bevor du die Verbindung zu Google trennst.",
+    "ja": "Googleとの接続を解除する前に、別のログイン方法を追加してください。",
+    "ko": "Google 연결을 해제하기 전에 다른 로그인 방법을 추가하세요."
+  },
+  "Instant": {
+    "de": "Zeitpunkt",
+    "pl": "Dokładna chwila"
+  },
+  "Day": {
+    "de": "Tag"
+  },
+  "Approximate": {
+    "de": "Ungefähr"
+  },
+  "Kingdom Intelligence": {
+    "de": "Königreichsinformationen"
+  },
+  "Kingdom Transfers": {
+    "de": "Königreichswechsel",
+    "vi": "Chuyển vương quốc",
+    "id": "Transfer kerajaan"
+  },
+  "Current": {
+    "de": "Aktuell",
+    "pl": "Aktualne"
+  },
+  "Failed": {
+    "de": "Fehlgeschlagen"
+  },
+  "Succeeded": {
+    "de": "Erfolgreich",
+    "pl": "Zakończono pomyślnie"
+  },
+  "Human-reviewed evidence": {
+    "de": "Von Menschen geprüfte Belege",
+    "pl": "Dowody sprawdzone przez człowieka"
+  },
+  "Uploaded": {
+    "de": "Hochgeladen",
+    "pl": "Przesłano"
+  },
+  "Reason": {
+    "de": "Grund",
+    "pl": "Powód"
+  },
+  "Scheduled": {
+    "de": "Geplant",
+    "pl": "Zaplanowano"
+  },
+  "Critical": {
+    "de": "Kritisch"
+  },
+  "Sending": {
+    "de": "Wird gesendet",
+    "pl": "Wysyłanie"
+  },
+  "Cancelled": {
+    "de": "Abgebrochen",
+    "pl": "Anulowano"
+  },
+  "Restored": {
+    "de": "Wiederhergestellt",
+    "pl": "Przywrócono"
+  },
+  "Account": {
+    "de": "Konto"
+  },
+  "Inherited": {
+    "de": "Geerbt"
+  },
+  "Connected": {
+    "de": "Verbunden",
+    "pl": "Połączono"
+  },
+  "Starts": {
+    "de": "Beginn",
+    "pl": "Rozpoczęcie"
+  },
+  "Closes": {
+    "de": "Anmeldeschluss",
+    "pl": "Zamknięcie"
+  },
+  "Ends": {
+    "de": "Ende",
+    "pl": "Zakończenie"
+  },
+  "Audience": {
+    "de": "Zielgruppe",
+    "pl": "Odbiorcy"
+  },
+  "Combatants": {
+    "de": "Kämpfer"
+  },
+  "Assigned": {
+    "de": "Zugewiesen",
+    "pl": "Przypisano"
+  },
+  "Outcome": {
+    "de": "Ergebnis"
+  },
+  "Score": {
+    "de": "Punktzahl",
+    "pl": "Wynik"
+  },
+  "Bear Hunt": {
+    "de": "Bärenjagd",
+    "pl": "Polowanie na niedźwiedzia"
+  },
+  "Tri-Alliance Clash": {
+    "de": "Kampf der drei Allianzen",
+    "fr": "Affrontement des trois Alliances"
+  },
+  "Outpost Battle": {
+    "de": "Außenpostenschlacht",
+    "pl": "Bitwa o posterunek"
+  },
+  "Sanctuary Battle": {
+    "de": "Heiligtumsschlacht"
+  },
+  "Event Command": {
+    "de": "Ereignissteuerung",
+    "fr": "Pilotage de l’Événement",
+    "id": "Pusat kendali acara"
+  },
+  "Owner: {owner}": {
+    "de": "Verantwortlich: {owner}"
+  },
+  "Battle Plans": {
+    "de": "Schlachtpläne",
+    "pl": "Plany bitew"
+  },
+  "Progression Evidence": {
+    "de": "Fortschrittsbelege"
+  },
+  "Reversed: {reason}": {
+    "de": "Rückgängig gemacht: {reason}"
+  },
+  "Reversed": {
+    "de": "Rückgängig gemacht",
+    "pl": "Cofnięto"
+  },
+  "Subject": {
+    "de": "Betreff",
+    "pl": "Temat"
+  },
+  "Officer reason": {
+    "de": "Begründung des Offiziers"
+  },
+  "Merge reason": {
+    "de": "Grund für die Zusammenführung",
+    "pl": "Powód scalenia"
+  },
+  "Prepared": {
+    "de": "Vorbereitet"
+  },
+  "Guide review": {
+    "de": "Leitfaden prüfen"
+  },
+  "Never": {
+    "de": "Nie"
+  },
+  "Delivered": {
+    "de": "Zugestellt",
+    "pl": "Dostarczono"
+  },
+  "Delivering": {
+    "de": "Wird zugestellt",
+    "pl": "Dostarczanie"
+  },
+  "Tracking": {
+    "de": "Nachverfolgung"
+  },
+  "Target": {
+    "de": "Ziel",
+    "pl": "Cel"
+  },
+  "Captured": {
+    "de": "Erfasst"
+  },
+  "Review": {
+    "de": "Prüfen"
+  },
+  "Change": {
+    "de": "Ändern",
+    "pl": "Zmień"
+  },
+  "Officer note": {
+    "de": "Offiziersnotiz"
+  },
+  "Invalidate": {
+    "de": "Für ungültig erklären",
+    "pl": "Unieważnij"
+  },
+  "Invalidated": {
+    "de": "Für ungültig erklärt",
+    "pl": "Unieważniono"
+  },
+  "Canonical owner": {
+    "de": "Maßgeblicher Verantwortlicher"
+  },
+  "Direction": {
+    "de": "Richtung"
+  },
+  "Missing": {
+    "de": "Fehlt"
+  },
+  "Ended": {
+    "de": "Beendet"
+  },
+  "Unresolved": {
+    "de": "Ungeklärt"
+  },
+  "Withdraw": {
+    "de": "Zurückziehen"
+  },
+  "Position Perk": {
+    "de": "Amtsbonus"
+  },
+  "Decline": {
+    "de": "Ablehnen",
+    "pl": "Odrzuć"
+  },
+  "Until (UTC)": {
+    "de": "Bis (UTC)",
+    "tr": "Bitiş (UTC)"
+  },
+  "NEXT": {
+    "de": "ALS NÄCHSTES",
+    "pl": "NASTĘPNE"
+  },
+  "Discovered": {
+    "de": "Entdeckt"
+  },
+  "Disposition": {
+    "de": "Einstufung",
+    "pl": "Klasyfikacja"
+  },
+  "Official": {
+    "de": "Offiziell"
+  },
+  "Community": {
+    "de": "Gemeinschaft"
+  },
+  "Observed Heroes": {
+    "de": "Beobachtete Helden"
+  },
+  "Level": {
+    "de": "Stufe"
+  },
+  "Tier {tier}": {
+    "de": "Stufe {tier}",
+    "tr": "Kademe {tier}"
+  },
+  "Before": {
+    "de": "Vorher",
+    "pl": "Przed"
+  },
+  "After": {
+    "de": "Nachher",
+    "pl": "Po"
+  },
+  "Center X": {
+    "de": "Auf der X-Achse zentrieren"
+  },
+  "Validate CSV": {
+    "de": "CSV prüfen"
+  },
+  "Kind": {
+    "de": "Art"
+  },
+  "Line": {
+    "de": "Linie"
+  },
+  "Unexpected": {
+    "de": "Unerwartet"
+  },
+  "Partial": {
+    "de": "Teilweise"
+  },
+  "Unassigned": {
+    "de": "Nicht zugewiesen"
+  },
+  "Initial": {
+    "de": "Anfänglich",
+    "pl": "Początkowy"
+  },
+  "Released": {
+    "de": "Freigegeben",
+    "pl": "Zwolniono"
+  },
+  "Special Invite": {
+    "de": "Sondereinladung",
+    "pl": "Specjalne zaproszenie"
+  },
+  "Evaluated": {
+    "de": "Bewertet"
+  },
+  "Transfer Score": {
+    "de": "Transferpunktzahl",
+    "pl": "Wynik transferu",
+    "tr": "Transfer puanı"
+  },
+  "Resolved": {
+    "de": "Geklärt"
+  },
+  "Classified": {
+    "de": "Eingestuft"
+  },
+  "Committing": {
+    "de": "Wird übernommen",
+    "pl": "Zatwierdzanie"
+  },
+  "Committed": {
+    "de": "Übernommen",
+    "pl": "Zatwierdzono"
+  },
+  "Deleted": {
+    "de": "Gelöscht"
+  },
+  "Record decision": {
+    "de": "Entscheidung erfassen"
+  },
+  "Bulk review": {
+    "de": "Sammelprüfung",
+    "pl": "Przegląd zbiorczy",
+    "pt-BR": "Revisão em lote"
+  },
+  "Rate limits": {
+    "de": "Anfragelimits"
+  },
+  "Granted": {
+    "de": "Erteilt",
+    "pl": "Przyznano"
+  },
+  "Connections": {
+    "de": "Verbindungen"
+  },
+  "Operations": {
+    "de": "Vorgänge"
+  },
+  "Suspend": {
+    "de": "Aussetzen",
+    "pl": "Zawieś"
+  },
+  "{count} blockers": {
+    "pl": "Liczba blokad: {count}",
+    "vi": "{count} trở ngại"
+  },
+  "Recruitment onboarding item created.": {
+    "pl": "Utworzono element wdrażania nowych członków."
+  },
+  "Community discovery": {
+    "pl": "Wyszukiwanie w społeczności",
+    "de": "Suche in der Community"
+  },
+  "Redemption workspace": {
+    "pl": "Panel aktywacji kodów",
+    "vi": "Không gian đổi mã quà tặng"
+  },
+  "Pending": {
+    "pl": "Oczekuje"
+  },
+  "Run head acquisition": {
+    "pl": "Pobierz najnowsze dane"
+  },
+  "Enable acquisition": {
+    "pl": "Włącz pozyskiwanie danych"
+  },
+  "Registered-source evidence entry": {
+    "pl": "Wpis dowodowy z zarejestrowanego źródła"
+  },
+  "Record source evidence": {
+    "pl": "Zapisz dowód ze źródła"
+  },
+  "Published at": {
+    "pl": "Data publikacji",
+    "vi": "Thời điểm xuất bản",
+    "de": "Veröffentlicht am",
+    "pt-BR": "Publicado em"
+  },
+  "Expiry precision": {
+    "pl": "Dokładność daty wygaśnięcia"
+  },
+  "Daily Officer Brief": {
+    "pl": "Dzienny raport dla oficerów"
+  },
+  "Governor Intelligence": {
+    "pl": "Informacje o gubernatorze"
+  },
+  "Occurred": {
+    "pl": "Wystąpiło"
+  },
+  "Normal": {
+    "pl": "Normalny"
+  },
+  "Revoke": {
+    "pl": "Cofnij"
+  },
+  "Granted by": {
+    "pl": "Przyznane przez"
+  },
+  "Named destinations": {
+    "pl": "Nazwane miejsca docelowe"
+  },
+  "Paused": {
+    "pl": "Wstrzymano"
+  },
+  "Immediate": {
+    "pl": "Natychmiast"
+  },
+  "Hourly digest": {
+    "pl": "Podsumowanie godzinowe"
+  },
+  "Registered passkeys": {
+    "pl": "Zarejestrowane klucze dostępu"
+  },
+  "Transfer leadership": {
+    "pl": "Przekaż przywództwo",
+    "de": "Führung übertragen"
+  },
+  "Bear Hunt run": {
+    "pl": "Przebieg polowania na niedźwiedzia"
+  },
+  "Agenda": {
+    "pl": "Harmonogram"
+  },
+  "Cancellation preview": {
+    "pl": "Podgląd anulowania"
+  },
+  "Occurrences": {
+    "pl": "Wystąpienia"
+  },
+  "Team": {
+    "pl": "Drużyna"
+  },
+  "Saved formations": {
+    "pl": "Zapisane formacje"
+  },
+  "Save formation": {
+    "pl": "Zapisz formację",
+    "de": "Formation speichern"
+  },
+  "Readiness closeout": {
+    "pl": "Zamknięcie oceny gotowości"
+  },
+  "Hall of Governors": {
+    "pl": "Sala gubernatorów",
+    "id": "Aula Gubernur"
+  },
+  "Open roster": {
+    "pl": "Otwórz listę członków"
+  },
+  "Leaderboard enabled": {
+    "pl": "Ranking włączony"
+  },
+  "Public title": {
+    "pl": "Publiczny tytuł"
+  },
+  "Mark sent": {
+    "pl": "Oznacz jako wysłane"
+  },
+  "Stale": {
+    "pl": "Nieaktualne"
+  },
+  "Ascending": {
+    "pl": "Rosnąco"
+  },
+  "Neutral": {
+    "pl": "Neutralny"
+  },
+  "Rival": {
+    "pl": "Rywal"
+  },
+  "Pending recipient": {
+    "pl": "Oczekujący odbiorca",
+    "pt-BR": "Destinatário pendente"
+  },
+  "Overview": {
+    "pl": "Przegląd"
+  },
+  "King’s Skills": {
+    "pl": "Umiejętności króla"
+  },
+  "Activated": {
+    "pl": "Aktywowano"
+  },
+  "Search Heroes": {
+    "pl": "Szukaj bohaterów"
+  },
+  "Governor Gear unlock": {
+    "pl": "Odblokowanie wyposażenia gubernatora",
+    "vi": "Mở khóa trang bị Thống đốc",
+    "id": "Pembukaan perlengkapan Gubernur"
+  },
+  "Hero detail": {
+    "pl": "Szczegóły bohatera"
+  },
+  "Governor Charms": {
+    "pl": "Talizmany gubernatora"
+  },
+  "War Academy Research": {
+    "pl": "Badania akademii wojennej"
+  },
+  "Screenshot evidence": {
+    "pl": "Dowody ze zrzutów ekranu"
+  },
+  "Retry processing": {
+    "pl": "Ponów przetwarzanie"
+  },
+  "Roster receipt": {
+    "pl": "Potwierdzenie dotyczące listy członków"
+  },
+  "Save loadout": {
+    "pl": "Zapisz zestaw wyposażenia"
+  },
+  "Progression Goal Planner": {
+    "pl": "Planer celów rozwoju"
+  },
+  "Sourced prerequisite facts": {
+    "pl": "Udokumentowane wymagania wstępne"
+  },
+  "Center Y": {
+    "pl": "Wyśrodkuj na osi Y"
+  },
+  "Banner pad": {
+    "pl": "Pole sztandaru",
+    "tr": "Sancak alanı"
+  },
+  "Delegated layer access": {
+    "pl": "Delegowany dostęp do warstwy"
+  },
+  "Permission": {
+    "pl": "Uprawnienie"
+  },
+  "Grant access": {
+    "pl": "Przyznaj dostęp"
+  },
+  "Identity unresolved": {
+    "pl": "Nieustalona tożsamość"
+  },
+  "Gained coverage": {
+    "pl": "Uzyskany zasięg"
+  },
+  "Official Transfer Group": {
+    "pl": "Oficjalna grupa transferowa"
+  },
+  "Target Hero Generation": {
+    "pl": "Docelowa generacja bohaterów"
+  },
+  "Transfer Opens": {
+    "pl": "Rozpoczęcie transferu"
+  },
+  "Truegold level": {
+    "pl": "Poziom Truegold"
+  },
+  "Governor Power": {
+    "pl": "Moc gubernatora",
+    "de": "Macht des Gouverneurs",
+    "id": "Kekuatan Gubernur"
+  },
+  "Left": {
+    "pl": "Opuścił"
+  },
+  "Transport": {
+    "pl": "Transport"
+  },
+  "X username": {
+    "pl": "Nazwa użytkownika w serwisie X"
+  },
+  "Registered-source manual evidence": {
+    "pl": "Ręcznie dodane dowody z zarejestrowanego źródła"
+  },
+  "Trace request": {
+    "pl": "Prześledź żądanie"
+  },
+  "Outbox failures": {
+    "pl": "Błędy kolejki wysyłkowej"
+  },
+  "Webhook failures": {
+    "pl": "Błędy webhooków"
+  },
+  "Mark deleted": {
+    "pl": "Oznacz jako usunięte"
+  },
+  "Pending review": {
+    "pt-BR": "Aguardando revisão"
+  },
+  "{count} selected": {
+    "pt-BR": "{count} selecionados"
+  },
+  "Choice poll": {
+    "pt-BR": "Enquete de opções"
+  },
+  "reassignment required": {
+    "pt-BR": "reatribuição necessária"
+  },
+  "+{joined} / -{left} in 30 days": {
+    "tr": "30 günde +{joined} / -{left}",
+    "zh-CN": "30天内加入 {joined} / 离开 {left}",
+    "zh-TW": "30天內加入 {joined} / 離開 {left}"
+  },
+  "Version {version} · {rows} rows": {
+    "tr": "Sürüm {version} · {rows} satır"
+  },
+  "From (UTC)": {
+    "tr": "Başlangıç (UTC)"
+  },
+  "Activation (UTC)": {
+    "tr": "Etkinleştirme (UTC)",
+    "vi": "Kích hoạt (UTC)",
+    "ja": "有効化日時（UTC）"
+  },
+  "CSV coordinate table": {
+    "tr": "CSV koordinat tablosu",
+    "vi": "Bảng tọa độ CSV",
+    "ja": "CSV座標表",
+    "th": "ตารางพิกัด CSV"
+  },
+  "Annotation {number}": {
+    "tr": "Açıklama {number}",
+    "vi": "Chú thích {number}"
+  },
+  "Discord webhook URL": {
+    "tr": "Discord webhook adresi"
+  },
+  "Template name": {
+    "tr": "Şablon adı"
+  },
+  "Roster name": {
+    "tr": "Üye listesi adı"
+  },
+  "Formation name": {
+    "tr": "Formasyon adı"
+  },
+  "Rally roster checks": {
+    "tr": "Toplanma katılımcı listesi kontrolleri"
+  },
+  "Governor progression": {
+    "tr": "Vali gelişimi",
+    "de": "Gouverneursfortschritt",
+    "id": "Perkembangan Gubernur"
+  },
+  "Annotations": {
+    "tr": "Açıklamalar"
+  },
+  "Transfer summary": {
+    "tr": "Transfer özeti"
+  },
+  "Cohort name": {
+    "tr": "Grup adı"
+  },
+  "Transfer Passes": {
+    "tr": "Transfer biletleri"
+  },
+  "Reset your password": {
+    "tr": "Parolanızı sıfırlayın",
+    "vi": "Đặt lại mật khẩu của bạn",
+    "th": "รีเซ็ตรหัสผ่านของคุณ"
+  },
+  "KingShot Event Types": {
+    "vi": "Các loại sự kiện KingShot",
+    "ja": "KingShotのイベント種別",
+    "th": "ประเภทกิจกรรม KingShot"
+  },
+  "Application scopes for {event}": {
+    "vi": "Phạm vi áp dụng cho {event}"
+  },
+  "Alliance-versus-alliance competition tracked across multiple scoring phases.": {
+    "vi": "Cuộc thi giữa các liên minh được theo dõi qua nhiều giai đoạn tính điểm."
+  },
+  "Calculation v{version}": {
+    "vi": "Phép tính phiên bản {version}",
+    "th": "การคำนวณเวอร์ชัน {version}"
+  },
+  "CSV preview": {
+    "vi": "Xem trước CSV",
+    "ja": "CSVプレビュー",
+    "th": "ตัวอย่าง CSV"
+  },
+  "Media archived.": {
+    "vi": "Đã lưu trữ nội dung đa phương tiện."
+  },
+  "{review} review · {pending} pending · {committed} committed · {failed} failed": {
+    "vi": "{review} cần duyệt · {pending} đang chờ · {committed} đã xác nhận · {failed} thất bại"
+  },
+  "Published {date}": {
+    "vi": "Đã xuất bản {date}"
+  },
+  "{count} validated row(s) ready to apply.": {
+    "vi": "{count} hàng đã xác thực sẵn sàng áp dụng."
+  },
+  "Kingdom Transfer navigation": {
+    "vi": "Điều hướng chuyển vương quốc",
+    "ja": "王国移転ナビゲーション"
+  },
+  "Kingdom numbers": {
+    "vi": "Số hiệu vương quốc",
+    "de": "Königreichsnummern",
+    "id": "Nomor kerajaan"
+  },
+  "Catalogue": {
+    "vi": "Danh mục"
+  },
+  "Alliance Notice test queued for {count} channels: {channels}.": {
+    "ja": "同盟のお知らせのテストを{count}件のチャンネルで送信待ちにしました：{channels}。"
+  },
+  "Contribution data checked: {missingEvidence} missing evidence and {missingRecords} missing records.": {
+    "ja": "貢献データを確認しました。証拠の不足：{missingEvidence}件、記録の不足：{missingRecords}件。"
+  },
+  "{count} reviewed roster observations committed.": {
+    "ja": "確認済みのメンバー観測データ{count}件を確定しました。"
+  },
+  "{count} Territory differences were observed": {
+    "ja": "領地の差分が{count}件見つかりました"
+  },
+  "Register a Governor you control. A stable game Player ID can be attached when known, but an existing identity cannot be silently claimed from another source.": {
+    "ja": "自分が操作する総督を登録してください。ゲーム内の固定プレイヤーIDが分かれば関連付けられますが、別のソースにある既存の身元情報を確認なしに自分のものとして登録することはできません。"
+  },
+  "An established stable game Player ID cannot be replaced with a different ID.": {
+    "ja": "登録済みの固定ゲームプレイヤーIDを別のIDに変更することはできません。"
+  },
+  "{count} active links": {
+    "ja": "有効なリンク：{count}件",
+    "th": "ลิงก์ที่ใช้งานอยู่ {count} รายการ"
+  },
+  "Google is attached by verified provider subject. Its email is metadata and never replaces your Kingshot Alliance account email.": {
+    "ja": "Googleは確認済みのプロバイダー識別子で関連付けられます。Googleのメールアドレスは補足情報であり、Kingshot Allianceアカウントのメールアドレスを置き換えることはありません。"
+  },
+  "The officer overview has {count} factual item(s) needing attention. The authorized sources are shown below.": {
+    "ja": "幹部向けの概要には、対応が必要な事実項目が{count}件あります。閲覧権限のあるソースを以下に表示します。"
+  },
+  "The next verified Event has {count} Rally readiness gap(s). The Rally-owned facts are shown below.": {
+    "ja": "次の確認済みイベントには、集結の準備不足が{count}件あります。集結に関する事実情報を以下に表示します。"
+  },
+  "The authorized Territory comparison contains {count} observed difference(s). Missing and incompatible observations remain explicit below.": {
+    "ja": "権限のある領地比較には、観測された差分が{count}件あります。不足している観測や互換性のない観測は、以下に明示されています。"
+  },
+  "I found {count} recent authorized Alliance governance event(s). These are read-only owner audit facts.": {
+    "ja": "閲覧権限のある最近の同盟運営イベントが{count}件見つかりました。これらは担当者の監査記録に基づく読み取り専用の事実情報です。"
+  },
+  "The latest accepted roster observation has {needsReview} item(s) needing review and {matched} matching current membership.": {
+    "ja": "最新の承認済みメンバー観測には、確認が必要な項目が{needsReview}件、現在のメンバーと一致する項目が{matched}件あります。"
+  },
+  "{count} Events selected": {
+    "ja": "{count}件のイベントを選択中"
+  },
+  "{ready} can be cancelled and {blocked} need review or are already cancelled.": {
+    "ja": "{ready}件をキャンセルできます。{blocked}件は確認が必要か、すでにキャンセルされています。"
+  },
+  "Participation & attendance": {
+    "ja": "参加と出席"
+  },
+  "Review verified KingShot Event identities, evidence sources, application scopes, and the specialized workflows each enabled profile may expose.": {
+    "ja": "確認済みのKingShotイベントの識別情報、証拠のソース、適用範囲、および有効な各プロファイルで利用できる専用ワークフローを確認します。"
+  },
+  "Specialized workflows are unavailable until this KingShot identity has reviewed source evidence and its profile is explicitly enabled.": {
+    "ja": "このKingShot識別情報のソース証拠が確認され、プロファイルが明示的に有効化されるまで、専用ワークフローは利用できません。"
+  },
+  "{title} is published but its review status is {freshness}.": {
+    "ja": "{title}は公開されていますが、確認状況は{freshness}です。"
+  },
+  "{count} Governors do not have a recorded attendance result.": {
+    "ja": "{count}人の総督について出席結果が記録されていません。"
+  },
+  "{count} eligible Governors do not have an individual result.": {
+    "ja": "対象となる総督{count}人について個人成績がありません。"
+  },
+  "{count} Evidence items are still processing.": {
+    "ja": "{count}件の証拠が処理中です。"
+  },
+  "{count} Evidence items are awaiting review.": {
+    "ja": "{count}件の証拠が確認待ちです。"
+  },
+  "{count} Evidence items contain unmatched Governors.": {
+    "ja": "{count}件の証拠に一致する記録のない総督が含まれています。"
+  },
+  "No Evidence workflow blockers remain; {count} items are committed.": {
+    "ja": "証拠ワークフローの障害は残っていません。{count}件が確定済みです。"
+  },
+  "Review Event contributions, attendance-derived records, data quality, goals, and reports for {alliance}.": {
+    "ja": "{alliance}のイベント貢献、出席に基づく記録、データ品質、目標、およびレポートを確認します。"
+  },
+  "Correct {member} {category} value:": {
+    "ja": "{member}の{category}の値を修正：",
+    "th": "แก้ไขค่า {category} ของ {member}:"
+  },
+  "{ready} can be approved and {blocked} need review or are already approved.": {
+    "ja": "{ready}件を承認できます。{blocked}件は確認が必要か、すでに承認されています。"
+  },
+  "Data quality checked: {missingEvidence} missing evidence, {missingRecords} missing records.": {
+    "ja": "データ品質を確認しました。証拠の不足：{missingEvidence}件、記録の不足：{missingRecords}件。"
+  },
+  "Write requests require an authorized API credential, a verified Governor connection, and an idempotency key. Normal Alliance and Event permissions still apply.": {
+    "ja": "書き込みリクエストには、許可されたAPI認証情報、確認済みの総督との接続、および冪等性キーが必要です。通常の同盟とイベントの権限も引き続き適用されます。",
+    "ar": "تتطلب طلبات الكتابة بيانات اعتماد API مصرحًا بها، واتصالًا موثّقًا بالحاكم، ومفتاحًا لمنع تكرار تنفيذ الطلب. وتظل صلاحيات التحالف والحدث المعتادة سارية."
+  },
+  "API access is enabled.": {
+    "ja": "APIアクセスは有効です。"
+  },
+  "Revoke API access?": {
+    "ja": "APIアクセスを取り消しますか？"
+  },
+  "Recorded observations for Kingdom {kingdom}. Scout records do not imply ranking or diplomacy status.": {
+    "ja": "王国{kingdom}の観測記録です。偵察記録は順位や外交関係を示すものではありません。"
+  },
+  "Current means captured within {days} days.": {
+    "ja": "最新とは、{days}日以内に取得されたデータを指します。",
+    "ko": "최신은 {days}일 이내에 수집된 정보를 뜻합니다."
+  },
+  "Accepted into Roster history": {
+    "ja": "メンバー履歴に受け入れ済み"
+  },
+  "This observed state is older than the {days}-day freshness threshold. Its factual value and provenance are preserved; capture a newer observation when current-state confidence matters.": {
+    "ja": "この観測状態は、鮮度の基準である{days}日を超えています。観測値と出典は保持されますが、現在の状態の信頼性が重要な場合は新しい観測を取得してください。"
+  },
+  "{count} cities": {
+    "ja": "都市：{count}件"
+  },
+  "Plan incoming, outgoing, and staying Governors for {alliance}. Keep Alliance readiness separate from what KingShot currently allows.": {
+    "ja": "{alliance}に加入する総督、離脱する総督、残留する総督を計画します。同盟の準備状況と、KingShotで現在許可されている条件を分けて管理してください。"
+  },
+  "The Alliance planning workflow is Draft → Open → Locked → Closed. It is independent from the official KingShot transfer phase.": {
+    "ja": "同盟の計画は「下書き → 公開 → ロック済み → 終了」の順に進みます。これはKingShotの公式移転フェーズとは独立しています。"
+  },
+  "Cancel transfer plan “{label}”?": {
+    "ja": "移転計画「{label}」をキャンセルしますか？"
+  },
+  "Incoming destination is fixed to Kingdom {kingdom}.": {
+    "ja": "受け入れ先は王国{kingdom}に固定されています。"
+  },
+  "Use the official KingShot announcement or a direct in-game observation. The phase boundaries are stored in UTC.": {
+    "ja": "KingShotの公式発表、またはゲーム内で直接確認した情報を使用してください。各フェーズの開始・終了日時はUTCで保存されます。"
+  },
+  "These rows are sourced observations from KingShot or official publications. They are not Alliance reservations.": {
+    "ja": "これらの行はKingShotまたは公式資料を出典とする観測情報です。同盟の予約を表すものではありません。"
+  },
+  "Readiness shown here is Alliance planning state. Open Transfer eligibility for the current KingShot decision.": {
+    "ja": "ここに表示する準備状況は同盟の計画上の状態です。KingShotの現在の判定を確認するには、移転資格を開いてください。"
+  },
+  "Add a supported KingShot Transfer screenshot, verify what the game actually shows, review every extracted fact, preview the eligibility impact, then commit explicitly.": {
+    "ja": "対応するKingShot移転画面のスクリーンショットを追加し、ゲームで実際に表示されている内容を確認してください。抽出されたすべての情報を確認し、移転資格への影響をプレビューしてから、明示的に確定します。"
+  },
+  "Changing a value here records a new reviewed revision. The original OCR text and machine confidence remain unchanged.": {
+    "ja": "ここで値を変更すると、確認済みの新しい版が記録されます。元のOCRテキストと機械判定の信頼度は変更されません。"
+  },
+  "{succeeded} decisions succeeded and {failed} failed.": {
+    "ja": "{succeeded}件の判定に成功し、{failed}件が失敗しました。"
+  },
+  "The {event} message will keep its idempotency key and receive one additional delivery cycle.": {
+    "ja": "{event}メッセージの冪等性キーは維持され、追加の配信サイクルが1回実行されます。"
+  },
+  "A stable numeric provider user ID is required.": {
+    "ja": "プロバイダーの固定の数値ユーザーIDが必要です。"
+  },
+  "An exact map dataset ID and SHA-256 checksum are required.": {
+    "ja": "正確なマップデータセットIDとSHA-256チェックサムが必要です。"
+  },
+  "Enter a valid Telegram chat ID.": {
+    "ja": "有効なTelegramチャットIDを入力してください。"
+  },
+  "Planning distances and times must be finite JSON numbers.": {
+    "ja": "計画の距離と時間は、JSONの有限数値で指定してください。",
+    "th": "ระยะทางและเวลาในการวางแผนต้องเป็นตัวเลข JSON ที่มีค่าจำกัด"
+  },
+  "Recovery document must contain valid JSON with a bounded nesting depth.": {
+    "ja": "復旧用ドキュメントには、入れ子の深さが制限内の有効なJSONを含める必要があります。"
+  },
+  "That game Player ID was assigned concurrently. Reload the current identity before retrying.": {
+    "ja": "そのゲームプレイヤーIDは別の処理で同時に割り当てられました。現在の識別情報を再読み込みしてから、やり直してください。"
+  },
+  "The document is not valid JSON.": {
+    "ja": "ドキュメントは有効なJSONではありません。"
+  },
+  "The layout must be valid JSON with at most 32 levels of nesting.": {
+    "ja": "レイアウトは、入れ子の深さが32階層以下の有効なJSONである必要があります。"
+  },
+  "The email address for your Kingshot Alliance account was changed to :email.": {
+    "ja": "Kingshot Allianceアカウントのメールアドレスが:emailに変更されました。",
+    "zh-CN": "您的Kingshot Alliance账户电子邮箱已更改为 :email。",
+    "zh-TW": "您的Kingshot Alliance帳戶電子郵件地址已變更為 :email。"
+  },
+  "Governor {current} of {total}": {
+    "zh-CN": "第 {current} 位总督，共 {total} 位",
+    "zh-TW": "第 {current} 位總督，共 {total} 位"
+  },
+  "Roles could not be loaded. Try again.": {
+    "zh-CN": "无法加载角色，请重试。",
+    "zh-TW": "無法載入角色，請重試。"
+  },
+  "{count} roles on this page": {
+    "zh-CN": "本页有 {count} 个角色",
+    "zh-TW": "本頁有 {count} 個角色"
+  },
+  "Next retry {date}": {
+    "zh-CN": "下次重试：{date}",
+    "zh-TW": "下次重試：{date}"
+  },
+  "Failed {date}": {
+    "zh-CN": "失败时间：{date}",
+    "zh-TW": "失敗時間：{date}",
+    "ko": "실패 일시: {date}"
+  },
+  "Disconnect Google": {
+    "zh-CN": "断开Google连接",
+    "zh-TW": "中斷Google連線",
+    "ko": "Google 연결 해제"
+  },
+  "Damage {direction}": {
+    "zh-CN": "伤害 {direction}",
+    "zh-TW": "傷害 {direction}"
+  },
+  "Last updated {date}": {
+    "zh-CN": "上次更新：{date}",
+    "zh-TW": "上次更新：{date}"
+  },
+  "Last checked {date}": {
+    "zh-CN": "上次检查：{date}",
+    "zh-TW": "上次檢查：{date}"
+  },
+  "Deactivated {date} by {actor}": {
+    "zh-CN": "{actor}于{date}停用",
+    "zh-TW": "{actor}於{date}停用"
+  },
+  "Captured {date}": {
+    "zh-CN": "采集时间：{date}",
+    "zh-TW": "擷取時間：{date}"
+  },
+  "Latest verified {date}": {
+    "zh-CN": "最近验证时间：{date}",
+    "zh-TW": "最近驗證時間：{date}"
+  },
+  "{alliance} · current Kingdom {kingdom}. Game Alliance ID is the only automatic identity match. Names and tags never merge records automatically.": {
+    "zh-CN": "{alliance} · 当前王国 {kingdom}。游戏联盟ID是自动匹配身份的唯一依据。名称和标签不会触发记录的自动合并。",
+    "zh-TW": "{alliance} · 目前王國 {kingdom}。遊戲聯盟ID是自動比對身分的唯一依據。名稱與標籤不會觸發紀錄的自動合併。"
+  },
+  "Preparation day {day}": {
+    "zh-CN": "准备期第 {day} 天",
+    "zh-TW": "準備期第 {day} 天"
+  },
+  "Observation normalized with": {
+    "zh-CN": "观测数据的标准化依据",
+    "zh-TW": "觀測資料的標準化依據"
+  },
+  "Observed {date}": {
+    "zh-CN": "观测时间：{date}",
+    "zh-TW": "觀測時間：{date}"
+  },
+  "X API access confirmed": {
+    "zh-CN": "已确认X API访问权限",
+    "zh-TW": "已確認X API存取權限"
+  },
+  "The uploaded CSV file could not be read.": {
+    "zh-CN": "无法读取上传的CSV文件。",
+    "zh-TW": "無法讀取上傳的CSV檔案。"
+  },
+  "This Google sign-in request expired or was already used. Please start again.": {
+    "zh-CN": "此Google登录请求已过期或已使用，请重新开始。",
+    "zh-TW": "此Google登入請求已過期或已使用，請重新開始。"
+  },
+  "Unsupported structured Governor Progression observation kind.": {
+    "zh-CN": "不支持此类型的结构化总督成长观测数据。",
+    "zh-TW": "不支援此類型的結構化總督成長觀測資料。",
+    "de": "Diese Art strukturierter Beobachtung des Gouverneursfortschritts wird nicht unterstützt.",
+    "vi": "Loại quan sát có cấu trúc về tiến trình Thống đốc này không được hỗ trợ."
+  },
+  "This verification link expires in :minutes minutes.": {
+    "zh-CN": "此验证链接将在 :minutes 分钟后过期。",
+    "zh-TW": "此驗證連結將在 :minutes 分鐘後到期。"
+  },
+  "Sign in to Kingshot Alliance": {
+    "zh-CN": "登录Kingshot Alliance",
+    "zh-TW": "登入Kingshot Alliance"
+  },
+  "This password reset link expires in :minutes minutes.": {
+    "zh-CN": "此密码重设链接将在 :minutes 分钟后过期。",
+    "zh-TW": "此密碼重設連結將在 :minutes 分鐘後到期。"
+  },
+  "Your Kingshot Alliance password was changed. Other sessions and access tokens were invalidated.": {
+    "zh-CN": "您的Kingshot Alliance密码已更改。其他会话和访问令牌已失效。",
+    "zh-TW": "您的Kingshot Alliance密碼已變更。其他工作階段與存取權杖已失效。"
+  },
+  "New": {
+    "ko": "신규"
+  },
+  "Add {channel} destination": {
+    "ko": "{channel} 수신 대상 추가"
+  },
+  "{count} messages selected": {
+    "ko": "메시지 {count}개 선택됨",
+    "th": "เลือก {count} ข้อความ"
+  },
+  "Personal progression competition with scoring across multiple phases.": {
+    "ko": "여러 단계에 걸쳐 점수를 집계하는 개인 성장 경쟁입니다."
+  },
+  "Track contribution records, approved progress, corrections, and goals for {alliance}.": {
+    "ko": "{alliance}의 기여 기록, 승인된 진행 상황, 수정 사항 및 목표를 추적합니다."
+  },
+  "API credential limit": {
+    "ko": "API 인증 정보 수 제한"
+  },
+  "Bot & API access": {
+    "ko": "봇 및 API 접근"
+  },
+  "Archive planning cohort “{name}”?": {
+    "ko": "계획 그룹 “{name}”을 보관 처리하시겠습니까?"
+  },
+  "{codes} codes · {governors} Governors selected": {
+    "th": "เลือก {codes} โค้ด · ผู้ว่าการ {governors} คน"
+  },
+  "{count} waiting or unavailable": {
+    "th": "{count} รายการกำลังรอหรือไม่พร้อมใช้งาน"
+  },
+  "Discord author ids must be numeric snowflakes.": {
+    "th": "ID ผู้เขียน Discord ต้องเป็นรหัส Snowflake แบบตัวเลข"
+  },
+  "Last seen": {
+    "de": "Zuletzt gesehen"
+  },
+  "Reward quantity": {
+    "de": "Belohnungsmenge"
+  },
+  "Effective from": {
+    "de": "Gültig ab"
+  },
+  "Delivery time": {
+    "de": "Zustellzeit",
+    "pl": "Czas dostarczenia"
+  },
+  "Deleted Alliances": {
+    "de": "Gelöschte Allianzen"
+  },
+  "Missing is distinct from zero.": {
+    "ko": "누락된 값은 0과 구별됩니다."
+  },
+  "Expires at": {
+    "pt-BR": "Expira em"
+  },
+  "Broadcast occurrence recorded": {
+    "ru": "Случай рассылки зарегистрирован"
+  },
+  "Official phase": {
+    "th": "ช่วงอย่างเป็นทางการ"
+  },
+  "The Power Cap is fixed after Phase II begins. A changed value must be recorded explicitly as an authoritative correction.": {
+    "th": "ขีดจำกัดพลังจะคงที่หลังเริ่มช่วงที่ 2 หากมีการเปลี่ยนค่า ต้องบันทึกอย่างชัดเจนว่าเป็นการแก้ไขจากแหล่งข้อมูลที่เชื่อถือได้"
+  },
+  "This browser does not report passkey support.": {
+    "zh-CN": "此浏览器未报告支持通行密钥。",
+    "zh-TW": "此瀏覽器未回報支援通行金鑰。"
+  },
+  "The Event Type does not support the requested scope.": {
+    "zh-CN": "此活动类型不支持所请求的范围。",
+    "zh-TW": "此活動類型不支援所要求的範圍。"
+  },
+  "Web Push is not available in this browser or is not configured on the server.": {
+    "zh-CN": "此浏览器无法使用网页推送，或服务器尚未配置此功能。",
+    "zh-TW": "此瀏覽器無法使用網頁推播，或伺服器尚未設定此功能。"
+  },
+  "Invalidated by {actor} on {date}": {
+    "zh-CN": "{actor}于{date}将其作废",
+    "zh-TW": "{actor}於{date}將其作廢"
+  },
+  "Resource requirements": {
+    "zh-TW": "所需資源"
+  },
+  "dismiss": {
+    "de": "verwerfen",
+    "es": "descartar",
+    "fr": "ignorer",
+    "it": "ignora",
+    "pt-BR": "dispensar"
+  },
+  "Roster lock": {
+    "de": "Mitgliederliste sperren"
+  },
+  "Open Rally plan": {
+    "de": "Sammelangriffsplan öffnen"
+  },
+  "Missing scout record": {
+    "de": "Fehlender Spähbericht"
+  },
+  "Atomic editing": {
+    "de": "Gemeinsames Bearbeiten in einem Schritt"
+  },
+  "Stale observation": {
+    "de": "Veraltete Beobachtung"
+  },
+  "Transfer cooldown": {
+    "de": "Wartezeit nach dem Wechsel"
+  },
+  "Native name": {
+    "de": "Name in der Originalsprache"
+  },
+  "signature failures": {
+    "fr": "échecs de signature"
+  },
+  "Active Governor overrides": {
+    "fr": "Dérogations du Gouverneur actif",
+    "it": "Eccezioni del Governatore attivo",
+    "pl": "Nadpisania aktywnego gubernatora"
+  },
+  "unclaimed Governor": {
+    "fr": "Gouverneur non revendiqué",
+    "it": "Governatore non rivendicato"
+  },
+  "Alliance publishing": {
+    "fr": "Publications de l’Alliance",
+    "id": "Penerbitan aliansi",
+    "pl": "Publikacje sojuszu",
+    "vi": "Xuất bản của liên minh"
+  },
+  "Export Alliance record": {
+    "fr": "Exporter la fiche de l’Alliance",
+    "it": "Esporta il record dell’Alleanza"
+  },
+  "Manage Governors": {
+    "id": "Kelola Gubernur"
+  },
+  "Kingdom or region applicability": {
+    "id": "Berlaku untuk kerajaan atau wilayah"
+  },
+  "Alliance coverage": {
+    "id": "Cakupan aliansi"
+  },
+  "Alliance administration": {
+    "id": "Administrasi aliansi"
+  },
+  "Manage Alliance settings": {
+    "id": "Kelola pengaturan aliansi"
+  },
+  "Manage Alliance content": {
+    "id": "Kelola konten aliansi"
+  },
+  "Alliance governance history": {
+    "id": "Riwayat pengelolaan aliansi"
+  },
+  "Kingdom identity": {
+    "id": "Identitas kerajaan",
+    "vi": "Danh tính vương quốc"
+  },
+  "Release Governor": {
+    "id": "Lepaskan Gubernur",
+    "it": "Scollega il Governatore",
+    "pt-BR": "Desvincular Governador"
+  },
+  "Event readiness": {
+    "id": "Kesiapan acara"
+  },
+  "Event templates": {
+    "id": "Templat acara"
+  },
+  "Event template": {
+    "id": "Templat acara"
+  },
+  "Event roster": {
+    "id": "Daftar peserta acara",
+    "vi": "Danh sách người tham gia sự kiện"
+  },
+  "Event timeline": {
+    "id": "Linimasa acara",
+    "pl": "Oś czasu wydarzenia",
+    "vi": "Dòng thời gian sự kiện"
+  },
+  "Alliance Content": {
+    "id": "Konten aliansi"
+  },
+  "Alliance tag": {
+    "id": "Singkatan aliansi"
+  },
+  "Event participation": {
+    "id": "Partisipasi acara",
+    "vi": "Tham gia sự kiện"
+  },
+  "Alliance member content": {
+    "id": "Konten anggota aliansi"
+  },
+  "Alliance Notice reactions": {
+    "id": "Reaksi terhadap pengumuman aliansi",
+    "vi": "Cảm xúc về thông báo liên minh"
+  },
+  "Manage Kingdom roles": {
+    "id": "Kelola peran kerajaan"
+  },
+  "User planning intent": {
+    "id": "Maksud perencanaan pengguna"
+  },
+  "Home Kingdom": {
+    "id": "Kerajaan asal"
+  },
+  "Kingdom Transfer": {
+    "id": "Transfer kerajaan"
+  },
+  "Alliance roster Governor": {
+    "id": "Gubernur dalam daftar anggota aliansi"
+  },
+  "Source Kingdom": {
+    "id": "Kerajaan sumber"
+  },
+  "Kingdom Transfer Governors": {
+    "id": "Gubernur yang melakukan transfer kerajaan",
+    "vi": "Thống đốc chuyển vương quốc"
+  },
+  "Target Kingdom conditions": {
+    "id": "Syarat kerajaan tujuan"
+  },
+  "Kingdom classification": {
+    "id": "Klasifikasi kerajaan",
+    "vi": "Phân loại vương quốc"
+  },
+  "Governor Truegold level": {
+    "id": "Level Truegold Gubernur"
+  },
+  "Alliance readiness workflow": {
+    "id": "Alur kerja kesiapan aliansi"
+  },
+  "Target Kingdom number": {
+    "id": "Nomor kerajaan tujuan"
+  },
+  "Target Kingdom transfer rules": {
+    "id": "Aturan transfer kerajaan tujuan"
+  },
+  "Alliance public page": {
+    "id": "Halaman publik aliansi"
+  },
+  "Alliance share link": {
+    "id": "Tautan berbagi aliansi"
+  },
+  "Post-Event Closeout Brief": {
+    "pl": "Raport zamknięcia po wydarzeniu",
+    "pt-BR": "Resumo de encerramento pós-evento"
+  },
+  "Event": {
+    "pl": "Wydarzenie"
+  },
+  "Screenshot Evidence": {
+    "pl": "Dowody ze zrzutów ekranu"
+  },
+  "User": {
+    "pl": "Użytkownik"
+  },
+  "Alliance roster screenshot review saved.": {
+    "pt-BR": "Revisão da captura da lista de membros da Aliança salva."
+  },
+  "Alliance-local recruiting control": {
+    "pt-BR": "Controle de recrutamento interno da Aliança",
+    "vi": "Kiểm soát tuyển thành viên nội bộ liên minh"
+  },
+  "No Alliance Rules have been posted yet.": {
+    "pt-BR": "Nenhuma regra da Aliança foi publicada ainda."
+  },
+  "Observed Alliance tag": {
+    "pt-BR": "Sigla observada da Aliança"
+  },
+  "Alliance layer": {
+    "tr": "İttifak katmanı"
+  },
+  "Alliance bot command": {
+    "tr": "İttifak bot komutu"
+  },
+  "{count} blockers remain for the next verified Event": {
+    "vi": "Còn {count} trở ngại cho sự kiện đã xác minh tiếp theo"
+  },
+  "Player-scoped Kingdom authority": {
+    "vi": "Quyền hạn vương quốc theo người chơi"
+  },
+  "Gift Code trust changed": {
+    "vi": "Độ tin cậy của mã quà tặng đã thay đổi"
+  },
+  "Event planning": {
+    "vi": "Lập kế hoạch sự kiện"
+  },
+  "Published Alliance guides and source information.": {
+    "vi": "Hướng dẫn liên minh đã xuất bản và thông tin nguồn."
+  },
+  "Kingdom intelligence timeline": {
+    "vi": "Dòng thời gian thông tin vương quốc"
+  },
+  "Gift Code curators": {
+    "vi": "Người quản lý mã quà tặng"
+  },
+  "Recipient processing complete": {
+    "ko": "수신자 처리가 완료되었습니다"
+  },
+  "Recurring Alliance Notice cancelled.": {
+    "ko": "반복 연맹 공지가 취소되었습니다."
+  },
+  "Event objective assigned.": {
+    "pl": "Przypisano cel wydarzenia."
+  },
+  "Share expiry must be within 31 days.": {
+    "ru": "Срок действия ссылки для доступа должен истечь в течение 31 дня."
+  },
+  "{count} ineligible": {
+    "ru": "Не соответствуют требованиям: {count}"
+  },
+  "Gift Code available": {
+    "th": "มีโค้ดของขวัญพร้อมใช้งาน"
+  },
+  "Available Gift Codes": {
+    "th": "โค้ดของขวัญที่พร้อมใช้งาน"
+  },
+  "Exhausted outbox messages": {
+    "th": "ข้อความในคิวส่งที่ใช้โควตาลองส่งซ้ำครบแล้ว"
+  },
+  "Snooze 24 hours": {
+    "th": "เลื่อนการแจ้งเตือน 24 ชั่วโมง"
+  },
+  "That stable game Alliance ID belongs to another neutral identity. Reconcile the identities explicitly instead of overwriting either record.": {
+    "th": "ID พันธมิตรในเกมแบบคงที่นั้นเป็นของอีกตัวตนกลางหนึ่ง ให้กระทบยอดตัวตนอย่างชัดเจนแทนการเขียนทับระเบียนใดระเบียนหนึ่ง"
+  },
+  "Preview is strict and bounded; applying coordinates is one atomic command and respects locks.": {
+    "th": "การแสดงตัวอย่างมีการตรวจสอบอย่างเข้มงวดและจำกัดขอบเขต การใช้พิกัดเป็นคำสั่งเดียวที่สำเร็จทั้งหมดหรือไม่เปลี่ยนแปลงเลย และจะปฏิบัติตามการล็อก"
+  },
+  "ACCOUNT RECOVERY": {
+    "vi": "KHÔI PHỤC TÀI KHOẢN"
+  },
+  "Transfer campaign workspace": {
+    "vi": "Không gian làm việc cho chiến dịch chuyển vương quốc"
+  },
+  "Open redemption workspace": {
+    "vi": "Mở không gian đổi mã quà tặng"
+  },
+  "Mark complete only when this screenshot genuinely shows the complete Hero roster. This is the only state that can establish observed Hero absence.": {
+    "id": "Tandai lengkap hanya jika tangkapan layar ini benar-benar menampilkan seluruh daftar pahlawan. Hanya status ini yang dapat membuktikan bahwa pahlawan tertentu tidak terlihat dalam daftar."
+  },
+  "Enable Century Games Kingshot news ingestion only after provider permission is confirmed.": {
+    "de": "Aktiviere den Import von Kingshot-Neuigkeiten von Century Games erst, nachdem die Erlaubnis des Anbieters bestätigt wurde.",
+    "id": "Aktifkan pengambilan berita Kingshot dari Century Games hanya setelah izin penyedia dikonfirmasi."
+  },
+  "I found {count} recent authorized Bear Hunt run record(s). Recorded and accepted-evidence states remain explicit below.": {
+    "pt-BR": "Encontrei {count} registros recentes de caçadas ao urso que você tem permissão para consultar. Os estados dos registros e das evidências aceitas estão indicados abaixo."
+  },
+  "Unsupported Transfer Evidence fingerprint schema.": {
+    "tr": "Transfer kanıtı parmak izi şeması desteklenmiyor."
+  },
+  "How we play together": {
+    "vi": "Cách chúng ta cùng chơi"
+  },
+  "Official Transfer Group history": {
+    "vi": "Lịch sử nhóm chuyển vương quốc chính thức"
+  },
+  "X push requires the explicitly configured Filtered Stream Webhook Enterprise entitlement.": {
+    "vi": "Thông báo đẩy từ X yêu cầu quyền Filtered Stream Webhook Enterprise được cấu hình rõ ràng."
+  },
+  "Redeem for {governor}": {
+    "ar": "استبدال الرموز للحاكم {governor}"
+  },
+  "Select {governor}": {
+    "ar": "اختيار {governor}"
+  }
+}

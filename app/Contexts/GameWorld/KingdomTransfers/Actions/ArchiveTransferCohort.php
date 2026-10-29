@@ -43,7 +43,7 @@ final readonly class ArchiveTransferCohort
                 || $context->kingdomId() !== (string) $plan->home_kingdom_id
             ) {
                 throw ValidationException::withMessages([
-                    'cohort' => 'This transfer cohort is not mutable.',
+                    'cohort' => (string) __('This transfer cohort is not mutable.'),
                 ]);
             }
 
@@ -67,7 +67,7 @@ final readonly class ArchiveTransferCohort
                     ->exists()
             ) {
                 throw ValidationException::withMessages([
-                    'cohort' => 'Unassign or move active Governors before archiving this transfer cohort.',
+                    'cohort' => (string) __('Unassign or move active Governors before archiving this transfer cohort.'),
                 ]);
             }
 

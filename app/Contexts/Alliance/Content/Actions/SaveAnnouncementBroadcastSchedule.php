@@ -59,23 +59,23 @@ final readonly class SaveAnnouncementBroadcastSchedule
                 || $item->status !== ContentStatus::Published
                 || ! $item->notify_members) {
                 throw ValidationException::withMessages([
-                    'content' => 'Publish a member-notifying announcement before adding recurrence.',
+                    'content' => (string) __('Publish a member-notifying announcement before adding recurrence.'),
                 ]);
             }
 
             $weekdays = array_values(array_unique(array_map('intval', $weekdays)));
             sort($weekdays);
             if ($weekdays === [] || array_diff($weekdays, range(1, 7)) !== []) {
-                throw ValidationException::withMessages(['weekdays' => 'Choose one or more valid recurring days.']);
+                throw ValidationException::withMessages(['weekdays' => (string) __('Choose one or more valid recurring days.')]);
             }
             if (! in_array($timezone, timezone_identifiers_list(), true)) {
-                throw ValidationException::withMessages(['timezone' => 'Choose a valid IANA time zone.']);
+                throw ValidationException::withMessages(['timezone' => (string) __('Choose a valid IANA time zone.')]);
             }
 
             $end = $endsAt === null ? null : CarbonImmutable::parse($endsAt)->utc();
             $next = $this->nextOccurrence->calculate($weekdays, $localTime, $timezone, endsAt: $end);
             if ($next === null) {
-                throw ValidationException::withMessages(['ends_at' => 'The recurrence must include a future delivery.']);
+                throw ValidationException::withMessages(['ends_at' => (string) __('The recurrence must include a future delivery.')]);
             }
 
             $schedule = AnnouncementBroadcastSchedule::query()

@@ -138,7 +138,7 @@ final class EventMetricCapture
         }
         if ($source === EventMetricSource::Manual && ($recorderPlayerId === null || $recorderPlayerId === '')) {
             throw ValidationException::withMessages([
-                'metrics' => 'Manual Event metrics require a recording Player.',
+                'metrics' => (string) __('Manual Event metrics require a recording Player.'),
             ]);
         }
 
@@ -163,7 +163,7 @@ final class EventMetricCapture
             $definition = $definitions->get($key);
             if (! ($definition instanceof EventMetricDefinition)) {
                 throw ValidationException::withMessages([
-                    "metrics.$index.key" => 'This metric is not defined for the Event Type, scope, and subject.',
+                    "metrics.$index.key" => (string) __('This metric is not defined for the Event Type, scope, and subject.'),
                 ]);
             }
 
@@ -171,7 +171,7 @@ final class EventMetricCapture
             $identity = $key."\0".$dimensionKey;
             if (isset($seen[$identity])) {
                 throw ValidationException::withMessages([
-                    "metrics.$index" => 'The same metric and dimension may appear only once per write.',
+                    "metrics.$index" => (string) __('The same metric and dimension may appear only once per write.'),
                 ]);
             }
             $seen[$identity] = true;
@@ -197,7 +197,7 @@ final class EventMetricCapture
         if ($definition->dimension_kind === null) {
             if ($dimension !== '') {
                 throw ValidationException::withMessages([
-                    "metrics.$index.dimension_key" => 'This metric does not accept a dimension.',
+                    "metrics.$index.dimension_key" => (string) __('This metric does not accept a dimension.'),
                 ]);
             }
 
@@ -206,7 +206,7 @@ final class EventMetricCapture
 
         if ($dimension === '') {
             throw ValidationException::withMessages([
-                "metrics.$index.dimension_key" => 'This metric requires an occurrence dimension.',
+                "metrics.$index.dimension_key" => (string) __('This metric requires an occurrence dimension.'),
             ]);
         }
 
@@ -224,7 +224,7 @@ final class EventMetricCapture
 
         if (! $exists) {
             throw ValidationException::withMessages([
-                "metrics.$index.dimension_key" => 'Metric dimension does not exist on this Event occurrence.',
+                "metrics.$index.dimension_key" => (string) __('Metric dimension does not exist on this Event occurrence.'),
             ]);
         }
 
@@ -235,7 +235,7 @@ final class EventMetricCapture
     {
         if (! is_int($value) && ! is_float($value) && ! is_string($value)) {
             throw ValidationException::withMessages([
-                "metrics.$index.value" => 'Metric value must be numeric.',
+                "metrics.$index.value" => (string) __('Metric value must be numeric.'),
             ]);
         }
 
@@ -255,13 +255,13 @@ final class EventMetricCapture
         [$whole] = explode('.', $normalized, 2);
         if (strlen(ltrim($whole, '0')) > 26) {
             throw ValidationException::withMessages([
-                "metrics.$index.value" => 'Metric value is too large.',
+                "metrics.$index.value" => (string) __('Metric value is too large.'),
             ]);
         }
 
         if ($definition->value_type === EventMetricValueType::Percentage && (float) $normalized > 100.0) {
             throw ValidationException::withMessages([
-                "metrics.$index.value" => 'Percentage metrics must be between 0 and 100.',
+                "metrics.$index.value" => (string) __('Percentage metrics must be between 0 and 100.'),
             ]);
         }
 

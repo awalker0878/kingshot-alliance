@@ -41,6 +41,25 @@ const messages = {
     noPreviousHelp: '当该联盟存在更早已完成的猎熊行动后，将显示比较。',
     history: '历史',
     runHistory: '猎熊行动历史',
+    signals: {
+      evidence: '证据状态',
+      factualSignals: '记录的比较',
+      reviewPending: '一个或多个导入的统治者行仍然需要身份审查。',
+      newPersonalBest: '从被接受的结果中创造新的个人最佳成绩',
+      damageDirection: '伤害 {direction}',
+      rallyDirection: '集结参与情况 {direction}',
+      evidenceStates: {
+        accepted: '接受截图结果',
+        recorded_without_accepted_evidence: '记录的结果没有被接受的截图证据',
+        unavailable: '无记录结果',
+      },
+      directions: {
+        unknown: '无法比较',
+        increased: '增加',
+        decreased: '减少',
+        unchanged: '无变动',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

@@ -45,7 +45,7 @@ final readonly class SaveTransferInvitationAllocation
             $this->authority->authorizeContext($context, TransferPermission::Manage);
             $plan = TransferPlan::query()->where('alliance_id', $allianceId)->whereKey($planId)->sharedLock()->firstOrFail();
             if (! in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true)) {
-                throw ValidationException::withMessages(['invitation' => 'Invitation allocations can only change while the transfer cycle is Draft or Open.']);
+                throw ValidationException::withMessages(['invitation' => (string) __('Invitation allocations can only change while the transfer cycle is Draft or Open.')]);
             }
             $participant = TransferParticipant::query()
                 ->where('alliance_id', $allianceId)
@@ -54,13 +54,13 @@ final readonly class SaveTransferInvitationAllocation
                 ->lockForUpdate()
                 ->firstOrFail();
             if ($participant->withdrawn_at !== null || $participant->direction->value === 'staying') {
-                throw ValidationException::withMessages(['invitation' => 'Only active transfer participants can receive an invitation allocation.']);
+                throw ValidationException::withMessages(['invitation' => (string) __('Only active transfer participants can receive an invitation allocation.')]);
             }
             $targetId = $participant->direction->value === 'incoming'
                 ? (string) $plan->home_kingdom_id
                 : ($participant->destination_kingdom_id === null ? null : (string) $participant->destination_kingdom_id);
             if ($targetId === null) {
-                throw ValidationException::withMessages(['invitation' => 'Set the target Kingdom before allocating an invitation.']);
+                throw ValidationException::withMessages(['invitation' => (string) __('Set the target Kingdom before allocating an invitation.')]);
             }
 
             $existing = TransferInvitationAllocation::query()->where('transfer_participant_id', $participantId)->lockForUpdate()->first();
@@ -71,14 +71,14 @@ final readonly class SaveTransferInvitationAllocation
                     ->orderByDesc('observed_at')->orderByDesc('id')->get()
                     ->first(static fn (TransferKingdomConditionObservation $row): bool => $row->source_type->isAuthoritative());
                 if (! $condition instanceof TransferKingdomConditionObservation || $condition->classification !== TransferKingdomClassification::Ordinary) {
-                    throw ValidationException::withMessages(['invitation' => 'Special Invites require an authoritative Ordinary Kingdom classification; Leading Kingdoms cannot issue them.']);
+                    throw ValidationException::withMessages(['invitation' => (string) __('Special Invites require an authoritative Ordinary Kingdom classification; Leading Kingdoms cannot issue them.')]);
                 }
                 $capacity = TransferKingdomCapacityObservation::query()
                     ->where('alliance_id', $allianceId)->where('transfer_window_id', $plan->transfer_window_id)->where('kingdom_id', $targetId)
                     ->orderByDesc('observed_at')->orderByDesc('id')->get()
                     ->first(static fn (TransferKingdomCapacityObservation $row): bool => $row->source_type->isAuthoritative());
                 if (! $capacity instanceof TransferKingdomCapacityObservation || $capacity->special_invites_available === null) {
-                    throw ValidationException::withMessages(['invitation' => 'Verify current Special Invite inventory before reserving one.']);
+                    throw ValidationException::withMessages(['invitation' => (string) __('Verify current Special Invite inventory before reserving one.')]);
                 }
                 $activeStates = array_map(
                     static fn (TransferInvitationAllocationState $candidate): string => $candidate->value,
@@ -97,7 +97,7 @@ final readonly class SaveTransferInvitationAllocation
                     ->lockForUpdate()
                     ->count();
                 if ($capacity->special_invites_available - $otherReserved <= 0) {
-                    throw ValidationException::withMessages(['invitation' => 'No verified Special Invite inventory remains after Alliance allocations.']);
+                    throw ValidationException::withMessages(['invitation' => (string) __('No verified Special Invite inventory remains after Alliance allocations.')]);
                 }
             }
 

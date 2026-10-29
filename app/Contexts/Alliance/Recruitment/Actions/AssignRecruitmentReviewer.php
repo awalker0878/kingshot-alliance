@@ -47,14 +47,14 @@ final class AssignRecruitmentReviewer
 
             if ($currentCandidate->merged_into_id !== null) {
                 throw ValidationException::withMessages([
-                    'candidate' => 'Reviewers must be assigned to the current merged candidate record.',
+                    'candidate' => (string) __('Reviewers must be assigned to the current merged candidate record.'),
                 ]);
             }
 
             $reviewer = $this->players->require($reviewerPlayerId);
             if ($reviewer->kingdomId !== (string) $context->alliance->kingdom_id) {
                 throw ValidationException::withMessages([
-                    'reviewer_player_id' => 'Recruitment reviewers must currently belong to the Alliance Kingdom.',
+                    'reviewer_player_id' => (string) __('Recruitment reviewers must currently belong to the Alliance Kingdom.'),
                 ]);
             }
 
@@ -67,7 +67,7 @@ final class AssignRecruitmentReviewer
 
             if (! $reviewerMembership instanceof AllianceMembership) {
                 throw ValidationException::withMessages([
-                    'reviewer_player_id' => 'Recruitment reviewers must be active Alliance Players.',
+                    'reviewer_player_id' => (string) __('Recruitment reviewers must be active Alliance Players.'),
                 ]);
             }
 

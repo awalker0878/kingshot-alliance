@@ -57,12 +57,12 @@ final readonly class SaveSpatialEvidenceReview
             $captured = CarbonImmutable::parse($capturedAt)->utc();
         } catch (Throwable) {
             throw ValidationException::withMessages([
-                'captured_at' => 'The screenshot capture time is invalid.',
+                'captured_at' => (string) __('The screenshot capture time is invalid.'),
             ]);
         }
         if ($captured->gt(CarbonImmutable::now('UTC')->addMinutes(5))) {
             throw ValidationException::withMessages([
-                'captured_at' => 'The screenshot capture time cannot be more than five minutes in the future.',
+                'captured_at' => (string) __('The screenshot capture time cannot be more than five minutes in the future.'),
             ]);
         }
 
@@ -74,7 +74,7 @@ final readonly class SaveSpatialEvidenceReview
             );
             if ($scope->kingdomId !== $kingdomId) {
                 throw ValidationException::withMessages([
-                    'kingdom_id' => 'The reviewed Territory screenshot belongs to historical Kingdom context.',
+                    'kingdom_id' => (string) __('The reviewed Territory screenshot belongs to historical Kingdom context.'),
                 ]);
             }
 
@@ -91,7 +91,7 @@ final readonly class SaveSpatialEvidenceReview
             if ($evidence->kind !== EvidenceKind::TerritoryMapObservation
                 || $evidence->expected_kind !== EvidenceKind::TerritoryMapObservation) {
                 throw ValidationException::withMessages([
-                    'evidence' => 'The screenshot class has not been safely verified as a Territory map observation.',
+                    'evidence' => (string) __('The screenshot class has not been safely verified as a Territory map observation.'),
                 ]);
             }
 
@@ -112,7 +112,7 @@ final readonly class SaveSpatialEvidenceReview
                 ->firstOrFail();
             if ((float) $classification->confidence < $schema->minimumClassificationConfidence) {
                 throw ValidationException::withMessages([
-                    'evidence' => 'Classification confidence is below the supported Territory schema threshold.',
+                    'evidence' => (string) __('Classification confidence is below the supported Territory schema threshold.'),
                 ]);
             }
 
@@ -206,7 +206,7 @@ final readonly class SaveSpatialEvidenceReview
     {
         if (count($objects) > 5000) {
             throw ValidationException::withMessages([
-                'objects' => 'A review may contain at most 5,000 supported spatial objects.',
+                'objects' => (string) __('A review may contain at most 5,000 supported spatial objects.'),
             ]);
         }
 
@@ -215,7 +215,7 @@ final readonly class SaveSpatialEvidenceReview
         foreach ($objects as $index => $object) {
             if (! is_array($object)) {
                 throw ValidationException::withMessages([
-                    "objects.{$index}" => 'Each reviewed object must be structured data.',
+                    "objects.{$index}" => (string) __('Each reviewed object must be structured data.'),
                 ]);
             }
 
@@ -232,7 +232,7 @@ final readonly class SaveSpatialEvidenceReview
                 || ! is_int($object['x'] ?? null)
                 || ! is_int($object['y'] ?? null)) {
                 throw ValidationException::withMessages([
-                    "objects.{$index}" => 'The reviewed spatial object is invalid or unsupported.',
+                    "objects.{$index}" => (string) __('The reviewed spatial object is invalid or unsupported.'),
                 ]);
             }
 
@@ -279,17 +279,17 @@ final readonly class SaveSpatialEvidenceReview
             SpatialObservationCoverageKind::CompleteVisibleRegion,
         ], true) && $completeness !== SpatialObservationCompleteness::Complete) {
             throw ValidationException::withMessages([
-                'completeness' => 'A complete-hive or complete-visible-region observation must be explicitly complete.',
+                'completeness' => (string) __('A complete-hive or complete-visible-region observation must be explicitly complete.'),
             ]);
         }
         if ($kind === SpatialObservationCoverageKind::CompleteVisibleRegion && $bounds === null) {
             throw ValidationException::withMessages([
-                'coverage_bounds' => 'Complete visible-region observations require explicit bounds.',
+                'coverage_bounds' => (string) __('Complete visible-region observations require explicit bounds.'),
             ]);
         }
         if ($kind === SpatialObservationCoverageKind::SingleObject && $objectCount !== 1) {
             throw ValidationException::withMessages([
-                'objects' => 'Single-object coverage requires exactly one reviewed object.',
+                'objects' => (string) __('Single-object coverage requires exactly one reviewed object.'),
             ]);
         }
     }
@@ -325,7 +325,7 @@ final readonly class SaveSpatialEvidenceReview
             ], JSON_THROW_ON_ERROR));
         } catch (JsonException) {
             throw ValidationException::withMessages([
-                'payload' => 'The reviewed Territory observation could not be fingerprinted.',
+                'payload' => (string) __('The reviewed Territory observation could not be fingerprinted.'),
             ]);
         }
     }

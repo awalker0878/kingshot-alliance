@@ -27,13 +27,13 @@ final readonly class PlayerLifecyclePolicy
 
         $playerId = (string) $player->id;
         if ($this->governance->hasActiveAssignmentsForPlayer($playerId, $currentKingdomId)) {
-            throw ValidationException::withMessages(['kingdom' => 'That Player still has effective Kingdom roles in the current Kingdom. Revoke those roles before changing Kingdoms.']);
+            throw ValidationException::withMessages(['kingdom' => (string) __('That Player still has effective Kingdom roles in the current Kingdom. Revoke those roles before changing Kingdoms.')]);
         }
         if ($this->memberships->hasAnyActiveForPlayer($playerId)) {
-            throw ValidationException::withMessages(['kingdom' => 'That Player has an active Alliance membership. End or transfer the membership before changing Kingdoms.']);
+            throw ValidationException::withMessages(['kingdom' => (string) __('That Player has an active Alliance membership. End or transfer the membership before changing Kingdoms.')]);
         }
         if ($this->roster->hasActiveOrTrackedOutsideKingdom($playerId, $targetKingdomId)) {
-            throw ValidationException::withMessages(['kingdom' => 'That Player is active or tracked on a roster in another Kingdom. Resolve that roster before changing Kingdoms.']);
+            throw ValidationException::withMessages(['kingdom' => (string) __('That Player is active or tracked on a roster in another Kingdom. Resolve that roster before changing Kingdoms.')]);
         }
     }
 

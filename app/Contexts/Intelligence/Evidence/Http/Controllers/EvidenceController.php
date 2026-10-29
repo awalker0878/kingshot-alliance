@@ -49,7 +49,7 @@ final class EvidenceController extends Controller
             ->where('alliance_id', $target->allianceId)
             ->where('occurrence_id', $target->occurrenceId)
             ->firstOrFail();
-        abort_if($item->path === null, 410, 'The retained evidence image has been deleted.');
+        abort_if($item->path === null, 410, (string) __('The retained evidence image has been deleted.'));
         $disk = Storage::disk((string) $item->disk);
         $stream = $disk->readStream((string) $item->path);
         abort_unless(is_resource($stream), 404);
@@ -159,7 +159,7 @@ final class EvidenceController extends Controller
     private function actor(): PlayerReference
     {
         $actor = $this->playerContext->playerOrNull();
-        abort_unless($actor instanceof PlayerReference, 409, 'Select a Player before importing battle reports.');
+        abort_unless($actor instanceof PlayerReference, 409, (string) __('Select a Player before importing battle reports.'));
 
         return $actor;
     }

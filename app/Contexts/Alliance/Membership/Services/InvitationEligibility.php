@@ -34,7 +34,7 @@ final readonly class InvitationEligibility
         try {
             $target = $this->players->lockCurrentShared($playerId);
         } catch (ModelNotFoundException) {
-            throw ValidationException::withMessages([$playerField => 'The invited Player is no longer a current game identity.']);
+            throw ValidationException::withMessages([$playerField => (string) __('The invited Player is no longer a current game identity.')]);
         }
         $roster = AllianceRosterEntry::query()
             ->where('alliance_id', $alliance->id)
@@ -43,7 +43,7 @@ final readonly class InvitationEligibility
             ->sharedLock()
             ->first();
         if (! $roster instanceof AllianceRosterEntry || $target->kingdomId !== (string) $alliance->kingdom_id) {
-            throw ValidationException::withMessages([$playerField => 'The invited Player must be active on this Alliance roster.']);
+            throw ValidationException::withMessages([$playerField => (string) __('The invited Player must be active on this Alliance roster.')]);
         }
 
         $activeMembership = AllianceMembership::query()
@@ -61,7 +61,7 @@ final readonly class InvitationEligibility
         if ($target->userId !== null) {
             $owner = $this->accounts->require($target->userId);
             if ($owner->anonymized || ! hash_equals(Str::lower($owner->email), Str::lower(trim($email)))) {
-                throw ValidationException::withMessages([$emailField => 'This Player is already owned by a different or unavailable account.']);
+                throw ValidationException::withMessages([$emailField => (string) __('This Player is already owned by a different or unavailable account.')]);
             }
         }
     }

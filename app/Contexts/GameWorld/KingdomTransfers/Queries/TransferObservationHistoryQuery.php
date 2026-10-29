@@ -34,7 +34,7 @@ final readonly class TransferObservationHistoryQuery
             $id = $position['id'] ?? null;
             if (! is_string($at) || ! preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d{1,6})?$/D', $at)
                 || ! is_string($id) || ! preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/Di', $id)) {
-                throw ValidationException::withMessages(['cursor' => 'The observation history cursor is invalid.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The observation history cursor is invalid.')]);
             }
             $query->where(function (Builder $older) use ($at, $id): void {
                 $older->where('observed_at', '<', $at)->orWhere(function (Builder $tie) use ($at, $id): void {

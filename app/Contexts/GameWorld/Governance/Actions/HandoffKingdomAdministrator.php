@@ -38,14 +38,14 @@ final readonly class HandoffKingdomAdministrator
             $this->authorization->authorizeContext($context, KingdomPermission::RoleManage);
             $actorAdmin = $this->administrators->effective($kingdomId)->where('player_id', $actorPlayerId)->orderBy('id')->lockForUpdate()->first();
             if (! $actorAdmin instanceof KingdomRoleAssignment) {
-                throw ValidationException::withMessages(['actor' => 'Only an effective Kingdom Admin may hand off Kingdom administration.']);
+                throw ValidationException::withMessages(['actor' => (string) __('Only an effective Kingdom Admin may hand off Kingdom administration.')]);
             }
             if ($targetPlayerId === $actorPlayerId) {
                 return (string) $actorAdmin->id;
             }
             $target = Player::query()->whereKey($targetPlayerId)->lockForUpdate()->firstOrFail();
             if ((string) $target->current_kingdom_id !== $kingdomId || $target->canonical_player_id !== null) {
-                throw ValidationException::withMessages(['player_id' => 'The replacement administrator must currently belong to this Kingdom.']);
+                throw ValidationException::withMessages(['player_id' => (string) __('The replacement administrator must currently belong to this Kingdom.')]);
             }
             $role = KingdomRole::query()->where('kingdom_id', $kingdomId)->where('key', DefaultKingdomRole::Administrator->value)->whereNull('archived_at')->lockForUpdate()->firstOrFail();
             $replacements = $replaceActor ? KingdomRoleAssignment::query()->where('kingdom_id', $kingdomId)
@@ -53,7 +53,7 @@ final readonly class HandoffKingdomAdministrator
                 ->where(static fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
                 ->orderBy('id')->limit(501)->lockForUpdate()->pluck('id') : collect();
             if ($replacements->count() > 500) {
-                throw ValidationException::withMessages(['replace_actor' => 'More than 500 administrator assignments require removal. Add the replacement administrator first, then remove unwanted assignments through ordinary Kingdom role controls.']);
+                throw ValidationException::withMessages(['replace_actor' => (string) __('More than 500 administrator assignments require removal. Add the replacement administrator first, then remove unwanted assignments through ordinary Kingdom role controls.')]);
             }
             // Handoff establishes lasting administration even when the target has a temporary grant.
             $targetAssignment = $this->administrators->effective($kingdomId)->where('player_id', $targetPlayerId)
@@ -76,7 +76,7 @@ final readonly class HandoffKingdomAdministrator
                 ]);
             }
             if (! $this->administrators->effective($kingdomId)->whereNull('expires_at')->exists()) {
-                throw ValidationException::withMessages(['role' => 'A Kingdom must retain at least one effective Kingdom Admin.']);
+                throw ValidationException::withMessages(['role' => (string) __('A Kingdom must retain at least one effective Kingdom Admin.')]);
             }
             if ($created || $replacements->isNotEmpty()) {
                 $metadata = ['kingdom_id' => $kingdomId, 'from_player_id' => $actorPlayerId, 'target_player_id' => $targetPlayerId, 'replace_actor' => $replaceActor, 'revoked_assignments' => $replacements->count(), 'reason' => $reason];

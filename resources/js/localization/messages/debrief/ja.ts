@@ -41,6 +41,25 @@ const messages = {
     noPreviousHelp: '以前に完了したベアハントがあると比較が表示されます。',
     history: '履歴',
     runHistory: 'ベアハント履歴',
+    signals: {
+      evidence: '証拠ステータス',
+      factualSignals: '記録された比較',
+      reviewPending: '１つ以上のインポートされたガバナント行はまだ同一性の検証が必要です。',
+      newPersonalBest: '受け入れられた結果から新人記録',
+      damageDirection: '損害{direction}',
+      rallyDirection: '集結への参加 {direction}',
+      evidenceStates: {
+        accepted: 'スクリーンショットの結果を受け入れました',
+        recorded_without_accepted_evidence: '記録された結果はスクリーンショット証拠を受け入れない',
+        unavailable: '記録結果なし',
+      },
+      directions: {
+        unknown: '比較できない',
+        increased: '増加',
+        decreased: '減少',
+        unchanged: '変わらない',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

@@ -31,14 +31,14 @@ final readonly class StructuredGovernorProgressionObservationValidator
         string $datasetChecksum,
     ): array {
         if (! $this->supports($kind)) {
-            throw ValidationException::withMessages(['kind' => 'Unsupported structured Governor Progression observation kind.']);
+            throw ValidationException::withMessages(['kind' => (string) __('Unsupported structured Governor Progression observation kind.')]);
         }
         if (array_diff(array_keys($payload), ['states']) !== []) {
-            throw ValidationException::withMessages(['payload' => 'Structured progression observations accept only the states collection.']);
+            throw ValidationException::withMessages(['payload' => (string) __('Structured progression observations accept only the states collection.')]);
         }
         $rows = $payload['states'] ?? null;
         if (! is_array($rows) || $rows === [] || count($rows) > 250) {
-            throw ValidationException::withMessages(['payload.states' => 'A structured progression observation must contain 1-250 reviewed states.']);
+            throw ValidationException::withMessages(['payload.states' => (string) __('A structured progression observation must contain 1-250 reviewed states.')]);
         }
 
         $dataset = $this->datasets->require($datasetId, $datasetChecksum);
@@ -48,24 +48,24 @@ final readonly class StructuredGovernorProgressionObservationValidator
         $seen = [];
         foreach (array_values($rows) as $index => $row) {
             if (! is_array($row) || array_diff(array_keys($row), ['subject_id', 'level', 'state_id']) !== []) {
-                throw ValidationException::withMessages(["payload.states.$index" => 'A reviewed progression state row is invalid.']);
+                throw ValidationException::withMessages(["payload.states.$index" => (string) __('A reviewed progression state row is invalid.')]);
             }
             $subjectInput = $row['subject_id'] ?? null;
             if (! is_string($subjectInput) || trim($subjectInput) === '') {
-                throw ValidationException::withMessages(["payload.states.$index.subject_id" => 'A reviewed progression subject is required.']);
+                throw ValidationException::withMessages(["payload.states.$index.subject_id" => (string) __('A reviewed progression subject is required.')]);
             }
             $subjectId = $this->canonicalSubjectId($subjectInput, $subjects);
             if ($subjectId === null) {
-                throw ValidationException::withMessages(["payload.states.$index.subject_id" => 'The reviewed progression subject does not exist in the pinned dataset.']);
+                throw ValidationException::withMessages(["payload.states.$index.subject_id" => (string) __('The reviewed progression subject does not exist in the pinned dataset.')]);
             }
             if (isset($seen[$subjectId])) {
-                throw ValidationException::withMessages(["payload.states.$index.subject_id" => 'A progression subject may appear only once in one observation.']);
+                throw ValidationException::withMessages(["payload.states.$index.subject_id" => (string) __('A progression subject may appear only once in one observation.')]);
             }
             $seen[$subjectId] = true;
 
             $level = filter_var($row['level'] ?? null, FILTER_VALIDATE_INT);
             if ($level === false || $level < 0) {
-                throw ValidationException::withMessages(["payload.states.$index.level" => 'The reviewed progression level must be a non-negative integer.']);
+                throw ValidationException::withMessages(["payload.states.$index.level" => (string) __('The reviewed progression level must be a non-negative integer.')]);
             }
             $stateId = is_string($row['state_id'] ?? null) && trim($row['state_id']) !== ''
                 ? trim($row['state_id'])
@@ -73,7 +73,7 @@ final readonly class StructuredGovernorProgressionObservationValidator
             $states = $this->topology->states($dataset, $family, $subjectId);
             $state = $this->state($states, $stateId);
             if ($state === null || (int) ($state['attributes']['level'] ?? -1) !== $level) {
-                throw ValidationException::withMessages(["payload.states.$index.level" => 'The reviewed progression level cannot be resolved in the pinned dataset.']);
+                throw ValidationException::withMessages(["payload.states.$index.level" => (string) __('The reviewed progression level cannot be resolved in the pinned dataset.')]);
             }
 
             $validated[] = ['subject_id' => $subjectId, 'state_id' => $stateId, 'level' => $level];
@@ -89,7 +89,7 @@ final readonly class StructuredGovernorProgressionObservationValidator
             EvidenceKind::GovernorBuildings => 'buildings',
             EvidenceKind::GovernorAcademyResearch => 'academy_research',
             EvidenceKind::GovernorWarAcademyResearch => 'war_academy_research',
-            default => throw ValidationException::withMessages(['kind' => 'Unsupported structured progression family.']),
+            default => throw ValidationException::withMessages(['kind' => (string) __('Unsupported structured progression family.')]),
         };
     }
 

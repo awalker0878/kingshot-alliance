@@ -19,7 +19,7 @@ final readonly class CompleteMfaLogin
     {
         $state = $this->challenges->pending($request);
         if ($state === null) {
-            throw ValidationException::withMessages(['code' => 'This sign-in request expired or changed. Please sign in again.']);
+            throw ValidationException::withMessages(['code' => (string) __('This sign-in request expired or changed. Please sign in again.')]);
         }
         $proof = new VerifiedAccountLogin($state['user_id'], $state['method'], $state['credential_id'],
             $state['primary_fingerprint'], $state['account_fingerprint'], true);

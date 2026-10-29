@@ -22,12 +22,12 @@ const messages = {
       existingAccount: 'Zaten hesabınız var mı?',
     },
     password: {
-      forgotTitle: 'Şifrenizi sıfırlayın',
-      forgotDescription: 'E-posta adresinizi girin, size şifre sıfırlama bağlantısı gönderelim.',
-      sendResetLink: 'Sıfırlama bağlantısı gönder',
+      forgotTitle: 'Hesabını kurtar',
+      forgotDescription: 'Kingshot Alliance hesabına bağlı e-posta adresini gir.',
+      sendResetLink: 'Kurtarma talimatlarını gönder',
       resetTitle: 'Yeni bir şifre seçin',
       resetSubmit: 'Şifreyi sıfırla',
-      confirmTitle: 'Şifrenizi onaylayın',
+      confirmTitle: 'Kimliğini doğrula',
     },
     verification: {
       title: 'E-postanızı doğrulayın',
@@ -48,17 +48,18 @@ const messages = {
     shell: {
       headline: 'İttifak liderleri için tasarlandı.',
       intro:
-        'İttifakınızın koordinasyon, üye alımı ve hazırlık için kullandığı araçlara güvenli erişim.',
+        'Valileri topla, Etkinlikleri hazırla, İttifakını yönet ve Krallığı tek bir yerden takip et.',
     },
     login: {
-      intro: 'Küresel hesabınıza bağlı tüm ittifaklara erişin.',
+      intro: 'Hesabınla giriş yap, ardından kullanmak istediğin Valiyi seç.',
       invitationNotice:
         'İttifak davetini kabul etmeye devam etmek için davet edilen hesapla giriş yapın.',
       needAccount: 'Hesaba mı ihtiyacınız var?',
       register: 'Kayıt ol',
     },
     register: {
-      intro: 'Tek bir küresel kimlik birden fazla ittifaka ait olabilir.',
+      intro:
+        'Bir hesap birden fazla Valiye sahip olabilir. İttifaktaki rütbe ve Krallıktaki görevler her zaman seçtiğin Valiye bağlıdır.',
       invitationNotice:
         '{email} olarak {alliance} ittifakına davet edildiniz. Hesap oluşturmak bu daveti de kabul eder.',
       invitationOnly:
@@ -78,22 +79,61 @@ const messages = {
     },
     password: {
       backToSignIn: 'Girişe dön',
-      resetIntro: 'Şifrenizi sıfırlamak kişisel erişim belirteçlerini iptal eder.',
+      resetIntro: 'Aşağıdaki hesap için yeni bir Kingshot Alliance şifresi seç.',
       newPassword: 'Yeni şifre',
       confirmNewPassword: 'Yeni şifreyi onayla',
       confirmDescription:
-        'Bu işlem ittifak erişimini veya izinlerini değiştirir, bu nedenle şifrenizi yeniden doğrulamalısınız.',
+        'Bu işlem İttifaka korumalı erişimi değiştirir. Devam etmeden önce kimliğini doğrula.',
+      recoveryKicker: 'HESAP KURTARMA',
+      recoveryNeutral:
+        'Bu e-posta adresi için şifre kurtarma kullanılabiliyorsa, şifreyi güvenle sıfırlaman için talimatlar göndereceğiz.',
+      checkInboxKicker: 'GELEN KUTUNU KONTROL ET',
+      checkInboxHeading: 'Kurtarma talimatları istendi',
+      checkInboxDescription:
+        'Girdiğin adres için şifre kurtarma kullanılabiliyorsa, şifre sıfırlama talimatları gönderildi. Güvenlik nedeniyle bir hesabın var olup olmadığını veya hangi giriş yöntemlerini kullandığını doğrulayamıyoruz.',
+      resetKicker: 'GÜVENLİ ŞİFRE SIFIRLAMA',
+      accountEmail: 'Hesap e-posta',
+      requirements: 'Şifreniz şunu içermelidir:',
+      requirementLength: 'En az 12 karakter',
+      requirementUpper: 'Büyük harf',
+      requirementLower: 'Küçük harf',
+      requirementNumber: 'Bir rakam',
+      showPassword: 'Şifreyi göster',
+      hidePassword: 'Şifreyi Gizle',
+      validationSummary: 'Devam etmeden önce işaretlenen alanları inceleyin.',
     },
     verification: {
       description:
-        '{email} adresine bir doğrulama bağlantısı gönderdik. Korumalı hesap işlemlerinden önce adresi doğrulayın.',
+        'Kingshot Alliance hesabın için güvenli bir doğrulama bağlantısını şu adrese gönderdik:',
       sent: 'Yeni bir doğrulama bağlantısı gönderildi.',
+      kicker: 'E-POSTA DOĞRULAMA',
+      instructions: 'E-posta adresinizi doğrulamak için mesajı açın ve bağlantıyı izleyin.',
+      securityNote: 'Kingshot Alliance, e-posta doğrulama mesajında asla şifreni istemez.',
+      resendIn: '{seconds} saniye sonra yeniden gönderebilirsin',
+      useAnotherAccount: 'Çık ve başka bir hesap kullan',
     },
     twoFactor: {
-      kicker: 'Güvenlik kontrolü',
+      kicker: 'Hesap güvenliği',
       description: 'Kimlik doğrulama uygulamanızdaki güncel altı haneli kodu girin.',
       verifyCode: 'Kodu doğrula',
       useRecoveryCode: 'Kurtarma kodunu kullan',
+    },
+    social: {
+      continueWithGoogle: 'Google ile devam et',
+      createWithGoogle: 'Google ile Kingshot Alliance hesabı oluştur',
+      or: 'veya',
+    },
+    passkeys: {
+      signIn: 'Geçiş anahtarıyla giriş yap',
+      authenticating: 'Geçiş anahtarı kontrol ediliyor…',
+    },
+    confirm: {
+      title: 'Kimliğini doğrula',
+      description:
+        'Güvenlik açısından hassas olan bu hesap değişikliğine devam etmeden önce hesabına bağlı giriş yöntemlerinden birini kullan.',
+      usePassword: 'Şifre ile doğrula',
+      useGoogle: 'Google ile doğrulayın',
+      usePasskey: 'Geçiş anahtarıyla doğrula',
     },
   },
 } satisfies MessageCatalogue;

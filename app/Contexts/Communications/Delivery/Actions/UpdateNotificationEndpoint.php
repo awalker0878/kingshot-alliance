@@ -30,13 +30,13 @@ final readonly class UpdateNotificationEndpoint
     ): void {
         $label = trim($label);
         if ($label === '' || mb_strlen($label) > 100) {
-            throw ValidationException::withMessages(['label' => 'Endpoint label is required and must be at most 100 characters.']);
+            throw ValidationException::withMessages(['label' => (string) __('Endpoint label is required and must be at most 100 characters.')]);
         }
 
         DB::transaction(function () use ($recipientUserId, $playerId, $endpointId, $label, $configuration): void {
             $actor = $this->players->lockCurrent($playerId);
             if ($actor->userId !== $recipientUserId) {
-                throw ValidationException::withMessages(['player' => 'The active Governor no longer belongs to this account.']);
+                throw ValidationException::withMessages(['player' => (string) __('The active Governor no longer belongs to this account.')]);
             }
 
             $endpoint = NotificationEndpoint::query()

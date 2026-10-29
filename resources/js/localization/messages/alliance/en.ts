@@ -9,6 +9,9 @@ const messages = {
       publicPage: 'Public page',
       leaveAlliance: 'Leave Alliance',
       leaveConfirm: 'Leave {alliance}? You will lose your current Alliance roles.',
+      transferLeadership: 'Transfer leadership',
+      transferLeadershipConfirm:
+        'Transfer Alliance leadership to {player}? You will no longer be the Alliance leader.',
       notices: 'Current Alliance Notices',
       viewAll: 'View all',
       membersOnly: 'Members only',

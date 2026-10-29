@@ -30,12 +30,12 @@ final readonly class PromotePendingAccountEmail
 
             if ($pendingEmail === '' || ! hash_equals(sha1($pendingEmail), $hash)) {
                 throw ValidationException::withMessages([
-                    'email' => 'This email-change verification link is no longer valid.',
+                    'email' => (string) __('This email-change verification link is no longer valid.'),
                 ]);
             }
 
             if (User::query()->where('id', '<>', $userId)->where('email', $pendingEmail)->exists()) {
-                throw ValidationException::withMessages(['email' => 'The email has already been taken.']);
+                throw ValidationException::withMessages(['email' => (string) __('The email has already been taken.')]);
             }
 
             $previousEmail = (string) $user->email;

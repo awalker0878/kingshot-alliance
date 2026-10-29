@@ -119,7 +119,7 @@ final readonly class RestoreTerritoryPlanRevision
     private function invalidSnapshot(): ValidationException
     {
         return ValidationException::withMessages([
-            'revision' => 'This published revision cannot be restored because its snapshot is invalid.',
+            'revision' => (string) __('This published revision cannot be restored because its snapshot is invalid.'),
         ]);
     }
 }

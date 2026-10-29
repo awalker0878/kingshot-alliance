@@ -68,6 +68,37 @@ const messages = {
     chooseOption: 'Pilih opsi',
     submit: 'Kirim lamaran',
     submitting: 'Mengirim…',
+    attributionBoard: 'Dewan Rekruitmen Publik',
+    attributionAlliancePage: 'Halaman publik Aliansi',
+    attributionShareLink: 'Tautan berbagi Aliansi',
+    attributionBotCommand: 'perintah bot aliansi',
+    attributionHelp:
+      'Label sumber yang terlihat ini membantu aliansi memahami tautan rekrutmen mana yang bekerja. Itu tidak mengidentifikasi atau melacak Anda.',
+  },
+  recruitmentBoard: {
+    eyebrow: 'aliansi penemuan',
+    title: 'Cari aliansi',
+    body: 'Jelajahi aliansi yang telah membuka rekrutmen publik. Saring daftar, bagikan pandangan saat ini, dan terapkan melalui pertanyaan masing-masing aliansi.',
+    search: 'Cari',
+    searchPlaceholder: 'nama aliansi, judul rekrutmen, atau pengenalan',
+    kingdom: 'Kerajaan',
+    allKingdoms: 'Semua kerajaan',
+    language: 'Bahasa',
+    allLanguages: 'Semua bahasa',
+    applyFilters: 'Terapkan filter',
+    clearFilters: 'Hapus filter',
+    copyLink: 'Salin tautan yang disaring',
+    copied: 'Link disalin',
+    resultCount: '{count} merekrut aliansi',
+    capped:
+      'Tampilkan 100 pertandingan pertama. Sempitkan filter untuk melihat hasil yang lebih terfokus.',
+    noMatchesTitle: 'Tidak ada aliansi rekrutmen yang cocok',
+    noMatchesBody:
+      'Coba hapus filter atau periksa lagi ketika lebih banyak aliansi memilih untuk merekrut publik.',
+    viewAlliance: 'Lihat aliansi',
+    apply: 'Terapkan',
+    publicOnly: 'Hanya aliansi yang memilih untuk merekrut publik yang ditampilkan',
+    listedByAlliance: 'Didaftarkan oleh tim rekrutmen aliansi',
   },
 } satisfies MessageCatalogue;
 

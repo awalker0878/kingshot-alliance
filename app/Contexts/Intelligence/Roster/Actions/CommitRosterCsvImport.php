@@ -39,7 +39,7 @@ final readonly class CommitRosterCsvImport
                 return (string) $import->id;
             }
             if ($import->rejected_count > 0) {
-                throw ValidationException::withMessages(['file' => 'Fix every rejected CSV row and create a new preview before committing.']);
+                throw ValidationException::withMessages(['file' => (string) __('Fix every rejected CSV row and create a new preview before committing.')]);
             }
 
             $rows = $import->preview_payload['rows'] ?? null;
@@ -69,20 +69,20 @@ final readonly class CommitRosterCsvImport
                 } elseif ($outcome === 'ambiguous') {
                     $resolution = $resolutions[$rowNumber] ?? $resolutions[(string) $rowNumber] ?? null;
                     if (! is_string($resolution) || trim($resolution) === '') {
-                        throw ValidationException::withMessages(['resolutions.'.$rowNumber => 'Choose whether this row creates a new player or updates one previewed candidate.']);
+                        throw ValidationException::withMessages(['resolutions.'.$rowNumber => (string) __('Choose whether this row creates a new player or updates one previewed candidate.')]);
                     }
                     $resolution = trim($resolution);
                     if ($resolution === 'create') {
                         $normalizedResolutions[(string) $rowNumber] = 'create';
                     } else {
                         if (! in_array($resolution, $this->candidateIds($storedRow['candidates'] ?? null), true)) {
-                            throw ValidationException::withMessages(['resolutions.'.$rowNumber => 'The selected roster match is not one of the previewed candidates.']);
+                            throw ValidationException::withMessages(['resolutions.'.$rowNumber => (string) __('The selected roster match is not one of the previewed candidates.')]);
                         }
                         $entryId = $resolution;
                         $normalizedResolutions[(string) $rowNumber] = $resolution;
                     }
                 } elseif ($outcome === 'rejected') {
-                    throw ValidationException::withMessages(['file' => 'Rejected rows cannot be committed.']);
+                    throw ValidationException::withMessages(['file' => (string) __('Rejected rows cannot be committed.')]);
                 } elseif ($outcome !== 'create') {
                     throw new RuntimeException('Stored roster import outcome is invalid.');
                 }

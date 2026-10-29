@@ -55,7 +55,7 @@ final readonly class SaveKingdomAllianceDiplomacyContact
             $reference = $this->kingdomAlliances->requireActiveCanonical((string) $tracking->kingdom_alliance_id);
             if ($reference->kingdomId !== (string) $tracking->kingdom_id) {
                 throw ValidationException::withMessages([
-                    'contact' => 'The tracked alliance reference no longer matches its captured Kingdom context.',
+                    'contact' => (string) __('The tracked alliance reference no longer matches its captured Kingdom context.'),
                 ]);
             }
 
@@ -78,13 +78,13 @@ final readonly class SaveKingdomAllianceDiplomacyContact
                 $contactCanonical = $this->kingdomAlliances->requireCanonical((string) $contact->kingdom_alliance_id);
                 if ($contactCanonical->kingdomAllianceId !== $reference->kingdomAllianceId) {
                     throw ValidationException::withMessages([
-                        'contact' => 'The diplomacy contact no longer matches the tracked canonical Alliance identity.',
+                        'contact' => (string) __('The diplomacy contact no longer matches the tracked canonical Alliance identity.'),
                     ]);
                 }
 
                 if ($contact->state !== KingdomAllianceContactState::Active) {
                     throw ValidationException::withMessages([
-                        'contact' => 'Inactive diplomacy contacts are preserved as history and cannot be edited. Create a new active contact if coordination resumes.',
+                        'contact' => (string) __('Inactive diplomacy contacts are preserved as history and cannot be edited. Create a new active contact if coordination resumes.'),
                     ]);
                 }
 
@@ -162,13 +162,13 @@ final readonly class SaveKingdomAllianceDiplomacyContact
     {
         if ($tracking->state !== TrackedKingdomAllianceState::Active) {
             throw ValidationException::withMessages([
-                'contact' => 'Diplomacy contacts can only change for actively tracked game-side alliances.',
+                'contact' => (string) __('Diplomacy contacts can only change for actively tracked game-side alliances.'),
             ]);
         }
 
         if ((string) $tracking->kingdom_id !== $kingdomId) {
             throw ValidationException::withMessages([
-                'contact' => 'The tracked alliance belongs to historical Kingdom context. Contact history remains readable, but changes require matching current Kingdom context.',
+                'contact' => (string) __('The tracked alliance belongs to historical Kingdom context. Contact history remains readable, but changes require matching current Kingdom context.'),
             ]);
         }
     }

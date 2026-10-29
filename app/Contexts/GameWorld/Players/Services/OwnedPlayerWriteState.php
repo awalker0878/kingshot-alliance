@@ -29,11 +29,11 @@ final readonly class OwnedPlayerWriteState
         try {
             $this->kingdoms->lockActiveShared($targetKingdomId ?? (string) $candidate->current_kingdom_id);
         } catch (ModelNotFoundException) {
-            throw ValidationException::withMessages(['kingdom' => 'The selected Kingdom is archived or unavailable.']);
+            throw ValidationException::withMessages(['kingdom' => (string) __('The selected Kingdom is archived or unavailable.')]);
         }
         $player = Player::query()->whereKey($playerId)->where('user_id', $userId)->whereNull('canonical_player_id')->lockForUpdate()->firstOrFail();
         if ((string) $player->current_kingdom_id !== (string) $candidate->current_kingdom_id) {
-            throw ValidationException::withMessages(['kingdom' => 'The Governor Kingdom changed. Reload before updating this identity.']);
+            throw ValidationException::withMessages(['kingdom' => (string) __('The Governor Kingdom changed. Reload before updating this identity.')]);
         }
 
         return $player;

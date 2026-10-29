@@ -96,7 +96,7 @@ final readonly class TerritoryPlanImport
     private function invalidObjects(): ValidationException
     {
         return ValidationException::withMessages([
-            'import' => 'The normalized Territory layout contains invalid object data.',
+            'import' => (string) __('The normalized Territory layout contains invalid object data.'),
         ]);
     }
 }

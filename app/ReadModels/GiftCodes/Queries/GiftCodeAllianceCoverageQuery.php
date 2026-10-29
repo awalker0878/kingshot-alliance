@@ -30,7 +30,7 @@ final class GiftCodeAllianceCoverageQuery
             ->map(static fn ($id): string => (string) $id)
             ->all();
         if (count($memberIds) > 2000) {
-            throw ValidationException::withMessages(['alliance' => 'Alliance Gift Code coverage exceeds the supported Governor bound.']);
+            throw ValidationException::withMessages(['alliance' => (string) __('Alliance Gift Code coverage exceeds the supported Governor bound.')]);
         }
 
         $readyPlayerIds = Player::query()

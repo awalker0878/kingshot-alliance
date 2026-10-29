@@ -31,17 +31,17 @@ final readonly class RepairKingdomAdministratorAssignment
     {
         $reason = trim($reason);
         if (mb_strlen($reason) < 10 || mb_strlen($reason) > 500) {
-            throw ValidationException::withMessages(['reason' => 'A recovery reason between 10 and 500 characters is required.']);
+            throw ValidationException::withMessages(['reason' => (string) __('A recovery reason between 10 and 500 characters is required.')]);
         }
 
         return DB::transaction(function () use ($operator, $kingdomId, $targetPlayerId, $reason, $replaceExisting): KingdomAdministratorBootstrap {
             $kingdom = Kingdom::query()->whereKey($kingdomId)->lockForUpdate()->firstOrFail();
             if ($kingdom->status !== KingdomStatus::Active) {
-                throw ValidationException::withMessages(['kingdom_id' => 'Recovery requires an active Kingdom.']);
+                throw ValidationException::withMessages(['kingdom_id' => (string) __('Recovery requires an active Kingdom.')]);
             }
             $target = Player::query()->whereKey($targetPlayerId)->lockForUpdate()->firstOrFail();
             if ((string) $target->current_kingdom_id !== $kingdomId || $target->canonical_player_id !== null) {
-                throw ValidationException::withMessages(['player_id' => 'The recovery Governor must be a current direct identity in the target Kingdom.']);
+                throw ValidationException::withMessages(['player_id' => (string) __('The recovery Governor must be a current direct identity in the target Kingdom.')]);
             }
             $roles = $this->provisioner->provision($kingdom);
             $administrator = $roles[DefaultKingdomRole::Administrator->value] ?? null;
@@ -57,7 +57,7 @@ final readonly class RepairKingdomAdministratorAssignment
                     $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
                 })->orderBy('id')->limit(501)->lockForUpdate()->get(['id', 'player_id']) : collect();
             if ($existing->count() > 500) {
-                throw ValidationException::withMessages(['replace_existing' => 'More than 500 administrator assignments require removal. Recover without replacement, then remove unwanted assignments through ordinary Kingdom role controls.']);
+                throw ValidationException::withMessages(['replace_existing' => (string) __('More than 500 administrator assignments require removal. Recover without replacement, then remove unwanted assignments through ordinary Kingdom role controls.')]);
             }
             $assignment = KingdomRoleAssignment::query()->effective()->where('kingdom_id', $kingdomId)->where('player_id', $targetPlayerId)->where('kingdom_role_id', $administrator->id)->whereNull('expires_at')->orderBy('id')->lockForUpdate()->first();
             $created = ! $assignment instanceof KingdomRoleAssignment;

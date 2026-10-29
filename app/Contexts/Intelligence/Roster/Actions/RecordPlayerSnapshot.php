@@ -76,7 +76,7 @@ final readonly class RecordPlayerSnapshot
 
             $entry = $this->roster->find($allianceId, $entryId);
             if ($entry === null) {
-                throw ValidationException::withMessages(['roster_entry_id' => 'The Alliance roster entry no longer exists.']);
+                throw ValidationException::withMessages(['roster_entry_id' => (string) __('The Alliance roster entry no longer exists.')]);
             }
 
             $capturedAt = $this->capturedAt($attributes['captured_at']);
@@ -174,10 +174,10 @@ final readonly class RecordPlayerSnapshot
             return [null, []];
         }
         if ($raw !== null && ! is_array($raw)) {
-            throw ValidationException::withMessages(['hero_observations' => 'Hero observations must be a list.']);
+            throw ValidationException::withMessages(['hero_observations' => (string) __('Hero observations must be a list.')]);
         }
         if (is_array($raw) && count($raw) > 34) {
-            throw ValidationException::withMessages(['hero_observations' => 'A snapshot cannot contain more than 34 Hero observations.']);
+            throw ValidationException::withMessages(['hero_observations' => (string) __('A snapshot cannot contain more than 34 Hero observations.')]);
         }
 
         $dataset = is_string($datasetId) && trim($datasetId) !== ''
@@ -188,14 +188,14 @@ final readonly class RecordPlayerSnapshot
         $seen = [];
         foreach (is_array($raw) ? $raw : [] as $index => $row) {
             if (! is_array($row)) {
-                throw ValidationException::withMessages(["hero_observations.$index" => 'Hero observation must be an object.']);
+                throw ValidationException::withMessages(["hero_observations.$index" => (string) __('Hero observation must be an object.')]);
             }
             $candidate = $row['hero_id'] ?? $row['hero'] ?? null;
             if (! is_string($candidate) || ($heroId = $this->progression->canonicalHeroId($candidate, $dataset)) === null) {
-                throw ValidationException::withMessages(["hero_observations.$index.hero_id" => 'Hero must exist in the pinned factual progression dataset.']);
+                throw ValidationException::withMessages(["hero_observations.$index.hero_id" => (string) __('Hero must exist in the pinned factual progression dataset.')]);
             }
             if (isset($seen[$heroId])) {
-                throw ValidationException::withMessages(["hero_observations.$index.hero_id" => 'A Hero can appear only once in a snapshot.']);
+                throw ValidationException::withMessages(["hero_observations.$index.hero_id" => (string) __('A Hero can appear only once in a snapshot.')]);
             }
             $seen[$heroId] = true;
 
@@ -226,11 +226,11 @@ final readonly class RecordPlayerSnapshot
         try {
             $capturedAt = Carbon::parse($value)->utc();
         } catch (Throwable) {
-            throw ValidationException::withMessages(['captured_at' => 'The snapshot capture time is invalid.']);
+            throw ValidationException::withMessages(['captured_at' => (string) __('The snapshot capture time is invalid.')]);
         }
 
         if ($capturedAt->isAfter(now()->addMinutes(5))) {
-            throw ValidationException::withMessages(['captured_at' => 'The snapshot capture time cannot be more than five minutes in the future.']);
+            throw ValidationException::withMessages(['captured_at' => (string) __('The snapshot capture time cannot be more than five minutes in the future.')]);
         }
 
         return $capturedAt;
@@ -239,14 +239,14 @@ final readonly class RecordPlayerSnapshot
     private function power(string $value): string
     {
         if (preg_match('/^\d{1,19}$/', $value) !== 1) {
-            throw ValidationException::withMessages(['power' => 'Power must contain 1-19 digits.']);
+            throw ValidationException::withMessages(['power' => (string) __('Power must contain 1-19 digits.')]);
         }
 
         $canonical = ltrim($value, '0');
         $canonical = $canonical === '' ? '0' : $canonical;
         if (strlen($canonical) > strlen(self::MAX_POWER)
             || (strlen($canonical) === strlen(self::MAX_POWER) && strcmp($canonical, self::MAX_POWER) > 0)) {
-            throw ValidationException::withMessages(['power' => 'Power exceeds the supported signed 64-bit integer range.']);
+            throw ValidationException::withMessages(['power' => (string) __('Power exceeds the supported signed 64-bit integer range.')]);
         }
 
         return $canonical;
@@ -256,7 +256,7 @@ final readonly class RecordPlayerSnapshot
     {
         $value = trim($value);
         if ($value === '' || mb_strlen($value) > $max) {
-            throw ValidationException::withMessages([$field => 'The snapshot text is missing or too long.']);
+            throw ValidationException::withMessages([$field => (string) __('The snapshot text is missing or too long.')]);
         }
 
         return $value;
@@ -269,7 +269,7 @@ final readonly class RecordPlayerSnapshot
             return null;
         }
         if (mb_strlen($value) > $max) {
-            throw ValidationException::withMessages([$field => 'The snapshot text is too long.']);
+            throw ValidationException::withMessages([$field => (string) __('The snapshot text is too long.')]);
         }
 
         return $value;

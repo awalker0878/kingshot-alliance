@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import RoomArtwork from '@/components/game/RoomArtwork.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
@@ -611,7 +612,8 @@ async function reopenRendition(rendition: Rendition): Promise<void> {
 <template>
   <Head :title="`${territory.plan.name} · ${t('territory.tools.title')}`" />
   <AppLayout :user="user">
-    <header class="ks-surface p-5">
+    <header class="ks-artwork-panel ks-surface p-5">
+      <RoomArtwork scene="territory-command" />
       <p class="ks-kicker">{{ t('territory.tools.eyebrow') }}</p>
       <div class="mt-1 flex flex-wrap items-start justify-between gap-3">
         <div>

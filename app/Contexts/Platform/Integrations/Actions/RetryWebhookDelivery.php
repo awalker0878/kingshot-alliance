@@ -38,10 +38,10 @@ final readonly class RetryWebhookDelivery
                 ->findOrFail($deliveryId);
 
             if ($delivery->status !== WebhookDeliveryStatus::Failed) {
-                throw ValidationException::withMessages(['delivery' => 'Only exhausted webhook deliveries can be retried manually.']);
+                throw ValidationException::withMessages(['delivery' => (string) __('Only exhausted webhook deliveries can be retried manually.')]);
             }
             if (! is_array($delivery->payload)) {
-                throw ValidationException::withMessages(['delivery' => 'This delivery has no payload to retry.']);
+                throw ValidationException::withMessages(['delivery' => (string) __('This delivery has no payload to retry.')]);
             }
 
             $subscription = WebhookSubscription::query()
@@ -49,7 +49,7 @@ final readonly class RetryWebhookDelivery
                 ->lockForUpdate()
                 ->find($delivery->webhook_subscription_id);
             if (! $subscription instanceof WebhookSubscription || ! $subscription->is_active || $subscription->revoked_at !== null) {
-                throw ValidationException::withMessages(['delivery' => 'Reactivate or replace the webhook subscription before retrying.']);
+                throw ValidationException::withMessages(['delivery' => (string) __('Reactivate or replace the webhook subscription before retrying.')]);
             }
 
             $delivery->forceFill([

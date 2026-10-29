@@ -104,7 +104,10 @@ async function governorLifecycleCatalogue(
   return mergeCatalogue(base, governorLifecycleLabels(locale));
 }
 
-async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<MessageCatalogue> {
+export async function loadCatalogue(
+  domain: LocalizationDomain,
+  locale: LocaleCode,
+): Promise<MessageCatalogue> {
   const key = cacheKey(domain, locale);
   const cached = catalogues.get(key);
   if (cached) return cached;
@@ -112,6 +115,13 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
   if (existing) return existing;
   const request = importDomainCatalogue(domain, locale).then(async (module) => {
     let catalogue = module.default;
+    // Translated catalogues include the full English extension surface. Applying
+    // an English-only extension here would overwrite the selected language.
+    if (locale !== defaultLocale) {
+      catalogues.set(key, catalogue);
+      pending.delete(key);
+      return catalogue;
+    }
     if (domain === 'assistant') catalogue = await assistantCatalogue(catalogue, locale);
     if (domain === 'events') catalogue = await eventsCatalogue(catalogue, locale);
     if (domain === 'transfers') catalogue = await transfersCatalogue(catalogue);
@@ -135,8 +145,8 @@ async function loadOne(domain: LocalizationDomain, locale: LocaleCode): Promise<
   return request;
 }
 export async function loadDomain(locale: LocaleCode, domain: LocalizationDomain): Promise<void> {
-  await loadOne(domain, defaultLocale);
-  if (locale !== defaultLocale) await loadOne(domain, locale);
+  await loadCatalogue(domain, defaultLocale);
+  if (locale !== defaultLocale) await loadCatalogue(domain, locale);
 }
 export async function loadDomains(
   locale: LocaleCode,

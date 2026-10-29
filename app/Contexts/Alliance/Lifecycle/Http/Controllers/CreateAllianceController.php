@@ -20,7 +20,7 @@ final class CreateAllianceController extends Controller
         $user = $request->user();
         abort_unless($user instanceof AuthenticatedAccount, 401);
         $player = $players->playerOrNull();
-        abort_unless($player !== null, 409, 'Select a Player before creating an Alliance.');
+        abort_unless($player !== null, 409, (string) __('Select a Player before creating an Alliance.'));
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'slug' => ['required', 'string', 'max:120', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('alliances', 'slug')],

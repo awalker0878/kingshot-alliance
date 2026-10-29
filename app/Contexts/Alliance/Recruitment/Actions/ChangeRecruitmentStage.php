@@ -36,7 +36,7 @@ final class ChangeRecruitmentStage
         ?CarbonImmutable $nextActionAt = null,
     ): string {
         if ($target === RecruitmentStage::Joined) {
-            throw ValidationException::withMessages(['stage' => 'Joined is recorded when the candidate accepts the Alliance invitation.']);
+            throw ValidationException::withMessages(['stage' => (string) __('Joined is recorded when the candidate accepts the Alliance invitation.')]);
         }
 
         $reason = RecruitmentTextInput::reason($reason);
@@ -55,7 +55,7 @@ final class ChangeRecruitmentStage
 
             if ($locked->merged_into_id !== null) {
                 throw ValidationException::withMessages([
-                    'candidate' => 'Change the stage on the current merged candidate record.',
+                    'candidate' => (string) __('Change the stage on the current merged candidate record.'),
                 ]);
             }
 

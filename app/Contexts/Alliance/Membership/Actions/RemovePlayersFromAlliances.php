@@ -60,7 +60,7 @@ final readonly class RemovePlayersFromAlliances
                 ->whereIn('player_id', array_keys($playersById))
                 ->whereNotIn('alliance_id', $allianceIds)
                 ->exists()) {
-                throw ValidationException::withMessages(['membership' => 'Alliance membership changed. Retry account cleanup with current membership scopes.']);
+                throw ValidationException::withMessages(['membership' => (string) __('Alliance membership changed. Retry account cleanup with current membership scopes.')]);
             }
 
             $memberships = AllianceMembership::query()

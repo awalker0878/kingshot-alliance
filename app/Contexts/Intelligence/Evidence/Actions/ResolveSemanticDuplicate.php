@@ -32,7 +32,7 @@ final readonly class ResolveSemanticDuplicate
     ): void {
         $justification = trim($justification);
         if (mb_strlen($justification) < 10 || mb_strlen($justification) > 1000) {
-            throw ValidationException::withMessages(['justification' => 'Explain in 10 to 1000 characters why these are distinct battle reports.']);
+            throw ValidationException::withMessages(['justification' => (string) __('Explain in 10 to 1000 characters why these are distinct battle reports.')]);
         }
         $target = $this->targets->authorizeManage($actorPlayerId, $occurrenceId);
 
@@ -46,7 +46,7 @@ final readonly class ResolveSemanticDuplicate
                 ->lockForUpdate()
                 ->firstOrFail();
             if ($review->getRawOriginal('status') !== EvidenceReviewStatus::DuplicateBlocked->value || $review->semantic_duplicate_review_id === null) {
-                throw ValidationException::withMessages(['review' => 'This review is not blocked by a semantic duplicate.']);
+                throw ValidationException::withMessages(['review' => (string) __('This review is not blocked by a semantic duplicate.')]);
             }
             $review->forceFill([
                 'status' => EvidenceReviewStatus::Approved,

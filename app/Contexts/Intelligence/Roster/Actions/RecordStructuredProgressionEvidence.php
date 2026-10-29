@@ -29,7 +29,7 @@ final readonly class RecordStructuredProgressionEvidence extends RecordsGovernor
             EvidenceKind::GovernorBuildings => 'governor-buildings/1',
             EvidenceKind::GovernorAcademyResearch => 'governor-academy-research/1',
             EvidenceKind::GovernorWarAcademyResearch => 'governor-war-academy-research/1',
-            default => throw ValidationException::withMessages(['kind' => 'Unsupported structured progression evidence destination.']),
+            default => throw ValidationException::withMessages(['kind' => (string) __('Unsupported structured progression evidence destination.')]),
         };
 
         return $this->record(

@@ -22,12 +22,12 @@ final readonly class ResolveSpatialSemanticDuplicate
     {
         $justification = trim($justification);
         if (mb_strlen($justification) < 8 || mb_strlen($justification) > 1000) {
-            throw ValidationException::withMessages(['justification' => 'Duplicate resolution requires a justification between 8 and 1,000 characters.']);
+            throw ValidationException::withMessages(['justification' => (string) __('Duplicate resolution requires a justification between 8 and 1,000 characters.')]);
         }
         DB::transaction(function () use ($actorPlayerId, $allianceId, $kingdomId, $reviewId, $justification): void {
             [$scope, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
             if ($scope->kingdomId !== $kingdomId) {
-                throw ValidationException::withMessages(['kingdom_id' => 'The reviewed observation belongs to historical Kingdom context.']);
+                throw ValidationException::withMessages(['kingdom_id' => (string) __('The reviewed observation belongs to historical Kingdom context.')]);
             }
             $review = SpatialEvidenceReview::query()->whereKey($reviewId)->where('alliance_id', $allianceId)->where('kingdom_id', $kingdomId)->lockForUpdate()->firstOrFail();
             if ($review->status !== EvidenceReviewStatus::DuplicateBlocked) {
@@ -35,7 +35,7 @@ final readonly class ResolveSpatialSemanticDuplicate
             }
             $latestId = SpatialEvidenceReview::query()->where('evidence_id', $review->evidence_id)->orderByDesc('revision_number')->orderByDesc('id')->value('id');
             if ((string) $latestId !== (string) $review->id) {
-                throw ValidationException::withMessages(['review' => 'Only the latest review revision can resolve a semantic duplicate.']);
+                throw ValidationException::withMessages(['review' => (string) __('Only the latest review revision can resolve a semantic duplicate.')]);
             }
             $review->forceFill([
                 'status' => EvidenceReviewStatus::Approved,

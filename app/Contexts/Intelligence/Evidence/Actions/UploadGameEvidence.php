@@ -39,7 +39,7 @@ final readonly class UploadGameEvidence
         $actor = $this->players->require($actorPlayerId);
         $disk = (string) config('evidence.disk', 'local');
         if ($disk === 'public') {
-            throw ValidationException::withMessages(['evidence' => 'Game evidence must use a private storage disk.']);
+            throw ValidationException::withMessages(['evidence' => (string) __('Game evidence must use a private storage disk.')]);
         }
 
         $size = $file->getSize();
@@ -47,7 +47,7 @@ final readonly class UploadGameEvidence
         $allowedMimes = array_values(array_filter((array) config('evidence.mime_types', []), 'is_string'));
         $maxBytes = max(1, (int) config('evidence.max_kilobytes', 12288)) * 1024;
         if (! is_int($size) || $size < 1 || $size > $maxBytes || ! in_array($mimeType, $allowedMimes, true)) {
-            throw ValidationException::withMessages(['evidence' => 'The screenshot type or size is not permitted.']);
+            throw ValidationException::withMessages(['evidence' => (string) __('The screenshot type or size is not permitted.')]);
         }
 
         $imageInfo = @getimagesize($file->getPathname());
@@ -55,7 +55,7 @@ final readonly class UploadGameEvidence
             || (string) $imageInfo['mime'] !== $mimeType
             || (int) $imageInfo[0] < 1
             || (int) $imageInfo[1] < 1) {
-            throw ValidationException::withMessages(['evidence' => 'The uploaded file is not a valid supported image.']);
+            throw ValidationException::withMessages(['evidence' => (string) __('The uploaded file is not a valid supported image.')]);
         }
 
         $scan = $this->scanner->scan($file);
@@ -66,7 +66,7 @@ final readonly class UploadGameEvidence
 
         $sha256 = hash_file('sha256', $file->getPathname());
         if (! is_string($sha256)) {
-            throw ValidationException::withMessages(['evidence' => 'The screenshot could not be checksummed.']);
+            throw ValidationException::withMessages(['evidence' => (string) __('The screenshot could not be checksummed.')]);
         }
         $existing = $this->exactDuplicate($target->allianceId, $target->occurrenceId, $sha256);
         if ($existing instanceof GameEvidence) {
@@ -81,11 +81,11 @@ final readonly class UploadGameEvidence
             'image/jpeg' => 'jpg',
             'image/png' => 'png',
             'image/webp' => 'webp',
-            default => throw ValidationException::withMessages(['evidence' => 'Unsupported screenshot type.']),
+            default => throw ValidationException::withMessages(['evidence' => (string) __('Unsupported screenshot type.')]),
         };
         $path = 'evidence/'.$target->allianceId.'/'.Str::ulid().'.'.$extension;
         if (Storage::disk($disk)->putFileAs(dirname($path), $file, basename($path)) === false) {
-            throw ValidationException::withMessages(['evidence' => 'The screenshot could not be stored.']);
+            throw ValidationException::withMessages(['evidence' => (string) __('The screenshot could not be stored.')]);
         }
 
         try {
