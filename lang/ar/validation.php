@@ -96,8 +96,8 @@ return [
         'string' => 'يجب أن لا يتجاوز طول نّص حقل :attribute :max حروفٍ/حرفًا.',
     ],
     'max_digits' => 'يجب ألا يحتوي الحقل :attribute على أكثر من :max رقم/أرقام.',
-    'mimes' => 'يجب أن يكون ملفًا من نوع : :values.',
-    'mimetypes' => 'يجب أن يكون ملفًا من نوع : :values.',
+    'mimes' => 'يجب أن يكون حقل :attribute ملفًا من نوع: :values.',
+    'mimetypes' => 'يجب أن يكون حقل :attribute ملفًا من نوع: :values.',
     'min' => [
         'array' => 'يجب أن يحتوي حقل :attribute على الأقل على :min عُنصرًا/عناصر.',
         'file' => 'يجب أن يكون حجم ملف حقل :attribute على الأقل :min كيلوبايت.',

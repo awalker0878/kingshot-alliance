@@ -28,7 +28,7 @@ return [
     'boolean' => 'Trường :attribute phải là true hoặc false.',
     'can' => 'Trường :attribute chứa một giá trị trái phép.',
     'confirmed' => 'Giá trị xác nhận trong trường :attribute không khớp.',
-    'contains' => 'Trường :attribute phải chứa một trong các giá trị sau: :values.',
+    'contains' => 'Trường :attribute thiếu một giá trị bắt buộc.',
     'current_password' => 'Mật khẩu không đúng.',
     'date' => 'Trường :attribute không phải là định dạng của ngày-tháng.',
     'date_equals' => 'Trường :attribute phải là một ngày bằng với :date.',
