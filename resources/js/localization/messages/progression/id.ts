@@ -59,7 +59,7 @@ const messages = {
     heroGearUnlock: 'Hero Gear di buka',
     masteryUnlock: 'Mastery Forge di buka',
     masteryMax: 'Batas maksimum tempa keahlian',
-    governorGearUnlock: 'governor Gear unlock',
+    governorGearUnlock: 'Pembukaan Perlengkapan Gubernur',
     research: 'Penelitian & sistem',
     technologies: 'Teknologi Akademi',
     researchLevels: 'Baris tingkat akademi terlihat',
@@ -82,7 +82,7 @@ const messages = {
     official: 'Resmi',
     community: 'Komunitas',
     retrieved: 'Diperoleh',
-    governorProgression: 'governor progression',
+    governorProgression: 'Perkembangan Gubernur',
     backToLibrary: 'Perpustakaan Fakta',
     separationHelp:
       'Fakta katalog, pengamatan gubernur bertanggal dan barang-barang yang disimpan tetap terpisah. Katalog menggambarkan KingShot; pengamatan menggambarkan apa yang dilihat; loadouts adalah niat perencanaan Anda.',
@@ -177,7 +177,7 @@ const messages = {
     addCharmSlot: 'Tambah slot Charm',
     removeRow: 'Buang baris',
     completeRosterWarning:
-      'Tandai selesai hanya ketika gambar layar ini benar-benar menunjukkan daftar pahlawan lengkap. Ini adalah satu-satunya negara yang dapat menetapkan tidak adanya pahlawan yang diamati.',
+      'Tandai lengkap hanya jika tangkapan layar ini benar-benar menampilkan seluruh daftar pahlawan. Hanya status ini yang dapat membuktikan bahwa pahlawan tertentu tidak terlihat dalam daftar.',
     processingScreenshot: 'Pemrosesan tangkapan layar masih dalam proses.',
     screenshotProcessingFailed:
       'Pemrosesan tangkapan layar gagal. Anda dapat mencoba lagi saat gambar yang dipegang tersedia.',
@@ -199,7 +199,7 @@ const messages = {
     yes: 'Ya',
     no: 'Tidak',
     observationLabel: 'Observasi',
-    planningIntent: 'user planning intent',
+    planningIntent: 'Tujuan perencanaan pengguna',
     savedLoadouts: 'Loadouts yang disimpan',
     loadoutHelp:
       'Loadouts adalah formasi yang tersimpan. Identitas pahlawan dan persentase pasukan divalidasi terhadap rilis fakta yang ditempel, tetapi aplikasi tidak mencatat atau merekomendasikan mereka.',

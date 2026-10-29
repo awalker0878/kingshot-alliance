@@ -275,7 +275,7 @@
   "Each option must be text.": "Setiap opsi harus teks.",
   "Each reviewed object must be structured data.": "Setiap objek yang ditinjau harus data terstruktur.",
   "Effective until must be on or after effective from.": "Berlaku sampai harus pada atau setelah berkuat kuasa dari.",
-  "Enable Century Games Kingshot news ingestion only after provider permission is confirmed.": "Aktifkan Century Games Kingshot news ingestion hanya setelah izin penyedia dikonfirmasi.",
+  "Enable Century Games Kingshot news ingestion only after provider permission is confirmed.": "Aktifkan pengambilan berita Kingshot dari Century Games hanya setelah izin penyedia dikonfirmasi.",
   "Enable Discord ingestion only after bot installation, channel scope, and message-content access are confirmed.": "Aktifkan Discord ingestion hanya setelah pemasangan bot, scope channel, dan akses pesan-isi dikonfirmasi.",
   "Enable Facebook ingestion only after Page access and platform permission are confirmed.": "Aktifkan pengambilan Facebook hanya setelah akses halaman dan izin platform dikonfirmasi.",
   "Enable Instagram ingestion only after professional-account API access is confirmed.": "Aktifkan Instagram ingestion hanya setelah akun profesional API dikonfirmasi.",

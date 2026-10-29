@@ -253,7 +253,7 @@ const messages = {
     'governor-created': 'ผู้ว่าการเพิ่มเข้าบัญชีของคุณ',
     'governor-updated': 'ตัวตนผู้ว่าการถูกปรับปรุง',
     'governor-moved': 'ข่าวราชอาณาจักรของผู้ว่าการ',
-    'governor-released': 'ท่านผู้ว่าปล่อยเงินจากบัญชีของคุณ',
+    'governor-released': 'ยกเลิกการเชื่อมโยงผู้ว่าการจากบัญชีของคุณแล้ว',
   },
   common: {
     yes: 'ใช่',
@@ -761,7 +761,7 @@ const messages = {
       personalActions: 'การกระทำส่วนตัว',
       pin: 'ปักหมุด',
       restore: 'เรียกคืน',
-      snoozeDay: 'นอนไม่หลับ 24 ชั่วโมง',
+      snoozeDay: 'เลื่อนการแจ้งเตือน 24 ชั่วโมง',
       dismiss: 'ปิดการแจ้งเตือน',
       remindDay: 'เตือนฉันใน 24 ชั่วโมง',
       createRun: 'เริ่มการทำงานของการคืนค่า',
@@ -931,7 +931,7 @@ const messages = {
     awaitingConfirmation: 'รอการยืนยัน',
     governors: 'ผู้ว่าการ',
     sharedLedger: 'รายการรหัสของขวัญที่ใช้ร่วมกัน',
-    availableCodes: 'ไม่มีรหัสของขวัญ',
+    availableCodes: 'โค้ดของขวัญที่พร้อมใช้งาน',
     ledgerHelp:
       'รหัสถูกแบ่งปันระหว่างผู้ว่าราชการของคุณ สถานะการชำระคืนยังคงแยกกันสำหรับผู้ว่าราชการและอาณาจักร',
     expired: 'หมดอายุ',
@@ -1092,11 +1092,11 @@ const messages = {
     historyGameId: 'ID เกม',
     historySource: 'แหล่งที่มา',
     historyReason: 'เหตุผล',
-    releaseTitle: 'ปล่อยจากบัญชี',
-    releasePreserves:
-      'การปล่อยสิทธิ์การเป็นเจ้าของ รักษาเอกลักษณ์ของเกมไว้ได้ และประวัติศาสตร์ของมัน',
-    releaseGovernor: 'ปล่อยกองบัญชาการ',
-    releaseConfirm: 'ปล่อย {governor} จากบัญชีนี้? ตัวตนและประวัติศาสตร์ของเกมจะถูกรักษาไว้',
+    releaseTitle: 'ยกเลิกการเชื่อมโยงกับบัญชี',
+    releasePreserves: 'เมื่อสละสิทธิ์การเป็นเจ้าของ ข้อมูลตัวตนในเกมและประวัติจะยังคงอยู่',
+    releaseGovernor: 'ยกเลิกการเชื่อมโยงผู้ว่าการ',
+    releaseConfirm:
+      'ยกเลิกการเชื่อมโยง {governor} จากบัญชีนี้หรือไม่? ข้อมูลตัวตนในเกมและประวัติจะยังคงอยู่',
   },
 } satisfies MessageCatalogue;
 

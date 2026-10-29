@@ -104,15 +104,15 @@ const messages = {
     enablingWebPush: 'Włączanie Web Push…',
     webPushFailed: 'Nie można włączyć funkcji Web Push na tym urządzeniu.',
     preferences: 'Preferencje',
-    reminderRouting: 'Domyślne ustawienia konta i nadpisywanie przez gubernatora',
+    reminderRouting: 'Domyślne ustawienia konta i ustawienia Gubernatorów',
     preferenceHelp:
-      'Domyślne ustawienia konta obowiązują wszędzie. Zastąpienie aktywnego gubernatora wygrywa tylko dla tego gubernatora i może zostać zresetowane, aby dziedziczyć domyślne konto.',
+      'Domyślne ustawienia konta obowiązują wszędzie. Ustawienia indywidualne aktywnego Gubernatora dotyczą tylko tego Gubernatora. Można je zresetować, aby przywrócić domyślne ustawienia konta.',
     accountDefaults: 'Domyślne ustawienia konta',
-    governorOverrides: 'Active governor overrides',
-    inherited: 'Dziedziczony',
+    governorOverrides: 'Ustawienia indywidualne aktywnego Gubernatora',
+    inherited: 'Dziedziczone z konta',
     enabled: 'Włączone',
-    disabled: 'Wyłączony',
-    resetOverride: 'Zresetuj nadpisanie',
+    disabled: 'Wyłączone',
+    resetOverride: 'Przywróć ustawienia konta',
     emailOptIn:
       'E-mail jest opcjonalny i używa zweryfikowanego adresu e-mail konta należącego do Konta.',
     routingPolicy: 'Polityka czasu dostawy',
@@ -395,7 +395,7 @@ const messages = {
     'governor-created': 'Governor został dodany do Twojego konta.',
     'governor-updated': 'Tożsamość gubernatora została zaktualizowana.',
     'governor-moved': 'Królestwo gubernatora zaktualizowane.',
-    'governor-released': 'Governor zwolniony z konta.',
+    'governor-released': 'Gubernator został odłączony od Twojego konta.',
   },
   common: {
     governors: 'Gubernatorzy',
@@ -440,10 +440,11 @@ const messages = {
     historyGameId: 'ID gry',
     historySource: 'Źródło',
     historyReason: 'Powód',
-    releaseTitle: 'Zwolnienie z konta',
-    releasePreserves: 'Uwalnianie własności zachowuje trwałą tożsamość gry i jej historię.',
-    releaseGovernor: 'Regulator wyzwalania',
-    releaseConfirm: 'Zwolnij {governor} z tego konta? Tożsamość i historia gry zostaną zachowane.',
+    releaseTitle: 'Odłącz od konta',
+    releasePreserves: 'Zrzeczenie się własności zachowuje tożsamość w grze i jej historię.',
+    releaseGovernor: 'Odłącz Gubernatora',
+    releaseConfirm:
+      'Odłączyć {governor} od tego konta? Tożsamość w grze i jej historia zostaną zachowane.',
   },
 } satisfies MessageCatalogue;
 

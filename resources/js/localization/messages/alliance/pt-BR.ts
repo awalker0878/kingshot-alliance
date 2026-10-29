@@ -123,7 +123,8 @@ const messages = {
       '{succeeded} atribuições de função atualizadas. {failed} precisam de revisão. {skipped} já estavam atualizados.',
     'alliance-roster-evidence-uploaded': 'imagem da lista de alianças carregada.',
     'alliance-roster-evidence-duplicate': 'Esta imagem da lista de alianças já foi enviada.',
-    'alliance-roster-evidence-reviewed': 'alliance roster screenshot review saved.',
+    'alliance-roster-evidence-reviewed':
+      'Revisão da captura de tela da lista de membros da Aliança salva.',
     'alliance-roster-evidence-committed': '{count} revisado observações de lista comprometidas.',
     'recruitment-reentry-updated': 'Controle de reentrada de recrutamento atualizado.',
     'notification-preference-reset':
@@ -319,7 +320,7 @@ const messages = {
       unmatched: 'Uma observação inigualável',
       membership_only: 'Apenas para membros',
     },
-    recruitmentEyebrow: 'alliance-local recruiting control',
+    recruitmentEyebrow: 'Controle de recrutamento da Aliança',
     recruitmentTitle: 'Controle de reentrada de recrutamento',
     recruitmentSubtitle:
       'Defina uma restrição de recrutamento local de aliança privada. Esta não é uma lista negra de alianças ou plataformas.',

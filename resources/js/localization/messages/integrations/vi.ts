@@ -44,7 +44,7 @@ const messages = {
     scopeCommands:
       'alliance Dữ liệu tổng quan bao gồm các sự kiện, mã quà tặng, hướng dẫn, và tình trạng tuyển dụng.',
     scopeGiftCodes: 'Mã quà tặng và mã chính thức.',
-    scopeContent: 'Published alliance guides and source information.',
+    scopeContent: 'Hướng dẫn Liên minh và thông tin nguồn đã được xuất bản.',
     scopeActorLinks: 'Dùng mã cặp thống đốc Discord hoặc Telegram một lần.',
     scopeEventParticipation:
       'Đưa sự kiện có sẵn và thay đổi đăng ký cho một thống đốc liên kết xác nhận.',

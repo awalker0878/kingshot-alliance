@@ -279,7 +279,7 @@ const messages = {
     'governor-created': 'El gobernador fue añadido a tu cuenta.',
     'governor-updated': 'Identidad del gobernador actualizada.',
     'governor-moved': 'El reino del gobernador actualizado.',
-    'governor-released': 'Gobernador liberado de su cuenta.',
+    'governor-released': 'Gobernador desvinculado de tu cuenta.',
   },
   common: {
     yes: 'Sí',
@@ -1135,12 +1135,12 @@ const messages = {
     historyGameId: 'ID de juego',
     historySource: 'Fuente',
     historyReason: 'Motivo',
-    releaseTitle: 'Liberación de cuenta',
+    releaseTitle: 'Desvincular de la cuenta',
     releasePreserves:
-      'La liberación de la propiedad preserva la identidad duradera del juego y su historia.',
-    releaseGovernor: 'Gobernador de la liberación',
+      'Al renunciar a la propiedad se conservan la identidad del juego y su historial.',
+    releaseGovernor: 'Desvincular al Gobernador',
     releaseConfirm:
-      '¿Liberar {governor} de esta cuenta? La identidad y la historia del juego se conservarán.',
+      '¿Desvincular a {governor} de esta cuenta? Se conservarán la identidad del juego y su historial.',
   },
 } satisfies MessageCatalogue;
 

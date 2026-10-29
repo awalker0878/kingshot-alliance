@@ -169,7 +169,7 @@ const messages = {
       eyebrow: 'Bản mẫu:Governor of Georgia',
       title: 'Những gì chúng ta biết về thống đốc này',
       help: 'Lịch sử chủ sở hữu được ủy quyền được hiển thị riêng biệt với các ngày ban đầu và liên kết workflow. Hồ sơ này không tính toán độ mạnh của thống đốc hoặc điểm chất lượng.',
-      events: 'event participation',
+      events: 'Tham gia Sự kiện',
       eventSummary: '{completed} hoàn thành · {absent} vắng mặt · {unresolved} chưa giải quyết',
       noEvents: 'Không có lịch sử sự kiện được ủy quyền được ghi lại cho liên minh này.',
       bearHunt: 'Buổi biểu diễn Bear Hunt',

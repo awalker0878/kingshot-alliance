@@ -13,7 +13,8 @@ const messages = {
       '{succeeded} atribuições de função atualizadas. {failed} precisam de revisão. {skipped} já estavam atualizados.',
     'alliance-roster-evidence-uploaded': 'imagem da lista de alianças carregada.',
     'alliance-roster-evidence-duplicate': 'Esta imagem da lista de alianças já foi enviada.',
-    'alliance-roster-evidence-reviewed': 'alliance roster screenshot review saved.',
+    'alliance-roster-evidence-reviewed':
+      'Revisão da captura de tela da lista de membros da Aliança salva.',
     'alliance-roster-evidence-committed': '{count} revisado observações de lista comprometidas.',
     'recruitment-reentry-updated': 'Controle de reentrada de recrutamento atualizado.',
     'notification-preference-reset':
@@ -42,7 +43,7 @@ const messages = {
     'gift-code-session-item-prepared': 'Entrega oficial do código de presente preparada.',
     'gift-code-session-item-recorded':
       'Resultado do código de presente registrado e progresso da execução atualizado.',
-    'gift-code-session-item-skipped': 'Não há itens saltados para esta corrida.',
+    'gift-code-session-item-skipped': 'Código de presente ignorado nesta execução.',
     'gift-code-session-abandoned': 'A execução do código de resgate foi abandonada.',
     'gift-code-source-backfill-run': 'Código de presente fonte backfill concluído.',
     'gift-code-source-push-subscribed': 'Código de presente fonte push subscrição ativada.',
@@ -265,7 +266,7 @@ const messages = {
     'governor-created': 'governor adicionado à sua conta.',
     'governor-updated': 'Identidade do governador atualizada.',
     'governor-moved': 'governador reino atualizado.',
-    'governor-released': 'governador liberado de sua conta.',
+    'governor-released': 'Governador desvinculado da sua conta.',
   },
   common: {
     yes: 'Sim',
@@ -470,7 +471,7 @@ const messages = {
       officerBriefGroups: {
         daily_officer: 'Resumo diário do oficial',
         upcoming_event: 'Próximos eventos',
-        post_event_closeout: 'Post-event Closeout Brief',
+        post_event_closeout: 'Resumo de encerramento do Evento',
       },
     },
   },
@@ -639,7 +640,7 @@ const messages = {
       unmatched: 'Uma observação inigualável',
       membership_only: 'Apenas para membros',
     },
-    recruitmentEyebrow: 'alliance-local recruiting control',
+    recruitmentEyebrow: 'Controle de recrutamento da Aliança',
     recruitmentTitle: 'Controle de reentrada de recrutamento',
     recruitmentSubtitle:
       'Defina uma restrição de recrutamento local de aliança privada. Esta não é uma lista negra de alianças ou plataformas.',
@@ -1120,12 +1121,12 @@ const messages = {
     historyGameId: 'ID do jogo',
     historySource: 'Fonte',
     historyReason: 'Razão',
-    releaseTitle: 'Liberação da conta',
+    releaseTitle: 'Desvincular da conta',
     releasePreserves:
-      'A liberação da propriedade preserva a identidade duradoura do jogo e sua história.',
-    releaseGovernor: 'Release governor (em inglês)',
+      'Ao abrir mão da propriedade, a identidade no jogo e seu histórico são preservados.',
+    releaseGovernor: 'Desvincular Governador',
     releaseConfirm:
-      'Liberar {governor} desta conta? A identidade e a história do jogo serão preservadas.',
+      'Desvincular {governor} desta conta? A identidade no jogo e seu histórico serão preservados.',
   },
 } satisfies MessageCatalogue;
 

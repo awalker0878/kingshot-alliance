@@ -87,8 +87,8 @@ const messages = {
       recurrenceUntil: 'Ulangi sampai',
       gameDefaults: 'defaults',
       modules: 'Alat Event',
-      templates: 'event templates',
-      template: 'event template',
+      templates: 'Templat Acara',
+      template: 'Templat Acara',
       templateHelp:
         'Gunakan template acara yang disimpan untuk gubernur, aliansi, atau kerajaan yang dipilih.',
       noTemplates: 'Tidak ada template acara yang tersedia di sini.',
@@ -131,7 +131,7 @@ const messages = {
       templateSave: 'Simpan template acara',
       templateHelp:
         'Simpan jadwal acara ini, aturan pendaftaran, instruksi, dan pengaturan pertempuran sehingga dapat digunakan kembali.',
-      participationEyebrow: 'event roster',
+      participationEyebrow: 'Daftar peserta Acara',
       participants: 'Kehadiran',
       player: 'Gubernur',
       response: 'Ketersediaan',
@@ -147,7 +147,7 @@ const messages = {
       reminderDisabled: 'Nonaktif',
       noReminders: 'Tidak ada aturan pengingat yang ditetapkan.',
       minutes: 'menit sebelum',
-      eventStart: 'event start',
+      eventStart: 'Awal Acara',
       pollDeadline: 'deadline poll',
     },
     attention: {
@@ -239,9 +239,9 @@ const messages = {
       all_scope_players: 'Semua Gubernur yang memenuhi syarat',
     },
     command: {
-      eyebrow: 'event Command',
+      eyebrow: 'Koordinasi Acara',
       title: 'Kesiapan',
-      closeoutEyebrow: 'event Command',
+      closeoutEyebrow: 'Koordinasi Acara',
       closeoutTitle: 'Penutupan',
       occurrence: 'Kejadian',
       states: {
@@ -297,7 +297,7 @@ const messages = {
           results: 'Hasil',
         },
         alliance: {
-          content: 'alliance Content',
+          content: 'Konten Aliansi',
         },
         communications: {
           delivery: 'Komunikasi',
@@ -459,7 +459,7 @@ const messages = {
       },
     },
     phases: {
-      eyebrow: 'event timeline',
+      eyebrow: 'Linimasa Acara',
       title: 'Fase',
       manageTitle: 'Garis waktu fase',
       none: 'Tidak ada fase peristiwa yang ditetapkan untuk kejadian ini.',
@@ -476,13 +476,13 @@ const messages = {
       custom: 'Ubah',
     },
     rosters: {
-      eyebrow: 'event roster',
+      eyebrow: 'Daftar peserta Acara',
       title: 'Tugas acaraku',
       combatants: 'Pejuang',
       substitutes: 'Pengganti',
       legion_1: 'Legiun 1',
       legion_2: 'Legiun 2',
-      manageTitle: 'event roster',
+      manageTitle: 'Daftar peserta Acara',
       none: 'Tidak ada daftar acara yang ditetapkan untuk kejadian ini.',
       noAssignments: 'Belum ada gubernur yang ditunjuk.',
       add: 'Tambahkan daftar',
@@ -852,7 +852,7 @@ const messages = {
           'Ikuti persiapan permainan dan jadwal pertempuran, mengkoordinasikan tim kerajaan dan tujuan, dan melacak kemajuan kontrol kastil selama fase pertempuran.',
       },
       hall_of_governors: {
-        name: 'Hall of governors',
+        name: 'Aula Gubernur',
         description: 'Peristiwa progres pribadi dengan fase, skor, dan hasil.',
         instructions:
           'Melacak tahap permainan saat ini, penggunaan sumber daya yang direncanakan, dan tujuan skor untuk acara kemajuan pribadi ini.',

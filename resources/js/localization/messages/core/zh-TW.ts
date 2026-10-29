@@ -248,7 +248,7 @@ const messages = {
     'governor-created': '您的帳戶已被刪除。',
     'governor-updated': '州長身份更新。',
     'governor-moved': '總督王國更新.',
-    'governor-released': '您的帳戶已被關閉。',
+    'governor-released': '已解除總督與你帳戶的連結。',
   },
   common: {
     yes: '是',
@@ -1060,10 +1060,10 @@ const messages = {
     historyGameId: '遊戲 ID',
     historySource: '來源',
     historyReason: '理由',
-    releaseTitle: '從帳戶中釋放',
-    releasePreserves: '釋放所有權保留了持久的遊戲身份及其歷史。',
-    releaseGovernor: '釋放穩定器',
-    releaseConfirm: '從這個帳戶釋放{governor}? 遊戲的身份和歷史將會保留。',
+    releaseTitle: '解除與帳戶的連結',
+    releasePreserves: '放棄所有權後，遊戲身分及其歷史紀錄仍會保留。',
+    releaseGovernor: '解除總督連結',
+    releaseConfirm: '要解除 {governor} 與此帳戶的連結嗎？遊戲身分及其歷史紀錄將會保留。',
   },
 } satisfies MessageCatalogue;
 

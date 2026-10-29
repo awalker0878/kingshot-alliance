@@ -318,7 +318,7 @@ const messages = {
       unmatched: 'Quan sát không thể so sánh được',
       membership_only: 'Chỉ thành viên',
     },
-    recruitmentEyebrow: 'alliance-local recruiting control',
+    recruitmentEyebrow: 'Quản lý tuyển mộ trong Liên minh',
     recruitmentTitle: 'Kiểm soát nhập cảnh tái nhập ngũ',
     recruitmentSubtitle:
       'Đặt giới hạn tuyển dụng liên minh riêng tư. Đây không phải là danh sách đen liên minh hay nền tảng.',

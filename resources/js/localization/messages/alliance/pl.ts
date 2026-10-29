@@ -250,7 +250,7 @@ const messages = {
     clearFilters: 'Wyczyść filtry',
     occurredAt: 'Wystąpiło',
     actor: 'Wykonawca',
-    event: 'event',
+    event: 'Wydarzenie',
     source: 'Źródło',
     details: 'Szczegóły',
     openOwner: 'Otwarty właściciel workflow',

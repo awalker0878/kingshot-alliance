@@ -68,7 +68,7 @@ const messages = {
     rolesEyebrow: 'Peran kerajaan',
     rolesSubtitle:
       'Berikan tanggung jawab acara seluruh kerajaan untuk kerajaan #{kingdom}. peringkat aliansi tidak memberikan izin ini secara otomatis.',
-    rolesManage: 'Manage kingdom roles',
+    rolesManage: 'Kelola peran Kerajaan',
     rolesAssign: 'Tunjukkan peran kerajaan',
     rolesAssignHelp:
       'Tugas hanya berlaku untuk kerajaan ini. Gunakan peran aliansi untuk tanggung jawab aliansi saja.',
@@ -347,7 +347,7 @@ const messages = {
     current: 'Terkini',
     stale: 'Usang',
     missing: 'Hilang',
-    eyebrow: 'kingdom sharing',
+    eyebrow: 'Berbagi dalam Kerajaan',
     subtitle:
       'Catatan pramuka secara eksplisit dibagikan dengan {alliance}. Informasi yang diterima tidak pernah mengubah pelacakan lokal, diplomasi, daftar, atau status transfer kerajaan.',
     currentSharedFacts: 'Fakta yang dibagikan saat ini',
@@ -379,7 +379,7 @@ const messages = {
     noHistory: 'Tidak ada catatan pramuka yang diterima tersedia untuk aliansi ini.',
     historySecurity: 'Akses dicek lagi setiap kali Anda memuat pengamatan yang lebih tua.',
     olderObservations: 'Pengamatan yang lebih tua',
-    manageEyebrow: 'kingdom sharing',
+    manageEyebrow: 'Berbagi dalam Kerajaan',
     manageTitle: 'Berbagi perjanjian',
     manageSubtitle:
       '{alliance} · kerajaan {kingdom}. Berbagi adalah arah, terbatas pada kerajaan yang sama, dan diaktifkan secara terpisah untuk setiap aliansi yang dilacak.',
@@ -697,7 +697,7 @@ const messages = {
     startHelp:
       'Tanpa aliansi Game ID, rekor aliansi terpisah dibuat bahkan ketika rekor lain memiliki nama atau tag yang sama.',
     allianceName: 'Nama Aliansi',
-    allianceTag: 'alliance tag',
+    allianceTag: 'Tag Aliansi',
     stableId: 'Aliansi permainan ID',
     stableIdShort: 'ID game',
     stableIdHelp: 'Opsional. Setelah ditunjuk, tidak dapat dihapus atau diubah di tempat.',

@@ -280,7 +280,7 @@ const messages = {
       xUsername: 'X kullanıcı adı',
       centuryCategory: 'Hediye kodu kategorisi',
       providerPermissionConfirmed: 'Sağlayıcı izinleri doğrulandı',
-      discordGuildId: 'Discord Guild ID',
+      discordGuildId: 'Discord sunucu kimliği',
       discordChannelId: 'Discord kanal ID',
       discordAuthorIds: 'Onaylanmış Discord yazar kimlikleri',
       authorIdsPlaceholder: 'virgül veya boşlukla ayrılmış',

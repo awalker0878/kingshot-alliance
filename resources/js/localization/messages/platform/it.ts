@@ -88,7 +88,7 @@ const messages = {
     plan: 'Piano',
     operations: 'Operazioni',
     manage: 'Gestisci',
-    exportJson: 'Export alliance record',
+    exportJson: 'Esporta la scheda dell’Alleanza',
     captureUsage: 'Utilizzo di cattura',
     apiCredentials: 'Credenziali API',
     webhooks: 'Sottoscrizioni webhook',

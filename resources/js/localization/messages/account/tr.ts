@@ -103,15 +103,15 @@ const messages = {
     enablingWebPush: 'Web Push etkinleştiriliyor...',
     webPushFailed: 'Web Push bu aygıtta etkinleştirilemedi.',
     preferences: 'Seçenekleri',
-    reminderRouting: 'Hesap varsayımları ve yönetici üstlenmeleri',
+    reminderRouting: 'Hesap varsayılanları ve Valiye özel ayarlar',
     preferenceHelp:
-      'Hesap varsayımları her yerde geçerlidir. Aktif bir valinin üstesinden gelmesi sadece o vali için kazanır ve hesap varsayılanını miras almak için geri ayarlanabilir.',
-    accountDefaults: 'Hesap varsayımları',
-    governorOverrides: 'Aktif yönetici üstten yaz',
-    inherited: 'Miras',
+      'Hesabın varsayılan ayarları her yerde geçerlidir. Aktif Valiye özel ayarlar yalnızca o Vali için geçerlidir. Hesabın varsayılan ayarlarını yeniden kullanmak için bu ayarlar sıfırlanabilir.',
+    accountDefaults: 'Hesabın varsayılan ayarları',
+    governorOverrides: 'Aktif Valiye özel ayarlar',
+    inherited: 'Hesap ayarları kullanılıyor',
     enabled: 'Etkin',
     disabled: 'Devre dışı',
-    resetOverride: 'Üstüne yazmayı geri al',
+    resetOverride: 'Hesap varsayılanlarına dön',
     emailOptIn: 'E-posta opt-in ve hesapların sahip olduğu doğrulanmış hesap e-postasını kullanır.',
     routingPolicy: 'Teslim zamanlama politikası',
     routingPolicyHelp:
@@ -392,7 +392,7 @@ const messages = {
     'governor-created': 'Vali hesabınıza eklendi.',
     'governor-updated': 'Vali kimliği güncellendi.',
     'governor-moved': 'Vali krallığı güncellendi.',
-    'governor-released': 'Vali hesabınızdan parayı çekti.',
+    'governor-released': 'Valinin hesabınla bağlantısı kaldırıldı.',
   },
   common: {
     governors: 'Valiler',
@@ -437,11 +437,11 @@ const messages = {
     historyGameId: 'Oyun kimliği',
     historySource: 'Kaynak',
     historyReason: 'Neden',
-    releaseTitle: 'Hesaptan çıkar',
-    releasePreserves:
-      'Özelliği serbest bırakmak, oyunun kalıcı kimliğini ve tarihini korumaktadır.',
-    releaseGovernor: 'Valiyi serbest bırak.',
-    releaseConfirm: "Bu hesaba {governor}'i bırakmak mı? Oyun kimliği ve tarihi korunacak.",
+    releaseTitle: 'Hesapla bağlantısını kaldır',
+    releasePreserves: 'Sahiplikten vazgeçildiğinde oyun kimliği ve geçmişi korunur.',
+    releaseGovernor: 'Valinin hesapla bağlantısını kaldır',
+    releaseConfirm:
+      '{governor} adlı Valinin bu hesapla bağlantısı kaldırılsın mı? Oyun kimliği ve geçmişi korunacak.',
   },
 } satisfies MessageCatalogue;
 

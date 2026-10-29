@@ -25,7 +25,7 @@ const messages = {
     subtitle:
       'Verwalten Sie den Zugriff auf API, signierte Webhooks, Allianzlimits und aktuelle Zustellungsergebnisse für {alliance}.',
     credentialLimit: 'API Anmeldeinformationen-Limit',
-    webhookLimit: 'Webhook-Limit',
+    webhookLimit: 'Maximale Anzahl von Webhooks',
     saveCredentialNow: 'Speichern Sie jetzt diese API-Anmeldung',
     credentialOneTime: 'Nach dieser Antwort kann das Token nicht mehr abgerufen werden.',
     saveWebhookNow: 'Speichern Sie jetzt diesen Webhook-Signierschlüssel',

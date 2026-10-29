@@ -71,7 +71,7 @@ const messages = {
     attributionBoard: 'Kamu personeli alımı kurulu',
     attributionAlliancePage: 'İttifak kamu sayfası',
     attributionShareLink: 'İttifak paylaşım bağlantısı',
-    attributionBotCommand: 'alliance bot command',
+    attributionBotCommand: 'İttifak bot komutu',
     attributionHelp:
       'Bu görünen kaynak etiketi, ittifaka hangi iş bulma bağlantılarının çalıştığını anlamaya yardımcı olur. Sizi tanımlayıp izlememektedir.',
   },

@@ -159,7 +159,7 @@ const messages = {
     navHistory: 'Riwayat tata kelola',
     navRosterEvidence: 'Screenshot daftar',
     navReconciliation: 'Rekonsiliasi daftar',
-    settingsEyebrow: 'alliance administration',
+    settingsEyebrow: 'Administrasi Aliansi',
     settingsTitle: 'pengaturan aliansi',
     settingsSubtitle:
       'Mengurus identitas aliansi yang dimiliki aplikasi dan default. Siklus hidup platform dan kepemilikan kerajaan tetap di luar permukaan ini.',
@@ -193,7 +193,7 @@ const messages = {
     permissionLabels: {
       alliance: {
         view: 'Lihat aliansi',
-        manage: 'Manage alliance settings',
+        manage: 'Kelola pengaturan Aliansi',
       },
       membership: {
         manage: 'Kelola keanggotaan',
@@ -205,7 +205,7 @@ const messages = {
         manage: 'Urus undangan',
       },
       content: {
-        manage: 'Manage alliance content',
+        manage: 'Kelola konten Aliansi',
       },
       recruitment: {
         manage: 'Kelola perekrutan',
@@ -238,7 +238,7 @@ const messages = {
     outcomeSkipped: 'Dilewati',
     noPreview: 'Pralihat perubahan terikat sebelum melakukannya.',
     historyEyebrow: 'Sejarah audit faktual',
-    historyTitle: 'alliance governance history',
+    historyTitle: 'Riwayat tata kelola Aliansi',
     historySubtitle:
       'Sejarah hanya baca yang terdiri dari peristiwa audit pemilik. Ia mencatat apa yang berubah tanpa menciptakan sumber kebenaran kedua.',
     capability: 'Kemampuan',

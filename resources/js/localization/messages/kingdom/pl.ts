@@ -570,7 +570,7 @@ const messages = {
     },
   },
   receipts: {
-    'kingdom-role-created': 'Nie utworzono żadnej roli.',
+    'kingdom-role-created': 'Utworzono rolę królestwa.',
     'kingdom-role-updated': 'Zaktualizowano zasady dotyczące roli królestwa.',
     'kingdom-role-archived': 'Rola królestwa zarchiwizowana.',
     'kingdom-administrator-handoff': 'Przekazanie administratora królestwa zakończone.',

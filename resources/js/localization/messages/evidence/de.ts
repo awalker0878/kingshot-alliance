@@ -21,7 +21,7 @@ const messages = {
     security: 'Quelldetails',
     dimensions: 'Abmessungen',
     checksum: 'Prüfsumme',
-    imagePreview: 'Original-Screenshot',
+    imagePreview: 'Originalaufnahme',
     imageUnavailable: 'Das Quellbild wurde gemäß Aufbewahrungsregel gelöscht.',
     processing: 'Verarbeitung',
     processingHelp: 'Die Verarbeitung läuft im Hintergrund. Zum Aktualisieren neu laden.',

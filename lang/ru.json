@@ -635,7 +635,7 @@
   "Set the target Kingdom before allocating an invitation.": "Установить целевое королевство перед тем, как распределить приглашение.",
   "Set the target Kingdom before reserving capacity.": "Установить целевое королевство перед резервированием мощности.",
   "Shape annotations require a target coordinate.": "Аннотации к фигурам требуют координат цели.",
-  "Share expiry must be within 31 days.": "Срок действия акций должен быть не менее 31 дня.",
+  "Share expiry must be within 31 days.": "Срок действия ссылки для доступа должен истечь в течение 31 дня.",
   "Single-object coverage requires exactly one reviewed object.": "Охват одного объекта требует изучения ровно одного объекта.",
   "Skill duration must be between 1 minute and 7 days.": "Продолжительность умения должна быть от 1 минуты до 7 дней.",
   "Slot number must be at least one.": "Номер слота должен быть не менее одного.",

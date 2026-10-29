@@ -1199,7 +1199,9 @@
     "id": "Pemanah",
     "de": "Bogenschütze",
     "pl": "Łucznik",
-    "vi": "Cung thủ"
+    "vi": "Cung thủ",
+    "pt-BR": "Arqueiro",
+    "tr": "Okçu"
   },
   "Archers %": {
     "fr": "Archers (%)"
@@ -1407,11 +1409,13 @@
   },
   "No-show": {
     "fr": "Absent sans prévenir",
-    "it": "Assente senza preavviso"
+    "it": "Assente senza preavviso",
+    "de": "Unentschuldigt abwesend"
   },
   "Observed tag": {
     "fr": "Sigle observé",
-    "pl": "Zaobserwowany skrót"
+    "pl": "Zaobserwowany skrót",
+    "de": "Beobachtetes Allianzkürzel"
   },
   "Off": {
     "fr": "Désactivé",
@@ -1495,7 +1499,8 @@
   "Record review": {
     "fr": "Enregistrer l’examen",
     "it": "Registra la revisione",
-    "pl": "Zapisz przegląd"
+    "pl": "Zapisz przegląd",
+    "de": "Prüfung erfassen"
   },
   "Release": {
     "fr": "Libérer",
@@ -1630,7 +1635,9 @@
     "fr": "archiver"
   },
   "backfill": {
-    "fr": "récupération des données historiques"
+    "fr": "récupération des données historiques",
+    "de": "Nachladen historischer Daten",
+    "pl": "uzupełnianie danych historycznych"
   },
   "duplicate": {
     "fr": "doublon",
@@ -1651,7 +1658,9 @@
     "pt-BR": "ativado"
   },
   "push": {
-    "fr": "notification push"
+    "fr": "notification push",
+    "de": "Push-Benachrichtigung",
+    "pl": "powiadomienie push"
   },
   "trust revision {revision}": {
     "fr": "révision de confiance {revision}",
@@ -1692,7 +1701,9 @@
   },
   "Kingdom sharing": {
     "fr": "Partage au sein du Royaume",
-    "vi": "Chia sẻ trong vương quốc"
+    "vi": "Chia sẻ trong vương quốc",
+    "de": "Freigaben im Königreich",
+    "id": "Berbagi dalam kerajaan"
   },
   "Event scheduled.": {
     "fr": "Événement programmé.",
@@ -1876,7 +1887,8 @@
   },
   "In-game": {
     "it": "Nel gioco",
-    "pl": "W grze"
+    "pl": "W grze",
+    "de": "Im Spiel"
   },
   "Officer review due": {
     "it": "Revisione degli ufficiali in scadenza"
@@ -1913,7 +1925,8 @@
   "Reset override": {
     "it": "Reimposta la sostituzione",
     "id": "Atur ulang penggantian",
-    "pl": "Zresetuj nadpisanie"
+    "pl": "Zresetuj nadpisanie",
+    "de": "Überschreibung zurücksetzen"
   },
   "Legion 1": {
     "it": "Legione 1",
@@ -1959,7 +1972,9 @@
     "pl": "Mediana czasu pozyskania kodu"
   },
   "SECURE PASSWORD RESET": {
-    "it": "REIMPOSTAZIONE SICURA DELLA PASSWORD"
+    "it": "REIMPOSTAZIONE SICURA DELLA PASSWORD",
+    "id": "PENGATURAN ULANG KATA SANDI AMAN",
+    "pt-BR": "REDEFINIÇÃO SEGURA DE SENHA"
   },
   "Record ID": {
     "it": "ID del record",
@@ -2067,7 +2082,9 @@
     "tr": "Kahraman ekipmanı"
   },
   "Source gap": {
-    "id": "Kesenjangan sumber"
+    "id": "Kesenjangan sumber",
+    "de": "Quellenlücke",
+    "pl": "Luka w źródłach"
   },
   "Power Cap": {
     "id": "Batas kekuatan",
@@ -2115,7 +2132,8 @@
   },
   "replay rejections": {
     "id": "penolakan pemutaran ulang",
-    "tr": "tekrar gönderim retleri"
+    "tr": "tekrar gönderim retleri",
+    "fr": "rejets des tentatives de répétition"
   },
   "Manage membership": {
     "id": "Kelola keanggotaan"
@@ -2207,7 +2225,8 @@
   "Copy Player ID": {
     "ar": "نسخ معرّف اللاعب",
     "zh-CN": "复制玩家ID",
-    "zh-TW": "複製玩家ID"
+    "zh-TW": "複製玩家ID",
+    "vi": "Sao chép ID người chơi"
   },
   "Last officer {actor}": {
     "ar": "آخر ضابط: {actor}",
@@ -2241,12 +2260,14 @@
     "th": "ย้ายเสร็จแล้วเมื่อ {date}"
   },
   "Game Alliance ID": {
-    "ar": "معرّف التحالف في اللعبة"
+    "ar": "معرّف التحالف في اللعبة",
+    "fr": "Identifiant de l’Alliance dans le jeu"
   },
   "Governors · {label}": {
     "ar": "الحكام · {label}",
     "zh-CN": "总督 · {label}",
-    "zh-TW": "總督 · {label}"
+    "zh-TW": "總督 · {label}",
+    "vi": "Thống đốc · {label}"
   },
   "Your Kingshot Alliance email changed": {
     "ar": "تم تغيير بريدك الإلكتروني في Kingshot Alliance"
@@ -2320,7 +2341,10 @@
     "ar": "معرّف خادم Discord",
     "ja": "DiscordサーバーID",
     "zh-CN": "Discord服务器ID",
-    "zh-TW": "Discord伺服器ID"
+    "zh-TW": "Discord伺服器ID",
+    "id": "ID server Discord",
+    "tr": "Discord sunucu kimliği",
+    "vi": "ID máy chủ Discord"
   },
   "{alliance} · Kingdom {kingdom}. Planning can be changed only while the current plan is Draft or Open.": {
     "ar": "{alliance} · المملكة {kingdom}. يمكن تعديل التخطيط فقط عندما تكون الخطة الحالية مسودة أو مفتوحة.",
@@ -2382,7 +2406,8 @@
     "ar": "مقبول"
   },
   "Event start": {
-    "ar": "بداية الحدث"
+    "ar": "بداية الحدث",
+    "id": "Awal acara"
   },
   "Voting": {
     "ar": "التصويت"
@@ -2475,15 +2500,20 @@
     "it": "Frammenti necessari per raggiungere 5 stelle"
   },
   "No Governor Progression screenshots have been uploaded.": {
-    "es": "No se han subido capturas del progreso del Gobernador."
+    "es": "No se han subido capturas del progreso del Gobernador.",
+    "pl": "Nie przesłano zrzutów ekranu postępów gubernatora.",
+    "pt-BR": "Nenhuma captura do progresso do Governador foi enviada."
   },
   "Select shown": {
     "es": "Seleccionar los elementos mostrados",
-    "it": "Seleziona gli elementi visualizzati"
+    "it": "Seleziona gli elementi visualizzati",
+    "de": "Angezeigte auswählen",
+    "pt-BR": "Selecionar os itens exibidos"
   },
   "Kingdom role created.": {
     "es": "Rol del Reino creado.",
-    "it": "Ruolo del Regno creato."
+    "it": "Ruolo del Regno creato.",
+    "pl": "Utworzono rolę królestwa."
   },
   "Kingdom position appointment created.": {
     "es": "Nombramiento para un cargo del Reino creado.",
@@ -2491,11 +2521,13 @@
   },
   "Kingdom role assigned.": {
     "es": "Rol del Reino asignado.",
-    "it": "Ruolo del Regno assegnato."
+    "it": "Ruolo del Regno assegnato.",
+    "pl": "Przypisano rolę królestwa."
   },
   "Alliance role assigned.": {
     "es": "Rol de la Alianza asignado.",
-    "it": "Ruolo dell’Alleanza assegnato."
+    "it": "Ruolo dell’Alleanza assegnato.",
+    "pl": "Przypisano rolę sojuszu."
   },
   "days": {
     "fr": "jours"
@@ -2505,7 +2537,9 @@
   },
   "Gift Code item skipped for this run.": {
     "fr": "Code cadeau ignoré pour cette exécution.",
-    "it": "Codice regalo saltato per questa esecuzione."
+    "it": "Codice regalo saltato per questa esecuzione.",
+    "pl": "Pominięto kod podarunkowy w tym przebiegu.",
+    "pt-BR": "Código de presente ignorado nesta execução."
   },
   "Governor Gear": {
     "it": "Equipaggiamento del Governatore",
@@ -2541,7 +2575,8 @@
   },
   "Kingdom Transfers": {
     "de": "Königreichswechsel",
-    "vi": "Chuyển vương quốc"
+    "vi": "Chuyển vương quốc",
+    "id": "Transfer kerajaan"
   },
   "Current": {
     "de": "Aktuell",
@@ -2630,7 +2665,8 @@
     "pl": "Polowanie na niedźwiedzia"
   },
   "Tri-Alliance Clash": {
-    "de": "Kampf der drei Allianzen"
+    "de": "Kampf der drei Allianzen",
+    "fr": "Affrontement des trois Alliances"
   },
   "Outpost Battle": {
     "de": "Außenpostenschlacht",
@@ -2640,7 +2676,9 @@
     "de": "Heiligtumsschlacht"
   },
   "Event Command": {
-    "de": "Ereignissteuerung"
+    "de": "Ereignissteuerung",
+    "fr": "Pilotage de l’Événement",
+    "id": "Pusat kendali acara"
   },
   "Owner: {owner}": {
     "de": "Verantwortlich: {owner}"
@@ -2870,10 +2908,12 @@
     "pl": "Utworzono element wdrażania nowych członków."
   },
   "Community discovery": {
-    "pl": "Wyszukiwanie w społeczności"
+    "pl": "Wyszukiwanie w społeczności",
+    "de": "Suche in der Community"
   },
   "Redemption workspace": {
-    "pl": "Panel aktywacji kodów"
+    "pl": "Panel aktywacji kodów",
+    "vi": "Không gian đổi mã quà tặng"
   },
   "Pending": {
     "pl": "Oczekuje"
@@ -2933,7 +2973,8 @@
     "pl": "Zarejestrowane klucze dostępu"
   },
   "Transfer leadership": {
-    "pl": "Przekaż przywództwo"
+    "pl": "Przekaż przywództwo",
+    "de": "Führung übertragen"
   },
   "Bear Hunt run": {
     "pl": "Przebieg polowania na niedźwiedzia"
@@ -2954,13 +2995,15 @@
     "pl": "Zapisane formacje"
   },
   "Save formation": {
-    "pl": "Zapisz formację"
+    "pl": "Zapisz formację",
+    "de": "Formation speichern"
   },
   "Readiness closeout": {
     "pl": "Zamknięcie oceny gotowości"
   },
   "Hall of Governors": {
-    "pl": "Sala gubernatorów"
+    "pl": "Sala gubernatorów",
+    "id": "Aula Gubernur"
   },
   "Open roster": {
     "pl": "Otwórz listę członków"
@@ -3004,7 +3047,8 @@
   },
   "Governor Gear unlock": {
     "pl": "Odblokowanie wyposażenia gubernatora",
-    "vi": "Mở khóa trang bị Thống đốc"
+    "vi": "Mở khóa trang bị Thống đốc",
+    "id": "Pembukaan perlengkapan Gubernur"
   },
   "Hero detail": {
     "pl": "Szczegóły bohatera"
@@ -3037,7 +3081,8 @@
     "pl": "Wyśrodkuj na osi Y"
   },
   "Banner pad": {
-    "pl": "Pole sztandaru"
+    "pl": "Pole sztandaru",
+    "tr": "Sancak alanı"
   },
   "Delegated layer access": {
     "pl": "Delegowany dostęp do warstwy"
@@ -3068,7 +3113,8 @@
   },
   "Governor Power": {
     "pl": "Moc gubernatora",
-    "de": "Macht des Gouverneurs"
+    "de": "Macht des Gouverneurs",
+    "id": "Kekuatan Gubernur"
   },
   "Left": {
     "pl": "Opuścił"
@@ -3148,7 +3194,9 @@
     "tr": "Toplanma katılımcı listesi kontrolleri"
   },
   "Governor progression": {
-    "tr": "Vali gelişimi"
+    "tr": "Vali gelişimi",
+    "de": "Gouverneursfortschritt",
+    "id": "Perkembangan Gubernur"
   },
   "Annotations": {
     "tr": "Açıklamalar"
@@ -3205,7 +3253,8 @@
   },
   "Kingdom numbers": {
     "vi": "Số hiệu vương quốc",
-    "de": "Königreichsnummern"
+    "de": "Königreichsnummern",
+    "id": "Nomor kerajaan"
   },
   "Catalogue": {
     "vi": "Danh mục"
@@ -3300,7 +3349,8 @@
     "ja": "データ品質を確認しました。証拠の不足：{missingEvidence}件、記録の不足：{missingRecords}件。"
   },
   "Write requests require an authorized API credential, a verified Governor connection, and an idempotency key. Normal Alliance and Event permissions still apply.": {
-    "ja": "書き込みリクエストには、許可されたAPI認証情報、確認済みの総督との接続、および冪等性キーが必要です。通常の同盟とイベントの権限も引き続き適用されます。"
+    "ja": "書き込みリクエストには、許可されたAPI認証情報、確認済みの総督との接続、および冪等性キーが必要です。通常の同盟とイベントの権限も引き続き適用されます。",
+    "ar": "تتطلب طلبات الكتابة بيانات اعتماد API مصرحًا بها، واتصالًا موثّقًا بالحاكم، ومفتاحًا لمنع تكرار تنفيذ الطلب. وتظل صلاحيات التحالف والحدث المعتادة سارية."
   },
   "API access is enabled.": {
     "ja": "APIアクセスは有効です。"
@@ -3367,7 +3417,8 @@
     "ja": "有効なTelegramチャットIDを入力してください。"
   },
   "Planning distances and times must be finite JSON numbers.": {
-    "ja": "計画の距離と時間は、JSONの有限数値で指定してください。"
+    "ja": "計画の距離と時間は、JSONの有限数値で指定してください。",
+    "th": "ระยะทางและเวลาในการวางแผนต้องเป็นตัวเลข JSON ที่มีค่าจำกัด"
   },
   "Recovery document must contain valid JSON with a bounded nesting depth.": {
     "ja": "復旧用ドキュメントには、入れ子の深さが制限内の有効なJSONを含める必要があります。"
@@ -3466,7 +3517,9 @@
   },
   "Unsupported structured Governor Progression observation kind.": {
     "zh-CN": "不支持此类型的结构化总督成长观测数据。",
-    "zh-TW": "不支援此類型的結構化總督成長觀測資料。"
+    "zh-TW": "不支援此類型的結構化總督成長觀測資料。",
+    "de": "Diese Art strukturierter Beobachtung des Gouverneursfortschritts wird nicht unterstützt.",
+    "vi": "Loại quan sát có cấu trúc về tiến trình Thống đốc này không được hỗ trợ."
   },
   "This verification link expires in :minutes minutes.": {
     "zh-CN": "此验证链接将在 :minutes 分钟后过期。",
@@ -3567,5 +3620,290 @@
   },
   "Resource requirements": {
     "zh-TW": "所需資源"
+  },
+  "dismiss": {
+    "de": "verwerfen",
+    "es": "descartar",
+    "fr": "ignorer",
+    "it": "ignora",
+    "pt-BR": "dispensar"
+  },
+  "Roster lock": {
+    "de": "Mitgliederliste sperren"
+  },
+  "Open Rally plan": {
+    "de": "Sammelangriffsplan öffnen"
+  },
+  "Missing scout record": {
+    "de": "Fehlender Spähbericht"
+  },
+  "Atomic editing": {
+    "de": "Gemeinsames Bearbeiten in einem Schritt"
+  },
+  "Stale observation": {
+    "de": "Veraltete Beobachtung"
+  },
+  "Transfer cooldown": {
+    "de": "Wartezeit nach dem Wechsel"
+  },
+  "Native name": {
+    "de": "Name in der Originalsprache"
+  },
+  "signature failures": {
+    "fr": "échecs de signature"
+  },
+  "Active Governor overrides": {
+    "fr": "Dérogations du Gouverneur actif",
+    "it": "Eccezioni del Governatore attivo",
+    "pl": "Nadpisania aktywnego gubernatora"
+  },
+  "unclaimed Governor": {
+    "fr": "Gouverneur non revendiqué",
+    "it": "Governatore non rivendicato"
+  },
+  "Alliance publishing": {
+    "fr": "Publications de l’Alliance",
+    "id": "Penerbitan aliansi",
+    "pl": "Publikacje sojuszu",
+    "vi": "Xuất bản của liên minh"
+  },
+  "Export Alliance record": {
+    "fr": "Exporter la fiche de l’Alliance",
+    "it": "Esporta il record dell’Alleanza"
+  },
+  "Manage Governors": {
+    "id": "Kelola Gubernur"
+  },
+  "Kingdom or region applicability": {
+    "id": "Berlaku untuk kerajaan atau wilayah"
+  },
+  "Alliance coverage": {
+    "id": "Cakupan aliansi"
+  },
+  "Alliance administration": {
+    "id": "Administrasi aliansi"
+  },
+  "Manage Alliance settings": {
+    "id": "Kelola pengaturan aliansi"
+  },
+  "Manage Alliance content": {
+    "id": "Kelola konten aliansi"
+  },
+  "Alliance governance history": {
+    "id": "Riwayat pengelolaan aliansi"
+  },
+  "Kingdom identity": {
+    "id": "Identitas kerajaan",
+    "vi": "Danh tính vương quốc"
+  },
+  "Release Governor": {
+    "id": "Lepaskan Gubernur",
+    "it": "Scollega il Governatore",
+    "pt-BR": "Desvincular Governador"
+  },
+  "Event readiness": {
+    "id": "Kesiapan acara"
+  },
+  "Event templates": {
+    "id": "Templat acara"
+  },
+  "Event template": {
+    "id": "Templat acara"
+  },
+  "Event roster": {
+    "id": "Daftar peserta acara",
+    "vi": "Danh sách người tham gia sự kiện"
+  },
+  "Event timeline": {
+    "id": "Linimasa acara",
+    "pl": "Oś czasu wydarzenia",
+    "vi": "Dòng thời gian sự kiện"
+  },
+  "Alliance Content": {
+    "id": "Konten aliansi"
+  },
+  "Alliance tag": {
+    "id": "Singkatan aliansi"
+  },
+  "Event participation": {
+    "id": "Partisipasi acara",
+    "vi": "Tham gia sự kiện"
+  },
+  "Alliance member content": {
+    "id": "Konten anggota aliansi"
+  },
+  "Alliance Notice reactions": {
+    "id": "Reaksi terhadap pengumuman aliansi",
+    "vi": "Cảm xúc về thông báo liên minh"
+  },
+  "Manage Kingdom roles": {
+    "id": "Kelola peran kerajaan"
+  },
+  "User planning intent": {
+    "id": "Maksud perencanaan pengguna"
+  },
+  "Home Kingdom": {
+    "id": "Kerajaan asal"
+  },
+  "Kingdom Transfer": {
+    "id": "Transfer kerajaan"
+  },
+  "Alliance roster Governor": {
+    "id": "Gubernur dalam daftar anggota aliansi"
+  },
+  "Source Kingdom": {
+    "id": "Kerajaan sumber"
+  },
+  "Kingdom Transfer Governors": {
+    "id": "Gubernur yang melakukan transfer kerajaan",
+    "vi": "Thống đốc chuyển vương quốc"
+  },
+  "Target Kingdom conditions": {
+    "id": "Syarat kerajaan tujuan"
+  },
+  "Kingdom classification": {
+    "id": "Klasifikasi kerajaan",
+    "vi": "Phân loại vương quốc"
+  },
+  "Governor Truegold level": {
+    "id": "Level Truegold Gubernur"
+  },
+  "Alliance readiness workflow": {
+    "id": "Alur kerja kesiapan aliansi"
+  },
+  "Target Kingdom number": {
+    "id": "Nomor kerajaan tujuan"
+  },
+  "Target Kingdom transfer rules": {
+    "id": "Aturan transfer kerajaan tujuan"
+  },
+  "Alliance public page": {
+    "id": "Halaman publik aliansi"
+  },
+  "Alliance share link": {
+    "id": "Tautan berbagi aliansi"
+  },
+  "Post-Event Closeout Brief": {
+    "pl": "Raport zamknięcia po wydarzeniu",
+    "pt-BR": "Resumo de encerramento pós-evento"
+  },
+  "Event": {
+    "pl": "Wydarzenie"
+  },
+  "Screenshot Evidence": {
+    "pl": "Dowody ze zrzutów ekranu"
+  },
+  "User": {
+    "pl": "Użytkownik"
+  },
+  "Alliance roster screenshot review saved.": {
+    "pt-BR": "Revisão da captura da lista de membros da Aliança salva."
+  },
+  "Alliance-local recruiting control": {
+    "pt-BR": "Controle de recrutamento interno da Aliança",
+    "vi": "Kiểm soát tuyển thành viên nội bộ liên minh"
+  },
+  "No Alliance Rules have been posted yet.": {
+    "pt-BR": "Nenhuma regra da Aliança foi publicada ainda."
+  },
+  "Observed Alliance tag": {
+    "pt-BR": "Sigla observada da Aliança"
+  },
+  "Alliance layer": {
+    "tr": "İttifak katmanı"
+  },
+  "Alliance bot command": {
+    "tr": "İttifak bot komutu"
+  },
+  "{count} blockers remain for the next verified Event": {
+    "vi": "Còn {count} trở ngại cho sự kiện đã xác minh tiếp theo"
+  },
+  "Player-scoped Kingdom authority": {
+    "vi": "Quyền hạn vương quốc theo người chơi"
+  },
+  "Gift Code trust changed": {
+    "vi": "Độ tin cậy của mã quà tặng đã thay đổi"
+  },
+  "Event planning": {
+    "vi": "Lập kế hoạch sự kiện"
+  },
+  "Published Alliance guides and source information.": {
+    "vi": "Hướng dẫn liên minh đã xuất bản và thông tin nguồn."
+  },
+  "Kingdom intelligence timeline": {
+    "vi": "Dòng thời gian thông tin vương quốc"
+  },
+  "Gift Code curators": {
+    "vi": "Người quản lý mã quà tặng"
+  },
+  "Recipient processing complete": {
+    "ko": "수신자 처리가 완료되었습니다"
+  },
+  "Recurring Alliance Notice cancelled.": {
+    "ko": "반복 연맹 공지가 취소되었습니다."
+  },
+  "Event objective assigned.": {
+    "pl": "Przypisano cel wydarzenia."
+  },
+  "Share expiry must be within 31 days.": {
+    "ru": "Срок действия ссылки для доступа должен истечь в течение 31 дня."
+  },
+  "{count} ineligible": {
+    "ru": "Не соответствуют требованиям: {count}"
+  },
+  "Gift Code available": {
+    "th": "มีโค้ดของขวัญพร้อมใช้งาน"
+  },
+  "Available Gift Codes": {
+    "th": "โค้ดของขวัญที่พร้อมใช้งาน"
+  },
+  "Exhausted outbox messages": {
+    "th": "ข้อความในคิวส่งที่ใช้โควตาลองส่งซ้ำครบแล้ว"
+  },
+  "Snooze 24 hours": {
+    "th": "เลื่อนการแจ้งเตือน 24 ชั่วโมง"
+  },
+  "That stable game Alliance ID belongs to another neutral identity. Reconcile the identities explicitly instead of overwriting either record.": {
+    "th": "ID พันธมิตรในเกมแบบคงที่นั้นเป็นของอีกตัวตนกลางหนึ่ง ให้กระทบยอดตัวตนอย่างชัดเจนแทนการเขียนทับระเบียนใดระเบียนหนึ่ง"
+  },
+  "Preview is strict and bounded; applying coordinates is one atomic command and respects locks.": {
+    "th": "การแสดงตัวอย่างมีการตรวจสอบอย่างเข้มงวดและจำกัดขอบเขต การใช้พิกัดเป็นคำสั่งเดียวที่สำเร็จทั้งหมดหรือไม่เปลี่ยนแปลงเลย และจะปฏิบัติตามการล็อก"
+  },
+  "ACCOUNT RECOVERY": {
+    "vi": "KHÔI PHỤC TÀI KHOẢN"
+  },
+  "Transfer campaign workspace": {
+    "vi": "Không gian làm việc cho chiến dịch chuyển vương quốc"
+  },
+  "Open redemption workspace": {
+    "vi": "Mở không gian đổi mã quà tặng"
+  },
+  "Mark complete only when this screenshot genuinely shows the complete Hero roster. This is the only state that can establish observed Hero absence.": {
+    "id": "Tandai lengkap hanya jika tangkapan layar ini benar-benar menampilkan seluruh daftar pahlawan. Hanya status ini yang dapat membuktikan bahwa pahlawan tertentu tidak terlihat dalam daftar."
+  },
+  "Enable Century Games Kingshot news ingestion only after provider permission is confirmed.": {
+    "de": "Aktiviere den Import von Kingshot-Neuigkeiten von Century Games erst, nachdem die Erlaubnis des Anbieters bestätigt wurde.",
+    "id": "Aktifkan pengambilan berita Kingshot dari Century Games hanya setelah izin penyedia dikonfirmasi."
+  },
+  "I found {count} recent authorized Bear Hunt run record(s). Recorded and accepted-evidence states remain explicit below.": {
+    "pt-BR": "Encontrei {count} registros recentes de caçadas ao urso que você tem permissão para consultar. Os estados dos registros e das evidências aceitas estão indicados abaixo."
+  },
+  "Unsupported Transfer Evidence fingerprint schema.": {
+    "tr": "Transfer kanıtı parmak izi şeması desteklenmiyor."
+  },
+  "How we play together": {
+    "vi": "Cách chúng ta cùng chơi"
+  },
+  "Official Transfer Group history": {
+    "vi": "Lịch sử nhóm chuyển vương quốc chính thức"
+  },
+  "X push requires the explicitly configured Filtered Stream Webhook Enterprise entitlement.": {
+    "vi": "Thông báo đẩy từ X yêu cầu quyền Filtered Stream Webhook Enterprise được cấu hình rõ ràng."
+  },
+  "Redeem for {governor}": {
+    "ar": "استبدال الرموز للحاكم {governor}"
+  },
+  "Select {governor}": {
+    "ar": "اختيار {governor}"
   }
 }

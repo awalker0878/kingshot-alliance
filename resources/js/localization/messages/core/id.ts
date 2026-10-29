@@ -257,7 +257,7 @@ const messages = {
     'governor-created': 'Gubernur ditambahkan ke akun Anda.',
     'governor-updated': 'Identitas gubernur diperbarui.',
     'governor-moved': 'Gubernur kerajaan diperbarui.',
-    'governor-released': 'Gubernur dikeluarkan dari akun Anda.',
+    'governor-released': 'Gubernur telah dilepaskan dari akun Anda.',
   },
   common: {
     yes: 'Ya',
@@ -303,7 +303,7 @@ const messages = {
     pwaInstallHelp: 'Tambahkan Kingshot Alliance ke perangkat ini untuk akses yang lebih cepat.',
     pwaInstall: 'Pasang aplikasi',
     governors: 'Gubernur',
-    manageGovernors: 'Manage governors',
+    manageGovernors: 'Kelola Gubernur',
   },
   navigation: {
     home: 'Beranda',
@@ -435,7 +435,7 @@ const messages = {
           evidence: 'bukti Tinjauan',
         },
         game_world: {
-          kingdom_transfers: 'kingdom Transfers',
+          kingdom_transfers: 'Perpindahan Kerajaan',
         },
         communications: {
           delivery: 'Komunikasi',
@@ -468,7 +468,7 @@ const messages = {
     navHistory: 'Riwayat tata kelola',
     navRosterEvidence: 'Screenshot daftar',
     navReconciliation: 'Rekonsiliasi daftar',
-    settingsEyebrow: 'alliance administration',
+    settingsEyebrow: 'Administrasi Aliansi',
     settingsTitle: 'pengaturan aliansi',
     settingsSubtitle:
       'Mengurus identitas aliansi yang dimiliki aplikasi dan default. Siklus hidup platform dan kepemilikan kerajaan tetap di luar permukaan ini.',
@@ -502,7 +502,7 @@ const messages = {
     permissionLabels: {
       alliance: {
         view: 'Lihat aliansi',
-        manage: 'Manage alliance settings',
+        manage: 'Kelola pengaturan Aliansi',
       },
       membership: {
         manage: 'Kelola keanggotaan',
@@ -514,7 +514,7 @@ const messages = {
         manage: 'Urus undangan',
       },
       content: {
-        manage: 'Manage alliance content',
+        manage: 'Kelola konten Aliansi',
       },
       recruitment: {
         manage: 'Kelola perekrutan',
@@ -547,7 +547,7 @@ const messages = {
     outcomeSkipped: 'Dilewati',
     noPreview: 'Pralihat perubahan terikat sebelum melakukannya.',
     historyEyebrow: 'Sejarah audit faktual',
-    historyTitle: 'alliance governance history',
+    historyTitle: 'Riwayat tata kelola Aliansi',
     historySubtitle:
       'Sejarah hanya baca yang terdiri dari peristiwa audit pemilik. Ia mencatat apa yang berubah tanpa menciptakan sumber kebenaran kedua.',
     capability: 'Kemampuan',
@@ -834,7 +834,7 @@ const messages = {
       },
     },
     allianceCoverage: {
-      eyebrow: 'alliance coverage',
+      eyebrow: 'Cakupan Aliansi',
       title: 'Kode hadiah',
       subtitle:
         'Liputan penebusan agregat untuk operasi aliansi yang diizinkan. Sejarah anggota individu tidak terpapar.',
@@ -982,7 +982,7 @@ const messages = {
     noTrustReason: 'Tidak ada alasan kepercayaan yang tersedia.',
     rewardDetails: 'Rincian hadiah',
     rewardUnknown: 'Rincian hadiah tidak diketahui',
-    applicability: 'kingdom or region applicability',
+    applicability: 'Berlaku untuk Kerajaan atau wilayah',
     applicabilityUnknown: 'Keberlakuannya tidak diketahui',
     chooseGovernors: 'Pilih gubernur yang dimiliki',
     prepareSelectedGovernors: 'Siapkan {count} gubernur yang dipilih',
@@ -1092,7 +1092,7 @@ const messages = {
     stableIdHelp:
       'Seorang pemain game stabil yang telah terbentuk ID tidak dapat digantikan dengan ID yang berbeda.',
     saveIdentity: 'Simpan Identitas',
-    kingdomIdentity: 'kingdom identity',
+    kingdomIdentity: 'Identitas Kerajaan',
     kingdomMoveHelp:
       'Perubahan kerajaan gagal ditutup sementara gubernur ini masih memiliki peran kerajaan yang efektif, keanggotaan aliansi aktif, atau negara daftar yang bertentangan.',
     currentTargetKingdom: 'Kerajaan saat ini / target',
@@ -1104,12 +1104,12 @@ const messages = {
     historyGameId: 'ID game',
     historySource: 'Sumber',
     historyReason: 'Alasan',
-    releaseTitle: 'Dirilis dari akun',
+    releaseTitle: 'Lepaskan dari akun',
     releasePreserves:
-      'Melepaskan kepemilikan mempertahankan identitas permainan yang tahan lama dan sejarahnya.',
-    releaseGovernor: 'Release governor',
+      'Melepaskan kepemilikan tetap mempertahankan identitas dalam game dan riwayatnya.',
+    releaseGovernor: 'Lepaskan Gubernur dari akun',
     releaseConfirm:
-      'Melepaskan {governor} dari akun ini? Identitas dan sejarah permainan akan dilestarikan.',
+      'Lepaskan {governor} dari akun ini? Identitas dalam game dan riwayatnya akan tetap tersimpan.',
   },
 } satisfies MessageCatalogue;
 

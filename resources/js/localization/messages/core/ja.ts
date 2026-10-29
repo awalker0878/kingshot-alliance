@@ -254,7 +254,7 @@ const messages = {
     'governor-created': '君のアカウントに 総督が追加された',
     'governor-updated': '知事の身元が更新されました',
     'governor-moved': '総督王国の更新です',
-    'governor-released': '君の口座から 総督が解放された',
+    'governor-released': 'アカウントから総督の紐づけを解除しました。',
   },
   common: {
     yes: 'はい',
@@ -1090,12 +1090,11 @@ const messages = {
     historyGameId: 'ゲームID',
     historySource: '出典',
     historyReason: '理由',
-    releaseTitle: '口座から解約',
-    releasePreserves:
-      '所有権を解放することにより，持続可能なゲームアイデンティティとその歴史を保存できる。',
-    releaseGovernor: '放出ガバナンス',
+    releaseTitle: 'アカウントとの紐づけを解除',
+    releasePreserves: '所有権を解除しても、ゲーム内の識別情報と履歴は保持されます。',
+    releaseGovernor: '総督の紐づけを解除',
     releaseConfirm:
-      'このアカウントから{governor}を解除しますか？ ゲームのアイデンティティと歴史は保存される。',
+      'このアカウントから{governor}の紐づけを解除しますか？ゲーム内の識別情報と履歴は保持されます。',
   },
 } satisfies MessageCatalogue;
 

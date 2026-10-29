@@ -65,7 +65,7 @@ const messages = {
     removeLikeCountLabel: 'Usuń swoje polubienie z tego sojuszu Notice. {count} polubień.',
     removeDislikeCountLabel: 'Usuń swoją niechęć do tego sojuszu Notice. {count} nie lubi.',
     reactionFailed: 'Nie można zaktualizować reakcji sojuszu Notice. Spróbuj jeszcze raz.',
-    managementEyebrow: 'Alliance Publishing',
+    managementEyebrow: 'Publikacje Sojuszu',
     managementTitle: 'Zarządzaj tablicą ogłoszeń',
     managementSubtitle:
       'Zarządzaj swoim publicznym profilem, treścią, wersjami, kategoriami i przesłanymi multimediami.',

@@ -240,9 +240,9 @@ const messages = {
       all_scope_players: 'Tous les Gouverneurs éligibles',
     },
     command: {
-      eyebrow: 'event Command',
+      eyebrow: 'Coordination des Événements',
       title: 'Préparation',
-      closeoutEyebrow: 'event Command',
+      closeoutEyebrow: 'Coordination des Événements',
       closeoutTitle: 'Clôture',
       occurrence: 'Occurrence',
       states: {
@@ -511,7 +511,7 @@ const messages = {
       confirm: "Confirmer l'affectation",
       decline: "Refus d ' affectation",
       claimed: 'Compte lié',
-      unclaimed: 'unclaimed governor',
+      unclaimed: 'Gouverneur non revendiqué',
       types: {
         roster: 'Liste des membres',
         combatants: 'Combattants',
@@ -809,7 +809,7 @@ const messages = {
           "Complétez le vote au combat et la sélection de liste avant le matchmaking. Confirmez les combattants et les remplaçants, puis publiez le plan de bataille avant l'ouverture du champ de bataille.",
       },
       tri_alliance_clash: {
-        name: 'Tri-alliance Clash',
+        name: 'Affrontement des trois Alliances',
         description:
           "Un événement de champ de bataille d'alliance organisé en légions et objectifs coordonnés.",
         instructions:

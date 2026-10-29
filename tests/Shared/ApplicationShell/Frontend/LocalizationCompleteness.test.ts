@@ -26,6 +26,26 @@ test('missing translations cannot pass by falling back to English', () => {
   assert.deepEqual(catalogueProblems({ label: 'Save' }, { label: 'Enregistrer' }), []);
 });
 
+test('cosmetic formatting cannot disguise English fallback', () => {
+  const english = { label: 'SECURE PASSWORD RESET' };
+  for (const label of [
+    'SECURE Password RESET',
+    ' secure   password reset ',
+    'SECURE\u00a0PASSWORD RESET',
+    'ＳＥＣＵＲＥ ＰＡＳＳＷＯＲＤ ＲＥＳＥＴ',
+    'Secure—password—reset',
+    '♪ Secure password reset ♪',
+    'Sec\u200bure password reset.',
+  ]) {
+    assert.equal(catalogueProblems(english, { label }).at(0).reason, 'untranslated');
+  }
+  assert.deepEqual(catalogueProblems(english, { label: 'Redefinição segura de senha' }), []);
+  assert.deepEqual(
+    catalogueProblems({ label: 'Alliance' }, { label: 'alliance' }, ['Alliance']),
+    [],
+  );
+});
+
 test('parameters preserve multiplicity and case, including queued mail parameters', () => {
   const source = { label: '{count} of {count}; :minutes' };
   assert.equal(

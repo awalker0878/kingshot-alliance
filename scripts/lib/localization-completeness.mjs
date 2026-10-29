@@ -34,7 +34,15 @@ export function hasInventedNumber(source, value) {
 }
 
 export function catalogueProblems(english, localized, allowedUnchanged = []) {
-  const allowed = new Set(allowedUnchanged);
+  const normalizeProse = (value) =>
+    value
+      .normalize('NFKC')
+      .replace(/\p{Cf}/gu, '')
+      .replace(/[\p{P}\p{S}]/gu, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  const allowed = new Set(allowedUnchanged.map(normalizeProse));
   const problems = [];
   for (const [key, source] of Object.entries(english)) {
     const value = localized[key];
@@ -50,7 +58,11 @@ export function catalogueProblems(english, localized, allowedUnchanged = []) {
       (text, parameter) => text.replaceAll(parameter, ''),
       source,
     );
-    if (value === source && /[A-Za-z]{2}/.test(prose) && !allowed.has(source))
+    if (
+      normalizeProse(value) === normalizeProse(source) &&
+      /[A-Za-z]{2}/.test(prose) &&
+      !allowed.has(normalizeProse(source))
+    )
       problems.push({ key, reason: 'untranslated', source });
   }
   return problems;

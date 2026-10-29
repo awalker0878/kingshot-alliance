@@ -69,8 +69,8 @@ const messages = {
     submit: 'Kirim lamaran',
     submitting: 'Mengirim…',
     attributionBoard: 'Dewan Rekruitmen Publik',
-    attributionAlliancePage: 'alliance public page',
-    attributionShareLink: 'alliance share link',
+    attributionAlliancePage: 'Halaman publik Aliansi',
+    attributionShareLink: 'Tautan berbagi Aliansi',
     attributionBotCommand: 'perintah bot aliansi',
     attributionHelp:
       'Label sumber yang terlihat ini membantu aliansi memahami tautan rekrutmen mana yang bekerja. Itu tidak mengidentifikasi atau melacak Anda.',

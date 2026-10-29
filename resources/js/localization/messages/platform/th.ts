@@ -161,7 +161,7 @@ const messages = {
     metricMaintenanceQueue: 'คิวผู้ดูแล',
     metricFailedNotifications: 'การแจ้งเตือนล้มเหลว',
     metricOverdueOutbox: 'ข้อความที่หมดอายุในกล่องส่งออก',
-    metricExhaustedOutbox: 'ไม่มีจดหมายในกล่องส่งออก',
+    metricExhaustedOutbox: 'ข้อความในคิวส่งที่ใช้โควตาลองส่งซ้ำครบแล้ว',
     statusActive: 'ทำงาน',
     statusSuspended: 'ระงับ',
     statusClosed: 'ปิดแล้ว',

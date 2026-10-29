@@ -104,15 +104,15 @@ const messages = {
     enablingWebPush: 'Mengaktifkan Web Push…',
     webPushFailed: 'Web Push tidak dapat diaktifkan pada perangkat ini.',
     preferences: 'Preferensi',
-    reminderRouting: 'Akun default dan override governor',
+    reminderRouting: 'Pengaturan bawaan akun dan pengaturan khusus Gubernur',
     preferenceHelp:
-      'Akun default berlaku di mana-mana. Sebuah override governor aktif hanya menang untuk governor tersebut dan dapat diset ulang untuk mewarisi default akun.',
-    accountDefaults: 'Akun default',
-    governorOverrides: 'Aktifkan override gubernur',
-    inherited: 'Diwariskan',
-    enabled: 'Aktif',
-    disabled: 'Nonaktif',
-    resetOverride: 'Atur ulang penggantian',
+      'Pengaturan bawaan akun berlaku di semua tempat. Pengaturan khusus Gubernur aktif hanya berlaku untuk Gubernur tersebut dan dapat diatur ulang agar mengikuti pengaturan bawaan akun.',
+    accountDefaults: 'Pengaturan bawaan akun',
+    governorOverrides: 'Pengaturan khusus Gubernur aktif',
+    inherited: 'Mengikuti pengaturan akun',
+    enabled: 'Diaktifkan',
+    disabled: 'Dinonaktifkan',
+    resetOverride: 'Kembalikan ke pengaturan akun',
     emailOptIn:
       'Email adalah opt-in dan menggunakan email akun yang diverifikasi yang dimiliki oleh Akun.',
     routingPolicy: 'Kebijakan waktu pengiriman',
@@ -393,11 +393,11 @@ const messages = {
     'governor-created': 'Gubernur ditambahkan ke akun Anda.',
     'governor-updated': 'Identitas gubernur diperbarui.',
     'governor-moved': 'Gubernur kerajaan diperbarui.',
-    'governor-released': 'Gubernur dikeluarkan dari akun Anda.',
+    'governor-released': 'Gubernur telah dilepaskan dari akun Anda.',
   },
   common: {
     governors: 'Gubernur',
-    manageGovernors: 'Manage governors',
+    manageGovernors: 'Kelola Gubernur',
   },
   governorLifecycle: {
     eyebrow: 'identitas gubernur',
@@ -427,7 +427,7 @@ const messages = {
     stableIdHelp:
       'Seorang pemain game stabil yang telah terbentuk ID tidak dapat digantikan dengan ID yang berbeda.',
     saveIdentity: 'Simpan Identitas',
-    kingdomIdentity: 'kingdom identity',
+    kingdomIdentity: 'Identitas Kerajaan',
     kingdomMoveHelp:
       'Perubahan kerajaan gagal ditutup sementara gubernur ini masih memiliki peran kerajaan yang efektif, keanggotaan aliansi aktif, atau negara daftar yang bertentangan.',
     currentTargetKingdom: 'Kerajaan saat ini / target',
@@ -439,12 +439,12 @@ const messages = {
     historyGameId: 'ID game',
     historySource: 'Sumber',
     historyReason: 'Alasan',
-    releaseTitle: 'Dirilis dari akun',
+    releaseTitle: 'Lepaskan dari akun',
     releasePreserves:
-      'Melepaskan kepemilikan mempertahankan identitas permainan yang tahan lama dan sejarahnya.',
-    releaseGovernor: 'Release governor',
+      'Melepaskan kepemilikan tetap mempertahankan identitas dalam game dan riwayatnya.',
+    releaseGovernor: 'Lepaskan Gubernur dari akun',
     releaseConfirm:
-      'Melepaskan {governor} dari akun ini? Identitas dan sejarah permainan akan dilestarikan.',
+      'Lepaskan {governor} dari akun ini? Identitas dalam game dan riwayatnya akan tetap tersimpan.',
   },
 } satisfies MessageCatalogue;
 

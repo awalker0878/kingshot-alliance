@@ -89,7 +89,12 @@
       "Test",
       "Type",
       "Version",
-      "Introduction"
+      "Introduction",
+      "Alliance",
+      "Alliances",
+      "Annotations",
+      "Observation — {title}: {observation}",
+      "Archers %"
     ],
     "es": [
       "No",
@@ -152,9 +157,21 @@
       "Generation {value}",
       "Text",
       "Plan",
-      "Transport"
+      "Transport",
+      "Revision {id}",
+      "Swordland Showdown"
     ],
-    "pl": ["Menu", "System", "Test", "Legion 1", "Legion 2", "Legion", "Plan", "Transport"],
+    "pl": [
+      "Menu",
+      "System",
+      "Test",
+      "Legion 1",
+      "Legion 2",
+      "Legion",
+      "Plan",
+      "Transport",
+      "Eternity's Reach"
+    ],
     "pt-BR": ["Menu", "Normal", "Manual", "Agenda", "Rival", "manual"],
     "tr": ["Normal", "Test", "Plan"],
     "vi": ["Email"]

@@ -104,15 +104,15 @@ const messages = {
     enablingWebPush: 'Habilitando Web Push…',
     webPushFailed: 'No se pudo habilitar Web Push en este dispositivo.',
     preferences: 'Preferencias',
-    reminderRouting: 'Predeterminados de cuenta y anulaciones de gobernador',
+    reminderRouting: 'Valores predeterminados de la cuenta y ajustes por Gobernador',
     preferenceHelp:
-      'Los valores predeterminados de cuenta se aplican en todas partes. Una anulación de gobernador activo solo gana para ese gobernador y se puede restablecer para heredar el valor predeterminado de la cuenta.',
-    accountDefaults: 'Valores predeterminados de cuenta',
-    governorOverrides: 'Anulaciones de gobernador activo',
-    inherited: 'Heredado',
+      'Los valores predeterminados de la cuenta se aplican en todas partes. Los ajustes específicos del Gobernador activo solo se aplican a ese Gobernador y pueden restablecerse para usar los valores de la cuenta.',
+    accountDefaults: 'Valores predeterminados de la cuenta',
+    governorOverrides: 'Ajustes específicos del Gobernador activo',
+    inherited: 'Heredado de la cuenta',
     enabled: 'Activado',
     disabled: 'Desactivado',
-    resetOverride: 'Restablecer la anulación',
+    resetOverride: 'Restablecer los valores de la cuenta',
     emailOptIn:
       'El correo electrónico es opcional y utiliza el correo electrónico de la cuenta verificada propiedad de Cuentas.',
     routingPolicy: 'Política de tiempo de entrega',
@@ -196,7 +196,7 @@ const messages = {
       },
       dismiss: 'Descartar',
       markReadLower: 'Marcar como leído',
-      dismissLower: 'Dismiss',
+      dismissLower: 'descartar',
     },
     dismiss: 'Descartar',
   },
@@ -394,7 +394,7 @@ const messages = {
     'governor-created': 'El gobernador fue añadido a tu cuenta.',
     'governor-updated': 'Identidad del gobernador actualizada.',
     'governor-moved': 'El reino del gobernador actualizado.',
-    'governor-released': 'Gobernador liberado de su cuenta.',
+    'governor-released': 'Gobernador desvinculado de tu cuenta.',
   },
   common: {
     governors: 'Gobernadores',
@@ -439,12 +439,12 @@ const messages = {
     historyGameId: 'ID de juego',
     historySource: 'Fuente',
     historyReason: 'Motivo',
-    releaseTitle: 'Liberación de cuenta',
+    releaseTitle: 'Desvincular de la cuenta',
     releasePreserves:
-      'La liberación de la propiedad preserva la identidad duradera del juego y su historia.',
-    releaseGovernor: 'Gobernador de la liberación',
+      'Al renunciar a la propiedad se conservan la identidad del juego y su historial.',
+    releaseGovernor: 'Desvincular al Gobernador',
     releaseConfirm:
-      '¿Liberar {governor} de esta cuenta? La identidad y la historia del juego se conservarán.',
+      '¿Desvincular a {governor} de esta cuenta? Se conservarán la identidad del juego y su historial.',
   },
 } satisfies MessageCatalogue;
 

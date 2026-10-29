@@ -269,7 +269,7 @@ const messages = {
     'governor-created': 'Le gouverneur a été ajouté à votre compte.',
     'governor-updated': "L'identité du gouverneur a été mise à jour.",
     'governor-moved': 'Le royaume du gouverneur mis à jour.',
-    'governor-released': 'Le gouverneur a libéré votre compte.',
+    'governor-released': 'Gouverneur dissocié de votre compte.',
   },
   common: {
     yes: 'Oui',
@@ -898,8 +898,8 @@ const messages = {
       transportHealth: 'Santé dans les transports',
       requests: 'Demandes',
       gaps: 'Lacunes de rapprochement',
-      signatureFailures: 'Signature failures',
-      replays: 'Replay rejections',
+      signatureFailures: 'échecs de vérification de signature',
+      replays: 'rejets de requêtes rejouées',
       performance: 'Performance de la source dérivée',
       uniqueCodes: 'Codes uniques',
       firstDiscoveries: 'Les premières découvertes',
@@ -1125,12 +1125,12 @@ const messages = {
     historyGameId: 'ID de jeu',
     historySource: 'Source',
     historyReason: 'Raison',
-    releaseTitle: 'Libération de compte',
+    releaseTitle: 'Dissocier du compte',
     releasePreserves:
-      "La libération de la propriété préserve l'identité durable du jeu et son histoire.",
-    releaseGovernor: 'Gouverneur de libération',
+      'La renonciation à la propriété conserve l’identité dans le jeu et son historique.',
+    releaseGovernor: 'Dissocier le Gouverneur',
     releaseConfirm:
-      'Libérer {governor} de ce compte ? L’identité et l’histoire du jeu seront préservées.',
+      'Dissocier {governor} de ce compte ? L’identité dans le jeu et son historique seront conservés.',
   },
 } satisfies MessageCatalogue;
 

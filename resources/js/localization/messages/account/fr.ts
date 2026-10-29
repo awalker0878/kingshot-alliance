@@ -104,15 +104,15 @@ const messages = {
     enablingWebPush: 'Activer le Web Push…',
     webPushFailed: "Web Push n'a pas pu être activé sur cet appareil.",
     preferences: 'Préférences',
-    reminderRouting: 'Défauts de compte et substitutions de gouverneur',
+    reminderRouting: 'Paramètres par défaut du compte et paramètres propres aux Gouverneurs',
     preferenceHelp:
-      "Les paramètres par défaut du compte s'appliquent partout. Un remplacement de gouverneur actif ne gagne que pour ce gouverneur et peut être réinitialisé pour hériter du compte par défaut.",
-    accountDefaults: 'Défauts de compte',
-    governorOverrides: 'Active governor overrides',
-    inherited: 'Héréditaire',
+      'Les paramètres par défaut du compte s’appliquent partout. Les paramètres propres au Gouverneur actif ne s’appliquent qu’à lui et peuvent être réinitialisés pour reprendre ceux du compte.',
+    accountDefaults: 'Paramètres par défaut du compte',
+    governorOverrides: 'Paramètres propres au Gouverneur actif',
+    inherited: 'Hérité du compte',
     enabled: 'Activé',
     disabled: 'Désactivé',
-    resetOverride: 'Réinitialiser le surchargement',
+    resetOverride: 'Rétablir les paramètres du compte',
     emailOptIn: "L'e-mail est opt-in et utilise l'e-mail du compte vérifié appartenant à Comptes.",
     routingPolicy: 'Politique de délai de livraison',
     routingPolicyHelp:
@@ -195,7 +195,7 @@ const messages = {
       },
       dismiss: 'Ignorer',
       markReadLower: 'Marquer comme lu',
-      dismissLower: 'Dismiss',
+      dismissLower: 'ignorer',
     },
     dismiss: 'Ignorer',
   },
@@ -395,7 +395,7 @@ const messages = {
     'governor-created': 'Le gouverneur a été ajouté à votre compte.',
     'governor-updated': "L'identité du gouverneur a été mise à jour.",
     'governor-moved': 'Le royaume du gouverneur mis à jour.',
-    'governor-released': 'Le gouverneur a libéré votre compte.',
+    'governor-released': 'Gouverneur dissocié de votre compte.',
   },
   common: {
     governors: 'Gouverneurs',
@@ -440,12 +440,12 @@ const messages = {
     historyGameId: 'ID de jeu',
     historySource: 'Source',
     historyReason: 'Raison',
-    releaseTitle: 'Libération de compte',
+    releaseTitle: 'Dissocier du compte',
     releasePreserves:
-      "La libération de la propriété préserve l'identité durable du jeu et son histoire.",
-    releaseGovernor: 'Gouverneur de libération',
+      'La renonciation à la propriété conserve l’identité dans le jeu et son historique.',
+    releaseGovernor: 'Dissocier le Gouverneur',
     releaseConfirm:
-      'Libérer {governor} de ce compte ? L’identité et l’histoire du jeu seront préservées.',
+      'Dissocier {governor} de ce compte ? L’identité dans le jeu et son historique seront conservés.',
   },
 } satisfies MessageCatalogue;
 

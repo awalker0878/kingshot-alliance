@@ -22,13 +22,12 @@ const messages = {
       email: 'Surel',
     },
     password: {
-      forgotTitle: 'Atur ulang kata sandi',
-      forgotDescription:
-        'Masukkan alamat email dan kami akan mengirim tautan untuk mengatur ulang kata sandi.',
-      sendResetLink: 'Kirim tautan atur ulang',
+      forgotTitle: 'Pulihkan akun Anda',
+      forgotDescription: 'Masukkan alamat email yang terkait dengan akun Kingshot Alliance Anda.',
+      sendResetLink: 'Kirim petunjuk pemulihan',
       resetTitle: 'Pilih kata sandi baru',
       resetSubmit: 'Atur ulang kata sandi',
-      confirmTitle: 'Konfirmasi kata sandi',
+      confirmTitle: 'Konfirmasikan identitas Anda',
     },
     verification: {
       title: 'Verifikasi email Anda',
@@ -49,17 +48,18 @@ const messages = {
     shell: {
       headline: 'Dibuat untuk pemimpin aliansi.',
       intro:
-        'Akses aman ke alat yang digunakan aliansimu untuk berkoordinasi, merekrut, dan bersiap menghadapi langkah berikutnya.',
+        'Rekrut Gubernur, siapkan Acara, kelola Aliansi Anda, dan pantau Kerajaan di satu tempat.',
     },
     login: {
-      intro: 'Akses semua aliansi yang terhubung ke akun globalmu.',
+      intro: 'Masuk dengan akun Anda, lalu pilih Gubernur yang ingin digunakan.',
       invitationNotice:
         'Masuk dengan akun yang diundang untuk melanjutkan penerimaan undangan aliansi.',
       needAccount: 'Butuh akun?',
       register: 'Daftar',
     },
     register: {
-      intro: 'Satu identitas global dapat menjadi bagian dari beberapa aliansi.',
+      intro:
+        'Satu akun dapat memiliki beberapa Gubernur. Pangkat di Aliansi dan tugas di Kerajaan selalu mengikuti Gubernur yang Anda pilih.',
       invitationNotice:
         'Kamu diundang ke {alliance} sebagai {email}. Membuat akun juga akan menerima undangan ini.',
       invitationOnly:
@@ -79,42 +79,42 @@ const messages = {
     },
     password: {
       backToSignIn: 'Kembali ke masuk',
-      resetIntro: 'Mengatur ulang kata sandi akan mencabut token akses pribadi.',
+      resetIntro: 'Pilih kata sandi Kingshot Alliance yang baru untuk akun di bawah ini.',
       newPassword: 'Kata sandi baru',
       confirmNewPassword: 'Konfirmasi kata sandi baru',
       confirmDescription:
-        'Tindakan ini mengubah akses atau izin aliansi, jadi kata sandimu harus dikonfirmasi kembali.',
-      recoveryKicker: 'PENGUMUMAN AKUNTANSI',
+        'Tindakan ini mengubah akses terlindungi ke Aliansi. Konfirmasikan identitas Anda sebelum melanjutkan.',
+      recoveryKicker: 'PEMULIHAN AKUN',
       recoveryNeutral:
-        'Jika ada kredensial sandi yang sah untuk surel itu, kami akan mengirimkan instruksi reset sandi yang aman.',
-      checkInboxKicker: 'Periksa kotak masuk Anda',
-      checkInboxHeading: 'Instruksi pemulihan diminta',
+        'Jika pemulihan kata sandi tersedia untuk alamat email tersebut, kami akan mengirimkan petunjuk aman untuk mengatur ulang kata sandi.',
+      checkInboxKicker: 'PERIKSA KOTAK MASUK ANDA',
+      checkInboxHeading: 'Petunjuk pemulihan telah diminta',
       checkInboxDescription:
-        'Jika ada kredensial sandi yang sah untuk alamat yang Anda masukkan, instruksi reset sandi telah dikirim. Untuk keamanan, kami tidak bisa mengkonfirmasi apakah akun ada atau metode apa yang digunakan.',
-      resetKicker: 'SECURE Password RESET',
+        'Jika pemulihan kata sandi tersedia untuk alamat yang Anda masukkan, petunjuk pengaturan ulang kata sandi telah dikirim. Demi keamanan, kami tidak dapat mengonfirmasi apakah suatu akun ada atau metode masuk yang digunakannya.',
+      resetKicker: 'ATUR ULANG KATA SANDI DENGAN AMAN',
       accountEmail: 'Email akun',
       requirements: 'Kata sandi Anda harus mencakup:',
       requirementLength: 'Setidaknya 12 karakter',
       requirementUpper: 'Huruf besar',
       requirementLower: 'Huruf kecil',
-      requirementNumber: 'Sebuah angka',
+      requirementNumber: 'Satu angka',
       showPassword: 'Tampilkan sandi',
       hidePassword: 'Sembunyikan kata sandi',
       validationSummary: 'Lihat kembali bidang yang ditandai sebelum melanjutkan.',
     },
     verification: {
       description:
-        'Kami mengirim tautan verifikasi ke alamat email di bawah ini. Verifikasi alamat sebelum melakukan tindakan akun yang dilindungi.',
+        'Kami telah mengirimkan tautan verifikasi yang aman untuk akun Kingshot Alliance Anda ke:',
       sent: 'Tautan verifikasi baru telah dikirim.',
-      kicker: 'VERIFIKASI SULTAN',
+      kicker: 'VERIFIKASI EMAIL',
       instructions: 'Buka pesan dan ikuti tautan untuk menyelesaikan verifikasi alamat surel Anda.',
       securityNote:
-        'Kingshot Alliance tidak akan pernah meminta sandi Anda melalui pesan verifikasi email.',
-      resendIn: 'Kau bisa mengirimkan kembali dalam {seconds} detik',
+        'Kingshot Alliance tidak akan pernah meminta kata sandi Anda melalui pesan verifikasi email.',
+      resendIn: 'Anda dapat mengirim ulang setelah {seconds} detik',
       useAnotherAccount: 'Keluar dan gunakan akun lain',
     },
     twoFactor: {
-      kicker: 'Pemeriksaan keamanan',
+      kicker: 'Keamanan akun',
       description: 'Masukkan kode enam digit saat ini dari aplikasi autentikatormu.',
       verifyCode: 'Verifikasi kode',
       useRecoveryCode: 'Gunakan kode pemulihan',
@@ -129,9 +129,9 @@ const messages = {
       authenticating: 'Memeriksa kunci akses…',
     },
     confirm: {
-      title: 'Konfirmasi kata sandi',
+      title: 'Konfirmasikan identitas Anda',
       description:
-        'Gunakan salah satu metode login yang terlampir sebelum melanjutkan dengan perubahan akun sensitif ini.',
+        'Gunakan salah satu metode masuk yang terhubung ke akun Anda sebelum melanjutkan perubahan sensitif pada akun ini.',
       usePassword: 'Konfirmasi dengan sandi',
       useGoogle: 'Konfirmasi dengan Google',
       usePasskey: 'Konfirmasi dengan kunci akses',

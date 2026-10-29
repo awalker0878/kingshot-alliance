@@ -508,7 +508,7 @@ const messages = {
       confirm: "Conferma l'assegnazione",
       decline: "Rifiutare l'assegnazione",
       claimed: 'Crea un account collegato',
-      unclaimed: 'unclaimed governor',
+      unclaimed: 'Governatore non rivendicato',
       types: {
         roster: 'Elenco membri',
         combatants: 'Combattenti',

@@ -31,7 +31,7 @@ const messages = {
     'notification-routing-policy-updated': 'Zaktualizowano politykę routingu powiadomień.',
     'notification-routing-policy-reset':
       'Zasady routingu gubernatora zostały zresetowane do domyślnych wartości konta.',
-    'kingdom-role-created': 'Nie utworzono żadnej roli.',
+    'kingdom-role-created': 'Utworzono rolę królestwa.',
     'kingdom-role-updated': 'Zaktualizowano zasady dotyczące roli królestwa.',
     'kingdom-role-archived': 'Rola królestwa zarchiwizowana.',
     'kingdom-administrator-handoff': 'Przekazanie administratora królestwa zakończone.',
@@ -44,7 +44,7 @@ const messages = {
     'gift-code-session-item-prepared': 'Oficjalne przekazanie kodu prezentowego przygotowane.',
     'gift-code-session-item-recorded':
       'Zarejestrowano wynik kodu podarunkowego i zaktualizowano postęp uruchomienia.',
-    'gift-code-session-item-skipped': 'Nie znaleziono żadnej pozycji dla tego biegu.',
+    'gift-code-session-item-skipped': 'Pominięto kod podarunkowy w tym przebiegu.',
     'gift-code-session-abandoned': 'Zamówienie zostało przerwane.',
     'gift-code-source-backfill-run': 'Kod podarunkowy został zakończony.',
     'gift-code-source-push-subscribed': 'Subskrypcja push jest włączona.',
@@ -101,7 +101,7 @@ const messages = {
       '{succeeded} zdarzenia zostały anulowane. {failed} nie mogło zostać anulowane. {skipped} zostały już anulowane.',
     'event-cancelled': 'Wydarzenie zostało odwołane.',
     'event-created': 'Zaplanowano wydarzenie.',
-    'event-objective-assigned': 'Nie przypisano żadnego celu zdarzenia.',
+    'event-objective-assigned': 'Przypisano cel wydarzenia.',
     'event-objective-assignment-removed': 'Przypisanie celu zdarzenia usunięte.',
     'event-objective-saved': 'Obiekt został zapisany.',
     'event-phase-saved': 'Faza zdarzenia zapisana.',
@@ -164,7 +164,7 @@ const messages = {
     'kingdom-ingestion-candidate-replayed': 'Znajdźcie kolejkę do ponownego sprawdzenia.',
     'kingdom-ingestion-subscription-created': 'Dodano źródło Scout.',
     'kingdom-ingestion-subscription-updated': 'Źródło Scout zaktualizowane.',
-    'kingdom-role-assigned': 'Nie przypisano żadnej roli.',
+    'kingdom-role-assigned': 'Przypisano rolę królestwa.',
     'kingdom-role-removed': 'Rola królestwa usunięta.',
     'kingdom-shared-intelligence-accepted': 'Zaproszenie do wspólnego wywiadu przyjęte.',
     'kingdom-shared-intelligence-declined': 'Zaproszenie do wspólnego wywiadu odrzucone.',
@@ -179,7 +179,7 @@ const messages = {
     'membership-bulk-status-completed':
       'Zaktualizowano {succeeded} członków. {failed} wymaga sprawdzenia. {skipped} było już aktualnych.',
     'membership-rank-updated': 'Ranking sojuszu został zaktualizowany.',
-    'membership-role-assigned': 'Nie przypisano żadnej roli sojuszu.',
+    'membership-role-assigned': 'Przypisano rolę sojuszu.',
     'membership-role-removed': 'Rola sojuszu usunięta.',
     'membership-status-updated': 'Status członka zaktualizowany.',
     'notification-endpoint-deleted': 'Powiadomienie docelowe usunięte.',
@@ -266,7 +266,7 @@ const messages = {
     'governor-created': 'Governor został dodany do Twojego konta.',
     'governor-updated': 'Tożsamość gubernatora została zaktualizowana.',
     'governor-moved': 'Królestwo gubernatora zaktualizowane.',
-    'governor-released': 'Governor zwolniony z konta.',
+    'governor-released': 'Gubernator został odłączony od Twojego konta.',
   },
   common: {
     yes: 'Tak',
@@ -467,7 +467,7 @@ const messages = {
       officerBriefGroups: {
         daily_officer: 'Dzienny raport dla oficerów',
         upcoming_event: 'Nadchodzące wydarzenie',
-        post_event_closeout: 'Post-event Closeout Brief',
+        post_event_closeout: 'Podsumowanie zamknięcia Wydarzenia',
       },
     },
   },
@@ -566,7 +566,7 @@ const messages = {
     clearFilters: 'Wyczyść filtry',
     occurredAt: 'Wystąpiło',
     actor: 'Wykonawca',
-    event: 'event',
+    event: 'Wydarzenie',
     source: 'Źródło',
     details: 'Szczegóły',
     openOwner: 'Otwarty właściciel workflow',
@@ -1113,10 +1113,11 @@ const messages = {
     historyGameId: 'ID gry',
     historySource: 'Źródło',
     historyReason: 'Powód',
-    releaseTitle: 'Zwolnienie z konta',
-    releasePreserves: 'Uwalnianie własności zachowuje trwałą tożsamość gry i jej historię.',
-    releaseGovernor: 'Regulator wyzwalania',
-    releaseConfirm: 'Zwolnij {governor} z tego konta? Tożsamość i historia gry zostaną zachowane.',
+    releaseTitle: 'Odłącz od konta',
+    releasePreserves: 'Zrzeczenie się własności zachowuje tożsamość w grze i jej historię.',
+    releaseGovernor: 'Odłącz Gubernatora',
+    releaseConfirm:
+      'Odłączyć {governor} od tego konta? Tożsamość w grze i jej historia zostaną zachowane.',
   },
 } satisfies MessageCatalogue;
 

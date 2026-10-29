@@ -44,7 +44,7 @@ const messages = {
     rulesTitle: 'Regras da aliança',
     rulesEyebrow: 'Como nós jogamos juntos',
     rulesSubtitle: 'As regras da aliança permanente para {alliance}.',
-    rulesEmpty: 'No alliance Rules have been posted yet.',
+    rulesEmpty: 'Nenhuma regra da Aliança foi publicada ainda.',
     rulesUpdated: 'Última atualização {date}',
     rulesManageEyebrow: 'liderança da aliança',
     rulesAdd: 'Adicionar aliança Regras',

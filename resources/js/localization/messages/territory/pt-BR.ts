@@ -308,7 +308,7 @@ const messages = {
     reviewApproved: 'Aprovado',
     reviewChangesRequested: 'Alterações solicitadas',
     reviewNotePlaceholder: 'Nota de revisão opcional…',
-    recordReview: 'Record review -',
+    recordReview: 'Registrar revisão',
     reviewRecorded: 'Revisão registrada contra a soma de verificação do plano salvo.',
     staleReview: 'Desatualizado',
     delegatedAccess: 'Acesso de camada delegada',

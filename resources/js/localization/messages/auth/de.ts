@@ -22,13 +22,13 @@ const messages = {
       name: 'Name',
     },
     password: {
-      forgotTitle: 'Passwort zurücksetzen',
+      forgotTitle: 'Dein Konto wiederherstellen',
       forgotDescription:
-        'Gib deine E-Mail-Adresse ein. Wir senden dir einen Link zum Zurücksetzen des Passworts.',
-      sendResetLink: 'Link zum Zurücksetzen senden',
+        'Gib die E-Mail-Adresse ein, die mit deinem Kingshot Alliance-Konto verknüpft ist.',
+      sendResetLink: 'Anleitung zur Wiederherstellung senden',
       resetTitle: 'Neues Passwort wählen',
       resetSubmit: 'Passwort zurücksetzen',
-      confirmTitle: 'Passwort bestätigen',
+      confirmTitle: 'Bestätige deine Identität',
     },
     verification: {
       title: 'E-Mail bestätigen',
@@ -49,17 +49,19 @@ const messages = {
     shell: {
       headline: 'Für Allianzführung gemacht.',
       intro:
-        'Sicherer Zugriff auf die Werkzeuge, mit denen deine Allianz koordiniert, rekrutiert und sich vorbereitet.',
+        'Rekrutiere Gouverneure, bereite Events vor, verwalte deine Allianz und behalte das Königreich an einem Ort im Blick.',
     },
     login: {
-      intro: 'Greife auf alle Allianzen zu, die mit deinem globalen Konto verknüpft sind.',
+      intro:
+        'Melde dich mit deinem Konto an und wähle dann den Gouverneur aus, den du verwenden möchtest.',
       invitationNotice:
         'Melde dich mit dem eingeladenen Konto an, um die Allianz-Einladung weiter anzunehmen.',
       needAccount: 'Du brauchst ein Konto?',
       register: 'Registrieren',
     },
     register: {
-      intro: 'Eine globale Identität kann mehreren Allianzen angehören.',
+      intro:
+        'Ein Konto kann mehrere Gouverneure besitzen. Der Allianzrang und die Aufgaben im Königreich gehören immer zum ausgewählten Gouverneur.',
       invitationNotice:
         'Du wurdest als {email} zu {alliance} eingeladen. Mit der Kontoerstellung wird die Einladung ebenfalls angenommen.',
       invitationOnly:
@@ -79,50 +81,50 @@ const messages = {
     },
     password: {
       backToSignIn: 'Zurück zur Anmeldung',
-      resetIntro: 'Das Zurücksetzen deines Passworts widerruft persönliche Zugriffstoken.',
+      resetIntro: 'Wähle ein neues Kingshot Alliance-Passwort für das unten angezeigte Konto.',
       newPassword: 'Neues Passwort',
       confirmNewPassword: 'Neues Passwort bestätigen',
       confirmDescription:
-        'Diese Aktion ändert Allianz-Zugriff oder Berechtigungen. Bestätige deshalb dein Passwort erneut.',
+        'Dies ändert den geschützten Zugriff auf die Allianz. Bestätige deshalb deine Identität, bevor du fortfährst.',
       recoveryKicker: 'Kontowiederherstellung',
       recoveryNeutral:
-        'Wenn für diese E-Mail eine gültige Kennwort-Anmeldung vorhanden ist, senden wir Ihnen eine sichere Anleitung zum Zurücksetzen des Kennworts.',
-      checkInboxKicker: 'Überprüfen Sie Ihren Posteingang',
-      checkInboxHeading: 'Wiederherstellungsanweisungen angefordert',
+        'Wenn für diese E-Mail-Adresse eine Passwortwiederherstellung möglich ist, senden wir eine sichere Anleitung zum Zurücksetzen des Passworts.',
+      checkInboxKicker: 'Prüfe deinen Posteingang',
+      checkInboxHeading: 'Anleitung zur Wiederherstellung angefordert',
       checkInboxDescription:
-        'Wenn für die eingegebene Adresse ein gültiger Kennwort-Zugangscode vorhanden ist, wurden Anweisungen zum Zurücksetzen des Kennworts gesendet. Aus Sicherheitsgründen können wir nicht bestätigen, ob ein Konto existiert oder welche Methoden es verwendet.',
-      resetKicker: 'Passwort zurücksetzen',
+        'Wenn für die eingegebene Adresse eine Passwortwiederherstellung möglich ist, wurde eine Anleitung zum Zurücksetzen des Passworts gesendet. Aus Sicherheitsgründen können wir weder bestätigen, ob ein Konto existiert, noch welche Anmeldemethoden es verwendet.',
+      resetKicker: 'Passwort sicher zurücksetzen',
       accountEmail: 'E-Mail-Adresse des Kontos',
       requirements: 'Ihr Passwort muss Folgendes enthalten:',
       requirementLength: 'Mindestens 12 Zeichen',
       requirementUpper: 'Ein Großbuchstabe',
       requirementLower: 'Ein Kleinbuchstabe',
-      requirementNumber: 'Eine Zahl',
+      requirementNumber: 'Eine Ziffer',
       showPassword: 'Passwort anzeigen »',
       hidePassword: 'Passwort ausblenden »',
       validationSummary: 'Überprüfen Sie die markierten Felder, bevor Sie fortfahren.',
     },
     verification: {
       description:
-        'Wir haben einen Bestätigungslink an die unten angegebene E-Mail-Adresse gesendet. Bestätige die Adresse vor geschützten Kontoaktionen.',
+        'Wir haben einen sicheren Bestätigungslink für dein Kingshot Alliance-Konto an diese Adresse gesendet:',
       sent: 'Ein neuer Bestätigungslink wurde gesendet.',
-      kicker: 'E-Mail Verifizierung',
+      kicker: 'E-Mail-Bestätigung',
       instructions:
         'Öffnen Sie die Nachricht und folgen Sie dem Link, um die Bestätigung Ihrer E-Mail-Adresse abzuschließen.',
       securityNote:
-        'Kingshot Alliance wird Sie niemals per E-Mail zur Passwort-Bestätigung fragen.',
-      resendIn: 'Sie können in {seconds}s erneut senden',
+        'Kingshot Alliance wird dich in einer E-Mail zur Bestätigung deiner E-Mail-Adresse niemals nach deinem Passwort fragen.',
+      resendIn: 'Du kannst in {seconds} Sekunden erneut senden',
       useAnotherAccount: 'Abmelden und ein anderes Konto verwenden',
     },
     twoFactor: {
-      kicker: 'Sicherheitsprüfung',
+      kicker: 'Kontosicherheit',
       description: 'Gib den aktuellen sechsstelligen Code aus deiner Authenticator-App ein.',
       verifyCode: 'Code prüfen',
       useRecoveryCode: 'Wiederherstellungscode verwenden',
     },
     social: {
       continueWithGoogle: 'Weiter mit Google',
-      createWithGoogle: 'Kingshot Alliance Konto mit Google erstellen',
+      createWithGoogle: 'Kingshot Alliance-Konto mit Google erstellen',
       or: 'oder',
     },
     passkeys: {
@@ -130,9 +132,9 @@ const messages = {
       authenticating: 'Passkey wird geprüft…',
     },
     confirm: {
-      title: 'Passwort bestätigen',
+      title: 'Bestätige deine Identität',
       description:
-        'Verwenden Sie eine der angehängten Anmeldemethoden, bevor Sie mit dieser sensiblen Kontoänderung fortfahren.',
+        'Verwende eine der mit deinem Konto verknüpften Anmeldemethoden, bevor du diese sicherheitsrelevante Kontoänderung fortsetzt.',
       usePassword: 'Bestätigen mit Passwort',
       useGoogle: 'Bestätigen Sie mit Google',
       usePasskey: 'Mit Passkey bestätigen',

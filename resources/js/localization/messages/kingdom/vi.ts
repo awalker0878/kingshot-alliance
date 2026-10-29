@@ -263,7 +263,7 @@ const messages = {
     invalidationReason: 'Lý do vô hiệu hóa',
     noObservations: 'Không có ghi chép về các thám hiểm.',
     timelineEyebrow: 'Lịch sử được hỗ trợ bởi nguồn',
-    timelineTitle: 'Kingdom Intelligence timeline',
+    timelineTitle: 'Dòng thời gian tình báo Vương quốc',
     timelineHelp:
       'Sự thật của chủ sở hữu và sự khác biệt xác định được sắp xếp theo thời gian quan sát. Một thay đổi ghi lại không bao giờ có ý định, mối đe dọa hoặc chiến lược.',
     timelineObservation: '{name} quan sát',
@@ -574,7 +574,7 @@ const messages = {
     'kingdom-administrator-recovered': 'Quản trị viên vương quốc đã phục hồi.',
   },
   governanceExpansion: {
-    eyebrow: 'player-scoped kingdom authority',
+    eyebrow: 'Quyền hạn trong Vương quốc theo từng người chơi',
     subtitle:
       'Quản lý chính quyền vương quốc mà không biến quyền lực của Platform hoặc liên minh thành quyền lực của trò chơi.',
     navRoles: 'Vai trò',

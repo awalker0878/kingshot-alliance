@@ -22,13 +22,12 @@ const messages = {
       password: 'Password',
     },
     password: {
-      forgotTitle: 'Reimposta la password',
-      forgotDescription:
-        'Inserisci il tuo indirizzo email e ti invieremo un link per reimpostare la password.',
-      sendResetLink: 'Invia link di reimpostazione',
+      forgotTitle: 'Recupera il tuo account',
+      forgotDescription: 'Inserisci l’indirizzo email associato al tuo account Kingshot Alliance.',
+      sendResetLink: 'Invia le istruzioni di recupero',
       resetTitle: 'Scegli una nuova password',
       resetSubmit: 'Reimposta password',
-      confirmTitle: 'Conferma la password',
+      confirmTitle: 'Conferma la tua identità',
     },
     verification: {
       title: 'Verifica la tua email',
@@ -49,17 +48,18 @@ const messages = {
     shell: {
       headline: 'Pensato per i leader di alleanza.',
       intro:
-        'Accesso sicuro agli strumenti che la tua alleanza usa per coordinarsi, reclutare e prepararsi al prossimo passo.',
+        'Recluta Governatori, prepara Eventi, gestisci la tua Alleanza e segui il Regno in un unico posto.',
     },
     login: {
-      intro: 'Accedi a tutte le alleanze collegate al tuo account globale.',
+      intro: 'Accedi al tuo account, poi scegli il Governatore che vuoi usare.',
       invitationNotice:
         'Accedi con l’account invitato per continuare ad accettare l’invito dell’alleanza.',
       needAccount: 'Ti serve un account?',
       register: 'Registrati',
     },
     register: {
-      intro: 'Una sola identità globale può appartenere a più alleanze.',
+      intro:
+        'Un account può possedere più Governatori. Il grado nell’Alleanza e gli incarichi nel Regno dipendono sempre dal Governatore scelto.',
       invitationNotice:
         'Sei stato invitato in {alliance} come {email}. La creazione dell’account accetterà anche questo invito.',
       invitationOnly:
@@ -79,50 +79,50 @@ const messages = {
     },
     password: {
       backToSignIn: 'Torna all’accesso',
-      resetIntro: 'La reimpostazione della password revoca i token di accesso personali.',
+      resetIntro: 'Scegli una nuova password di Kingshot Alliance per l’account qui sotto.',
       newPassword: 'Nuova password',
       confirmNewPassword: 'Conferma nuova password',
       confirmDescription:
-        'Questa azione modifica accesso o autorizzazioni dell’alleanza, quindi devi confermare di nuovo la password.',
-      recoveryKicker: "RECUPERO DELL'ACCOUNT",
+        'Questa azione modifica l’accesso protetto all’Alleanza. Conferma la tua identità prima di continuare.',
+      recoveryKicker: 'RECUPERO DELL’ACCOUNT',
       recoveryNeutral:
-        "Se esiste una credenziale di password idonea per quell'e-mail, invieremo istruzioni sicure per il ripristino della password.",
-      checkInboxKicker: 'CONTROLLA LA TUA INBOX',
+        'Se il recupero della password è disponibile per quell’indirizzo email, invieremo istruzioni sicure per reimpostarla.',
+      checkInboxKicker: 'CONTROLLA LA POSTA IN ARRIVO',
       checkInboxHeading: 'Istruzioni di recupero richieste',
       checkInboxDescription:
-        "Se esiste una credenziale di password idonea per l'indirizzo inserito, le istruzioni per la reimpostazione della password sono state inviate. Per motivi di sicurezza, non possiamo confermare se un account esiste o quali metodi utilizza.",
+        'Se il recupero della password è disponibile per l’indirizzo inserito, sono state inviate le istruzioni per reimpostarla. Per motivi di sicurezza, non possiamo confermare l’esistenza di un account né i metodi di accesso che utilizza.',
       resetKicker: 'REIMPOSTAZIONE SICURA DELLA PASSWORD',
       accountEmail: "Email dell'account",
       requirements: 'La password deve includere:',
       requirementLength: 'Almeno 12 caratteri',
       requirementUpper: 'Una lettera maiuscola',
       requirementLower: 'Una lettera minuscola',
-      requirementNumber: 'Un numero',
+      requirementNumber: 'Una cifra',
       showPassword: 'Mostra la password',
       hidePassword: 'Nascondi la password',
       validationSummary: 'Controllare i campi evidenziati prima di continuare.',
     },
     verification: {
       description:
-        'Abbiamo inviato un link di verifica all’indirizzo e-mail qui sotto. Verifica l’indirizzo prima delle azioni protette sull’account.',
+        'Abbiamo inviato un link di verifica sicuro per il tuo account Kingshot Alliance a:',
       sent: 'È stato inviato un nuovo link di verifica.',
-      kicker: 'VERIFICA DELLA EMAIL',
+      kicker: 'VERIFICA DELL’INDIRIZZO EMAIL',
       instructions:
         'Apri il messaggio e segui il link per completare la verifica del tuo indirizzo email.',
       securityNote:
-        'Kingshot Alliance non ti chiederà mai la password tramite un messaggio di verifica via email.',
-      resendIn: 'Puoi inviarlo di nuovo in {seconds}s',
+        'Kingshot Alliance non ti chiederà mai la password in un messaggio di verifica dell’indirizzo email.',
+      resendIn: 'Potrai inviare di nuovo tra {seconds} secondi',
       useAnotherAccount: 'Esci e usa un altro account',
     },
     twoFactor: {
-      kicker: 'Controllo di sicurezza',
+      kicker: 'Sicurezza dell’account',
       description: 'Inserisci il codice attuale di sei cifre dalla tua app di autenticazione.',
       verifyCode: 'Verifica codice',
       useRecoveryCode: 'Usa codice di recupero',
     },
     social: {
       continueWithGoogle: 'Continua con Google',
-      createWithGoogle: 'Creare Kingshot Alliance conto con Google',
+      createWithGoogle: 'Crea un account Kingshot Alliance con Google',
       or: 'o',
     },
     passkeys: {
@@ -130,9 +130,9 @@ const messages = {
       authenticating: 'Verifica della chiave di accesso…',
     },
     confirm: {
-      title: 'Conferma la password',
+      title: 'Conferma la tua identità',
       description:
-        "Utilizza uno dei metodi di accesso allegati prima di procedere con questa modifica sensibile dell'account.",
+        'Usa uno dei metodi di accesso collegati al tuo account prima di continuare con questa modifica sensibile dell’account.',
       usePassword: 'Conferma con password',
       useGoogle: 'Conferma con Google',
       usePasskey: 'Conferma con una chiave di accesso',

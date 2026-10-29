@@ -709,7 +709,7 @@ const messages = {
       "Sans alliance de jeu ID, un enregistrement d'alliance distinct est créé même si un autre enregistrement a le même nom ou la même balise.",
     allianceName: 'Nom de l’Alliance',
     allianceTag: "Tag de l'alliance",
-    stableId: 'Game alliance ID',
+    stableId: 'Identifiant de l’Alliance dans le jeu',
     stableIdShort: 'ID de jeu',
     stableIdHelp: 'Facultatif. Une fois assigné, il ne peut pas être effacé ou modifié en place.',
     officerNotes: 'Notes du fonctionnaire',

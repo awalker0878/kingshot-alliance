@@ -255,7 +255,7 @@ const messages = {
     'governor-created': 'Vali hesabınıza eklendi.',
     'governor-updated': 'Vali kimliği güncellendi.',
     'governor-moved': 'Vali krallığı güncellendi.',
-    'governor-released': 'Vali hesabınızdan parayı çekti.',
+    'governor-released': 'Valinin hesabınla bağlantısı kaldırıldı.',
   },
   common: {
     yes: 'Evet',
@@ -1096,11 +1096,11 @@ const messages = {
     historyGameId: 'Oyun kimliği',
     historySource: 'Kaynak',
     historyReason: 'Neden',
-    releaseTitle: 'Hesaptan çıkar',
-    releasePreserves:
-      'Özelliği serbest bırakmak, oyunun kalıcı kimliğini ve tarihini korumaktadır.',
-    releaseGovernor: 'Valiyi serbest bırak.',
-    releaseConfirm: "Bu hesaba {governor}'i bırakmak mı? Oyun kimliği ve tarihi korunacak.",
+    releaseTitle: 'Hesapla bağlantısını kaldır',
+    releasePreserves: 'Sahiplikten vazgeçildiğinde oyun kimliği ve geçmişi korunur.',
+    releaseGovernor: 'Valinin hesapla bağlantısını kaldır',
+    releaseConfirm:
+      '{governor} adlı Valinin bu hesapla bağlantısı kaldırılsın mı? Oyun kimliği ve geçmişi korunacak.',
   },
 } satisfies MessageCatalogue;
 

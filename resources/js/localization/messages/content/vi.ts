@@ -42,7 +42,7 @@ const messages = {
     backToHub: 'Tấm thông báo',
     published: 'Đã xuất bản {date}',
     rulesTitle: 'Quy tắc liên minh',
-    rulesEyebrow: '♪ How we play together ♪',
+    rulesEyebrow: 'Cách chúng ta cùng chơi',
     rulesSubtitle: 'Quy tắc liên minh vĩnh viễn cho {alliance}.',
     rulesEmpty: 'Chưa có quy tắc liên minh nào được đăng.',
     rulesUpdated: 'Cập nhật cuối {date}',
@@ -57,7 +57,7 @@ const messages = {
       'Dùng các dòng ngắn hoặc quy tắc số để chúng vẫn dễ đọc trên điện thoại di động.',
     rulesSave: 'Lưu luật liên minh',
     rulesSaving: 'Đang lưu quy tắc...',
-    noticeReactions: 'alliance Notice reactions',
+    noticeReactions: 'Cảm xúc về Thông báo Liên minh',
     like: 'Như',
     dislike: 'Không thích',
     likeCountLabel: 'Like liên minh này Notice. {count} like.',
@@ -66,7 +66,7 @@ const messages = {
     removeDislikeCountLabel:
       'Tắt sự không thích của anh khỏi liên minh này. {count} người không thích.',
     reactionFailed: 'Không thể cập nhật phản ứng của liên minh của bạn. Thử lại đi.',
-    managementEyebrow: 'alliance publishing',
+    managementEyebrow: 'Xuất bản nội dung Liên minh',
     managementTitle: 'Quản lý bảng thông báo',
     managementSubtitle:
       'Quản lý hồ sơ công cộng, nội dung, bản sửa đổi, các danh mục và phương tiện truyền thông tải lên.',

@@ -281,7 +281,7 @@ const messages = {
       xUsername: 'Nama pengguna X',
       centuryCategory: 'Kategori kode hadiah yang disepakati',
       providerPermissionConfirmed: 'Keizinan penyedia dikonfirmasi',
-      discordGuildId: 'Discord Guild ID',
+      discordGuildId: 'ID server Discord',
       discordChannelId: 'Discord saluran ID',
       discordAuthorIds: 'Disetujui Discord ID penulis',
       authorIdsPlaceholder: 'dipisahkan dengan koma atau ruang',

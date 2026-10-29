@@ -104,15 +104,15 @@ const messages = {
     enablingWebPush: 'Abilitazione di Web Push…',
     webPushFailed: 'Impossibile abilitare Web Push su questo dispositivo.',
     preferences: 'Preferenze',
-    reminderRouting: 'Account predefiniti e sovrascrizioni del governatore',
+    reminderRouting: 'Impostazioni predefinite dell’account e impostazioni per Governatore',
     preferenceHelp:
-      "Le impostazioni predefinite dell'account si applicano ovunque. Una sovrascrittura di un governatore attivo ha effetto solo per quel governatore e può essere reimpostata per ereditare il valore predefinito dell'account.",
-    accountDefaults: "Valori predefiniti dell'account",
-    governorOverrides: 'Active governor overrides',
-    inherited: 'Ereditato',
+      'Le impostazioni predefinite dell’account si applicano ovunque. Le impostazioni specifiche del Governatore attivo valgono solo per quel Governatore e possono essere ripristinate per usare quelle dell’account.',
+    accountDefaults: 'Impostazioni predefinite dell’account',
+    governorOverrides: 'Impostazioni specifiche del Governatore attivo',
+    inherited: 'Ereditato dall’account',
     enabled: 'Attivato',
     disabled: 'Disattivato',
-    resetOverride: 'Reimposta la sostituzione',
+    resetOverride: 'Ripristina le impostazioni dell’account',
     emailOptIn:
       "L'email è opt-in e utilizza l'email dell'account verificato di proprietà di Account.",
     routingPolicy: 'Politica di tempistica di consegna',
@@ -196,7 +196,7 @@ const messages = {
       },
       dismiss: 'Ignora',
       markReadLower: 'Segna come letto',
-      dismissLower: 'Dismiss',
+      dismissLower: 'ignora',
     },
     dismiss: 'Ignora',
   },
@@ -396,7 +396,7 @@ const messages = {
     'governor-created': 'Questo prodotto è stato aggiunto al tuo account.',
     'governor-updated': "L'identità del governatore è stata aggiornata.",
     'governor-moved': 'Il regno del governatore è stato aggiornato.',
-    'governor-released': 'Il governatore è stato rilasciato dal tuo account.',
+    'governor-released': 'Governatore scollegato dal tuo account.',
   },
   common: {
     governors: 'Governatori',
@@ -441,12 +441,12 @@ const messages = {
     historyGameId: 'ID di gioco',
     historySource: 'Fonte',
     historyReason: 'Motivo',
-    releaseTitle: 'Rilascio dal conto',
+    releaseTitle: 'Scollega dall’account',
     releasePreserves:
-      "Il rilascio della proprietà preserva l'identità duratura del gioco e la sua storia.",
-    releaseGovernor: 'Release governor',
+      'La rinuncia alla proprietà conserva l’identità di gioco e la sua cronologia.',
+    releaseGovernor: 'Scollega il Governatore dall’account',
     releaseConfirm:
-      "Rilasciare {governor} da questo account? L'identità e la storia del gioco saranno preservate.",
+      'Scollegare {governor} da questo account? L’identità di gioco e la sua cronologia verranno conservate.',
   },
 } satisfies MessageCatalogue;
 

@@ -148,7 +148,7 @@ const messages = {
       rallyGapsNotAvailable:
         'Não consegui encontrar fatos de prontidão de Rally para um evento verificado correspondente.',
       bearHuntHistory:
-        'Eu encontrei {count} recentes autorizados Bear Hunt run record(s). Os estados de evidência registrados e aceitos permanecem explícitos abaixo.',
+        'Encontrei {count} registros recentes de caçadas ao urso que você tem permissão para consultar. Os estados dos registros e das evidências aceitas estão indicados abaixo.',
       bearHuntHistoryNotAvailable:
         'Não consegui encontrar uma corrida de Bear Hunt completa autorizada com histórico suportado.',
       progressionFreshness:

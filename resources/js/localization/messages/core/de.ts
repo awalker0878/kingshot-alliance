@@ -278,7 +278,7 @@ const messages = {
     'governor-created': 'Dieser Governor wurde Ihrem Konto hinzugefügt.',
     'governor-updated': 'Die Identität des Gouverneurs wurde aktualisiert.',
     'governor-moved': 'Das Gouverneurreich wurde aktualisiert.',
-    'governor-released': 'Governor von Ihrem Konto freigegeben.',
+    'governor-released': 'Gouverneur aus deinem Konto freigegeben.',
   },
   common: {
     yes: 'Ja',
@@ -1047,7 +1047,7 @@ const messages = {
     sourceHistory: '{count} Quelldatensätze',
     governorReceipts: 'Ergebnisse des Gouverneurs',
     empty: 'Es wurden noch keine Geschenkcodes erfasst.',
-    communityDiscovery: 'Community Discovery',
+    communityDiscovery: 'Entdeckungen aus der Community',
     addCode: 'Einen Geschenkcode hinzufügen',
     addCodeHelp:
       'Notieren Sie, woher ein Code stammt und wann er abläuft, damit jeder Gouverneur vor Ablauf der Frist handeln kann.',
@@ -1133,12 +1133,12 @@ const messages = {
     historyGameId: 'Spiel-ID',
     historySource: 'Quelle',
     historyReason: 'Grund',
-    releaseTitle: 'Freigabe vom Konto',
+    releaseTitle: 'Aus dem Konto freigeben',
     releasePreserves:
-      'Das Freigeben des Eigentums bewahrt die dauerhafte Spielidentität und ihre Geschichte.',
-    releaseGovernor: 'Release-Regler',
+      'Bei der Freigabe bleiben die dauerhafte Spielidentität und ihr Verlauf erhalten.',
+    releaseGovernor: 'Gouverneur aus dem Konto freigeben',
     releaseConfirm:
-      '{governor} von diesem Konto freigeben? Die Identität und Geschichte des Spiels bleiben erhalten.',
+      '{governor} aus diesem Konto freigeben? Die Spielidentität und ihr Verlauf bleiben erhalten.',
   },
 } satisfies MessageCatalogue;
 

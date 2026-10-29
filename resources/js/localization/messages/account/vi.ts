@@ -9,7 +9,7 @@ const messages = {
       eventReminder: 'Điều nhắc',
       giftCodeExpiring: 'mã quà tặng đã hết hạn',
       giftCodeAvailable: 'có mã quà tặng',
-      giftCodeTrustChanged: 'gift code trust changed',
+      giftCodeTrustChanged: 'Độ tin cậy của mã quà tặng đã thay đổi',
       giftCodeReminder: 'Để nhớ mã quà tặng',
       giftCodeRedemptionReady: 'mã quà tặng sẵn sàng để đổi lấy',
       intelligenceChange: 'Sự thay đổi trí tuệ',
@@ -104,15 +104,15 @@ const messages = {
     enablingWebPush: 'Đang bật Web Push...',
     webPushFailed: 'Không thể bật Web Push trên thiết bị này.',
     preferences: 'Tùy chọn',
-    reminderRouting: 'Mặc định tài khoản và thay thế thống đốc',
+    reminderRouting: 'Thiết lập mặc định của tài khoản và thiết lập riêng cho Thống đốc',
     preferenceHelp:
-      'Mặc định tài khoản áp dụng ở mọi nơi. Một thay thế chủ tịch hoạt động chỉ thắng cho chủ tịch đó và có thể được đặt lại để thừa hưởng mặc định tài khoản.',
-    accountDefaults: 'Mặc định tài khoản',
-    governorOverrides: 'Bỏ qua điều khiển đang hoạt động',
-    inherited: 'Thừa kế',
+      'Thiết lập mặc định của tài khoản áp dụng ở mọi nơi. Thiết lập riêng của Thống đốc đang hoạt động chỉ áp dụng cho Thống đốc đó và có thể đặt lại để dùng thiết lập mặc định của tài khoản.',
+    accountDefaults: 'Thiết lập mặc định của tài khoản',
+    governorOverrides: 'Thiết lập riêng của Thống đốc đang hoạt động',
+    inherited: 'Dùng thiết lập tài khoản',
     enabled: 'Bật',
     disabled: 'Tắt',
-    resetOverride: 'Đặt lại bổ sung',
+    resetOverride: 'Khôi phục thiết lập tài khoản',
     emailOptIn: 'Email được chọn và sử dụng email tài khoản xác thực thuộc sở hữu của Tài khoản.',
     routingPolicy: 'Chính sách thời gian giao hàng',
     routingPolicyHelp:
@@ -392,7 +392,7 @@ const messages = {
     'governor-created': 'Thống đốc đã thêm vào tài khoản của anh.',
     'governor-updated': 'Thông tin về thống đốc được cập nhật.',
     'governor-moved': 'Thống đốc vương quốc cập nhật.',
-    'governor-released': 'Thống đốc đã giải phóng tài khoản của anh.',
+    'governor-released': 'Đã hủy liên kết Thống đốc với tài khoản của bạn.',
   },
   common: {
     governors: 'Thống đốc',
@@ -425,7 +425,7 @@ const messages = {
     currentIdentity: 'Danh tính hiện tại',
     stableIdHelp: 'Một game stable player ID không thể được thay thế bằng một ID khác.',
     saveIdentity: 'Lưu danh tính',
-    kingdomIdentity: 'Kingdom Identity',
+    kingdomIdentity: 'Danh tính Vương quốc',
     kingdomMoveHelp:
       'Sự thay đổi vương quốc không được đóng lại trong khi thống đốc này vẫn có vai trò vương quốc hiệu quả, thành viên liên minh hoạt động, hoặc tình trạng danh sách xung đột.',
     currentTargetKingdom: 'Vương quốc hiện tại / mục tiêu',
@@ -437,12 +437,11 @@ const messages = {
     historyGameId: 'ID game',
     historySource: 'Nguồn',
     historyReason: 'Lý do',
-    releaseTitle: 'Tự động',
-    releasePreserves:
-      'Phát hành quyền sở hữu bảo tồn bản sắc lâu dài của trò chơi và lịch sử của nó.',
-    releaseGovernor: 'Tự do cho người cai trị',
+    releaseTitle: 'Hủy liên kết với tài khoản',
+    releasePreserves: 'Khi từ bỏ quyền sở hữu, danh tính trong game và lịch sử vẫn được giữ lại.',
+    releaseGovernor: 'Hủy liên kết Thống đốc',
     releaseConfirm:
-      'Tống tiền {governor} khỏi tài khoản này? Bản sắc và lịch sử của trò chơi sẽ được bảo tồn.',
+      'Hủy liên kết {governor} với tài khoản này? Danh tính trong game và lịch sử vẫn sẽ được giữ lại.',
   },
 } satisfies MessageCatalogue;
 

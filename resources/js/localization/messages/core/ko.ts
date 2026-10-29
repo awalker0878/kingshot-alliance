@@ -61,7 +61,7 @@ const messages = {
     'content-archived': '콘텐츠가 아카이브되었습니다.',
     'content-broadcast-failures-retried':
       '{count} 실패한 동맹 알림 배달이 재시도를 위해 대기 중입니다.',
-    'content-broadcast-schedule-cancelled': '취소된 항목을 찾을 수 없습니다.',
+    'content-broadcast-schedule-cancelled': '반복 연맹 공지가 취소되었습니다.',
     'content-broadcast-schedule-saved': '반복되는 동맹 Notice 일정이 저장되었습니다.',
     'content-broadcast-test-queued': '{count} 채널에 대한 테스트 대기열에 대한 통지: {channels}.',
     'content-category-deleted': '콘텐츠 카테고리 삭제되었습니다.',
@@ -251,7 +251,7 @@ const messages = {
     'governor-created': '귀하의 계정에 추가된 governor.',
     'governor-updated': '주지사 신원 업데이트',
     'governor-moved': '왕국 업데이트.',
-    'governor-released': '귀하의 계정에서 풀어 주지사.',
+    'governor-released': '계정에서 총독의 연결을 해제했습니다.',
   },
   common: {
     yes: '예',
@@ -1085,10 +1085,11 @@ const messages = {
     historyGameId: '게임 ID',
     historySource: '출처',
     historyReason: '이유',
-    releaseTitle: '계정에서 릴리스',
-    releasePreserves: '소유권을 풀어주는 것은 게임의 견고한 정체성과 역사를 보존합니다.',
-    releaseGovernor: '릴리스 관리자',
-    releaseConfirm: '이 계정에서 {governor}을 풀어주시겠습니까? 게임의 정체성과 역사는 보존됩니다.',
+    releaseTitle: '계정 연결 해제',
+    releasePreserves: '소유권을 해제해도 게임 내 식별 정보와 이력은 유지됩니다.',
+    releaseGovernor: '총독 연결 해제',
+    releaseConfirm:
+      '이 계정에서 {governor}의 연결을 해제할까요? 게임 내 식별 정보와 이력은 유지됩니다.',
   },
 } satisfies MessageCatalogue;
 

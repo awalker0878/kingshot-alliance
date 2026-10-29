@@ -163,7 +163,7 @@ const messages = {
     days: 'ngày',
     transferCampaign: {
       eyebrow: 'Đăng ký · Chuyển · Đến',
-      title: 'Di chuyển không gian làm việc chiến dịch',
+      title: 'Không gian làm việc cho chiến dịch chuyển vương quốc',
       help: 'Một cái nhìn thực tế bao gồm tuyển dụng, chuyển giao vương quốc, bằng chứng, liên lạc, và chủ sở hữu thành viên liên minh.',
       openTransfer: 'Mở kế hoạch chuyển tiếp',
       recruitment: 'Giai đoạn tuyển dụng',

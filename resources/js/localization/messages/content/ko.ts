@@ -77,7 +77,7 @@ const messages = {
     broadcastRecorded: '브로드캐스트 발생 기록됨',
     broadcastState: {
       pending: '수신자 준비 — 더 많은 작업이 남아 있습니다',
-      queued: '메시지 목록 - 읽지 않은 메시지',
+      queued: '수신자 처리가 완료되었습니다',
       empty: '읽지 않은 다음 편지로 이동',
       cancelled: '소스 또는 범위가 변경됨으로 인해 중단됨',
     },

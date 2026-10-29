@@ -256,7 +256,7 @@ const messages = {
     'governor-created': 'Thống đốc đã thêm vào tài khoản của anh.',
     'governor-updated': 'Thông tin về thống đốc được cập nhật.',
     'governor-moved': 'Thống đốc vương quốc cập nhật.',
-    'governor-released': 'Thống đốc đã giải phóng tài khoản của anh.',
+    'governor-released': 'Đã hủy liên kết Thống đốc với tài khoản của bạn.',
   },
   common: {
     yes: 'Có',
@@ -353,7 +353,7 @@ const messages = {
           'Ít nhất {count} người tham gia chuyển cần được chú ý; {unassessed} người chưa được đánh giá trong tổng quan này',
         rosterReconciliationRequired: '{count} quan sát danh sách cần sự đồng ý của sĩ quan',
         recruitmentReentryReviewDue: '{count} Đã đến lúc xem xét việc tuyển dụng lại',
-        eventBlockers: '{count} blockers remain for the next verified event',
+        eventBlockers: 'Còn {count} vấn đề cản trở Sự kiện đã xác minh tiếp theo',
         nextEvent: 'Sự kiện xác nhận tiếp theo không có khoảng trống sẵn sàng chặn',
         rosterStaleOrMissing: '{count} quan sát của thống đốc đã lỗi thời hoặc bị thiếu',
         rosterCurrent: 'Quan sát của thống đốc là hiện tại',
@@ -627,7 +627,7 @@ const messages = {
       unmatched: 'Quan sát không thể so sánh được',
       membership_only: 'Chỉ thành viên',
     },
-    recruitmentEyebrow: 'alliance-local recruiting control',
+    recruitmentEyebrow: 'Quản lý tuyển mộ trong Liên minh',
     recruitmentTitle: 'Kiểm soát nhập cảnh tái nhập ngũ',
     recruitmentSubtitle:
       'Đặt giới hạn tuyển dụng liên minh riêng tư. Đây không phải là danh sách đen liên minh hay nền tảng.',
@@ -647,7 +647,7 @@ const messages = {
     },
   },
   governanceExpansion: {
-    eyebrow: 'player-scoped kingdom authority',
+    eyebrow: 'Quyền hạn trong Vương quốc theo từng người chơi',
     subtitle:
       'Quản lý chính quyền vương quốc mà không biến quyền lực của Platform hoặc liên minh thành quyền lực của trò chơi.',
     navRoles: 'Vai trò',
@@ -743,10 +743,10 @@ const messages = {
   },
   giftCodes: {
     workspace: {
-      eyebrow: 'Không gian làm việc',
+      eyebrow: 'Không gian đổi mã quà tặng',
       title: 'Đường dẫn',
       subtitle: 'Xem qua tất cả mã quà tặng hiện có trên các thống đốc của anh.',
-      openWorkspace: 'Mở không gian làm việc',
+      openWorkspace: 'Mở không gian đổi mã quà tặng',
       backToCatalogue: 'Quay lại danh mục',
       views: {
         new: 'Mới',
@@ -791,7 +791,7 @@ const messages = {
       reward: 'Tặng thưởng',
       rewardUnknown: 'Không rõ chi tiết thưởng',
       prepareHandoff: 'Chuẩn bị giao nộp chính thức',
-      copyPlayerId: 'Copy player ID',
+      copyPlayerId: 'Sao chép ID người chơi',
       copyCode: 'Sao chép mã quà tặng',
       openOfficialCenter: 'Mở trung tâm chính thức',
       observedOutcome: 'Kết quả chính thức của trung tâm quan sát',
@@ -986,7 +986,7 @@ const messages = {
     prepareSelectedGovernors: 'Chuẩn bị {count} người cai trị đã chọn',
     workflowStep: 'Thống đốc {current} của {total}',
     kingdom: 'Vương quốc {kingdom}',
-    copyPlayerId: 'Copy player ID',
+    copyPlayerId: 'Sao chép ID người chơi',
     observedOutcome: 'Kết quả chính thức của trung tâm quan sát',
     recordAndContinue: 'Ghi lại kết quả và tiếp tục',
     workflowComplete: 'Mỗi thống đốc được chọn đều được xem xét.',
@@ -1089,7 +1089,7 @@ const messages = {
     currentIdentity: 'Danh tính hiện tại',
     stableIdHelp: 'Một game stable player ID không thể được thay thế bằng một ID khác.',
     saveIdentity: 'Lưu danh tính',
-    kingdomIdentity: 'Kingdom Identity',
+    kingdomIdentity: 'Danh tính Vương quốc',
     kingdomMoveHelp:
       'Sự thay đổi vương quốc không được đóng lại trong khi thống đốc này vẫn có vai trò vương quốc hiệu quả, thành viên liên minh hoạt động, hoặc tình trạng danh sách xung đột.',
     currentTargetKingdom: 'Vương quốc hiện tại / mục tiêu',
@@ -1101,12 +1101,11 @@ const messages = {
     historyGameId: 'ID game',
     historySource: 'Nguồn',
     historyReason: 'Lý do',
-    releaseTitle: 'Tự động',
-    releasePreserves:
-      'Phát hành quyền sở hữu bảo tồn bản sắc lâu dài của trò chơi và lịch sử của nó.',
-    releaseGovernor: 'Tự do cho người cai trị',
+    releaseTitle: 'Hủy liên kết với tài khoản',
+    releasePreserves: 'Khi từ bỏ quyền sở hữu, danh tính trong game và lịch sử vẫn được giữ lại.',
+    releaseGovernor: 'Hủy liên kết Thống đốc',
     releaseConfirm:
-      'Tống tiền {governor} khỏi tài khoản này? Bản sắc và lịch sử của trò chơi sẽ được bảo tồn.',
+      'Hủy liên kết {governor} với tài khoản này? Danh tính trong game và lịch sử vẫn sẽ được giữ lại.',
   },
 } satisfies MessageCatalogue;
 

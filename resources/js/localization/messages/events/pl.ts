@@ -461,7 +461,7 @@ const messages = {
       },
     },
     phases: {
-      eyebrow: 'event timeline',
+      eyebrow: 'Harmonogram Wydarzenia',
       title: 'Fazy',
       manageTitle: 'Faza',
       none: 'Dla tego zdarzenia nie ustawiono żadnych faz zdarzenia.',
@@ -754,7 +754,7 @@ const messages = {
         rallies: 'Rajdy',
         territory_plan: 'Plan zagospodarowania przestrzennego',
         results: 'Wyniki',
-        screenshot_evidence: 'Screenshot evidence',
+        screenshot_evidence: 'Dowody w postaci zrzutów ekranu',
         debrief: 'Podsumowanie',
         readiness_closeout: 'Zamknięcie oceny gotowości',
         unknown: 'Nieznane',
@@ -886,7 +886,7 @@ const messages = {
         instructions: 'Śledź aktywną fazę gry i śledź osobiste postępy i cele punktowe.',
       },
       eternitys_reach: {
-        name: 'Eternity’s Reach',
+        name: "Eternity's Reach",
         description: 'Osobiste wydarzenie progresji z fazami, punktacją i wynikami.',
         instructions:
           'Zarejestruj się na dostępny czas gry, gdy rejestracja otwiera, a następnie śledzić udział i wyniki dla wybranego biegu.',

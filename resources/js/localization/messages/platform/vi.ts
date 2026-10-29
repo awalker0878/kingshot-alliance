@@ -253,7 +253,7 @@ const messages = {
     revokeSource: 'Từ chối nguồn',
     revocationReason: 'Nguồn lý do hủy bỏ',
     revocationReasonHelp: 'Cần thiết trước khi hủy bỏ bất kỳ nguồn hoạt động nào',
-    curators: 'Gift code curators',
+    curators: 'Người quản lý mã quà tặng',
     curatorHelp:
       'Các giám đốc có thể điều chỉnh niềm tin mã quà tặng toàn cầu sau khi xác minh email, MFA và kiểm tra mật khẩu gần đây. Họ không thể quản lý nguồn thông tin được chấp thuận.',
     curatorEmail: 'Thư điện tử tài khoản quản trị',
@@ -279,7 +279,7 @@ const messages = {
       xUsername: 'Tên người dùng X',
       centuryCategory: 'CategoryName',
       providerPermissionConfirmed: 'Quyền của nhà cung cấp đã được xác nhận',
-      discordGuildId: 'Discord Guild ID',
+      discordGuildId: 'ID máy chủ Discord',
       discordChannelId: 'Discord kênh ID',
       discordAuthorIds: 'Đã chấp thuận Discord ID tác giả',
       authorIdsPlaceholder: 'tách bằng dấu phẩy hoặc khoảng trống',

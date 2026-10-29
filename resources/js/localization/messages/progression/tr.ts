@@ -45,7 +45,7 @@ const messages = {
     allClasses: 'Tüm sınıflar',
     infantry: 'Piyade',
     cavalry: 'Süvariler.',
-    archer: 'Archer.',
+    archer: 'Okçu',
     apply: 'Uygula',
     clear: 'Temizle',
     typicalUnlock: 'Tipik olarak {day}. güne kadar açılır.',

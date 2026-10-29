@@ -104,15 +104,15 @@ const messages = {
     enablingWebPush: 'ウェブプッシュを有効にしています...',
     webPushFailed: 'このデバイスで Web Push を有効にできませんでした。',
     preferences: '設定',
-    reminderRouting: 'アカウントのデフォルトとガバナンスのオーバーライド',
+    reminderRouting: 'アカウントの既定値と総督別の設定',
     preferenceHelp:
-      'アカウントのデフォルトはどこでも適用されます。 アクティブガバナンスのオーバーライドは、そのガバナンスに対してのみ有効であり、アカウントのデフォルトを継承するようにリセットすることができる。',
-    accountDefaults: 'アカウントのデフォルト',
-    governorOverrides: 'アクティブガバナンスオーバーライド',
-    inherited: '継承',
+      'アカウントの既定値はすべてに適用されます。使用中の総督に設定した個別の値は、その総督にだけ適用されます。設定をリセットすると、アカウントの既定値が再び適用されます。',
+    accountDefaults: 'アカウントの既定値',
+    governorOverrides: '使用中の総督の個別設定',
+    inherited: 'アカウントの設定を使用',
     enabled: '有効',
     disabled: '無効',
-    resetOverride: 'リセットオーバーライド',
+    resetOverride: 'アカウントの既定値に戻す',
     emailOptIn:
       '電子メールはオプションであり、Accountsが所有する確認されたアカウントの電子メールを使用します。',
     routingPolicy: '配達タイミングポリシー',
@@ -392,7 +392,7 @@ const messages = {
     'governor-created': '君のアカウントに 総督が追加された',
     'governor-updated': '知事の身元が更新されました',
     'governor-moved': '総督王国の更新です',
-    'governor-released': '君の口座から 総督が解放された',
+    'governor-released': 'アカウントから総督の紐づけを解除しました。',
   },
   common: {
     governors: '総督',
@@ -437,12 +437,11 @@ const messages = {
     historyGameId: 'ゲームID',
     historySource: '出典',
     historyReason: '理由',
-    releaseTitle: '口座から解約',
-    releasePreserves:
-      '所有権を解放することにより，持続可能なゲームアイデンティティとその歴史を保存できる。',
-    releaseGovernor: '放出ガバナンス',
+    releaseTitle: 'アカウントとの紐づけを解除',
+    releasePreserves: '所有権を解除しても、ゲーム内の識別情報と履歴は保持されます。',
+    releaseGovernor: '総督の紐づけを解除',
     releaseConfirm:
-      'このアカウントから{governor}を解除しますか？ ゲームのアイデンティティと歴史は保存される。',
+      'このアカウントから{governor}の紐づけを解除しますか？ゲーム内の識別情報と履歴は保持されます。',
   },
 } satisfies MessageCatalogue;
 

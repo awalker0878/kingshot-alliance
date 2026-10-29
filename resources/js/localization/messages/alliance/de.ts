@@ -68,7 +68,7 @@ const messages = {
       selectRole: 'Rolle auswählen',
       assign: 'Zuweisen',
       removeRole: 'Rolle entfernen',
-      transferLeadership: 'Transfer Leadership',
+      transferLeadership: 'Führung übertragen',
       transferLeadershipConfirm:
         'Allianzführung an {player} übertragen? Du wirst nicht mehr der Allianzführer sein.',
     },
@@ -77,7 +77,7 @@ const messages = {
       intro:
         'Zeiten werden in deiner lokalen Zeitzone und der Allianzzeitzone von {alliance} angezeigt.',
       exportCsv: 'CSV exportieren',
-      icalFeed: 'iCalendar-Feed',
+      icalFeed: 'iCalendar-Abonnement',
       coordinate: 'Events koordinieren',
       reminders: 'Event-Erinnerungen',
       recentReminders: 'In den letzten 7 Tagen zugestellt',

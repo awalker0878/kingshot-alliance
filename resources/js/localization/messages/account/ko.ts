@@ -103,15 +103,15 @@ const messages = {
     enablingWebPush: '웹 푸시 사용 중...',
     webPushFailed: '이 장치에서 웹 푸시를 사용할 수 없습니다.',
     preferences: '환경설정',
-    reminderRouting: '계정 기본값 및 거버너 재정의',
+    reminderRouting: '계정 기본값 및 총독별 설정',
     preferenceHelp:
-      '계정 기본값은 모든 곳에 적용됩니다. 활성 통치자 오버라이드는 해당 통치자에 대해서만 유효하며 계정 기본값을 상속하도록 재설정할 수 있습니다.',
+      '계정 기본값은 모든 곳에 적용됩니다. 활성 총독의 개별 설정은 해당 총독에게만 적용되며, 설정을 초기화하면 계정 기본값을 다시 사용합니다.',
     accountDefaults: '계정 기본값',
-    governorOverrides: '활성화된 거버너 오버라이드',
-    inherited: '상속됨',
-    enabled: '사용됨',
-    disabled: '비활성',
-    resetOverride: '재설정',
+    governorOverrides: '활성 총독의 개별 설정',
+    inherited: '계정 설정 사용',
+    enabled: '활성화',
+    disabled: '비활성화',
+    resetOverride: '계정 기본값으로 초기화',
     emailOptIn: '이메일은 옵트인이며 계정이 소유한 인증된 계정 이메일을 사용합니다.',
     routingPolicy: '배송 타이밍 정책',
     routingPolicyHelp:
@@ -389,7 +389,7 @@ const messages = {
     'governor-created': '귀하의 계정에 추가된 governor.',
     'governor-updated': '주지사 신원 업데이트',
     'governor-moved': '왕국 업데이트.',
-    'governor-released': '귀하의 계정에서 풀어 주지사.',
+    'governor-released': '계정에서 총독의 연결을 해제했습니다.',
   },
   common: {
     governors: '총독',
@@ -434,10 +434,11 @@ const messages = {
     historyGameId: '게임 ID',
     historySource: '출처',
     historyReason: '이유',
-    releaseTitle: '계정에서 릴리스',
-    releasePreserves: '소유권을 풀어주는 것은 게임의 견고한 정체성과 역사를 보존합니다.',
-    releaseGovernor: '릴리스 관리자',
-    releaseConfirm: '이 계정에서 {governor}을 풀어주시겠습니까? 게임의 정체성과 역사는 보존됩니다.',
+    releaseTitle: '계정 연결 해제',
+    releasePreserves: '소유권을 해제해도 게임 내 식별 정보와 이력은 유지됩니다.',
+    releaseGovernor: '총독 연결 해제',
+    releaseConfirm:
+      '이 계정에서 {governor}의 연결을 해제할까요? 게임 내 식별 정보와 이력은 유지됩니다.',
   },
 } satisfies MessageCatalogue;
 

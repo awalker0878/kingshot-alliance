@@ -277,7 +277,7 @@ const messages = {
     'governor-created': 'Questo prodotto è stato aggiunto al tuo account.',
     'governor-updated': "L'identità del governatore è stata aggiornata.",
     'governor-moved': 'Il regno del governatore è stato aggiornato.',
-    'governor-released': 'Il governatore è stato rilasciato dal tuo account.',
+    'governor-released': 'Governatore scollegato dal tuo account.',
   },
   common: {
     yes: 'Sì',
@@ -1130,12 +1130,12 @@ const messages = {
     historyGameId: 'ID di gioco',
     historySource: 'Fonte',
     historyReason: 'Motivo',
-    releaseTitle: 'Rilascio dal conto',
+    releaseTitle: 'Scollega dall’account',
     releasePreserves:
-      "Il rilascio della proprietà preserva l'identità duratura del gioco e la sua storia.",
-    releaseGovernor: 'Release governor',
+      'La rinuncia alla proprietà conserva l’identità di gioco e la sua cronologia.',
+    releaseGovernor: 'Scollega il Governatore dall’account',
     releaseConfirm:
-      "Rilasciare {governor} da questo account? L'identità e la storia del gioco saranno preservate.",
+      'Scollegare {governor} da questo account? L’identità di gioco e la sua cronologia verranno conservate.',
   },
 } satisfies MessageCatalogue;
 

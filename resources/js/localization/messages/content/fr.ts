@@ -68,7 +68,7 @@ const messages = {
       'Retirez votre désagrément de cette alliance Avis. {count} désagréments.',
     reactionFailed:
       'Impossible de mettre à jour votre alliance Notice réaction. Essayez à nouveau.',
-    managementEyebrow: 'Alliance Publishing',
+    managementEyebrow: 'Publications de l’Alliance',
     managementTitle: "Gérer le tableau d'affichage",
     managementSubtitle:
       'Gérez votre profil public, votre contenu, vos révisions, vos catégories et vos médias téléchargés.',

@@ -29,7 +29,7 @@ const messages = {
     mediaLibrary: 'Pustaka media',
     contentInventory: 'Inventaris konten',
     hubSubtitle: 'Dipublikasikan informasi publik dan hanya anggota untuk {alliance}.',
-    memberContent: 'alliance member content',
+    memberContent: 'Konten anggota Aliansi',
     publicPage: 'Buka halaman publik',
     searchPlaceholder: 'Cari judul, ringkasan, dan konten',
     allTypes: 'Semua jenis',
@@ -57,7 +57,7 @@ const messages = {
       'Gunakan baris pendek atau aturan bernomor sehingga mereka tetap mudah dibaca di ponsel.',
     rulesSave: 'Simpan Peraturan Aliansi',
     rulesSaving: 'Menyimpan Aturan…',
-    noticeReactions: 'alliance Notice reactions',
+    noticeReactions: 'Reaksi terhadap Pengumuman Aliansi',
     like: 'Seperti',
     dislike: 'Tidak suka',
     likeCountLabel: 'Seperti aliansi ini Notice. {count} suka.',
@@ -66,7 +66,7 @@ const messages = {
     removeDislikeCountLabel:
       'Hapus ketidaksukaanmu dari aliansi ini Peringatan. {count} tidak menyukai.',
     reactionFailed: 'Tidak dapat memperbarui aliansi Anda Reaksi Peringatan. Coba lagi.',
-    managementEyebrow: 'alliance publishing',
+    managementEyebrow: 'Publikasi Aliansi',
     managementTitle: 'Kelola papan pengumuman',
     managementSubtitle:
       'Mengurus profil publik, konten, revisi, kategori, dan media yang diunggah.',

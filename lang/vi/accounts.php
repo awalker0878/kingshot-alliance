@@ -32,7 +32,7 @@ return [
         ],
         'reset' => [
             'subject' => 'Đặt lại mật khẩu Kingshot Alliance của bạn',
-            'eyebrow' => 'KHÓA KHÔNG THỂ ĐƯỢC LÀM LẠI',
+            'eyebrow' => 'KHÔI PHỤC TÀI KHOẢN',
             'heading' => 'Đặt lại mật khẩu của bạn',
             'intro' => 'Đã yêu cầu đặt lại mật khẩu cho tài khoản Kingshot Alliance của bạn. Dùng liên kết an toàn bên dưới nếu bạn đã yêu cầu điều này.',
             'action' => 'Đặt lại mật khẩu',
