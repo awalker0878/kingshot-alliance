@@ -83,5 +83,3 @@ final class RequestLocaleTest extends TestCase
             self::assertSame(200, $response->getStatusCode(), $case['description']);
         }
     }
-
-}
