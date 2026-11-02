@@ -52,6 +52,11 @@ for (const locale of locales) {
 const englishAccounts = await fs.readFile('lang/en/accounts.php', 'utf8');
 const phpLiteral = /=>\s*('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*")\s*,/g;
 const decodePhp = (literal) => literal.slice(1, -1).replace(/\\(['"\\])/g, '$1');
+const accountTranslations = {};
+for (const locale of locales.filter((code) => code !== 'en')) {
+  const localized = await fs.readFile(path.join('lang', locale, 'accounts.php'), 'utf8');
+  accountTranslations[locale] = [...localized.matchAll(phpLiteral)].map((match) => decodePhp(match[1]));
+}
 const accounts = [...englishAccounts.matchAll(phpLiteral)].map((match, index) => ({
   catalogue: 'server',
   domain: 'accounts',
@@ -107,7 +112,7 @@ for (const locale of locales.filter((code) => code !== 'en')) {
         ? effective[entry.domain][locale]?.[entry.key] ?? null
         : entry.domain === 'json'
           ? server[locale]?.[entry.key] ?? null
-          : null,
+          : accountTranslations[locale]?.[Number(entry.key.split('#')[1]) - 1] ?? null,
       auditStatus: 'unreviewed',
       reviewOutcome: null,
     }));
