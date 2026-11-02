@@ -34,4 +34,35 @@ final class RequestLocaleTest extends TestCase
         $middleware->handle(Request::create('/'), static fn (): Response => new Response);
         self::assertSame('en', app()->getLocale());
     }
+    public function test_accept_language_quality_weights_are_parsed_before_single_tag_normalization(): void
+    {
+        $fixturePath = dirname(__DIR__, 5).'/resources/data/localization/locale-normalization-cases.json';
+        $raw = file_get_contents($fixturePath);
+        self::assertNotFalse($raw);
+        $headers = json_decode($raw, true, 512, JSON_THROW_ON_ERROR)['headers'];
+        $middleware = new ResolveRequestLocale;
+
+        foreach ($headers as $case) {
+            $request = Request::create(
+                '/',
+                cookies: $case['cookie'] === null ? [] : ['kingshot_locale' => $case['cookie']],
+                server: ['HTTP_ACCEPT_LANGUAGE' => $case['header']],
+            );
+
+            // Request::getLanguages() is the header parser. q-weights and commas
+            // must never be passed to the single-tag normalizer.
+            foreach ($request->getLanguages() as $tag) {
+                self::assertStringNotContainsString(';q=', $tag);
+                self::assertStringNotContainsString(',', $tag);
+            }
+
+            $response = $middleware->handle($request, static function () use ($case): Response {
+                self::assertSame($case['expected'], app()->getLocale(), $case['header']);
+
+                return new Response('locale resolved', 200);
+            });
+            self::assertSame(200, $response->getStatusCode(), 'Rejected inputs must fall back, never fail with 4xx.');
+        }
+    }
+
 }

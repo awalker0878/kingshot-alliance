@@ -236,5 +236,47 @@
       "candidates": [],
       "expected": "en"
     }
+  ],
+  "headers": [
+    {
+      "header": "fr-CA;q=0.8,en-US;q=0.5",
+      "cookie": null,
+      "expected": "fr"
+    },
+    {
+      "header": "pt-BR;q=1,fr-CA;q=0.8",
+      "cookie": null,
+      "expected": "pt-BR"
+    },
+    {
+      "header": "en-US;q=0.2,fr-CA;q=0.9",
+      "cookie": null,
+      "expected": "fr"
+    },
+    {
+      "header": "zh-Hant-HK;q=0.9,en-US;q=0.1",
+      "cookie": null,
+      "expected": "zh-TW"
+    },
+    {
+      "header": "zz-ZZ;q=1,es-419;q=0.7",
+      "cookie": "../invalid",
+      "expected": "es"
+    },
+    {
+      "header": "*,zz-ZZ;q=0.9,xx;q=0.8",
+      "cookie": "fr-CA;q=0.8",
+      "expected": "en"
+    },
+    {
+      "header": "*,zz-ZZ;q=0.9,xx;q=0.8",
+      "cookie": null,
+      "expected": "en"
+    },
+    {
+      "header": "fr-CA;q=0.8,en-US;q=0.5",
+      "cookie": "de",
+      "expected": "de"
+    }
   ]
 }
