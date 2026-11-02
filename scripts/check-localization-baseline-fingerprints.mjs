@@ -3,10 +3,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const manifest = JSON.parse(readFileSync('resources/data/localization/baseline-fingerprints.json', 'utf8'));
+const pinnedOnly = process.argv.includes('--pinned-only');
 let failed = 0;
 for (const [label, files] of Object.entries({
   pinned: manifest.pinned,
-  corrected: manifest.corrected,
+  ...(pinnedOnly ? {} : { corrected: manifest.corrected }),
 })) {
   const root = label === 'pinned' ? '.translation-pr1-baseline' : '.translation-pr1-corrected';
   for (const [name, expected] of Object.entries(files)) {
@@ -29,5 +30,5 @@ if (failed > 0) {
   process.exitCode = 1;
 } else {
   console.log('Immutable localization baseline fingerprint verification passed: ' +
-    (Object.keys(manifest.pinned).length + Object.keys(manifest.corrected).length) + ' outputs');
+    (Object.keys(manifest.pinned).length + (pinnedOnly ? 0 : Object.keys(manifest.corrected).length)) + ' outputs');
 }
