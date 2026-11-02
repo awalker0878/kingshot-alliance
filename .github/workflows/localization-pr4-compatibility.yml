@@ -9,6 +9,7 @@ on:
       - 'app/Shared/Infrastructure/Http/SupportedLocale.php'
       - 'resources/data/localization/locale-normalization-cases.json'
       - 'scripts/report-localization-pr4-compatibility.mjs'
+      - 'scripts/report-localization-pr4-http-candidates.php'
       - '.github/workflows/localization-pr4-compatibility.yml'
   workflow_dispatch:
 
@@ -38,11 +39,17 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Compare exact PHP and client results to merged baseline
         run: node scripts/report-localization-pr4-compatibility.mjs
+      - name: Install locked PHP dependencies for real Illuminate HTTP request parser
+        run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
+      - name: Diagnose actual getLanguages and normalize inputs across all fixtures
+        run: php scripts/report-localization-pr4-http-candidates.php
       - name: Retain per-input compatibility evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: localization-pr4-compatibility
-          path: localization-pr4-compatibility-delta.json
+          path: |
+            localization-pr4-compatibility-delta.json
+            localization-pr4-http-candidate-diagnostics.json
           if-no-files-found: warn
           retention-days: 14
