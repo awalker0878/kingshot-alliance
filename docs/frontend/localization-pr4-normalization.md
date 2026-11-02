@@ -2,6 +2,16 @@
 
 **Base:** `codex/audit-stabilization` at verified merge `a5151e717020cfe00a32aeddcca6279f9c7042fe`. PR 3 is independent.
 
+## OWNER-APPROVED STRICT RAW HEADER POLICY (November 2, 2026)
+
+- [Written PHP standalone normalization approval](https://github.com/awalker0878/kingshot-alliance/pull/184#issuecomment-6591545289); [separate written raw-header approval](https://github.com/awalker0878/kingshot-alliance/pull/184#issuecomment-6591575657). Both are owner directives, **not** a GitHub code-review approval. PR remains draft.
+- Existing strict `SupportedLocale::normalize()` remains unchanged. It rejects NULs, overlong standalone tags, and invalid standalone syntax. Cookies are validated first, then (if invalid/absent) raw `Accept-Language` candidates are processed.
+- New `AcceptLanguageLocale::firstSupported()` does **not** call Symfony's lossy `Request::getLanguages()`. It splits individual comma-delimited ranges, validates each complete raw tag and optional `q` parameter before normalization, discards malformed or >128-byte candidates, rejects q=0, sorts supported candidates by descending integer thousandths with original-position tie-breaking, and falls back to English when none are acceptable. An invalid entry **never discards a later valid range**, even after garbage separators.
+- The accepted **application profile** is deliberately narrower than every conceivable valid BCP-47 tag: primary language (two or three letters), optional four-letter script, optional two-letter/three-digit region, and complete extension or private-use sequence. Unknown free-form variants, underscores in HTTP ranges, `*`, extra parameters, invalid q values and malformed script/region aliases are rejected. This is an explicit compatibility tradeoff, not a claim of fully general RFC 4647 matching. Existing valid regional/script/extension examples and eight realistic browser header fixtures must remain green.
+- Explicit negatives: 245-byte French range `fr-ab-…-cd;q=1` must **not** be truncated to `fr_AB` by Laravel and must result in English with unsupported backup; `zh-hantX` must not become `zh-CN`, and `pt-brX` must not become `pt-BR`. Valid ranges following malformed inputs still win by quality. No 4xx is produced.
+- The earlier rejected design changed the overlong assertion from `en` to `fr`. **That was withdrawn and is not the approved policy.** Keep `en`; add raw-header characterization and quality tests. No concrete exploit or production incident has been established.
+- **Validation gates:** exact final-head PHP/frontend/visual, independent reviewer approval, container/staging if required; consider unexpected real-world header profiles before release. Do not merge while these gates are unresolved.
+
 ## First implementation slice
 
 - Use one canonical **behavior contract fixture** to test the Laravel and TypeScript normalizers. Accept valid BCP-47-like language, region and script tokens, underscore separators, canonical Brazilian Portuguese and Simplified/Traditional Chinese aliases, and recognized primary-language fallbacks.
@@ -42,7 +52,7 @@ Verified in [CI 41513069567](https://github.com/awalker0878/kingshot-alliance/ac
 | `en-x-a` | en | en | null |
 | `fr-CA\\u0000` (actual NUL) | fr | fr | null |
 
-**Compatibility decision pending:** Rejecting these malformed values means Laravel now ignores the cookie and uses the next browser Accept-Language candidate (or English), rather than accepting its misleading prefix. That is intentional fail-closed validation, but potentially observable behaviour; PHP owners must explicitly approve it. Supported locales and valid tags, including `pt_BR`, `pt-br`, `ar-u-nu-latn` and `zh-Hant-HK`, remain accepted. Accept-Language q-weights should be parsed by the HTTP request class, not accepted as part of one raw locale value.
+**Historical context (superseded by the two written owner approvals above):** Rejecting these malformed values means Laravel now ignores the cookie and uses the next browser Accept-Language candidate (or English), rather than accepting its misleading prefix. That is intentional fail-closed validation, but potentially observable behaviour; PHP owners must explicitly approve it. Supported locales and valid tags, including `pt_BR`, `pt-br`, `ar-u-nu-latn` and `zh-Hant-HK`, remain accepted. Accept-Language q-weights are parsed by the validated raw-header selector rather than being passed to standalone normalization.
 
 **Rollback boundary:** The client fixtures, TypeScript normalizer and compatibility-audit tooling are the first independent commit; all three PHP files (normalizer, middleware, PHP fixture regression test) are in a **second distinct commit**. Review or revert that second commit independently. `SupportedAllianceLocale` remains untouched. No 5B cookie/localStorage write code is included.
 

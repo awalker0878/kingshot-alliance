@@ -50,12 +50,8 @@ final class RequestLocaleTest extends TestCase
                 server: ['HTTP_ACCEPT_LANGUAGE' => $case['header']],
             );
 
-            // Request::getLanguages() is the header parser. q-weights and commas
-            // must never be passed to the single-tag normalizer.
-            foreach ($request->getLanguages() as $tag) {
-                self::assertStringNotContainsString(';q=', $tag);
-                self::assertStringNotContainsString(',', $tag);
-            }
+            // Raw ranges are validated and quality-sorted by AcceptLanguageLocale;
+            // Symfony getLanguages() is intentionally not the policy authority.
 
             $response = $middleware->handle($request, static function () use ($case): Response {
                 self::assertSame($case['expected'], app()->getLocale(), $case['header']);
@@ -83,7 +79,7 @@ final class RequestLocaleTest extends TestCase
         }
     }
 
-    public function test_malformed_raw_accept_language_headers_fall_back_safely_without_4xx(): void
+    public function test_malformed_raw_accept_language_ranges_are_rejected_without_4xx(): void
     {
         $raw = file_get_contents(dirname(__DIR__, 5).'/resources/data/localization/locale-normalization-cases.json');
         self::assertNotFalse($raw);

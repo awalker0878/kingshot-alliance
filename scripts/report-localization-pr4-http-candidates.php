@@ -7,6 +7,7 @@ declare(strict_types=1);
 require dirname(__DIR__).'/vendor/autoload.php';
 
 use App\Shared\Infrastructure\Http\SupportedLocale;
+use App\Shared\Infrastructure\Http\AcceptLanguageLocale;
 use Illuminate\Http\Request;
 
 $fixture = json_decode(file_get_contents(dirname(__DIR__).'/resources/data/localization/locale-normalization-cases.json'), true, 512, JSON_THROW_ON_ERROR);
@@ -35,7 +36,8 @@ $probe = static function (string $raw, string $label) use ($shorten): array {
         'rawHeaderBytes' => strlen($raw),
         'getLanguages' => $languages,
         'normalizerInputsAndResults' => $candidateResults,
-        'selected' => SupportedLocale::firstSupported($languages),
+        'selected' => AcceptLanguageLocale::firstSupported($raw),
+        'frameworkPrefixSelected' => SupportedLocale::firstSupported($languages),
         'standaloneNormalization' => SupportedLocale::normalize($raw),
         'summary' => $shorten($raw),
     ];
@@ -90,7 +92,7 @@ foreach ($fixture['cases'] as $index => $case) {
     }
 }
 $report = [
-    'purpose' => 'Diagnostic: Symfony/Laravel Accept-Language parsed candidates and strict SupportedLocale results. No behavioral policy decision.',
+    'purpose' => 'Compare strict raw-header candidate selection with lossy Symfony/Laravel getLanguages candidates; standalone normalization is separate.',
     'headSha' => getenv('GITHUB_SHA') ?: 'local',
     'phpVersion' => PHP_VERSION,
     'fixtureCount' => count($cases),
@@ -115,6 +117,7 @@ foreach ($headerResults as $row) {
         'getLanguages' => $row['getLanguages'],
         'normalizerInputsAndResults' => $row['normalizerInputsAndResults'],
         'selected' => $row['selected'],
+        'frameworkPrefixSelected' => $row['frameworkPrefixSelected'],
         'standalone' => $row['standaloneNormalization'],
     ], JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL;
 }
