@@ -30,6 +30,7 @@ test('all four original Arabic errors are caught independently by the production
       });
       assert.notEqual(result.status, 0, item.id + ' unexpectedly passed with its original faulty text');
       assert.match(result.stderr, new RegExp(item.id), item.id + ' should be reported in failure diagnostics');
+      console.log('MUTATION REJECTED: ' + item.id + ' (semantic checker exit=' + result.status + ')');
     }
   } finally {
     rmSync(root, { recursive: true, force: true });
