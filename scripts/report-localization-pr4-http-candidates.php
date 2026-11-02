@@ -28,6 +28,7 @@ $probe = static function (string $raw, string $label) use ($shorten): array {
             'normalized' => SupportedLocale::normalize($tag),
         ];
     }
+
     return [
         'label' => $label,
         'rawHeader' => $raw,
