@@ -123,19 +123,48 @@ for (const message of accounts) {
   entries.push(riskEntry(message.catalogue, message.domain, message.key, message.source));
 }
 const flagged = entries.filter((entry) => entry.reasons.length > 0);
+const sampleReviewsFile = path.resolve('resources/data/localization/risk-sample-decisions.json');
+const sampleDecisions = await fs.readFile(sampleReviewsFile, 'utf8')
+  .then((value) => JSON.parse(value)).catch((error) => {
+    if (error.code === 'ENOENT') return { version: 1, decisions: {} };
+    throw error;
+  });
 const samples = {};
+const sampleMetrics = {};
+let openSampleMisses = 0;
 for (const locale of locales.filter((code) => code !== 'en')) {
   samples[locale] = stableUnflaggedSample(entries, locale, sampleCount, baselineRef)
-    .map((entry) => ({
+    .map((entry) => {
+      const reviewKey = [entry.catalogue, entry.domain, entry.key].join(':');
+      const review = sampleDecisions.decisions?.[locale]?.[reviewKey] ?? null;
+      return {
       ...entry,
       translation: entry.catalogue === 'client'
         ? effective[entry.domain][locale]?.[entry.key] ?? null
         : entry.domain === 'json'
           ? server[locale]?.[entry.key] ?? null
           : accountTranslations[locale]?.[Number(entry.key.split('#')[1]) - 1] ?? null,
-      auditStatus: 'unreviewed',
-      reviewOutcome: null,
-    }));
+      auditStatus: review ? 'reviewed' : 'unreviewed',
+      reviewOutcome: review?.isTier1 === true ? 'missed-tier-1' : review ? 'not-tier-1' : null,
+      reviewedBy: review?.reviewer ?? null,
+      triaged: review?.triaged === true,
+    };
+    });
+  const decisions = samples[locale];
+  const reviewed = decisions.filter((item) => item.auditStatus === 'reviewed');
+  const misses = reviewed.filter((item) => item.reviewOutcome === 'missed-tier-1');
+  const open = misses.filter((item) => !item.triaged);
+  openSampleMisses += open.length;
+  sampleMetrics[locale] = {
+    sampled: decisions.length,
+    reviewed: reviewed.length,
+    unreviewed: decisions.length - reviewed.length,
+    missedTier1: misses.length,
+    estimatedMissRate: reviewed.length ? misses.length / reviewed.length : null,
+    status: open.length ? 'CRITICAL_MISSES_UNTRIAGED' :
+      reviewed.length < decisions.length ? 'REVIEW_REQUIRED' : 'SAMPLE_REVIEWED',
+    attention: open.map((item) => [item.catalogue, item.domain, item.key].join(':')),
+  };
 }
 
 const phpFiles = {};
@@ -198,6 +227,7 @@ const files = {
   'server-php-hashes.json': phpFiles,
   'overlay-conflicts.json': { mergesOrAdditions: conflicts, duplicateAcrossDomains: duplicatedKeys },
   'semantic-risk-inventory.json': { flagged, total: entries.length },
+  'risk-sample-metrics.json': sampleMetrics,
   'risk-unflagged-samples.json': {
     instructions: 'A qualified reviewer records whether each sampled unflagged entry is actually Tier 1. For each locale, miss-rate estimate = promoted-to-Tier-1 / reviewed sample count; report confidence and possible selection bias.',
     samples,
@@ -216,4 +246,9 @@ console.log(JSON.stringify({
   overlayMergeOrAdditionCount: conflicts.length,
   crossDomainDuplicateKeys: duplicatedKeys.length,
   buildStatus: build.status,
+  sampleMetrics,
 }, null, 2));
+if (openSampleMisses > 0) {
+  console.error('CRITICAL: ' + openSampleMisses + ' untriaged Tier 1 omissions identified in non-flagged sampling');
+  process.exitCode = 1;
+}
