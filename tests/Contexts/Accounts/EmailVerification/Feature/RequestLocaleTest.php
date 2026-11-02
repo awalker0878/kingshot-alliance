@@ -34,6 +34,7 @@ final class RequestLocaleTest extends TestCase
         $middleware->handle(Request::create('/'), static fn (): Response => new Response);
         self::assertSame('en', app()->getLocale());
     }
+
     public function test_accept_language_quality_weights_are_parsed_before_single_tag_normalization(): void
     {
         $fixturePath = dirname(__DIR__, 5).'/resources/data/localization/locale-normalization-cases.json';
@@ -64,5 +65,4 @@ final class RequestLocaleTest extends TestCase
             self::assertSame(200, $response->getStatusCode(), 'Rejected inputs must fall back, never fail with 4xx.');
         }
     }
-
 }
