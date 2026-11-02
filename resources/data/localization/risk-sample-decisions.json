@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "policy": "Only qualified reviewers add decisions. An isTier1=true decision requires triage; untriaged misses make CI fail. Missing review data implies estimatedMissRate=null, never zero.",
+  "decisions": {}
+}
