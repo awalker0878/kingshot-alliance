@@ -65,31 +65,48 @@ export function localeDefinition(code: LocaleCode): LocaleDefinition {
   return locales.find((locale) => locale.code === code) ?? locales[0]!;
 }
 
+// Permit standard language-region/script subtags, but reject malformed/untrusted paths
+// before falling back to the language portion.
+const localeTagPattern = /^[a-z]{2,3}(?:-[a-z0-9]{2,8})*(?:-[a-z0-9](?:-[a-z0-9]{2,8})+)*$/;
+
 export function normalizeLocale(value: string | null | undefined): LocaleCode | null {
-  if (!value) {
-    return null;
-  }
+  if (typeof value !== 'string' || value.includes('\0')) return null;
+  const normalized = value.trim().replaceAll('_', '-').toLowerCase();
+  if (normalized.length > 128 || !localeTagPattern.test(normalized)) return null;
 
-  const normalized = value.trim().replace('_', '-');
-
-  if (isLocaleCode(normalized)) {
-    return normalized;
-  }
-
-  const lower = normalized.toLowerCase();
-
-  if (lower === 'pt' || lower.startsWith('pt-br')) {
+  if (normalized === 'pt' || normalized === 'pt-br' || normalized.startsWith('pt-br-'))
     return 'pt-BR';
-  }
 
-  if (lower === 'zh' || lower.startsWith('zh-cn') || lower.startsWith('zh-hans')) {
-    return 'zh-CN';
-  }
-
-  if (lower.startsWith('zh-tw') || lower.startsWith('zh-hant') || lower.startsWith('zh-hk')) {
+  if (
+    normalized === 'zh-tw' ||
+    normalized.startsWith('zh-tw-') ||
+    normalized === 'zh-hant' ||
+    normalized.startsWith('zh-hant-') ||
+    normalized === 'zh-hk' ||
+    normalized.startsWith('zh-hk-')
+  )
     return 'zh-TW';
-  }
 
-  const language = lower.split('-')[0];
-  return locales.find((locale) => locale.code.toLowerCase() === language)?.code ?? null;
+  if (
+    normalized === 'zh' ||
+    normalized === 'zh-cn' ||
+    normalized.startsWith('zh-cn-') ||
+    normalized === 'zh-hans' ||
+    normalized.startsWith('zh-hans-')
+  )
+    return 'zh-CN';
+
+  const language = normalized.split('-')[0];
+  return localeCodes.find((code) => code === language) ?? null;
+}
+
+/** Explicit preference precedence comes from caller-provided source order. */
+export function selectFirstSupportedLocale(
+  candidates: readonly (string | null | undefined)[],
+): LocaleCode {
+  for (const candidate of candidates) {
+    const locale = normalizeLocale(candidate);
+    if (locale !== null) return locale;
+  }
+  return defaultLocale;
 }

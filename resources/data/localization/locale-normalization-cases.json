@@ -1,0 +1,240 @@
+{
+  "version": 1,
+  "description": "Shared explicit-source normalization contract. The first valid candidate wins; callers determine source precedence. Client-side 5B persistence remains out of scope.",
+  "cases": [
+    {
+      "input": "en",
+      "expected": "en"
+    },
+    {
+      "input": "EN-us",
+      "expected": "en"
+    },
+    {
+      "input": "fr-CA",
+      "expected": "fr"
+    },
+    {
+      "input": "es-419",
+      "expected": "es"
+    },
+    {
+      "input": " ar-IQ ",
+      "expected": "ar"
+    },
+    {
+      "input": "pt",
+      "expected": "pt-BR"
+    },
+    {
+      "input": "pt_BR",
+      "expected": "pt-BR"
+    },
+    {
+      "input": "PT-br",
+      "expected": "pt-BR"
+    },
+    {
+      "input": "pt-BR-x-private",
+      "expected": "pt-BR"
+    },
+    {
+      "input": "zh",
+      "expected": "zh-CN"
+    },
+    {
+      "input": "zh-cn",
+      "expected": "zh-CN"
+    },
+    {
+      "input": "zh-Hans-CN",
+      "expected": "zh-CN"
+    },
+    {
+      "input": "zh-hant",
+      "expected": "zh-TW"
+    },
+    {
+      "input": "zh_Hant_HK",
+      "expected": "zh-TW"
+    },
+    {
+      "input": "zh-HK",
+      "expected": "zh-TW"
+    },
+    {
+      "input": "zh-TW-x-private",
+      "expected": "zh-TW"
+    },
+    {
+      "input": "de-CH",
+      "expected": "de"
+    },
+    {
+      "input": "JA-jp",
+      "expected": "ja"
+    },
+    {
+      "input": "",
+      "expected": null
+    },
+    {
+      "input": null,
+      "expected": null
+    },
+    {
+      "input": "../fr",
+      "expected": null
+    },
+    {
+      "input": "fr/../../en",
+      "expected": null
+    },
+    {
+      "input": "en--US",
+      "expected": null
+    },
+    {
+      "input": "fr-CA-",
+      "expected": null
+    },
+    {
+      "input": "zh-cnX",
+      "expected": null
+    },
+    {
+      "input": "pt-brX",
+      "expected": null
+    },
+    {
+      "input": "zh-hantX",
+      "expected": null
+    },
+    {
+      "input": "en\u0000",
+      "expected": null
+    },
+    {
+      "input": "not-a-language",
+      "expected": null
+    },
+    {
+      "input": "hi-IN",
+      "expected": null
+    },
+    {
+      "input": "ar-u-nu-latn",
+      "expected": "ar"
+    },
+    {
+      "input": "ar-u-ca-gregory",
+      "expected": "ar"
+    },
+    {
+      "input": "zh-Hant-HK-x-private",
+      "expected": "zh-TW"
+    },
+    {
+      "input": "fr-x-private",
+      "expected": "fr"
+    },
+    {
+      "input": "fr-CA;q=0.8",
+      "expected": null
+    },
+    {
+      "input": "fr;q=0.9",
+      "expected": null
+    },
+    {
+      "input": "fr-CA,fr;q=0.8",
+      "expected": null
+    },
+    {
+      "input": "fr-CA x",
+      "expected": null
+    },
+    {
+      "input": "*",
+      "expected": null
+    },
+    {
+      "input": " fr ",
+      "expected": "fr"
+    },
+    {
+      "input": "    ",
+      "expected": null
+    },
+    {
+      "input": "fr__CA",
+      "expected": null
+    },
+    {
+      "input": "pt_brX",
+      "expected": null
+    },
+    {
+      "input": "pt-BR;q=1",
+      "expected": null
+    },
+    {
+      "input": "en*;q=0.5",
+      "expected": null
+    },
+    {
+      "input": "fr-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-cd",
+      "expected": null
+    },
+    {
+      "input": "ar-u-",
+      "expected": null
+    },
+    {
+      "input": "en-x-a",
+      "expected": null
+    },
+    {
+      "input": "fr-CA\n",
+      "expected": "fr"
+    },
+    {
+      "input": "fr-CA\u0000",
+      "expected": null
+    },
+    {
+      "input": "en;q=1",
+      "expected": null
+    },
+    {
+      "input": "PT_BR",
+      "expected": "pt-BR"
+    }
+  ],
+  "priority": [
+    {
+      "candidates": ["../fr", "pt_BR", "de-CH"],
+      "expected": "pt-BR"
+    },
+    {
+      "candidates": ["zh-Hant-HK", "fr-CA"],
+      "expected": "zh-TW"
+    },
+    {
+      "candidates": ["bogus", "fr-CA"],
+      "expected": "fr"
+    },
+    {
+      "candidates": ["zh-cnX", null, "es-419"],
+      "expected": "es"
+    },
+    {
+      "candidates": [null, "", "zz"],
+      "expected": "en"
+    },
+    {
+      "candidates": [],
+      "expected": "en"
+    }
+  ]
+}
