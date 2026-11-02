@@ -9,7 +9,9 @@ for (const [label, files] of Object.entries({
   pinned: manifest.pinned,
   ...(pinnedOnly ? {} : { corrected: manifest.corrected }),
 })) {
-  const root = label === 'pinned' ? '.translation-pr1-baseline' : '.translation-pr1-corrected';
+  const root = label === 'pinned'
+    ? (process.env.LOCALIZATION_FINGERPRINT_PINNED_DIR ?? '.translation-pr1-baseline')
+    : (process.env.LOCALIZATION_FINGERPRINT_CORRECTED_DIR ?? '.translation-pr1-corrected');
   for (const [name, expected] of Object.entries(files)) {
     let actual;
     try {
