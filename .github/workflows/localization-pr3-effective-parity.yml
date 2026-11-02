@@ -32,6 +32,9 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci --no-audit --no-fund
+      - name: Guard Event Command import boundary for the nearly-full Manage page
+        run: node scripts/check-localization-pr3-event-import-graph.mjs
+
       - name: Build and retain actual Vite asset budgets
         run: |
           npm run build
