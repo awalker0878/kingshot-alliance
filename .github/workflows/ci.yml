@@ -208,6 +208,7 @@ jobs:
           node scripts/prepare-localization-baseline.mjs .translation-pr1-corrected --current
           node scripts/prepare-localization-baseline.mjs .translation-pr1-corrected-repeat --current
           diff -qr .translation-pr1-corrected .translation-pr1-corrected-repeat
+          node scripts/check-localization-baseline-fingerprints.mjs
           node -e "let b=require('./.translation-pr1-baseline/baseline-metadata.json');if(b.baselineRef!=='7cf387b628bbbaeb81d10120340e559b46403bee'||b.sourceRevision!==b.baselineRef)process.exit(1)"
 
       - name: Upload PR 1 localization baseline
