@@ -16,17 +16,12 @@ final class ResolveRequestLocale
     {
         // This preference is deliberately readable by the language selector.
         // It carries no identity or authority and is restricted to this allowlist.
-        $locale = SupportedLocale::normalize($request->cookie('kingshot_locale'));
-        if ($locale === null) {
-            foreach ($request->getLanguages() as $language) {
-                $locale = SupportedLocale::normalize($language);
-                if ($locale !== null) {
-                    break;
-                }
-            }
-        }
-
-        app()->setLocale($locale ?? 'en');
+        // The supported cookie is first; invalid values fall through to
+        // Accept-Language in browser order. No localStorage value reaches PHP.
+        app()->setLocale(SupportedLocale::firstSupported([
+            $request->cookie('kingshot_locale'),
+            ...$request->getLanguages(),
+        ]));
 
         return $next($request);
     }

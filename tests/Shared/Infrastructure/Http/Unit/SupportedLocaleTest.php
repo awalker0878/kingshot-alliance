@@ -23,4 +23,18 @@ final class SupportedLocaleTest extends TestCase
             self::assertSame('en', SupportedLocale::orDefault($input));
         }
     }
+
+    public function test_php_normalization_matches_the_shared_client_fixture(): void
+    {
+        $raw = file_get_contents(dirname(__DIR__, 5).'/resources/data/localization/locale-normalization-cases.json');
+        self::assertNotFalse($raw);
+        $fixtures = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+
+        foreach ($fixtures['cases'] as $case) {
+            self::assertSame($case['expected'], SupportedLocale::normalize($case['input']), json_encode($case['input']));
+        }
+        foreach ($fixtures['priority'] as $case) {
+            self::assertSame($case['expected'], SupportedLocale::firstSupported($case['candidates']));
+        }
+    }
 }
