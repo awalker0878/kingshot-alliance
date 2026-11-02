@@ -6,6 +6,8 @@ on:
       - codex/audit-stabilization
     paths:
       - 'scripts/report-localization-tier1a-v2.mjs'
+      - 'scripts/build-localization-tier1-blind-review.mjs'
+      - 'docs/frontend/localization-tier1-english-risk-rubric.md'
       - 'scripts/report-localization-tier1a.mjs'
       - 'resources/data/localization/baseline-fingerprints.json'
       - 'docs/frontend/localization-tier1-v2-risk-screen.md'
@@ -35,9 +37,14 @@ jobs:
         run: node scripts/prepare-localization-baseline.mjs .translation-pr1-baseline
       - name: Replay 511 and revised full-source risk screen with pinned SHA-256 inputs
         run: node scripts/report-localization-tier1a-v2.mjs .translation-pr1-baseline .translation-pr1-baseline/tier1a-v2-exploratory.json
+      - name: Generate SHA-pinned, blinded English-source review queue
+        run: node scripts/build-localization-tier1-blind-review.mjs .translation-pr1-baseline/risk-unflagged-samples.json .translation-pr1-baseline
       - name: Retain reviewed-input requirements and machine-readable candidates
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: localization-tier1-v2-screen
-          path: .translation-pr1-baseline/tier1a-v2-exploratory.json
+          path: |
+            .translation-pr1-baseline/tier1a-v2-exploratory.json
+            .translation-pr1-baseline/english-source-blind-queue.csv
+            .translation-pr1-baseline/english-source-blind-queue-metadata.json
           retention-days: 30
