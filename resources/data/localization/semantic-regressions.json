@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "description": "Known semantic translation defects; changing an expected value requires an explicit reviewed correction.",
+  "cases": [
+    {
+      "id": "ar-kingdom-max-four",
+      "catalogue": "server",
+      "domain": "json",
+      "locale": "ar",
+      "source": "A Kingdom can contain at most four characters for the same account.",
+      "expected": "يمكن أن تضم المملكة أربع شخصيات كحد أقصى للحساب الواحد.",
+      "risk": "maximum quantity reversed"
+    },
+    {
+      "id": "ar-plan-max-5000",
+      "catalogue": "server",
+      "domain": "json",
+      "locale": "ar",
+      "source": "A plan may contain at most 5000 planned objects.",
+      "expected": "يمكن أن تتضمن الخطة 5000 عنصر مخطط له كحد أقصى.",
+      "risk": "maximum quantity reversed"
+    },
+    {
+      "id": "ar-blocker-summary",
+      "catalogue": "server",
+      "domain": "json",
+      "locale": "ar",
+      "source": "A blocker summary is required.",
+      "expected": "يجب تقديم ملخص للعائق الذي يمنع المتابعة.",
+      "risk": "blocker mistranslated as converter"
+    },
+    {
+      "id": "ar-effective-admin",
+      "catalogue": "server",
+      "domain": "json",
+      "locale": "ar",
+      "source": "A Kingdom must retain at least one effective Kingdom Admin.",
+      "expected": "يجب أن تحتفظ المملكة بمسؤول إدارة فعّال واحد على الأقل.",
+      "risk": "required administrator incorrectly translated"
+    }
+  ]
+}
