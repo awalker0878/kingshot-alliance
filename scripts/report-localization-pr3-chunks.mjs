@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 const [baselinePath, currentPath] = process.argv.slice(2);
 if (!baselinePath || !currentPath) throw new Error('Provide PR1 and PR3 vite-chunks.json paths');
@@ -13,6 +14,19 @@ for (const source of new Set([...before.keys(), ...after.keys()])) {
   if (!a || !b || a.bytes !== b.bytes) changes.push({ source, beforeBytes: a?.bytes ?? null, afterBytes: b?.bytes ?? null, deltaBytes: a && b ? b.bytes - a.bytes : null, kind: !a ? 'added' : !b ? 'removed' : 'changed' });
 }
 changes.sort((a, b) => a.source.localeCompare(b.source));
+const performanceBudget = JSON.parse(readFileSync('performance-budgets.json', 'utf8')).largestPageChunkBytes;
+const beforePage = baseline.largestPage;
+const afterPage = current.largestPage;
+assert.ok(beforePage && afterPage, 'largest page source is required');
+assert.equal(beforePage.source, 'resources/js/pages/Operations/Events/Manage.vue', 'confirm known baseline largest page');
+assert.equal(afterPage.source, beforePage.source, 'a different largest page requires fresh performance review');
+assert.equal(afterPage.bytes, beforePage.bytes, 'Recipient/Transfer overlay consolidation must not increase the largest page chunk');
+assert.ok(afterPage.bytes <= performanceBudget, 'largest-page budget exceeded');
+const largestPageHeadroomBytes = performanceBudget - afterPage.bytes;
+const englishDomainChanges = changes.filter((item) =>
+  item.source.startsWith('resources/js/localization/messages/') && item.source.endsWith('/en.ts')
+);
+
 const result = {
   baselinePath, currentPath,
   originalLargestPage: baseline.largestPage,
@@ -20,6 +34,18 @@ const result = {
   originalChunks: baseline.chunks.length,
   currentChunks: current.chunks.length,
   changedChunks: changes,
+  largestPageBudgetBytes: performanceBudget,
+  largestPageHeadroomBytes,
+  englishDomainChanges,
 };
 writeFileSync('.translation-pr3-current/vite-chunk-comparison.json', JSON.stringify(result, null, 2) + '\n');
-console.log('PR3 CHUNK DELTAS: ' + JSON.stringify({ total: changes.length, largestBefore: baseline.largestPage?.bytes, largestAfter: current.largestPage?.bytes, transfers: changes.filter((x) => x.source?.includes('localization/messages/transfers/')) }));
+console.log('PR3 CHUNK DELTAS: ' + JSON.stringify({
+  total: changes.length,
+  largestPageSource: afterPage.source,
+  largestBefore: beforePage.bytes,
+  largestAfter: afterPage.bytes,
+  hardLargestPageBudgetBytes: performanceBudget,
+  remainingHeadroomBytes: largestPageHeadroomBytes,
+  englishDomainChanges,
+  allChangedChunks: changes,
+}));
