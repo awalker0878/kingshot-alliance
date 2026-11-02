@@ -47,17 +47,32 @@ const columns = Object.keys(queue[0]);
 const csv = [columns.map(escape).join(','), ...queue.map((r) => columns.map((k) => escape(r[k])).join(','))].join('\n') + '\n';
 mkdirSync(outputDirectory, { recursive: true });
 writeFileSync(outputDirectory + '/english-source-blind-queue.csv', csv);
+
+const independentSeed = 'tier1-second-review-holdout-v1:' + pinnedSampleSha;
+const secondOrder = (id) => createHash('sha256').update(independentSeed + ':' + id).digest('hex');
+const secondary = [...queue]
+  .sort((left, right) => secondOrder(left.sourceId).localeCompare(secondOrder(right.sourceId)))
+  .slice(0, 50)
+  .sort((left, right) => secondOrder('second-order:' + left.sourceId).localeCompare(secondOrder('second-order:' + right.sourceId)));
+assert.equal(secondary.length, 50);
+assert.equal(new Set(secondary.map((x) => x.sourceId)).size, 50);
+const secondCsv = [columns.map(escape).join(','), ...secondary.map((r) => columns.map((k) => escape(r[k])).join(','))].join('\n') + '\n';
+writeFileSync(outputDirectory + '/english-source-second-review-blind-50.csv', secondCsv);
+
 writeFileSync(outputDirectory + '/english-source-blind-queue-metadata.json', JSON.stringify({
   inputSha256: pinnedSampleSha,
   sourceIdentity: 'catalogue:domain:key',
   uniqueSources: unique.size,
   localePlacements: placements,
+  secondReviewerIndependentSubset: 50,
+  secondReviewSeed: independentSeed,
   randomization: 'Deterministic SHA-256 blinded ordering by predeclared seed',
   rubric: 'docs/frontend/localization-tier1-english-risk-rubric.md',
   warnings: [
     'Reviewer-facing CSV deliberately excludes locale and any v1/v2 classifier match, risk reasons, translated text, or sample match priority.',
     'The English source risk review is distinct from native translation QA.',
     'Do not deblind or revise the classifier until all source decisions and adjudications are recorded.',
+    'Second reviewer independently reviews 50 deterministically sampled keys, blind to the first reviewer decision and classifier results; compute categorical agreement only after both are locked.',
   ],
 }, null, 2) + '\n');
 console.log('TIER1 BLIND SOURCE REVIEW: ' + JSON.stringify({
@@ -65,5 +80,6 @@ console.log('TIER1 BLIND SOURCE REVIEW: ' + JSON.stringify({
   placements,
   reviewerColumns: columns,
   firstReviewIds: queue.slice(0, 4).map((r) => r.reviewId),
+  secondReviewerUniqueItems: secondary.length,
   flagsExposed: false,
 }));
