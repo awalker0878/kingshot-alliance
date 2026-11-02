@@ -1,10 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
-import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { execFileSync as runFile } from 'node:child_process';
-import os from 'node:os';
 import { createServer } from 'vite';
 import { flattenMessages } from './lib/localization-completeness.mjs';
 import { riskEntry, stableUnflaggedSample } from './lib/localization-risk.mjs';
