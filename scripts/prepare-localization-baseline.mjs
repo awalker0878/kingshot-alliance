@@ -166,12 +166,22 @@ for (const locale of locales.filter((code) => code !== 'en')) {
 }
 
 const phpFiles = {};
+const phpCatalogueEntries = {};
 for (const locale of locales) {
   const directory = sourcePath('lang', locale);
   const filenames = await fs.readdir(directory).catch(() => []);
   phpFiles[locale] = {};
+  phpCatalogueEntries[locale] = {};
   for (const filename of filenames.filter((name) => name.endsWith('.php')).sort()) {
-    phpFiles[locale][filename] = hash(await fs.readFile(path.join(directory, filename)));
+    const source = await fs.readFile(path.join(directory, filename), 'utf8');
+    phpFiles[locale][filename] = { sha256: hash(source), bytes: Buffer.byteLength(source) };
+    phpCatalogueEntries[locale][filename] = [...source.matchAll(phpLiteral)].map((match, index) => ({
+      key: filename + '#' + (index + 1),
+      value: decodePhp(match[1]),
+      keyStatus: 'positional-until-php-key-parser',
+      sourceStatus: filename === 'accounts.php' ? 'local-source-available' : 'upstream-framework-source-not-in-repository',
+      reviewStatus: 'unreviewed',
+    }));
   }
 }
 
@@ -223,6 +233,7 @@ const files = {
   'effective-en.json': Object.fromEntries(domains.map((domain) => [domain, effective[domain].en])),
   'server-catalogues.json': server,
   'server-php-hashes.json': phpFiles,
+  'server-php-catalogues.json': phpCatalogueEntries,
   'overlay-conflicts.json': { mergesOrAdditions: conflicts, duplicateAcrossDomains: duplicatedKeys },
   'semantic-risk-inventory.json': { flagged, total: entries.length },
   'risk-sample-metrics.json': sampleMetrics,
