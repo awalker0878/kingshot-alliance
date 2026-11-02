@@ -10,13 +10,13 @@ assert.equal(createHash('sha256').update(data).digest('hex'), pinnedSampleSha, '
 const samples = JSON.parse(data.toString('utf8')).samples;
 const unique = new Map();
 let placements = 0;
-for (const [locale, rows] of Object.entries(samples)) {
+for (const rows of Object.values(samples)) {
   assert.equal(rows.length, 32);
   for (const item of rows) {
     placements++;
     const sourceId = [item.catalogue, item.domain, item.key].join(':');
     const prior = unique.get(sourceId);
-    if (prior) assert.equal(prior.source, item.source, 'same identity has inconsistent English source');
+    if (prior) assert.equal(prior.englishSource, item.source, 'same identity has inconsistent English source');
     else unique.set(sourceId, {
       sourceId,
       catalogue: item.catalogue,
