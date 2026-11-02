@@ -3905,5 +3905,17 @@
   },
   "Select {governor}": {
     "ar": "اختيار {governor}"
+  },
+  "A Kingdom can contain at most four characters for the same account.": {
+    "ar": "يمكن أن تضم المملكة أربع شخصيات كحد أقصى للحساب الواحد."
+  },
+  "A plan may contain at most 5000 planned objects.": {
+    "ar": "يمكن أن تتضمن الخطة 5000 عنصر مخطط له كحد أقصى."
+  },
+  "A blocker summary is required.": {
+    "ar": "يجب تقديم ملخص للعائق الذي يمنع المتابعة."
+  },
+  "A Kingdom must retain at least one effective Kingdom Admin.": {
+    "ar": "يجب أن تحتفظ المملكة بمسؤول إدارة فعّال واحد على الأقل."
   }
 }
