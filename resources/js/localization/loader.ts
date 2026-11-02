@@ -81,13 +81,6 @@ async function intelligenceChangeCatalogue(
   const { intelligenceChangeLabels } = await import('./intelligence-change-labels');
   return mergeCatalogue(base, intelligenceChangeLabels(locale));
 }
-async function communicationsRecipientDeliveryCatalogue(
-  base: MessageCatalogue,
-): Promise<MessageCatalogue> {
-  const { communicationsRecipientDeliveryLabels } =
-    await import('./communications-recipient-delivery-labels');
-  return mergeCatalogue(base, communicationsRecipientDeliveryLabels());
-}
 async function giftCodeWorkspaceCatalogue(base: MessageCatalogue): Promise<MessageCatalogue> {
   const { giftCodeWorkspaceLabels } = await import('./gift-code-workspace-labels');
   return mergeCatalogue(base, giftCodeWorkspaceLabels());
@@ -131,7 +124,6 @@ export async function loadCatalogue(
       catalogue = await governorLifecycleCatalogue(catalogue, locale);
     if (['alliance', 'assistant', 'kingdom'].includes(domain))
       catalogue = await intelligenceChangeCatalogue(catalogue, locale);
-    if (domain === 'account') catalogue = await communicationsRecipientDeliveryCatalogue(catalogue);
     catalogues.set(key, catalogue);
     pending.delete(key);
     return catalogue;
