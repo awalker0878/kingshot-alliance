@@ -278,5 +278,17 @@
       "cookie": "de",
       "expected": "de"
     }
+  ],
+  "malformedHeaders": [
+    {
+      "header": ";;, , ;,zz-ZZ;q=0.9",
+      "expected": "en",
+      "description": "Stray separators and unsupported language"
+    },
+    {
+      "header": "fr-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-cd;q=1,xx-ZZ;q=0.5",
+      "expected": "en",
+      "description": "Overlong language tag with unsupported backup"
+    }
   ]
 }
