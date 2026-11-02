@@ -94,8 +94,8 @@ console.log('PR3 RECIPIENT DIFFERING COLLISIONS: ' + JSON.stringify({
 
 const review = readFileSync('docs/frontend/localization-pr3-recipient-collision-winners.md', 'utf8');
 const expectedRows = collisions.filter((x) => x.kind === 'overridden')
-  .map((x) => '| \`' + x.key + '\` | ' + x.originalBase + ' | ' + x.preservedWinner + ' |');
-const publishedRows = review.split('\n').filter((line) => line.startsWith('| \`notifications.'));
+  .map((x) => '| `' + x.key + '` | ' + x.originalBase + ' | ' + x.preservedWinner + ' |');
+const publishedRows = review.split('\n').filter((line) => line.startsWith('| `notifications.'));
 assert.equal(expectedRows.length, 41, 'all changed-value collisions should be reviewed');
 assert.deepEqual(publishedRows, expectedRows, 'committed reviewer inventory must equal the actual 41 baseline winners in runtime merge order');
 console.log('PR3 COMMITTED RECIPIENT INVENTORY VERIFIED: 41 exact collision keys, original strings and preserved winners');
