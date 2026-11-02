@@ -27,6 +27,24 @@ const englishDomainChanges = changes.filter((item) =>
   item.source.startsWith('resources/js/localization/messages/') && item.source.endsWith('/en.ts')
 );
 
+// A source-mapped localization migration can increase domain chunks while deleting
+// equivalent separately emitted overlays. Measure both, not just the grown files.
+const relocatedOverlaySources = new Set([
+  'resources/js/localization/communications-recipient-delivery-labels.ts',
+  'resources/js/localization/transfer-evidence-labels.ts',
+]);
+const sum = (items) => items.reduce((total, item) => total + item.bytes, 0);
+const localizationBytes = (build) => sum(build.chunks.filter((item) =>
+  item.isLocale || relocatedOverlaySources.has(item.source)
+));
+const originalLocalizationBytes = localizationBytes(baseline);
+const currentLocalizationBytes = localizationBytes(current);
+const localizationNetDeltaBytes = currentLocalizationBytes - originalLocalizationBytes;
+const baselineEmittedJsBytes = sum(baseline.chunks);
+const currentEmittedJsBytes = sum(current.chunks);
+const netEmittedJsDeltaBytes = currentEmittedJsBytes - baselineEmittedJsBytes;
+assert.ok(currentLocalizationBytes > 0 && originalLocalizationBytes > 0, 'no measured localization JavaScript');
+
 const result = {
   baselinePath, currentPath,
   originalLargestPage: baseline.largestPage,
@@ -37,6 +55,12 @@ const result = {
   largestPageBudgetBytes: performanceBudget,
   largestPageHeadroomBytes,
   englishDomainChanges,
+  originalLocalizationBytes,
+  currentLocalizationBytes,
+  localizationNetDeltaBytes,
+  baselineEmittedJsBytes,
+  currentEmittedJsBytes,
+  netEmittedJsDeltaBytes,
 };
 writeFileSync('.translation-pr3-current/vite-chunk-comparison.json', JSON.stringify(result, null, 2) + '\n');
 console.log('PR3 CHUNK DELTAS: ' + JSON.stringify({
@@ -47,5 +71,11 @@ console.log('PR3 CHUNK DELTAS: ' + JSON.stringify({
   hardLargestPageBudgetBytes: performanceBudget,
   remainingHeadroomBytes: largestPageHeadroomBytes,
   englishDomainChanges,
+  originalLocalizationBytes,
+  currentLocalizationBytes,
+  localizationNetDeltaBytes,
+  baselineEmittedJsBytes,
+  currentEmittedJsBytes,
+  netEmittedJsDeltaBytes,
   allChangedChunks: changes,
 }));
