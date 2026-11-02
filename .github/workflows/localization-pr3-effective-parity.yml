@@ -1,0 +1,51 @@
+name: Localization PR3 effective catalogue parity
+
+on:
+  pull_request:
+    branches:
+      - codex/audit-stabilization
+    paths:
+      - 'resources/js/localization/**'
+      - 'scripts/check-localization-pr3-parity.mjs'
+      - 'resources/data/localization/baseline-fingerprints.json'
+      - '.github/workflows/localization-pr3-effective-parity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  effective-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout source and pinned baseline history
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - name: Configure Node 24
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build and retain actual Vite asset budgets
+        run: |
+          npm run build
+          npm run check:localization-chunks
+          npm run check:performance-budgets
+      - name: Export current runtime catalogues
+        run: node scripts/prepare-localization-baseline.mjs .translation-pr3-current --current
+      - name: Compare complete 17-locale effective runtime values with verified PR1 hashes
+        run: node scripts/check-localization-pr3-parity.mjs .translation-pr3-current
+      - name: Retain machine-readable parity evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: localization-pr3-effective-parity
+          path: |
+            .translation-pr3-current/effective-en.json
+            .translation-pr3-current/vite-chunks.json
+          retention-days: 14
+          if-no-files-found: warn

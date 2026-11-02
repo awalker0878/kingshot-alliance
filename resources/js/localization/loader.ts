@@ -48,10 +48,6 @@ async function eventsCatalogue(
   const { eventCommandLabels } = await import('./event-command-labels');
   return mergeCatalogue(base, eventCommandLabels(locale));
 }
-async function transfersCatalogue(base: MessageCatalogue): Promise<MessageCatalogue> {
-  const { transferEvidenceLabels } = await import('./transfer-evidence-labels');
-  return mergeCatalogue(base, transferEvidenceLabels());
-}
 async function progressionCatalogue(
   base: MessageCatalogue,
   locale: LocaleCode,
@@ -124,7 +120,6 @@ export async function loadCatalogue(
     }
     if (domain === 'assistant') catalogue = await assistantCatalogue(catalogue, locale);
     if (domain === 'events') catalogue = await eventsCatalogue(catalogue, locale);
-    if (domain === 'transfers') catalogue = await transfersCatalogue(catalogue);
     if (domain === 'progression') catalogue = await progressionCatalogue(catalogue, locale);
     if (domain === 'territory') catalogue = await territoryCatalogue(catalogue);
     if (domain === 'core' || domain === 'alliance')
