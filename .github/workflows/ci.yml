@@ -193,6 +193,20 @@ jobs:
       - name: Run frontend checks
         run: npm run check
 
+      - name: Capture PR 1 localization baseline
+        if: ${{ github.event_name == 'pull_request' && startsWith(github.head_ref, 'codex/localization-pr1-') }}
+        run: npm run localization:baseline
+
+      - name: Upload PR 1 localization baseline
+        if: ${{ always() && github.event_name == 'pull_request' && startsWith(github.head_ref, 'codex/localization-pr1-') }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: localization-pr1-baseline
+          path: .translation-pr1-baseline/
+          if-no-files-found: warn
+          include-hidden-files: true
+          retention-days: 14
+
   container:
     name: Container, staging, and recovery
     runs-on: ubuntu-latest
