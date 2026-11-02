@@ -179,7 +179,7 @@ for (const locale of locales) {
 
 let build = { status: 'missing', note: 'Run npm run build before this exporter to capture emitted Vite assets.' };
 try {
-  const manifest = await readJson('public/build/manifest.json');
+  const manifest = JSON.parse(await fs.readFile('public/build/manifest.json', 'utf8'));
   const chunks = [];
   for (const entry of Object.values(manifest)) {
     if (!entry.file?.endsWith('.js')) continue;
