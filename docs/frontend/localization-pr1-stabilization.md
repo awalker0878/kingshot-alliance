@@ -14,17 +14,21 @@ After installing locked dependencies:
     npm run check:localization-semantics
     npm run check
 
-The baseline exporter writes untracked artifacts under .translation-pr1-baseline/, excluded by existing .gitignore rules. Retain generated artifacts and baselineCommit metadata as CI/PR evidence. Do not commit the large derived catalogues.
+The default exporter archives source from the **immutable commit 7cf387b628bbbaeb81d10120340e559b46403bee**, not `HEAD` or GitHub's synthetic PR merge commit. It writes untracked artifacts under `.translation-pr1-baseline/`; CI exports twice and requires byte-identical outputs. The `--current` mode separately captures the corrected PR 1 working tree for PR 3's zero-diff acceptance test, also checked by two exports. Retain both as CI/PR evidence. Do not commit the large derived catalogues. CI artifacts expire after 14 days; later jobs should regenerate using the pinned commit and verified script, and retain the final corrected source commit SHA from this PR.
 
 Exports include raw and effective client catalogues, effective English catalogues, per-locale server JSON, PHP language file hashes, overlay-added or overridden English values, cross-domain duplicate keys, deterministic risk samples, and build chunk inventory. The overlay inventory captures effective winning values; complete intermediate overlay-module attribution is part of PR 3. Pin the **approved PR 1 commit after critical corrections** as the baseline for subsequent structural PRs rather than comparing to a moving branch.
 
-Candidate Tier 1 counts are reported for all 16 translated locales. The exporter selects 32 deterministic non-flagged messages **per locale**. Human reviewers must record how many unflagged sampled messages should actually be Tier 1, then publish numerator/denominator and estimated miss rate. Keyword classification is candidate discovery, not an exhaustive risk audit. The account PHP inventory identifies source values by index; stable PHP group/key metadata and source review for the locked Laravel framework catalogues are follow-up scope for PR 2.
+Candidate Tier 1 counts are reported for all 16 translated locales. The exporter selects 32 deterministic non-flagged messages **per locale**, seeded with the immutable commit SHA. `risk-sample-metrics.json` reports `sampled`, `reviewed`, `missedTier1`, and `estimatedMissRate` per locale. An unreviewed sample reports a **null** miss rate, not a fabricated zero. Human reviewers record decisions in `risk-sample-decisions.json`. Any discovered critical omission marked Tier 1 but not triaged fails the exporter loudly. Keyword classification is candidate discovery, not an exhaustive risk audit. The account PHP inventory identifies source values by index; stable PHP group/key metadata and source review for the locked Laravel framework catalogues are follow-up scope for PR 2.
 
 ## Confirmed language fixes
 
-Four Arabic server JSON messages that reversed numerical constraints or misidentified administrative concepts are corrected in lang/ar.json, preserved in resources/data/localization/reviewed.json, and regression-tested using resources/data/localization/semantic-regressions.json. These are focused corrections, not approval of the whole Arabic catalogue.
+Four Arabic server JSON messages that reversed numerical constraints or misidentified administrative concepts are corrected in lang/ar.json, preserved in resources/data/localization/reviewed.json, and regression-tested using resources/data/localization/semantic-regressions.json. These are focused corrections, not approval of the whole Arabic catalogue. Every fixture has `reviewStatus: review_required` and `reviewer: null`; no native-speaker sign-off is claimed. A dedicated unit test restores each original bad value individually in a temporary catalogue and asserts that the production semantic checker fails.
 
 The initial glossary records precise English meanings. Native-language approval and reviewer assignment remain unresolved.
+
+## Translation regeneration replay
+
+The optional CI workflow `localization-pr1-regeneration.yml` retrieves the original 16 saved draft artifacts from run 40730353999, reconstructs pre-translation input from 910544783e5c6897ea26a7aa239dcde8f0789cc1, runs `compile-catalogues.mjs`, formats generated TypeScript, and fails on any diff from the corrected files. This proves recompilation from the saved drafts; it does **not** rerun the machine-translation model. Because those artifacts expire, retain a separate longer-term archive of the drafts or explicitly re-run the pinned generator before expiration if indefinite regeneration is required.
 
 ## Downstream decisions: multi-tab preferences (PR 5B)
 
