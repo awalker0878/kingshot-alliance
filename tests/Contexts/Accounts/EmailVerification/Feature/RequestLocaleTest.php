@@ -66,6 +66,23 @@ final class RequestLocaleTest extends TestCase
         }
     }
 
+    public function test_realistic_browser_headers_select_same_expected_locale_as_client(): void
+    {
+        $raw = file_get_contents(dirname(__DIR__, 5).'/resources/data/localization/locale-normalization-cases.json');
+        self::assertNotFalse($raw);
+        $cases = json_decode($raw, true, 512, JSON_THROW_ON_ERROR)['realisticBrowserHeaders'];
+
+        foreach ($cases as $case) {
+            $request = Request::create('/', server: ['HTTP_ACCEPT_LANGUAGE' => $case['header']]);
+            $response = (new ResolveRequestLocale)->handle($request, static function () use ($case): Response {
+                self::assertSame($case['expected'], app()->getLocale(), $case['header']);
+
+                return new Response('browser preference parity', 200);
+            });
+            self::assertSame(200, $response->getStatusCode());
+        }
+    }
+
     public function test_malformed_raw_accept_language_headers_fall_back_safely_without_4xx(): void
     {
         $raw = file_get_contents(dirname(__DIR__, 5).'/resources/data/localization/locale-normalization-cases.json');

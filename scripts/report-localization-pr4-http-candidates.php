@@ -48,6 +48,15 @@ foreach ($fixture['malformedHeaders'] as $case) {
 foreach ($fixture['headers'] as $case) {
     $headerResults[] = $probe($case['header'], 'weighted-header-example');
 }
+$browserResults = [];
+foreach ($fixture['realisticBrowserHeaders'] as $case) {
+    $browserResults[] = [
+        'header' => $case['header'],
+        'getLanguages' => Request::create('/', server: ['HTTP_ACCEPT_LANGUAGE' => $case['header']])->getLanguages(),
+        'expected' => $case['expected'],
+        'selected' => $probe($case['header'], 'realistic-browser')['selected'],
+    ];
+}
 $cases = [];
 $differences = [];
 foreach ($fixture['cases'] as $index => $case) {
@@ -89,12 +98,16 @@ $report = [
     'probeCases' => $cases,
     'probeDifferences' => $differences,
     'rawHeaderCases' => $headerResults,
+    'realisticBrowserResults' => $browserResults,
 ];
 file_put_contents('localization-pr4-http-candidate-diagnostics.json', json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL);
 echo 'PR4 HTTP BOUNDARY DIAGNOSTIC: '.json_encode([
     'fixtureCount' => count($cases),
     'headerVsStandaloneDifferences' => count($differences),
 ], JSON_THROW_ON_ERROR).PHP_EOL;
+foreach ($browserResults as $row) {
+    echo 'PR4 REALISTIC BROWSER HEADER: '.json_encode($row, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL;
+}
 foreach ($headerResults as $row) {
     echo 'PR4 RAW HEADER: '.json_encode([
         'case' => $row['label'],

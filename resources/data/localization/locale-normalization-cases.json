@@ -295,5 +295,47 @@
       "expected": "fr",
       "description": "Valid French tag after garbage separators should still be considered if parser retains it"
     }
+  ],
+  "realisticBrowserHeaders": [
+    {
+      "header": "en-US,en;q=0.9",
+      "navigatorLanguages": ["en-US", "en"],
+      "expected": "en"
+    },
+    {
+      "header": "pt-BR,pt;q=0.9,en;q=0.8",
+      "navigatorLanguages": ["pt-BR", "pt", "en"],
+      "expected": "pt-BR"
+    },
+    {
+      "header": "zh-Hant-TW,zh;q=0.9,en;q=0.8",
+      "navigatorLanguages": ["zh-Hant-TW", "zh", "en"],
+      "expected": "zh-TW"
+    },
+    {
+      "header": "ar-IQ,ar;q=0.9,en;q=0.8",
+      "navigatorLanguages": ["ar-IQ", "ar", "en"],
+      "expected": "ar"
+    },
+    {
+      "header": "fr-CA,fr;q=0.9,en;q=0.8",
+      "navigatorLanguages": ["fr-CA", "fr", "en"],
+      "expected": "fr"
+    },
+    {
+      "header": "es-MX,es;q=0.9,en;q=0.8",
+      "navigatorLanguages": ["es-MX", "es", "en"],
+      "expected": "es"
+    },
+    {
+      "header": "zh-Hans-CN,zh;q=0.9,en;q=0.8",
+      "navigatorLanguages": ["zh-Hans-CN", "zh", "en"],
+      "expected": "zh-CN"
+    },
+    {
+      "header": "id-ID,id;q=0.9,en;q=0.8",
+      "navigatorLanguages": ["id-ID", "id", "en"],
+      "expected": "id"
+    }
   ]
 }
