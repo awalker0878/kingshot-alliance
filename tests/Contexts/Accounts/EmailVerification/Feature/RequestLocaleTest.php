@@ -66,7 +66,7 @@ final class RequestLocaleTest extends TestCase
         }
     }
 
-    public function test_malformed_raw_accept_language_headers_degrade_to_english_with_http_200(): void
+    public function test_malformed_raw_accept_language_headers_fall_back_safely_without_4xx(): void
     {
         $raw = file_get_contents(dirname(__DIR__, 5).'/resources/data/localization/locale-normalization-cases.json');
         self::assertNotFalse($raw);
@@ -76,7 +76,7 @@ final class RequestLocaleTest extends TestCase
         foreach ($cases as $case) {
             $request = Request::create('/', server: ['HTTP_ACCEPT_LANGUAGE' => $case['header']]);
             $response = $middleware->handle($request, static function () use ($case): Response {
-                self::assertSame('en', app()->getLocale(), $case['description']);
+                self::assertSame($case['expected'], app()->getLocale(), $case['description']);
 
                 return new Response('fallback', 200);
             });
