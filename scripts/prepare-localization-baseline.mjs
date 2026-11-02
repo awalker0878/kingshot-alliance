@@ -3,23 +3,43 @@ import path from 'node:path';
 import process from 'node:process';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { execFileSync as runFile } from 'node:child_process';
+import os from 'node:os';
 import { createServer } from 'vite';
 import { flattenMessages } from './lib/localization-completeness.mjs';
 import { riskEntry, stableUnflaggedSample } from './lib/localization-risk.mjs';
 
-const output = path.resolve(process.argv[2] ?? '.translation-pr1-baseline');
+const originalRef = '7cf387b628bbbaeb81d10120340e559b46403bee';
+const currentMode = process.argv.includes('--current');
+const outputArg = process.argv.slice(2).find((value) => !value.startsWith('--'));
+const output = path.resolve(outputArg ?? (currentMode ? '.translation-pr1-current' : '.translation-pr1-baseline'));
+const temp = currentMode ? null : await fs.mkdtemp(path.resolve('.translation-pinned-source-'));
+const sourceRoot = temp ?? process.cwd();
+if (temp) {
+  try {
+    const archive = runFile('git', ['archive', originalRef, 'resources/js/localization', 'lang', 'app'], {
+      maxBuffer: 128 * 1024 * 1024,
+    });
+    runFile('tar', ['-x', '-C', temp], { input: archive, maxBuffer: 128 * 1024 * 1024 });
+  } catch (error) {
+    await fs.rm(temp, { recursive: true, force: true });
+    throw new Error('Immutable source baseline ' + originalRef + ' is unavailable; do not substitute HEAD: ' + String(error));
+  }
+}
 const sampleCount = Number(process.env.LOCALIZATION_RISK_SAMPLE_SIZE ?? 32);
 if (!Number.isSafeInteger(sampleCount) || sampleCount < 1) {
   throw new Error('LOCALIZATION_RISK_SAMPLE_SIZE must be a positive integer.');
 }
-const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-const readJson = async (file) => JSON.parse(await fs.readFile(file, 'utf8'));
+const baselineRef = originalRef;
+const sourceRevision = currentMode ? 'corrected-working-tree' : originalRef;
+const sourcePath = (...segments) => path.join(sourceRoot, ...segments);
+const readJson = async (file) => JSON.parse(await fs.readFile(sourcePath(file), 'utf8'));
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 await fs.mkdir(output, { recursive: true });
 
 const vite = await createServer({
   configFile: false,
-  root: process.cwd(),
+  root: sourceRoot,
   server: { middlewareMode: true },
   appType: 'custom',
 });
@@ -49,12 +69,12 @@ const server = {};
 for (const locale of locales) {
   server[locale] = await readJson(path.join('lang', locale + '.json'));
 }
-const englishAccounts = await fs.readFile('lang/en/accounts.php', 'utf8');
+const englishAccounts = await fs.readFile(sourcePath('lang/en/accounts.php'), 'utf8');
 const phpLiteral = /=>\s*('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*")\s*,/g;
 const decodePhp = (literal) => literal.slice(1, -1).replace(/\\(['"\\])/g, '$1');
 const accountTranslations = {};
 for (const locale of locales.filter((code) => code !== 'en')) {
-  const localized = await fs.readFile(path.join('lang', locale, 'accounts.php'), 'utf8');
+  const localized = await fs.readFile(sourcePath('lang', locale, 'accounts.php'), 'utf8');
   accountTranslations[locale] = [...localized.matchAll(phpLiteral)].map((match) => decodePhp(match[1]));
 }
 const accounts = [...englishAccounts.matchAll(phpLiteral)].map((match, index) => ({
@@ -105,7 +125,7 @@ for (const message of accounts) {
 const flagged = entries.filter((entry) => entry.reasons.length > 0);
 const samples = {};
 for (const locale of locales.filter((code) => code !== 'en')) {
-  samples[locale] = stableUnflaggedSample(entries, locale, sampleCount, head)
+  samples[locale] = stableUnflaggedSample(entries, locale, sampleCount, baselineRef)
     .map((entry) => ({
       ...entry,
       translation: entry.catalogue === 'client'
@@ -120,7 +140,7 @@ for (const locale of locales.filter((code) => code !== 'en')) {
 
 const phpFiles = {};
 for (const locale of locales) {
-  const directory = path.join('lang', locale);
+  const directory = sourcePath('lang', locale);
   const filenames = await fs.readdir(directory).catch(() => []);
   phpFiles[locale] = {};
   for (const filename of filenames.filter((name) => name.endsWith('.php')).sort()) {
@@ -151,8 +171,9 @@ try {
 
 const report = {
   version: 1,
-  baselineCommit: head,
-  capturedAt: new Date().toISOString(),
+  baselineRef,
+  sourceRevision,
+  samplingSeed: baselineRef,
   domains,
   locales,
   clientSourceEntries: entries.filter((entry) => entry.catalogue === 'client').length,
@@ -164,6 +185,7 @@ const report = {
     locales.filter((code) => code !== 'en').map((locale) => [locale, flagged.length]),
   ),
   nonFlaggedSamplePerLocale: sampleCount,
+  note: 'Candidate counts are provisional; sampled results must be reviewed before a miss rate can be asserted.',
   reviewDisclaimer: 'Keyword rules produce candidates, not an exhaustive risk inventory or linguistic approvals.',
   frameworkNote: 'Framework auth/validation/password PHP strings are inventoried by file hash; full source-key review is a subsequent task against the locked Laravel vendor version.',
 };
@@ -185,9 +207,11 @@ const files = {
 for (const [name, data] of Object.entries(files)) {
   await fs.writeFile(path.join(output, name), JSON.stringify(data, null, 2) + '\n');
 }
+if (temp) await fs.rm(temp, { recursive: true, force: true });
 console.log(JSON.stringify({
   output,
-  commit: head,
+  baselineRef,
+  sourceRevision,
   ...report,
   overlayMergeOrAdditionCount: conflicts.length,
   crossDomainDuplicateKeys: duplicatedKeys.length,
