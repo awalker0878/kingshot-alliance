@@ -213,41 +213,23 @@
   ],
   "priority": [
     {
-      "candidates": [
-        "../fr",
-        "pt_BR",
-        "de-CH"
-      ],
+      "candidates": ["../fr", "pt_BR", "de-CH"],
       "expected": "pt-BR"
     },
     {
-      "candidates": [
-        "zh-Hant-HK",
-        "fr-CA"
-      ],
+      "candidates": ["zh-Hant-HK", "fr-CA"],
       "expected": "zh-TW"
     },
     {
-      "candidates": [
-        "bogus",
-        "fr-CA"
-      ],
+      "candidates": ["bogus", "fr-CA"],
       "expected": "fr"
     },
     {
-      "candidates": [
-        "zh-cnX",
-        null,
-        "es-419"
-      ],
+      "candidates": ["zh-cnX", null, "es-419"],
       "expected": "es"
     },
     {
-      "candidates": [
-        null,
-        "",
-        "zz"
-      ],
+      "candidates": [null, "", "zz"],
       "expected": "en"
     },
     {
@@ -392,73 +374,42 @@
   "realisticBrowserHeaders": [
     {
       "header": "en-US,en;q=0.9",
-      "navigatorLanguages": [
-        "en-US",
-        "en"
-      ],
+      "navigatorLanguages": ["en-US", "en"],
       "expected": "en"
     },
     {
       "header": "pt-BR,pt;q=0.9,en;q=0.8",
-      "navigatorLanguages": [
-        "pt-BR",
-        "pt",
-        "en"
-      ],
+      "navigatorLanguages": ["pt-BR", "pt", "en"],
       "expected": "pt-BR"
     },
     {
       "header": "zh-Hant-TW,zh;q=0.9,en;q=0.8",
-      "navigatorLanguages": [
-        "zh-Hant-TW",
-        "zh",
-        "en"
-      ],
+      "navigatorLanguages": ["zh-Hant-TW", "zh", "en"],
       "expected": "zh-TW"
     },
     {
       "header": "ar-IQ,ar;q=0.9,en;q=0.8",
-      "navigatorLanguages": [
-        "ar-IQ",
-        "ar",
-        "en"
-      ],
+      "navigatorLanguages": ["ar-IQ", "ar", "en"],
       "expected": "ar"
     },
     {
       "header": "fr-CA,fr;q=0.9,en;q=0.8",
-      "navigatorLanguages": [
-        "fr-CA",
-        "fr",
-        "en"
-      ],
+      "navigatorLanguages": ["fr-CA", "fr", "en"],
       "expected": "fr"
     },
     {
       "header": "es-MX,es;q=0.9,en;q=0.8",
-      "navigatorLanguages": [
-        "es-MX",
-        "es",
-        "en"
-      ],
+      "navigatorLanguages": ["es-MX", "es", "en"],
       "expected": "es"
     },
     {
       "header": "zh-Hans-CN,zh;q=0.9,en;q=0.8",
-      "navigatorLanguages": [
-        "zh-Hans-CN",
-        "zh",
-        "en"
-      ],
+      "navigatorLanguages": ["zh-Hans-CN", "zh", "en"],
       "expected": "zh-CN"
     },
     {
       "header": "id-ID,id;q=0.9,en;q=0.8",
-      "navigatorLanguages": [
-        "id-ID",
-        "id",
-        "en"
-      ],
+      "navigatorLanguages": ["id-ID", "id", "en"],
       "expected": "id"
     }
   ]

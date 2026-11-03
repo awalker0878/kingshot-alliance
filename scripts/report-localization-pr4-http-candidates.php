@@ -6,8 +6,8 @@ declare(strict_types=1);
 // expectations, or deployment eligibility.
 require dirname(__DIR__).'/vendor/autoload.php';
 
-use App\Shared\Infrastructure\Http\SupportedLocale;
 use App\Shared\Infrastructure\Http\AcceptLanguageLocale;
+use App\Shared\Infrastructure\Http\SupportedLocale;
 use Illuminate\Http\Request;
 
 $fixture = json_decode(file_get_contents(dirname(__DIR__).'/resources/data/localization/locale-normalization-cases.json'), true, 512, JSON_THROW_ON_ERROR);

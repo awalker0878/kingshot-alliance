@@ -64,8 +64,7 @@ final class AcceptLanguageLocale
             $choices[] = ['locale' => $locale, 'quality' => $quality, 'position' => $position];
         }
 
-        usort($choices, static fn (array $a, array $b): int =>
-            ($b['quality'] <=> $a['quality']) ?: ($a['position'] <=> $b['position'])
+        usort($choices, static fn (array $a, array $b): int => ($b['quality'] <=> $a['quality']) ?: ($a['position'] <=> $b['position'])
         );
 
         return $choices[0]['locale'] ?? 'en';
