@@ -330,7 +330,7 @@ final class EventManagementController extends Controller
     {
         $time = CarbonImmutable::createFromFormat('Y-m-d\\TH:i', $value, $timezone);
         if (! $time instanceof CarbonImmutable) {
-            throw ValidationException::withMessages([$field => 'A valid local date and time is required.']);
+            throw ValidationException::withMessages([$field => (string) __('A valid local date and time is required.')]);
         }
 
         return $time;
@@ -345,7 +345,7 @@ final class EventManagementController extends Controller
     private function player(): PlayerReference
     {
         $player = $this->playerContext->playerOrNull();
-        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before performing Event operations.');
+        abort_unless($player instanceof PlayerReference, 409, (string) __('Select a Player before performing Event operations.'));
 
         return $player;
     }

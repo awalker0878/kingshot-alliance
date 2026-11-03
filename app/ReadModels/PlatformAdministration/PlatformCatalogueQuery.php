@@ -113,7 +113,7 @@ final readonly class PlatformCatalogueQuery
             return $query->whereRaw('1 = 0');
         }
         if (preg_match('/^(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$/D', $correlation) !== 1) {
-            throw ValidationException::withMessages(['correlation' => 'The correlation identifier is invalid.']);
+            throw ValidationException::withMessages(['correlation' => (string) __('The correlation identifier is invalid.')]);
         }
 
         return $query->where(strlen($correlation) === 36 ? 'request_id' : 'trace_id', strtolower($correlation));
@@ -169,7 +169,7 @@ final readonly class PlatformCatalogueQuery
             $through = $position['through'] ?? null;
             if (count($position) !== 2 || ! $this->validId($after, $numeric) || ! $this->validId($through, $numeric)
                 || ($numeric ? (int) $after > (int) $through : strcmp($after, $through) > 0)) {
-                throw ValidationException::withMessages(['cursor' => 'The Platform catalogue cursor is invalid.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The Platform catalogue cursor is invalid.')]);
             }
             $query->where($idColumn, '<', $after);
         }

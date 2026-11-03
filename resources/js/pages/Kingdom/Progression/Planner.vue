@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import RoomArtwork from '@/components/game/RoomArtwork.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
@@ -196,7 +197,11 @@ function shortChecksum(value: string): string {
       id="main-content"
       class="mx-auto w-full max-w-[100rem] space-y-6 px-4 py-6 sm:px-6 lg:px-8"
     >
-      <section class="ks-surface-gold p-5 sm:p-6" data-testid="progression-goal-planner-hero">
+      <section
+        class="ks-artwork-panel ks-surface-gold p-5 sm:p-6"
+        data-testid="progression-goal-planner-hero"
+      >
+        <RoomArtwork scene="progression-forge" />
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p class="ks-kicker">{{ t('progression.planningIntent') }}</p>

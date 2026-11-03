@@ -44,6 +44,27 @@ const messages = {
       'Bu İttifak için tamamlanmış daha eski bir Ayı Avı olduğunda karşılaştırma görünür.',
     history: 'Geçmiş',
     runHistory: 'Ayı Avı geçmişi',
+    signals: {
+      evidence: 'Kanıt durumu',
+      factualSignals: 'Kayıtlı karşılaştırma',
+      reviewPending:
+        'Bir veya daha fazla ithal vali satırı hala kimlik gözden geçirme ihtiyacı duyuyor.',
+      newPersonalBest: 'Kabul edilen sonuçlardan yeni kişisel rekor',
+      damageDirection: 'Hasar {direction}',
+      rallyDirection: 'Ralliye katılım {direction}',
+      evidenceStates: {
+        accepted: 'Ekran görüntüsü sonuçları kabul edildi',
+        recorded_without_accepted_evidence:
+          'Kayıtlı sonuç, ekran görüntüsü kanıtı kabul edilmeden kaydedildi',
+        unavailable: 'Kayıtlı sonuç yok',
+      },
+      directions: {
+        unknown: 'benzeri yok',
+        increased: 'arttı',
+        decreased: 'azaldı',
+        unchanged: 'değişmedi',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

@@ -17,8 +17,9 @@ const fingerprints: Record<string, Record<string, string>> = {
     mobile: '44084d405757bed544f009242f2abf8847745ee77dd418760a267a89b6ba7949',
   },
   noticeDetail: {
-    desktop: '63721aafbe9c3e4db251e2cad05c31faee8cc954a2fd81467df3d152259be08e',
-    mobile: '0f6dd10b829b35f2924845b391c22e7be4646f8479ef035fa802f789332008b3',
+    // Reviewed after replacing the unresolved "Published {date}" label with "Published".
+    desktop: 'b8ce3a14dc36d7c379d38fa2fa62bf5c2ef15c4c80617523724aa2a1e9a69345',
+    mobile: '9ee1eadbfe887c95955530b8262f10b663c72001c6b657d0d436ef696a02f69f',
   },
 };
 
@@ -166,6 +167,8 @@ test('Alliance Notice detail preserves reaction state and anti-ranking semantics
   await expect(like).toHaveAttribute('aria-pressed', 'true');
   await expect(dislike).toHaveAttribute('aria-pressed', 'false');
   await expect(page.getByText(/trending|popular|score|approval ratio/i)).toHaveCount(0);
+  await expect(page.getByText('Published', { exact: true })).toBeVisible();
+  await expect(page.locator('main')).not.toContainText('{date}');
 
   await assertVisual(page, testInfo, 'noticeDetail');
 });

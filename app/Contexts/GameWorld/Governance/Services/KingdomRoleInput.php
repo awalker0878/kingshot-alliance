@@ -20,18 +20,18 @@ final class KingdomRoleInput
         $description = $description === null ? null : trim($description);
         $key = Str::slug($name);
         if ($name === '' || mb_strlen($name) > 100 || $key === '') {
-            throw ValidationException::withMessages(['name' => 'A meaningful Kingdom role name of at most 100 characters is required.']);
+            throw ValidationException::withMessages(['name' => (string) __('A meaningful Kingdom role name of at most 100 characters is required.')]);
         }
         if ($description !== null && mb_strlen($description) > 255) {
-            throw ValidationException::withMessages(['description' => 'The Kingdom role description must be at most 255 characters.']);
+            throw ValidationException::withMessages(['description' => (string) __('The Kingdom role description must be at most 255 characters.')]);
         }
         if (! array_is_list($permissionKeys) || count($permissionKeys) > 50) {
-            throw ValidationException::withMessages(['permissions' => 'Choose a list of at most 50 permissions.']);
+            throw ValidationException::withMessages(['permissions' => (string) __('Choose a list of at most 50 permissions.')]);
         }
         $keys = [];
         foreach ($permissionKeys as $permission) {
             if (! is_string($permission) || trim($permission) === '' || mb_strlen($permission) > 100) {
-                throw ValidationException::withMessages(['permissions' => 'Every permission must be a recognized key of at most 100 characters.']);
+                throw ValidationException::withMessages(['permissions' => (string) __('Every permission must be a recognized key of at most 100 characters.')]);
             }
             $keys[] = trim($permission);
         }
@@ -50,7 +50,7 @@ final class KingdomRoleInput
         Validator::make([$field => $value], [$field => ['required', 'string', 'max:100', 'date']])->validate();
         $date = Carbon::parse($value)->utc();
         if ($date->year < 1 || $date->year > 9999) {
-            throw ValidationException::withMessages([$field => 'Choose a date in the supported calendar range.']);
+            throw ValidationException::withMessages([$field => (string) __('Choose a date in the supported calendar range.')]);
         }
 
         return $date;
@@ -60,7 +60,7 @@ final class KingdomRoleInput
     {
         $reason = $reason === null ? null : trim($reason);
         if ($reason !== null && mb_strlen($reason) > 500) {
-            throw ValidationException::withMessages(['reason' => 'A Kingdom role reason must be at most 500 characters.']);
+            throw ValidationException::withMessages(['reason' => (string) __('A Kingdom role reason must be at most 500 characters.')]);
         }
 
         return $reason;

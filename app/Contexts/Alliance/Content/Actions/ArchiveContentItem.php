@@ -39,7 +39,7 @@ final readonly class ArchiveContentItem
 
             if ((string) $item->slug === ContentItem::ALLIANCE_RULES_SLUG) {
                 throw ValidationException::withMessages([
-                    'content' => 'Alliance Rules cannot be archived through generic Content management.',
+                    'content' => (string) __('Alliance Rules cannot be archived through generic Content management.'),
                 ]);
             }
 

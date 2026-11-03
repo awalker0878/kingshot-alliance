@@ -32,7 +32,7 @@ final class ProgressionFamilyQuery
         $family = trim($family);
         $allowed = ['heroes', 'hero_skills', 'formations', ...$dataset->catalogueFamilies()];
         if (! in_array($family, $allowed, true)) {
-            throw ValidationException::withMessages(['family' => 'The selected progression family is unavailable in this dataset release.']);
+            throw ValidationException::withMessages(['family' => (string) __('The selected progression family is unavailable in this dataset release.')]);
         }
 
         [$rows, $sourceMeta] = match ($family) {

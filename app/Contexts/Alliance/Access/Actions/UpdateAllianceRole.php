@@ -34,10 +34,10 @@ final readonly class UpdateAllianceRole
     ): string {
         $name = trim($name);
         if ($name === '') {
-            throw ValidationException::withMessages(['name' => 'Role name is required.']);
+            throw ValidationException::withMessages(['name' => (string) __('Role name is required.')]);
         }
         if (mb_strlen($name) > 100) {
-            throw ValidationException::withMessages(['name' => 'Use a shorter role name.']);
+            throw ValidationException::withMessages(['name' => (string) __('Use a shorter role name.')]);
         }
 
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $roleId, $name, $permissions): string {
@@ -56,10 +56,10 @@ final readonly class UpdateAllianceRole
                 ->firstOrFail();
 
             if ($role->is_system) {
-                throw ValidationException::withMessages(['role' => 'System specialist roles are immutable.']);
+                throw ValidationException::withMessages(['role' => (string) __('System specialist roles are immutable.')]);
             }
             if ($role->archived_at !== null) {
-                throw ValidationException::withMessages(['role' => 'Archived specialist roles cannot be changed.']);
+                throw ValidationException::withMessages(['role' => (string) __('Archived specialist roles cannot be changed.')]);
             }
 
             $beforePermissions = $role->permissions()->pluck('key')->map(static fn ($key): string => (string) $key)->sort()->values()->all();

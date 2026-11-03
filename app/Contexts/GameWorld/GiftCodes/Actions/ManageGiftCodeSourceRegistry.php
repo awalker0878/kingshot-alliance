@@ -62,13 +62,13 @@ final readonly class ManageGiftCodeSourceRegistry
         $adapterKey = isset($attributes['adapter_key']) ? trim((string) $attributes['adapter_key']) : null;
         $adapterKey = $adapterKey === '' ? null : $adapterKey;
         if (preg_match('/^[a-z0-9][a-z0-9._-]{2,119}$/D', $sourceKey) !== 1) {
-            throw ValidationException::withMessages(['source_key' => 'Use a stable lowercase source key.']);
+            throw ValidationException::withMessages(['source_key' => (string) __('Use a stable lowercase source key.')]);
         }
         if (! in_array($classification, ['official', 'independent'], true)) {
-            throw ValidationException::withMessages(['classification' => 'Choose official or independent source authority.']);
+            throw ValidationException::withMessages(['classification' => (string) __('Choose official or independent source authority.')]);
         }
         if ($domain === '' || str_contains($domain, '/') || filter_var('https://'.$domain, FILTER_VALIDATE_URL) === false) {
-            throw ValidationException::withMessages(['canonical_domain' => 'Provide a canonical domain without a path.']);
+            throw ValidationException::withMessages(['canonical_domain' => (string) __('Provide a canonical domain without a path.')]);
         }
 
         $ingestionEnabled = (bool) ($attributes['ingestion_enabled'] ?? false);
@@ -82,18 +82,18 @@ final readonly class ManageGiftCodeSourceRegistry
         }
 
         if ($ingestionEnabled && $adapterKey === null) {
-            throw ValidationException::withMessages(['adapter_key' => 'Enabled ingestion requires a registered adapter key.']);
+            throw ValidationException::withMessages(['adapter_key' => (string) __('Enabled ingestion requires a registered adapter key.')]);
         }
         if ($ingestionEnabled && $this->adapters->find($adapterKey) === null) {
-            throw ValidationException::withMessages(['adapter_key' => 'Enabled ingestion requires an installed source adapter.']);
+            throw ValidationException::withMessages(['adapter_key' => (string) __('Enabled ingestion requires an installed source adapter.')]);
         }
         if ($pushEnabled && ! $ingestionEnabled) {
-            throw ValidationException::withMessages(['push_enabled' => 'Push acquisition requires source ingestion to be enabled.']);
+            throw ValidationException::withMessages(['push_enabled' => (string) __('Push acquisition requires source ingestion to be enabled.')]);
         }
 
         $policy = $attributes['provenance_policy'] ?? null;
         if ($policy !== null && ! is_array($policy)) {
-            throw ValidationException::withMessages(['provenance_policy' => 'Source policy must be an object.']);
+            throw ValidationException::withMessages(['provenance_policy' => (string) __('Source policy must be an object.')]);
         }
         $policy ??= [];
 
@@ -102,12 +102,12 @@ final readonly class ManageGiftCodeSourceRegistry
         $this->validatePushConfiguration($adapterKey, $pushEnabled);
         if (($policy['manual_evidence_allowed'] ?? false) === true && ($policy['auto_verify'] ?? false) === true) {
             throw ValidationException::withMessages([
-                'auto_verify' => 'Manually recorded registered-source evidence requires explicit curator verification and cannot auto-verify.',
+                'auto_verify' => (string) __('Manually recorded registered-source evidence requires explicit curator verification and cannot auto-verify.'),
             ]);
         }
         if ($classification === 'independent' && ($policy['auto_verify'] ?? false) === true) {
             throw ValidationException::withMessages([
-                'auto_verify' => 'Independent sources cannot automatically verify Gift Code evidence.',
+                'auto_verify' => (string) __('Independent sources cannot automatically verify Gift Code evidence.'),
             ]);
         }
 
@@ -217,7 +217,7 @@ final readonly class ManageGiftCodeSourceRegistry
         $this->authorize($actor);
         $reason = trim($reason);
         if ($reason === '') {
-            throw ValidationException::withMessages(['reason' => 'A source revocation reason is required.']);
+            throw ValidationException::withMessages(['reason' => (string) __('A source revocation reason is required.')]);
         }
 
         return DB::transaction(function () use ($actor, $sourceId, $reason): string {
@@ -273,7 +273,7 @@ final readonly class ManageGiftCodeSourceRegistry
         }
         if (filter_var($domain, FILTER_VALIDATE_IP) !== false || $domain === 'localhost') {
             throw ValidationException::withMessages([
-                'canonical_domain' => 'The selected source adapter requires a public canonical hostname.',
+                'canonical_domain' => (string) __('The selected source adapter requires a public canonical hostname.'),
             ]);
         }
         $feedPath = is_string($policy['feed_path'] ?? null) ? trim($policy['feed_path']) : '';
@@ -286,7 +286,7 @@ final readonly class ManageGiftCodeSourceRegistry
             || str_contains('/'.$feedPath.'/', '/../')
             || str_contains('/'.$feedPath.'/', '/./')) {
             throw ValidationException::withMessages([
-                'feed_path' => 'The selected source adapter requires an absolute source path without a host, query, fragment, or traversal segment.',
+                'feed_path' => (string) __('The selected source adapter requires an absolute source path without a host, query, fragment, or traversal segment.'),
             ]);
         }
     }
@@ -304,7 +304,7 @@ final readonly class ManageGiftCodeSourceRegistry
             $this->requirePattern($policy, 'x_user_id', '/^[0-9]{1,32}$/D', 'The official X adapter requires the confirmed numeric X user id.');
             $this->requirePattern($policy, 'x_username', '/^[A-Za-z0-9_]{1,30}$/D', 'The official X adapter requires the confirmed X username.');
             if ($ingestionEnabled && ($policy['platform_api_access_confirmed'] ?? false) !== true) {
-                throw ValidationException::withMessages(['platform_api_access_confirmed' => 'Enable the official X adapter only after API access is confirmed.']);
+                throw ValidationException::withMessages(['platform_api_access_confirmed' => (string) __('Enable the official X adapter only after API access is confirmed.')]);
             }
             $this->requireConfiguredWhenEnabled($ingestionEnabled, 'game_world.gift_codes.x_bearer_token', 'adapter_key', 'Enable the official X adapter only after configuring the X API bearer token.');
 
@@ -315,7 +315,7 @@ final readonly class ManageGiftCodeSourceRegistry
             $this->requireDomain($domain, 'centurygames.com', 'The Century Games Kingshot news adapter requires centurygames.com as the canonical source domain.');
             if ($ingestionEnabled && ($policy['provider_permission_confirmed'] ?? false) !== true) {
                 throw ValidationException::withMessages([
-                    'provider_permission_confirmed' => 'Enable Century Games Kingshot news ingestion only after provider permission is confirmed.',
+                    'provider_permission_confirmed' => (string) __('Enable Century Games Kingshot news ingestion only after provider permission is confirmed.'),
                 ]);
             }
 
@@ -325,7 +325,7 @@ final readonly class ManageGiftCodeSourceRegistry
         if (in_array($adapterKey, [JsonFeedGiftCodeSourceAdapter::KEY, RssAtomGiftCodeSourceAdapter::KEY], true)) {
             if ($ingestionEnabled && ($policy['provider_contract_confirmed'] ?? false) !== true) {
                 throw ValidationException::withMessages([
-                    'provider_contract_confirmed' => 'Enable a generic structured feed only after the provider has established a documented machine-readable contract.',
+                    'provider_contract_confirmed' => (string) __('Enable a generic structured feed only after the provider has established a documented machine-readable contract.'),
                 ]);
             }
 
@@ -335,7 +335,7 @@ final readonly class ManageGiftCodeSourceRegistry
         if ($adapterKey === StructuredHtmlGiftCodeSourceAdapter::KEY) {
             if ($ingestionEnabled && ($policy['structured_contract_confirmed'] ?? false) !== true) {
                 throw ValidationException::withMessages([
-                    'structured_contract_confirmed' => 'Enable structured HTML only when the publisher documents that exact machine-readable contract; prose scraping is not supported.',
+                    'structured_contract_confirmed' => (string) __('Enable structured HTML only when the publisher documents that exact machine-readable contract; prose scraping is not supported.'),
                 ]);
             }
 
@@ -348,17 +348,17 @@ final readonly class ManageGiftCodeSourceRegistry
             $this->requirePattern($policy, 'discord_channel_id', '/^[0-9]{1,32}$/D', 'The Discord channel adapter requires the approved channel id.');
             $authors = $policy['discord_author_ids'] ?? null;
             if (! is_array($authors) || $authors === [] || count($authors) > 50) {
-                throw ValidationException::withMessages(['discord_author_ids' => 'Provide one to fifty approved Discord author ids.']);
+                throw ValidationException::withMessages(['discord_author_ids' => (string) __('Provide one to fifty approved Discord author ids.')]);
             }
             foreach ($authors as $authorId) {
                 if (! is_string($authorId) || preg_match('/^[0-9]{1,32}$/D', trim($authorId)) !== 1) {
-                    throw ValidationException::withMessages(['discord_author_ids' => 'Discord author ids must be numeric snowflakes.']);
+                    throw ValidationException::withMessages(['discord_author_ids' => (string) __('Discord author ids must be numeric snowflakes.')]);
                 }
             }
             if ($ingestionEnabled && (($policy['platform_permission_confirmed'] ?? false) !== true
                 || ($policy['message_content_access_confirmed'] ?? false) !== true)) {
                 throw ValidationException::withMessages([
-                    'platform_permission_confirmed' => 'Enable Discord ingestion only after bot installation, channel scope, and message-content access are confirmed.',
+                    'platform_permission_confirmed' => (string) __('Enable Discord ingestion only after bot installation, channel scope, and message-content access are confirmed.'),
                 ]);
             }
             $this->requireConfiguredWhenEnabled($ingestionEnabled, 'game_world.gift_codes.discord_bot_token', 'adapter_key', 'Enable Discord ingestion only after configuring the bot token.');
@@ -371,7 +371,7 @@ final readonly class ManageGiftCodeSourceRegistry
             $this->requirePattern($policy, 'youtube_channel_id', '/^UC[A-Za-z0-9_-]{20,40}$/D', 'The YouTube channel adapter requires the confirmed channel id.');
             $this->requireNonEmpty($policy, 'youtube_channel_title', 200, 'The YouTube channel adapter requires the confirmed channel title.');
             if ($ingestionEnabled && ($policy['platform_api_access_confirmed'] ?? false) !== true) {
-                throw ValidationException::withMessages(['platform_api_access_confirmed' => 'Enable YouTube ingestion only after Data API access is confirmed.']);
+                throw ValidationException::withMessages(['platform_api_access_confirmed' => (string) __('Enable YouTube ingestion only after Data API access is confirmed.')]);
             }
             $this->requireConfiguredWhenEnabled($ingestionEnabled, 'game_world.gift_codes.youtube_api_key', 'adapter_key', 'Enable YouTube ingestion only after configuring the Data API key.');
 
@@ -381,14 +381,14 @@ final readonly class ManageGiftCodeSourceRegistry
         if ($adapterKey === RedditSubredditGiftCodeSourceAdapter::KEY) {
             $this->requireDomain($domain, 'reddit.com', 'The Reddit adapter requires reddit.com as the canonical source domain.');
             if ($classification !== 'independent') {
-                throw ValidationException::withMessages(['classification' => 'Reddit discovery must remain an independent source.']);
+                throw ValidationException::withMessages(['classification' => (string) __('Reddit discovery must remain an independent source.')]);
             }
             if (($policy['auto_verify'] ?? false) === true) {
-                throw ValidationException::withMessages(['auto_verify' => 'Reddit discovery cannot automatically verify Gift Code evidence.']);
+                throw ValidationException::withMessages(['auto_verify' => (string) __('Reddit discovery cannot automatically verify Gift Code evidence.')]);
             }
             $this->requirePattern($policy, 'reddit_subreddit', '/^[A-Za-z0-9_]{2,32}$/D', 'The Reddit adapter requires a valid subreddit name.');
             if ($ingestionEnabled && ($policy['platform_api_access_confirmed'] ?? false) !== true) {
-                throw ValidationException::withMessages(['platform_api_access_confirmed' => 'Enable Reddit ingestion only after Data API registration and access are confirmed.']);
+                throw ValidationException::withMessages(['platform_api_access_confirmed' => (string) __('Enable Reddit ingestion only after Data API registration and access are confirmed.')]);
             }
             foreach ([
                 'game_world.gift_codes.reddit_client_id',
@@ -406,7 +406,7 @@ final readonly class ManageGiftCodeSourceRegistry
             $this->requirePattern($policy, 'facebook_page_id', '/^[0-9]{1,64}$/D', 'The Facebook Page adapter requires the confirmed numeric Page id.');
             $this->requireNonEmpty($policy, 'facebook_page_name', 200, 'The Facebook Page adapter requires the confirmed Page name.');
             if ($ingestionEnabled && ($policy['platform_permission_confirmed'] ?? false) !== true) {
-                throw ValidationException::withMessages(['platform_permission_confirmed' => 'Enable Facebook ingestion only after Page access and platform permission are confirmed.']);
+                throw ValidationException::withMessages(['platform_permission_confirmed' => (string) __('Enable Facebook ingestion only after Page access and platform permission are confirmed.')]);
             }
             $this->requireConfiguredWhenEnabled($ingestionEnabled, 'game_world.gift_codes.facebook_access_token', 'adapter_key', 'Enable Facebook ingestion only after configuring a Page access token.');
 
@@ -418,7 +418,7 @@ final readonly class ManageGiftCodeSourceRegistry
             $this->requirePattern($policy, 'instagram_user_id', '/^[0-9]{1,64}$/D', 'The Instagram media adapter requires the confirmed professional account id.');
             $this->requirePattern($policy, 'instagram_username', '/^[A-Za-z0-9._]{1,80}$/D', 'The Instagram media adapter requires the confirmed username.');
             if ($ingestionEnabled && ($policy['platform_permission_confirmed'] ?? false) !== true) {
-                throw ValidationException::withMessages(['platform_permission_confirmed' => 'Enable Instagram ingestion only after professional-account API access is confirmed.']);
+                throw ValidationException::withMessages(['platform_permission_confirmed' => (string) __('Enable Instagram ingestion only after professional-account API access is confirmed.')]);
             }
             $this->requireConfiguredWhenEnabled($ingestionEnabled, 'game_world.gift_codes.instagram_access_token', 'adapter_key', 'Enable Instagram ingestion only after configuring an account access token.');
         }
@@ -443,7 +443,7 @@ final readonly class ManageGiftCodeSourceRegistry
         }
         if ($adapterKey === DiscordChannelGiftCodeSourceAdapter::KEY) {
             if (! (bool) config('game_world.gift_codes.discord_gateway_enabled', false)) {
-                throw ValidationException::withMessages(['push_enabled' => 'Discord push requires the Gateway transport to be enabled.']);
+                throw ValidationException::withMessages(['push_enabled' => (string) __('Discord push requires the Gateway transport to be enabled.')]);
             }
 
             return;
@@ -451,7 +451,7 @@ final readonly class ManageGiftCodeSourceRegistry
         if ($adapterKey === OfficialXGiftCodeSourceAdapter::KEY) {
             if (! (bool) config('game_world.gift_codes.x_realtime_transport', false)
                 || ! (bool) config('game_world.gift_codes.x_filtered_stream_webhook_entitled', false)) {
-                throw ValidationException::withMessages(['push_enabled' => 'X push requires the explicitly configured Filtered Stream Webhook Enterprise entitlement.']);
+                throw ValidationException::withMessages(['push_enabled' => (string) __('X push requires the explicitly configured Filtered Stream Webhook Enterprise entitlement.')]);
             }
             $this->requireConfigured('game_world.gift_codes.x_consumer_secret', 'push_enabled', 'X push requires the app consumer secret.');
 
@@ -459,7 +459,7 @@ final readonly class ManageGiftCodeSourceRegistry
         }
 
         throw ValidationException::withMessages([
-            'push_enabled' => 'The selected source adapter does not support a legitimate push transport.',
+            'push_enabled' => (string) __('The selected source adapter does not support a legitimate push transport.'),
         ]);
     }
 

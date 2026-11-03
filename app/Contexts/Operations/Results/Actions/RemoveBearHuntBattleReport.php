@@ -33,7 +33,7 @@ final readonly class RemoveBearHuntBattleReport
     {
         $reason = trim($reason);
         if (mb_strlen($reason) < 10 || mb_strlen($reason) > 1000) {
-            throw ValidationException::withMessages(['reason' => 'Explain in 10 to 1000 characters why this battle report is being removed.']);
+            throw ValidationException::withMessages(['reason' => (string) __('Explain in 10 to 1000 characters why this battle report is being removed.')]);
         }
         $route = BearHuntBattleReport::query()->select(['id', 'occurrence_id'])->findOrFail($reportId);
 
@@ -43,7 +43,7 @@ final readonly class RemoveBearHuntBattleReport
             $this->authorization->authorizeManager($context);
             if ($context->event->scopeEnum() !== EventScope::Alliance
                 || $context->event->eventType->slug !== 'bear-hunt') {
-                throw ValidationException::withMessages(['event' => 'This occurrence is not an Alliance Bear Hunt Event.']);
+                throw ValidationException::withMessages(['event' => (string) __('This occurrence is not an Alliance Bear Hunt Event.')]);
             }
             $this->workflows->requireAll($context->event, [
                 EventWorkflowDimension::Results,

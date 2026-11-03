@@ -61,12 +61,12 @@ final readonly class RecordSpatialObservationEvidence
     ): SpatialObservationRecordResult {
         if ($schemaVersion !== self::SCHEMA_VERSION) {
             throw ValidationException::withMessages([
-                'schema_version' => 'The reviewed Territory screenshot schema version is not supported.',
+                'schema_version' => (string) __('The reviewed Territory screenshot schema version is not supported.'),
             ]);
         }
         if (preg_match('/^[a-f0-9]{64}$/', $idempotencyKey) !== 1) {
             throw ValidationException::withMessages([
-                'idempotency_key' => 'The spatial-observation destination idempotency key is invalid.',
+                'idempotency_key' => (string) __('The spatial-observation destination idempotency key is invalid.'),
             ]);
         }
 
@@ -74,12 +74,12 @@ final readonly class RecordSpatialObservationEvidence
             $captured = CarbonImmutable::parse($capturedAt)->utc();
         } catch (Throwable) {
             throw ValidationException::withMessages([
-                'captured_at' => 'The observation capture time is invalid.',
+                'captured_at' => (string) __('The observation capture time is invalid.'),
             ]);
         }
         if ($captured->isAfter(now()->addMinutes(5))) {
             throw ValidationException::withMessages([
-                'captured_at' => 'The observation capture time cannot be more than five minutes in the future.',
+                'captured_at' => (string) __('The observation capture time cannot be more than five minutes in the future.'),
             ]);
         }
 
@@ -91,7 +91,7 @@ final readonly class RecordSpatialObservationEvidence
             );
             if ($scope->kingdomId !== $kingdomId) {
                 throw ValidationException::withMessages([
-                    'kingdom_id' => 'The observed Kingdom no longer matches the active Alliance scope.',
+                    'kingdom_id' => (string) __('The observed Kingdom no longer matches the active Alliance scope.'),
                 ]);
             }
 
@@ -108,7 +108,7 @@ final readonly class RecordSpatialObservationEvidence
                     || (string) $existing->map_dataset_id !== $mapDatasetId
                     || (string) $existing->map_dataset_checksum !== $mapDatasetChecksum) {
                     throw ValidationException::withMessages([
-                        'idempotency_key' => 'The destination idempotency key is already bound to different spatial evidence.',
+                        'idempotency_key' => (string) __('The destination idempotency key is already bound to different spatial evidence.'),
                     ]);
                 }
 
@@ -129,7 +129,7 @@ final readonly class RecordSpatialObservationEvidence
                 mapDatasetChecksum: $mapDatasetChecksum,
             )) {
                 throw ValidationException::withMessages([
-                    'evidence' => 'The exact approved Territory observation review is no longer valid for this destination scope.',
+                    'evidence' => (string) __('The exact approved Territory observation review is no longer valid for this destination scope.'),
                 ]);
             }
 
@@ -148,7 +148,7 @@ final readonly class RecordSpatialObservationEvidence
                 $reason = trim((string) $correctionReason);
                 if (mb_strlen($reason) < 8 || mb_strlen($reason) > 1000) {
                     throw ValidationException::withMessages([
-                        'correction_reason' => 'A correction reason between 8 and 1,000 characters is required.',
+                        'correction_reason' => (string) __('A correction reason between 8 and 1,000 characters is required.'),
                     ]);
                 }
 
@@ -160,7 +160,7 @@ final readonly class RecordSpatialObservationEvidence
                     ->firstOrFail();
                 if ($corrects->invalidated_at !== null) {
                     throw ValidationException::withMessages([
-                        'corrects_observation_id' => 'Only a current accepted observation may be corrected.',
+                        'corrects_observation_id' => (string) __('Only a current accepted observation may be corrected.'),
                     ]);
                 }
             }
@@ -268,23 +268,23 @@ final readonly class RecordSpatialObservationEvidence
         if ($kind === SpatialObservationCoverageKind::CompleteHive
             && $completeness !== SpatialObservationCompleteness::Complete) {
             throw ValidationException::withMessages([
-                'completeness' => 'A complete-hive observation must be explicitly complete.',
+                'completeness' => (string) __('A complete-hive observation must be explicitly complete.'),
             ]);
         }
         if ($kind === SpatialObservationCoverageKind::CompleteVisibleRegion
             && $completeness !== SpatialObservationCompleteness::Complete) {
             throw ValidationException::withMessages([
-                'completeness' => 'A complete visible-region observation must be explicitly complete.',
+                'completeness' => (string) __('A complete visible-region observation must be explicitly complete.'),
             ]);
         }
         if ($kind === SpatialObservationCoverageKind::SingleObject && $objectCount !== 1) {
             throw ValidationException::withMessages([
-                'objects' => 'A single-object observation must contain exactly one reviewed object.',
+                'objects' => (string) __('A single-object observation must contain exactly one reviewed object.'),
             ]);
         }
         if ($kind === SpatialObservationCoverageKind::CompleteVisibleRegion && $bounds === null) {
             throw ValidationException::withMessages([
-                'coverage_bounds' => 'Complete visible-region observations require explicit visible bounds.',
+                'coverage_bounds' => (string) __('Complete visible-region observations require explicit visible bounds.'),
             ]);
         }
         if ($bounds === null) {
@@ -294,20 +294,20 @@ final readonly class RecordSpatialObservationEvidence
         foreach (['x', 'y', 'width', 'height'] as $field) {
             if (! isset($bounds[$field]) || ! is_int($bounds[$field])) {
                 throw ValidationException::withMessages([
-                    'coverage_bounds' => 'Coverage bounds require integer x, y, width and height values.',
+                    'coverage_bounds' => (string) __('Coverage bounds require integer x, y, width and height values.'),
                 ]);
             }
         }
         if ($bounds['width'] < 1 || $bounds['height'] < 1) {
             throw ValidationException::withMessages([
-                'coverage_bounds' => 'Coverage bounds must have positive width and height.',
+                'coverage_bounds' => (string) __('Coverage bounds must have positive width and height.'),
             ]);
         }
 
         $map = $dataset['bounds'] ?? null;
         if (! is_array($map)) {
             throw ValidationException::withMessages([
-                'map_dataset_id' => 'The pinned map dataset does not expose coordinate bounds.',
+                'map_dataset_id' => (string) __('The pinned map dataset does not expose coordinate bounds.'),
             ]);
         }
 
@@ -320,7 +320,7 @@ final readonly class RecordSpatialObservationEvidence
             || $mapX + $mapWidth < $bounds['x'] + $bounds['width']
             || $mapY + $mapHeight < $bounds['y'] + $bounds['height']) {
             throw ValidationException::withMessages([
-                'coverage_bounds' => 'Coverage bounds must stay inside the pinned Kingdom map.',
+                'coverage_bounds' => (string) __('Coverage bounds must stay inside the pinned Kingdom map.'),
             ]);
         }
 
@@ -336,7 +336,7 @@ final readonly class RecordSpatialObservationEvidence
     {
         if (count($objects) > 5000) {
             throw ValidationException::withMessages([
-                'objects' => 'A spatial observation may contain at most 5,000 reviewed objects.',
+                'objects' => (string) __('A spatial observation may contain at most 5,000 reviewed objects.'),
             ]);
         }
 
@@ -352,14 +352,14 @@ final readonly class RecordSpatialObservationEvidence
         foreach ($objects as $index => $object) {
             if (! is_array($object)) {
                 throw ValidationException::withMessages([
-                    "objects.{$index}" => 'Each reviewed object must be structured data.',
+                    "objects.{$index}" => (string) __('Each reviewed object must be structured data.'),
                 ]);
             }
 
             $key = trim((string) ($object['key'] ?? ''));
             if ($key === '' || mb_strlen($key) > 120 || isset($seen[$key])) {
                 throw ValidationException::withMessages([
-                    "objects.{$index}.key" => 'Observed object keys must be unique and no longer than 120 characters.',
+                    "objects.{$index}.key" => (string) __('Observed object keys must be unique and no longer than 120 characters.'),
                 ]);
             }
             $seen[$key] = true;
@@ -367,12 +367,12 @@ final readonly class RecordSpatialObservationEvidence
             $type = SpatialObservedObjectType::tryFrom((string) ($object['type'] ?? ''));
             if (! $type instanceof SpatialObservedObjectType) {
                 throw ValidationException::withMessages([
-                    "objects.{$index}.type" => 'The observed object type is unsupported.',
+                    "objects.{$index}.type" => (string) __('The observed object type is unsupported.'),
                 ]);
             }
             if (! is_int($object['x'] ?? null) || ! is_int($object['y'] ?? null)) {
                 throw ValidationException::withMessages([
-                    "objects.{$index}" => 'Observed coordinates must be whole-number game coordinates.',
+                    "objects.{$index}" => (string) __('Observed coordinates must be whole-number game coordinates.'),
                 ]);
             }
 
@@ -386,7 +386,7 @@ final readonly class RecordSpatialObservationEvidence
             $y = $object['y'];
             if ($x < $minX || $y < $minY || $x + $width > $maxX || $y + $height > $maxY) {
                 throw ValidationException::withMessages([
-                    "objects.{$index}" => 'An observed object lies outside the pinned Kingdom map bounds.',
+                    "objects.{$index}" => (string) __('An observed object lies outside the pinned Kingdom map bounds.'),
                 ]);
             }
 
@@ -395,7 +395,7 @@ final readonly class RecordSpatialObservationEvidence
             );
             if (! $identity instanceof SpatialObservedIdentityState) {
                 throw ValidationException::withMessages([
-                    "objects.{$index}.identity_state" => 'The observed identity state is unsupported.',
+                    "objects.{$index}.identity_state" => (string) __('The observed identity state is unsupported.'),
                 ]);
             }
 
@@ -412,25 +412,25 @@ final readonly class RecordSpatialObservationEvidence
                     || $planLocal !== null
                     || $identity !== SpatialObservedIdentityState::Unresolved) {
                     throw ValidationException::withMessages([
-                        "objects.{$index}.identity_state" => 'Only Governor-city observations may carry Governor identity mapping.',
+                        "objects.{$index}.identity_state" => (string) __('Only Governor-city observations may carry Governor identity mapping.'),
                     ]);
                 }
             } elseif ($identity === SpatialObservedIdentityState::ResolvedPlayer) {
                 if ($playerId === null || $planLocal !== null) {
                     throw ValidationException::withMessages([
-                        "objects.{$index}.player_id" => 'Resolved Player identity requires exactly one Player reference.',
+                        "objects.{$index}.player_id" => (string) __('Resolved Player identity requires exactly one Player reference.'),
                     ]);
                 }
                 $playerIds[$playerId] = true;
             } elseif ($identity === SpatialObservedIdentityState::ResolvedPlanLocal) {
                 if ($planLocal === null || $playerId !== null || mb_strlen($planLocal) > 191) {
                     throw ValidationException::withMessages([
-                        "objects.{$index}.plan_local_identity" => 'Resolved plan-local identity requires exactly one reviewed plan-local identity.',
+                        "objects.{$index}.plan_local_identity" => (string) __('Resolved plan-local identity requires exactly one reviewed plan-local identity.'),
                     ]);
                 }
             } elseif ($playerId !== null || $planLocal !== null) {
                 throw ValidationException::withMessages([
-                    "objects.{$index}.identity_state" => 'Ambiguous or unresolved identity cannot retain a definitive Player/plan-local mapping.',
+                    "objects.{$index}.identity_state" => (string) __('Ambiguous or unresolved identity cannot retain a definitive Player/plan-local mapping.'),
                 ]);
             }
         }
@@ -440,7 +440,7 @@ final readonly class RecordSpatialObservationEvidence
             $reference = $references[$playerId] ?? null;
             if ($reference === null || $reference->kingdomId !== $kingdomId) {
                 throw ValidationException::withMessages([
-                    'objects' => 'A resolved Governor identity must reference a current Player in the observed Kingdom.',
+                    'objects' => (string) __('A resolved Governor identity must reference a current Player in the observed Kingdom.'),
                 ]);
             }
         }
@@ -450,7 +450,7 @@ final readonly class RecordSpatialObservationEvidence
             $confidence = isset($object['confidence']) ? (float) $object['confidence'] : null;
             if ($confidence !== null && ($confidence < 0 || $confidence > 1)) {
                 throw ValidationException::withMessages([
-                    'objects' => 'Observed-object confidence must be between 0 and 1.',
+                    'objects' => (string) __('Observed-object confidence must be between 0 and 1.'),
                 ]);
             }
             $validated[] = [

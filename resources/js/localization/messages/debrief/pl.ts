@@ -44,6 +44,27 @@ const messages = {
       'Porównanie pojawi się, gdy dla tego Sojuszu istnieje wcześniejsze zakończone Polowanie na Niedźwiedzia.',
     history: 'Historia',
     runHistory: 'Historia Polowań na Niedźwiedzia',
+    signals: {
+      evidence: 'Stan dowodów',
+      factualSignals: 'Porównanie nagrane',
+      reviewPending:
+        'Jeden lub więcej importowanych wierszy gubernatora nadal wymaga przeglądu tożsamości.',
+      newPersonalBest: 'Nowy rekord osobisty z zaakceptowanych wyników',
+      damageDirection: 'Uszkodzenie {direction}',
+      rallyDirection: 'Udział w rajdzie {direction}',
+      evidenceStates: {
+        accepted: 'Zaakceptowany wynik zrzutu ekranu',
+        recorded_without_accepted_evidence:
+          'Zarejestrowany wynik bez akceptowanych dowodów zrzutu ekranu',
+        unavailable: 'Brak zarejestrowanego wyniku',
+      },
+      directions: {
+        unknown: 'Nie jest porównywalny',
+        increased: 'wzrost',
+        decreased: 'spadek',
+        unchanged: 'bez zmian',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

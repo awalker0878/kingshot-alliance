@@ -8,6 +8,7 @@ import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
+import { formatEventTime, resolveTimeZone } from '@/features/events/time';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -130,7 +131,9 @@ const props = defineProps<{
   };
 }>();
 
-const { t, formatDate, formatNumber } = useLocale();
+const { t, locale, formatNumber } = useLocale();
+const displayTimeZone = computed(() => resolveTimeZone(props.userTimezone));
+const eventTimeZone = computed(() => resolveTimeZone(props.event.timezone));
 const { dialog, requestConfirmation, cancelConfirmation, confirmAction } = useConfirmAction();
 const displayName = computed(() => props.event.title || t(props.event.nameKey));
 const responseForm = useForm({
@@ -211,9 +214,9 @@ function respondToRally(assignmentId: string, status: 'confirmed' | 'declined'):
     { preserveScroll: true },
   );
 }
-function eventDate(value: string | null): string {
+function eventDate(value: string | null, timeZone = displayTimeZone.value): string {
   return value
-    ? formatDate(value, {
+    ? formatEventTime(value, locale.value, timeZone, {
         weekday: 'short',
         month: 'short',
         day: 'numeric',
@@ -293,6 +296,9 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
         }}</span>
       </template>
     </RoomBanner>
+    <p class="mt-3 text-sm text-[var(--ks-muted)]" data-testid="event-display-timezone">
+      {{ t('events.time.yourTime', { zone: displayTimeZone }) }}
+    </p>
 
     <section class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <StatSeal :label="t('events.create.start')" :value="eventDate(event.startsAt)" icon="◷" />
@@ -661,8 +667,10 @@ function statusTone(value: string): 'success' | 'warning' | 'danger' | 'info' {
               <dd class="mt-1 font-semibold">{{ eventDate(event.endsAt) }}</dd>
             </div>
             <div>
-              <dt class="text-xs text-[var(--ks-muted)]">{{ t('contentExperience.timezone') }}</dt>
-              <dd class="mt-1 font-semibold">{{ event.timezone }}</dd>
+              <dt class="text-xs text-[var(--ks-muted)]">
+                {{ t('events.time.eventTime', { zone: eventTimeZone }) }}
+              </dt>
+              <dd class="mt-1 font-semibold">{{ eventDate(event.startsAt, eventTimeZone) }}</dd>
             </div>
           </dl>
           <div class="ks-divider my-5" />

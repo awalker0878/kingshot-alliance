@@ -32,7 +32,7 @@ final class XGiftCodeWebhookController extends Controller
         $secret = $this->consumerSecret();
         $crcToken = trim((string) $request->query('crc_token', ''));
         if ($crcToken === '' || mb_strlen($crcToken) > 4096) {
-            abort(400, 'Missing or invalid CRC token.');
+            abort(400, (string) __('Missing or invalid CRC token.'));
         }
 
         $digest = base64_encode(hash_hmac('sha256', $crcToken, $secret, true));
@@ -144,7 +144,7 @@ final class XGiftCodeWebhookController extends Controller
         $expected = 'sha256='.base64_encode(hash_hmac('sha256', $body, $this->consumerSecret(), true));
         if ($signature === '' || ! hash_equals($expected, $signature)) {
             $activity->handle((string) $source->id, 'signature_failure');
-            throw ValidationException::withMessages(['signature' => 'The X webhook signature is invalid.']);
+            throw ValidationException::withMessages(['signature' => (string) __('The X webhook signature is invalid.')]);
         }
     }
 
@@ -152,7 +152,7 @@ final class XGiftCodeWebhookController extends Controller
     {
         $secret = trim((string) config('game_world.gift_codes.x_consumer_secret', ''));
         if (strlen($secret) < 20) {
-            abort(503, 'X webhook consumer-secret verification is not configured.');
+            abort(503, (string) __('X webhook consumer-secret verification is not configured.'));
         }
 
         return $secret;

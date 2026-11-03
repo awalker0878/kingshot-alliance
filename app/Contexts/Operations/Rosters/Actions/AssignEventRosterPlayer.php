@@ -48,13 +48,13 @@ final readonly class AssignEventRosterPlayer
         ?string $notes = null,
     ): void {
         if ($slotNumber !== null && $slotNumber < 1) {
-            throw ValidationException::withMessages(['slot_number' => 'Roster slot must be at least one.']);
+            throw ValidationException::withMessages(['slot_number' => (string) __('Roster slot must be at least one.')]);
         }
         if ($role !== null && mb_strlen(trim($role)) > 80) {
-            throw ValidationException::withMessages(['role' => 'Roster role must be 80 characters or fewer.']);
+            throw ValidationException::withMessages(['role' => (string) __('Roster role must be 80 characters or fewer.')]);
         }
         if ($notes !== null && mb_strlen(trim($notes)) > 10000) {
-            throw ValidationException::withMessages(['notes' => 'Roster notes must be 10000 characters or fewer.']);
+            throw ValidationException::withMessages(['notes' => (string) __('Roster notes must be 10000 characters or fewer.')]);
         }
 
         $occupying = $this->occupyingStatuses();
@@ -67,7 +67,7 @@ final readonly class AssignEventRosterPlayer
             $occurrence = EventOccurrence::query()->whereKey($occurrenceId)->where('event_id', $context->event->id)->lockForUpdate()->firstOrFail();
             $roster = EventRoster::query()->whereKey($rosterId)->where('occurrence_id', $occurrence->id)->lockForUpdate()->firstOrFail();
             if ($roster->children()->exists()) {
-                throw ValidationException::withMessages(['roster' => 'Assign Players to a leaf roster, not a roster that contains child rosters.']);
+                throw ValidationException::withMessages(['roster' => (string) __('Assign Players to a leaf roster, not a roster that contains child rosters.')]);
             }
 
             $player = $this->players->lockCurrent($playerId);
@@ -75,7 +75,7 @@ final readonly class AssignEventRosterPlayer
                 && $context->target->allianceId !== null
                 && $this->rosterEntries->lockActiveRosterPresence($context->target->allianceId, $playerId);
             if (! $this->participants->eligibleAgainstTarget($context->target, $player, $activeRosterPresence)) {
-                throw ValidationException::withMessages(['player' => 'This Player is not eligible for the Event target.']);
+                throw ValidationException::withMessages(['player' => (string) __('This Player is not eligible for the Event target.')]);
             }
 
             $allianceId = $this->allianceSnapshots->resolve($context->target, $player);
@@ -104,12 +104,12 @@ final readonly class AssignEventRosterPlayer
             $alreadyOccupies = $member instanceof EventRosterMember && $member->statusEnum()->occupiesSlot();
             $activeCount = EventRosterMember::query()->where('roster_id', $roster->id)->whereIn('status', $occupying)->count();
             if (! $alreadyOccupies && $roster->capacity !== null && $activeCount >= (int) $roster->capacity) {
-                throw ValidationException::withMessages(['roster' => 'This roster is at capacity.']);
+                throw ValidationException::withMessages(['roster' => (string) __('This roster is at capacity.')]);
             }
             if ($slotNumber !== null && EventRosterMember::query()
                 ->where('roster_id', $roster->id)->where('slot_number', $slotNumber)->whereIn('status', $occupying)
                 ->when($memberId !== null, static fn ($query) => $query->where('id', '!=', $memberId))->exists()) {
-                throw ValidationException::withMessages(['slot_number' => 'This roster slot is already occupied.']);
+                throw ValidationException::withMessages(['slot_number' => (string) __('This roster slot is already occupied.')]);
             }
 
             $created = ! $member instanceof EventRosterMember;

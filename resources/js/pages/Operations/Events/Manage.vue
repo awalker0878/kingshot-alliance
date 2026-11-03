@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { defineAsyncComponent, ref } from 'vue';
 
 import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
@@ -9,6 +9,10 @@ import EventTerritoryPositioning from '@/features/territory-planner/components/E
 import { useConfirmAction } from '@/components/ui/useConfirmAction';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
+
+const PageCommandExtension = defineAsyncComponent(
+  () => import('@/components/navigation/PageCommandExtension.vue'),
+);
 
 type EventSettingScalar = string | number | boolean | null;
 type EventSettingLeaf = EventSettingScalar | EventSettingScalar[];
@@ -997,6 +1001,7 @@ function cancel(): void {
           </Link>
         </template>
       </RoomBanner>
+      <PageCommandExtension />
 
       <section
         class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4"

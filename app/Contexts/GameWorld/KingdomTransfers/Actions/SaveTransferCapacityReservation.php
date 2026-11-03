@@ -46,7 +46,7 @@ final readonly class SaveTransferCapacityReservation
             $this->authority->authorizeContext($context, TransferPermission::Manage);
             $plan = TransferPlan::query()->where('alliance_id', $allianceId)->whereKey($planId)->sharedLock()->firstOrFail();
             if (! in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true)) {
-                throw ValidationException::withMessages(['reservation' => 'Capacity reservations can only change while the transfer cycle is Draft or Open.']);
+                throw ValidationException::withMessages(['reservation' => (string) __('Capacity reservations can only change while the transfer cycle is Draft or Open.')]);
             }
             $participant = TransferParticipant::query()
                 ->where('alliance_id', $allianceId)
@@ -55,13 +55,13 @@ final readonly class SaveTransferCapacityReservation
                 ->lockForUpdate()
                 ->firstOrFail();
             if ($participant->withdrawn_at !== null || $participant->direction->value === 'staying') {
-                throw ValidationException::withMessages(['reservation' => 'Only active incoming or outgoing transfer participants can reserve capacity.']);
+                throw ValidationException::withMessages(['reservation' => (string) __('Only active incoming or outgoing transfer participants can reserve capacity.')]);
             }
             $targetId = $participant->direction->value === 'incoming'
                 ? (string) $plan->home_kingdom_id
                 : ($participant->destination_kingdom_id === null ? null : (string) $participant->destination_kingdom_id);
             if ($targetId === null) {
-                throw ValidationException::withMessages(['reservation' => 'Set the target Kingdom before reserving capacity.']);
+                throw ValidationException::withMessages(['reservation' => (string) __('Set the target Kingdom before reserving capacity.')]);
             }
 
             $existing = TransferCapacityReservation::query()->where('transfer_participant_id', $participantId)->lockForUpdate()->first();
@@ -83,7 +83,7 @@ final readonly class SaveTransferCapacityReservation
                     ? $this->rules->capacity($condition->classification)
                     : null;
                 if (! $capacity instanceof TransferKingdomCapacityObservation || $official === null || $capacity->ordinary_invites_used === null || $capacity->transfer_opens_used === null) {
-                    throw ValidationException::withMessages(['reservation' => 'Verify authoritative target capacity before reserving an Alliance planning slot.']);
+                    throw ValidationException::withMessages(['reservation' => (string) __('Verify authoritative target capacity before reserving an Alliance planning slot.')]);
                 }
                 $activeStates = array_map(
                     static fn (TransferCapacityReservationState $candidate): string => $candidate->value,
@@ -106,7 +106,7 @@ final readonly class SaveTransferCapacityReservation
                 $bucketCapacity = $bucket === TransferCapacityBucket::OrdinaryInvite ? $official['ordinary_invites'] : $official['transfer_opens'];
                 $bucketUsed = $bucket === TransferCapacityBucket::OrdinaryInvite ? $capacity->ordinary_invites_used : $capacity->transfer_opens_used;
                 if ($official['total'] - $observedTotalUsed - $plannedTotal <= 0 || $bucketCapacity - $bucketUsed - $plannedBucket <= 0) {
-                    throw ValidationException::withMessages(['reservation' => 'No verified transfer capacity remains in the selected planning bucket.']);
+                    throw ValidationException::withMessages(['reservation' => (string) __('No verified transfer capacity remains in the selected planning bucket.')]);
                 }
             }
 

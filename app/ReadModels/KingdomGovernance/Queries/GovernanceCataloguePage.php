@@ -54,6 +54,6 @@ final readonly class GovernanceCataloguePage
 
     private function invalid(): ValidationException
     {
-        return ValidationException::withMessages(['cursor' => 'The Governance page cursor is invalid or belongs to another view.']);
+        return ValidationException::withMessages(['cursor' => (string) __('The Governance page cursor is invalid or belongs to another view.')]);
     }
 }

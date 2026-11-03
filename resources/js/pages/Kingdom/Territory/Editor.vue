@@ -1445,6 +1445,7 @@ onUnmounted(() => {
       :eyebrow="t('territory.eyebrow')"
       :title="territory.plan.name"
       :subtitle="t('territory.editorSubtitle', { governor: activePlayer.name })"
+      scene="territory-command"
       image="/images/kingshot/v4/kingdom-transfer.svg"
     >
       <template #actions>

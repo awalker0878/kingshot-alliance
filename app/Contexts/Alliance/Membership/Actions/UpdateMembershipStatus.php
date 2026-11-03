@@ -36,7 +36,7 @@ final readonly class UpdateMembershipStatus
     public function handle(string $allianceId, string $actorPlayerId, string $membershipId, MembershipStatus $status): string
     {
         if (! in_array($status, [MembershipStatus::Active, MembershipStatus::Suspended, MembershipStatus::Removed], true)) {
-            throw ValidationException::withMessages(['status' => 'This membership state is not available through administration.']);
+            throw ValidationException::withMessages(['status' => (string) __('This membership state is not available through administration.')]);
         }
 
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $membershipId, $status): string {
@@ -62,11 +62,11 @@ final readonly class UpdateMembershipStatus
 
                 $player = $this->players->lockCurrentShared((string) $membership->player_id);
                 if ($player->kingdomId !== (string) $context->alliance->kingdom_id) {
-                    throw ValidationException::withMessages(['status' => 'The Player must belong to the Alliance Kingdom before this membership can be activated.']);
+                    throw ValidationException::withMessages(['status' => (string) __('The Player must belong to the Alliance Kingdom before this membership can be activated.')]);
                 }
 
                 if ($previousStatus !== MembershipStatus::Active && $this->memberships->hasAnyActiveForPlayer((string) $membership->player_id)) {
-                    throw ValidationException::withMessages(['status' => 'The Player already has an active Alliance membership.']);
+                    throw ValidationException::withMessages(['status' => (string) __('The Player already has an active Alliance membership.')]);
                 }
             }
 
@@ -82,7 +82,7 @@ final readonly class UpdateMembershipStatus
                     if ($status !== MembershipStatus::Active || ! $this->memberships->hasAnyActiveForPlayer((string) $membership->player_id)) {
                         throw $exception;
                     }
-                    throw ValidationException::withMessages(['status' => 'The Player already has an active Alliance membership.']);
+                    throw ValidationException::withMessages(['status' => (string) __('The Player already has an active Alliance membership.')]);
                 }
 
                 if ($status === MembershipStatus::Removed) {

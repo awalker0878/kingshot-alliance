@@ -222,7 +222,7 @@ final class EventManagementPageController extends Controller
         abort_unless(
             $player instanceof PlayerReference,
             409,
-            'Select a Player before performing Event operations.',
+            (string) __('Select a Player before performing Event operations.'),
         );
 
         return $player;

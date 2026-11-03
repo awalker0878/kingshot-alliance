@@ -34,12 +34,12 @@ final readonly class TerritoryRecoveryDrafts
         array $document,
     ): array {
         if ($baseRevision < 1) {
-            throw ValidationException::withMessages(['base_revision' => 'Recovery base revision must be positive.']);
+            throw ValidationException::withMessages(['base_revision' => (string) __('Recovery base revision must be positive.')]);
         }
         try {
             json_encode($document, JSON_THROW_ON_ERROR, 32);
         } catch (\JsonException) {
-            throw ValidationException::withMessages(['document' => 'Recovery document must contain valid JSON with a bounded nesting depth.']);
+            throw ValidationException::withMessages(['document' => (string) __('Recovery document must contain valid JSON with a bounded nesting depth.')]);
         }
         foreach (['alliances' => 50, 'groups' => 500, 'objects' => 5000] as $field => $limit) {
             $items = $document[$field] ?? null;
@@ -49,7 +49,7 @@ final readonly class TerritoryRecoveryDrafts
         }
         $encoded = $this->canonicalJson($document);
         if (strlen($encoded) > self::MAX_BYTES) {
-            throw ValidationException::withMessages(['document' => 'Recovery document exceeds the five megabyte limit.']);
+            throw ValidationException::withMessages(['document' => (string) __('Recovery document exceeds the five megabyte limit.')]);
         }
         $checksum = hash('sha256', $encoded);
 
@@ -65,14 +65,14 @@ final readonly class TerritoryRecoveryDrafts
             $context = $this->writeState->lock($actorPlayerId, $planId);
             $this->authorization->authorizeManage($context);
             if ($context->plan->status === TerritoryPlanStatus::Archived) {
-                throw ValidationException::withMessages(['plan' => 'Archived plans cannot store recovery drafts.']);
+                throw ValidationException::withMessages(['plan' => (string) __('Archived plans cannot store recovery drafts.')]);
             }
             if ($baseRevision > (int) $context->plan->revision) {
-                throw ValidationException::withMessages(['base_revision' => 'Recovery cannot refer to a future plan revision.']);
+                throw ValidationException::withMessages(['base_revision' => (string) __('Recovery cannot refer to a future plan revision.')]);
             }
             if ($context->plan->map_dataset_id !== $mapDatasetId
                 || ! hash_equals((string) $context->plan->map_dataset_checksum, $mapDatasetChecksum)) {
-                throw ValidationException::withMessages(['map_dataset_id' => 'Recovery must use the plan\'s pinned map dataset.']);
+                throw ValidationException::withMessages(['map_dataset_id' => (string) __('Recovery must use the plan\'s pinned map dataset.')]);
             }
 
             TerritoryRecoveryDraft::query()

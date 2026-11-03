@@ -29,13 +29,13 @@ final readonly class InvalidateSpatialObservation
     ): void {
         $reason = trim($reason);
         if (mb_strlen($reason) < 8 || mb_strlen($reason) > 1000) {
-            throw ValidationException::withMessages(['reason' => 'An invalidation reason between 8 and 1,000 characters is required.']);
+            throw ValidationException::withMessages(['reason' => (string) __('An invalidation reason between 8 and 1,000 characters is required.')]);
         }
 
         DB::transaction(function () use ($actorPlayerId, $allianceId, $kingdomId, $observationId, $reason): void {
             [$scope, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
             if ($scope->kingdomId !== $kingdomId) {
-                throw ValidationException::withMessages(['kingdom_id' => 'The observation belongs to historical Kingdom context.']);
+                throw ValidationException::withMessages(['kingdom_id' => (string) __('The observation belongs to historical Kingdom context.')]);
             }
             $observation = SpatialObservation::query()
                 ->where('alliance_id', $allianceId)

@@ -36,7 +36,7 @@ final readonly class AttachTerritoryPlanRevisionToEvent
     ): string {
         if (! preg_match('/^[a-z][a-z0-9_-]{1,39}$/', $purpose)) {
             throw ValidationException::withMessages([
-                'purpose' => 'Territory plan purpose is invalid.',
+                'purpose' => (string) __('Territory plan purpose is invalid.'),
             ]);
         }
 
@@ -56,7 +56,7 @@ final readonly class AttachTerritoryPlanRevisionToEvent
                 ->lockForUpdate()->firstOrFail();
             if ($eventContext->target->scope === EventScope::Player) {
                 throw ValidationException::withMessages([
-                    'territory_plan_revision_id' => 'Player-scoped Events cannot attach an Alliance or Kingdom territory plan.',
+                    'territory_plan_revision_id' => (string) __('Player-scoped Events cannot attach an Alliance or Kingdom territory plan.'),
                 ]);
             }
 
@@ -91,7 +91,7 @@ final readonly class AttachTerritoryPlanRevisionToEvent
                 )
             ) {
                 throw ValidationException::withMessages([
-                    'territory_plan_revision_id' => 'Alliance Events require a published revision owned by the same Alliance.',
+                    'territory_plan_revision_id' => (string) __('Alliance Events require a published revision owned by the same Alliance.'),
                 ]);
             }
             if (
@@ -99,7 +99,7 @@ final readonly class AttachTerritoryPlanRevisionToEvent
                 && $plan->scope !== TerritoryPlanScope::Kingdom
             ) {
                 throw ValidationException::withMessages([
-                    'territory_plan_revision_id' => 'Kingdom Events require a Kingdom-scoped published territory-plan revision.',
+                    'territory_plan_revision_id' => (string) __('Kingdom Events require a Kingdom-scoped published territory-plan revision.'),
                 ]);
             }
 

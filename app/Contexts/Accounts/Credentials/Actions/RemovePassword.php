@@ -31,7 +31,7 @@ final readonly class RemovePassword
 
             if (! $this->methods->canRemovePassword($user)) {
                 throw ValidationException::withMessages([
-                    'password' => 'Add another sign-in method before removing your Kingshot Alliance password.',
+                    'password' => (string) __('Add another sign-in method before removing your Kingshot Alliance password.'),
                 ]);
             }
 

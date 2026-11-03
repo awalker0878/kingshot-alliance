@@ -39,12 +39,12 @@ final readonly class RetryEvidenceProcessing
             $status = EvidenceLifecycleStatus::from((string) $evidence->getRawOriginal('lifecycle_status'));
             if ($status !== EvidenceLifecycleStatus::Failed) {
                 throw ValidationException::withMessages([
-                    'evidence' => 'Only failed evidence processing can be retried.',
+                    'evidence' => (string) __('Only failed evidence processing can be retried.'),
                 ]);
             }
             if ($evidence->path === null) {
                 throw ValidationException::withMessages([
-                    'evidence' => 'Deleted evidence cannot be processed again.',
+                    'evidence' => (string) __('Deleted evidence cannot be processed again.'),
                 ]);
             }
 

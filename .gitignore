@@ -30,3 +30,6 @@
 /vendor
 Thumbs.db
 .DS_Store
+
+/.translation-*/
+/scripts/localization/__pycache__/

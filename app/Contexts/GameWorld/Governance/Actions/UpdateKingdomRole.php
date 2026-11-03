@@ -38,10 +38,10 @@ final readonly class UpdateKingdomRole
             $this->authorization->authorizeContext($context, KingdomPermission::RoleManage);
             $role = KingdomRole::query()->whereKey($roleId)->where('kingdom_id', $kingdomId)->lockForUpdate()->firstOrFail();
             if ($role->is_system) {
-                throw ValidationException::withMessages(['role' => 'System Kingdom roles are managed by their owning policy provisioners.']);
+                throw ValidationException::withMessages(['role' => (string) __('System Kingdom roles are managed by their owning policy provisioners.')]);
             }
             if ($role->archived_at !== null) {
-                throw ValidationException::withMessages(['role' => 'Archived Kingdom roles cannot be edited.']);
+                throw ValidationException::withMessages(['role' => (string) __('Archived Kingdom roles cannot be edited.')]);
             }
             $keys = $permissionKeys;
             $permissionIds = $this->delegation->permissionIds($actorPlayerId, $kingdomId, $keys);

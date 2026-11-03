@@ -56,7 +56,7 @@ final class DurablePasswordResetIssuanceV3Test extends TestCase
         self::assertNotSame($token, $record['token']);
         self::assertTrue(Password::tokenExists($user, $token));
         $intent = OutboxMessage::query()->where('event_type', QueuePasswordResetDelivery::EVENT_TYPE)->sole();
-        self::assertSame(['delivery_id' => $record['delivery_id']], $intent->payload);
+        self::assertSame(['delivery_id' => $record['delivery_id'], 'locale' => 'en'], $intent->payload);
         self::assertStringNotContainsString($token, json_encode($intent->getRawOriginal(), JSON_THROW_ON_ERROR));
         self::assertStringNotContainsString((string) $user->email, json_encode($intent->payload, JSON_THROW_ON_ERROR));
         Notification::assertNothingSent();

@@ -16,7 +16,7 @@ const messages = {
     empty: 'Nie przesłano jeszcze żadnych zrzutów ekranu.',
     acceptedReports: 'Zaakceptowane raporty z bitwy',
     originalName: 'Źródło',
-    status: 'Status',
+    status: 'Stan',
     received: 'Odebrano',
     security: 'Szczegóły źródła',
     dimensions: 'Wymiary',

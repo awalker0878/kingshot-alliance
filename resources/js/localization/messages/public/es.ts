@@ -68,6 +68,37 @@ const messages = {
     chooseOption: 'Elige una opción',
     submit: 'Enviar solicitud',
     submitting: 'Enviando…',
+    attributionBoard: 'Junta de contratación pública',
+    attributionAlliancePage: 'Página pública de la alianza',
+    attributionShareLink: 'Alianza compartir enlace',
+    attributionBotCommand: 'Comando de bot de alianza',
+    attributionHelp:
+      'Esta etiqueta visible de origen ayuda a la alianza a entender qué enlaces de reclutamiento funcionan. No lo identifica ni lo rastrea.',
+  },
+  recruitmentBoard: {
+    eyebrow: 'Descubrimiento de alianza',
+    title: 'Encuentra una alianza',
+    body: 'Explora alianzas que han abierto el reclutamiento público. Filtre la lista, comparta la vista actual y aplique a través de las preguntas propias de cada alianza.',
+    search: 'Buscar',
+    searchPlaceholder: 'Nombre de la alianza, título de reclutamiento o introducción',
+    kingdom: 'Reino',
+    allKingdoms: 'Todos los reinos',
+    language: 'Idioma',
+    allLanguages: 'Todos los idiomas',
+    applyFilters: 'Aplicar filtros',
+    clearFilters: 'Limpiar filtros',
+    copyLink: 'Copiar enlace filtrado',
+    copied: 'Enlace copiado',
+    resultCount: '{count} alianzas de reclutamiento',
+    capped:
+      'Mostrando los primeros 100 resultados. Reduce los filtros para ver un resultado más específico.',
+    noMatchesTitle: 'No hay alianzas de reclutamiento coincidentes',
+    noMatchesBody:
+      'Prueba a borrar un filtro o vuelve a comprobar cuando más alianzas opten por el reclutamiento público.',
+    viewAlliance: 'Ver alianza',
+    apply: 'Aplicar',
+    publicOnly: 'Solo se muestran las alianzas que optan por el reclutamiento público',
+    listedByAlliance: 'Listado por el equipo de reclutamiento de la alianza',
   },
 } satisfies MessageCatalogue;
 

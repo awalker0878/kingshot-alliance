@@ -32,12 +32,12 @@ final readonly class SaveNotificationEndpoint
         array $configuration,
     ): string {
         if (! $channel->usesStoredEndpoint()) {
-            throw ValidationException::withMessages(['channel' => 'Choose a configurable external delivery channel.']);
+            throw ValidationException::withMessages(['channel' => (string) __('Choose a configurable external delivery channel.')]);
         }
 
         $label = trim($label);
         if ($label === '' || mb_strlen($label) > 100) {
-            throw ValidationException::withMessages(['label' => 'Endpoint label is required and must be at most 100 characters.']);
+            throw ValidationException::withMessages(['label' => (string) __('Endpoint label is required and must be at most 100 characters.')]);
         }
 
         $configuration = $this->validator->validate($channel, $configuration);
@@ -47,7 +47,7 @@ final readonly class SaveNotificationEndpoint
             // so the cap check remains race-safe without applying FOR UPDATE to an aggregate.
             $actor = $this->players->lockCurrent($playerId);
             if ($actor->userId !== $recipientUserId) {
-                throw ValidationException::withMessages(['player' => 'The active Governor no longer belongs to this account.']);
+                throw ValidationException::withMessages(['player' => (string) __('The active Governor no longer belongs to this account.')]);
             }
 
             $endpointCount = NotificationEndpoint::query()
@@ -56,7 +56,7 @@ final readonly class SaveNotificationEndpoint
                 ->count();
             if ($endpointCount >= self::MAX_ENDPOINTS_PER_GOVERNOR) {
                 throw ValidationException::withMessages([
-                    'channel' => 'This Governor already has the maximum number of notification destinations.',
+                    'channel' => (string) __('This Governor already has the maximum number of notification destinations.'),
                 ]);
             }
 

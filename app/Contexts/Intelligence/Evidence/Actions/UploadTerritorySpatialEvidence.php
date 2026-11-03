@@ -53,7 +53,7 @@ final readonly class UploadTerritorySpatialEvidence
         $disk = (string) config('evidence.disk', 'local');
         if ($disk === 'public') {
             throw ValidationException::withMessages([
-                'evidence' => 'Game evidence must use a private storage disk.',
+                'evidence' => (string) __('Game evidence must use a private storage disk.'),
             ]);
         }
 
@@ -66,7 +66,7 @@ final readonly class UploadTerritorySpatialEvidence
             || $size > $maxBytes
             || ! in_array($mimeType, $allowedMimes, true)) {
             throw ValidationException::withMessages([
-                'evidence' => 'The screenshot type or size is not permitted.',
+                'evidence' => (string) __('The screenshot type or size is not permitted.'),
             ]);
         }
 
@@ -76,7 +76,7 @@ final readonly class UploadTerritorySpatialEvidence
             || (int) $imageInfo[0] < 1
             || (int) $imageInfo[1] < 1) {
             throw ValidationException::withMessages([
-                'evidence' => 'The uploaded file is not a valid supported image.',
+                'evidence' => (string) __('The uploaded file is not a valid supported image.'),
             ]);
         }
 
@@ -90,7 +90,7 @@ final readonly class UploadTerritorySpatialEvidence
         $sha256 = hash_file('sha256', $file->getPathname());
         if (! is_string($sha256)) {
             throw ValidationException::withMessages([
-                'evidence' => 'The screenshot could not be checksummed.',
+                'evidence' => (string) __('The screenshot could not be checksummed.'),
             ]);
         }
 
@@ -109,12 +109,12 @@ final readonly class UploadTerritorySpatialEvidence
             'image/jpeg' => 'jpg',
             'image/png' => 'png',
             'image/webp' => 'webp',
-            default => throw ValidationException::withMessages(['evidence' => 'Unsupported screenshot type.']),
+            default => throw ValidationException::withMessages(['evidence' => (string) __('Unsupported screenshot type.')]),
         };
         $path = 'evidence/'.$allianceId.'/territory/'.$kingdomId.'/'.Str::ulid().'.'.$extension;
         if (Storage::disk($disk)->putFileAs(dirname($path), $file, basename($path)) === false) {
             throw ValidationException::withMessages([
-                'evidence' => 'The screenshot could not be stored.',
+                'evidence' => (string) __('The screenshot could not be stored.'),
             ]);
         }
 
@@ -127,7 +127,7 @@ final readonly class UploadTerritorySpatialEvidence
                 );
                 if ($scope->kingdomId !== $kingdomId) {
                     throw ValidationException::withMessages([
-                        'kingdom_id' => 'The Territory screenshot does not match the active Alliance Kingdom.',
+                        'kingdom_id' => (string) __('The Territory screenshot does not match the active Alliance Kingdom.'),
                     ]);
                 }
 

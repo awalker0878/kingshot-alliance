@@ -89,33 +89,33 @@ final readonly class RecordKingdomAllianceObservation
 
             if ($tracking->state !== TrackedKingdomAllianceState::Active) {
                 throw ValidationException::withMessages([
-                    'observation' => 'Observations can only be recorded for actively tracked game-side alliances.',
+                    'observation' => (string) __('Observations can only be recorded for actively tracked game-side alliances.'),
                 ]);
             }
             if ((string) $tracking->kingdom_id !== $kingdomId) {
                 throw ValidationException::withMessages([
-                    'observation' => 'The tracked alliance belongs to historical Kingdom context. Archive it or restore the matching Kingdom context before recording observations.',
+                    'observation' => (string) __('The tracked alliance belongs to historical Kingdom context. Archive it or restore the matching Kingdom context before recording observations.'),
                 ]);
             }
 
             $reference = $this->kingdomAlliances->requireActiveCanonical((string) $tracking->kingdom_alliance_id);
             if ($reference->kingdomId !== (string) $tracking->kingdom_id) {
                 throw ValidationException::withMessages([
-                    'observation' => 'The tracked alliance reference no longer matches its captured Kingdom context.',
+                    'observation' => (string) __('The tracked alliance reference no longer matches its captured Kingdom context.'),
                 ]);
             }
 
             $capturedAt = Carbon::parse($attributes['captured_at'])->utc();
             if ($capturedAt->isAfter(now()->addMinutes(5))) {
                 throw ValidationException::withMessages([
-                    'captured_at' => 'The observation capture time cannot be more than five minutes in the future.',
+                    'captured_at' => (string) __('The observation capture time cannot be more than five minutes in the future.'),
                 ]);
             }
 
             $observedName = trim($attributes['observed_name']);
             if ($observedName === '' || mb_strlen($observedName) > 160) {
                 throw ValidationException::withMessages([
-                    'observed_name' => 'The observed alliance name is required and must be 160 characters or fewer.',
+                    'observed_name' => (string) __('The observed alliance name is required and must be 160 characters or fewer.'),
                 ]);
             }
             $observedTag = $this->nullableLine($attributes['observed_tag'] ?? null);
@@ -165,12 +165,12 @@ final readonly class RecordKingdomAllianceObservation
                 $correctedCanonical = $this->kingdomAlliances->requireCanonical((string) $corrects->kingdom_alliance_id);
                 if ($correctedCanonical->kingdomAllianceId !== $reference->kingdomAllianceId) {
                     throw ValidationException::withMessages([
-                        'corrects_observation_id' => 'Only an observation for the same canonical Alliance identity can be corrected.',
+                        'corrects_observation_id' => (string) __('Only an observation for the same canonical Alliance identity can be corrected.'),
                     ]);
                 }
                 if ($corrects->invalidated_at !== null) {
                     throw ValidationException::withMessages([
-                        'corrects_observation_id' => 'Only an accepted observation can be corrected.',
+                        'corrects_observation_id' => (string) __('Only an accepted observation can be corrected.'),
                     ]);
                 }
             }
@@ -282,7 +282,7 @@ final readonly class RecordKingdomAllianceObservation
         $latestCanonical = $this->kingdomAlliances->requireCanonical((string) $latest->kingdom_alliance_id);
         if ($latestCanonical->kingdomAllianceId !== $kingdomAllianceId) {
             throw ValidationException::withMessages([
-                'observation' => 'Accepted observation history crossed canonical Alliance identities unexpectedly.',
+                'observation' => (string) __('Accepted observation history crossed canonical Alliance identities unexpectedly.'),
             ]);
         }
 
@@ -307,14 +307,14 @@ final readonly class RecordKingdomAllianceObservation
             return null;
         }
         if (! preg_match('/^\d+$/', $value)) {
-            throw ValidationException::withMessages(['power' => 'Power must be a non-negative whole number.']);
+            throw ValidationException::withMessages(['power' => (string) __('Power must be a non-negative whole number.')]);
         }
 
         $canonical = ltrim($value, '0');
         $canonical = $canonical === '' ? '0' : $canonical;
         if (strlen($canonical) > strlen(self::MAX_POWER)
             || (strlen($canonical) === strlen(self::MAX_POWER) && strcmp($canonical, self::MAX_POWER) > 0)) {
-            throw ValidationException::withMessages(['power' => 'Power exceeds the supported signed 64-bit integer range.']);
+            throw ValidationException::withMessages(['power' => (string) __('Power exceeds the supported signed 64-bit integer range.')]);
         }
 
         return $canonical;
@@ -329,7 +329,7 @@ final readonly class RecordKingdomAllianceObservation
         $count = (int) $value;
         if ($count < 0 || $count > 1000000) {
             throw ValidationException::withMessages([
-                'member_count' => 'Member count must be between 0 and 1,000,000.',
+                'member_count' => (string) __('Member count must be between 0 and 1,000,000.'),
             ]);
         }
 

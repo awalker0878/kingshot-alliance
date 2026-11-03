@@ -50,6 +50,7 @@ const messages = {
     results: '{count} résultats',
     published: 'Publié',
     noMatches: 'Aucun contenu public ne correspond à ces filtres.',
+    guide: 'Guides',
   },
   publicContent: {
     backToAlliance: 'Retour à l’alliance',
@@ -69,6 +70,37 @@ const messages = {
     chooseOption: 'Choisir une option',
     submit: 'Envoyer la candidature',
     submitting: 'Envoi…',
+    attributionBoard: 'Conseil de recrutement public',
+    attributionAlliancePage: "Page publique de l'alliance",
+    attributionShareLink: 'Partager le lien',
+    attributionBotCommand: "Commande de bot d'alliance",
+    attributionHelp:
+      "Cette étiquette de source visible aide l'alliance à comprendre quels liens de recrutement fonctionnent. Il ne vous identifie pas et ne vous suit pas.",
+  },
+  recruitmentBoard: {
+    eyebrow: 'Découverte d’Alliances',
+    title: 'Trouver une alliance',
+    body: 'Explorez les alliances qui ont ouvert le recrutement public. Filtrez la liste, partagez la vue actuelle et appliquez les questions propres à chaque alliance.',
+    search: 'Rechercher',
+    searchPlaceholder: "Nom de l'alliance, titre de recrutement ou introduction",
+    kingdom: 'Royaume',
+    allKingdoms: 'Tous les royaumes',
+    language: 'Langue',
+    allLanguages: 'Toutes les langues',
+    applyFilters: 'Appliquer les filtres',
+    clearFilters: 'Effacer les filtres',
+    copyLink: 'Copier le lien filtré',
+    copied: 'Lien copié',
+    resultCount: '{count} alliances de recrutement',
+    capped:
+      'Affichage des 100 premiers résultats. Affiner les filtres pour voir un résultat plus ciblé.',
+    noMatchesTitle: 'Aucune alliance de recrutement correspondante',
+    noMatchesBody:
+      "Essayez d'effacer un filtre ou de vérifier à nouveau lorsque plus d'alliances optent pour le recrutement public.",
+    viewAlliance: "Voir l'alliance",
+    apply: 'Appliquer',
+    publicOnly: 'Seules les alliances qui ont opté pour le recrutement public sont affichées',
+    listedByAlliance: "Répertorié par l'équipe de recrutement de l'alliance",
   },
 } satisfies MessageCatalogue;
 

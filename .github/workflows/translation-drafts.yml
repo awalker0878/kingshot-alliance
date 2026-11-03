@@ -1,0 +1,102 @@
+name: Translation drafts
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/translation-drafts.yml'
+      - 'scripts/localization/**'
+      - 'resources/data/localization/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: translation-drafts-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.head_ref == 'codex/audit-stabilization' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      requested: ${{ steps.request.outputs.requested }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Check explicit generation request
+        id: request
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          subject=$(git log -1 --format=%s)
+          if [[ "$EVENT_NAME" == 'workflow_dispatch' || "$subject" == *'[translation-drafts]'* ]]; then
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'requested=false' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        if: steps.request.outputs.requested == 'true'
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Export authoritative catalogues and source messages
+        if: steps.request.outputs.requested == 'true'
+        run: |
+          npm ci --no-audit --no-fund
+          node scripts/localization/export-input.mjs .translation-input
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: steps.request.outputs.requested == 'true'
+        with:
+          name: translation-input-${{ github.run_id }}
+          path: .translation-input/*.json
+          if-no-files-found: error
+          retention-days: 30
+          include-hidden-files: true
+
+  draft:
+    needs: prepare
+    if: needs.prepare.outputs.requested == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        locale: [ar, de, es, fr, id, it, ja, ko, pl, pt-BR, ru, th, tr, vi, zh-CN, zh-TW]
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: translation-input-${{ github.run_id }}
+          path: .translation-input
+      - name: Install isolated translation tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/translation-tools"
+          "$RUNNER_TEMP/translation-tools/bin/pip" install -r scripts/localization/requirements.txt
+      - name: Generate reviewable language draft
+        run: |
+          "$RUNNER_TEMP/translation-tools/bin/python" scripts/localization/draft-translations.py \
+            --input .translation-input/input.json \
+            --locale '${{ matrix.locale }}' \
+            --output .translation-output \
+            --model-directory "$RUNNER_TEMP/translation-model"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: translation-draft-${{ matrix.locale }}-${{ github.run_id }}
+          path: .translation-output/*.json*
+          if-no-files-found: warn
+          retention-days: 30
+          include-hidden-files: true

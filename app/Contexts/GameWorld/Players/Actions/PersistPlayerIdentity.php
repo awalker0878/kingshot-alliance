@@ -44,7 +44,7 @@ final readonly class PersistPlayerIdentity
     ): PlayerReference {
         $name = trim($observedName);
         if ($name === '') {
-            throw ValidationException::withMessages(['name' => 'Player name is required.']);
+            throw ValidationException::withMessages(['name' => (string) __('Player name is required.')]);
         }
         $stableId = $gamePlayerId === null ? null : trim($gamePlayerId);
         $stableId = $stableId === '' ? null : $stableId;
@@ -66,7 +66,7 @@ final readonly class PersistPlayerIdentity
                 try {
                     $this->kingdoms->lockActiveShared($kingdomId);
                 } catch (ModelNotFoundException) {
-                    throw ValidationException::withMessages(['kingdom' => 'The selected Kingdom is archived or unavailable.']);
+                    throw ValidationException::withMessages(['kingdom' => (string) __('The selected Kingdom is archived or unavailable.')]);
                 }
 
                 if ($expectedPlayerId !== null) {
@@ -79,7 +79,7 @@ final readonly class PersistPlayerIdentity
                     $this->lifecycle->assertKingdomMoveAllowed($player, $kingdomId);
                     if ($stableId !== null) {
                         if ($player->game_player_id !== null && $player->game_player_id !== $stableId) {
-                            throw ValidationException::withMessages(['game_player_id' => 'The selected Player has a different stable game-player identifier.']);
+                            throw ValidationException::withMessages(['game_player_id' => (string) __('The selected Player has a different stable game-player identifier.')]);
                         }
                         $conflict = Player::query()
                             ->where('game_player_id', $stableId)
@@ -87,7 +87,7 @@ final readonly class PersistPlayerIdentity
                             ->where('id', '<>', $player->id)
                             ->exists();
                         if ($conflict) {
-                            throw ValidationException::withMessages(['game_player_id' => 'That game Player ID belongs to a different Player.']);
+                            throw ValidationException::withMessages(['game_player_id' => (string) __('That game Player ID belongs to a different Player.')]);
                         }
                     }
 
@@ -151,7 +151,7 @@ final readonly class PersistPlayerIdentity
                 throw $exception;
             }
             throw ValidationException::withMessages([
-                'game_player_id' => 'That game Player ID was assigned concurrently. Reload the current identity before retrying.',
+                'game_player_id' => (string) __('That game Player ID was assigned concurrently. Reload the current identity before retrying.'),
             ]);
         }
 
@@ -162,7 +162,7 @@ final readonly class PersistPlayerIdentity
     {
         if ($expectedUserId !== null && ($player->user_id === null || (int) $player->user_id !== $expectedUserId)) {
             throw ValidationException::withMessages([
-                'game_player_id' => 'That game Player ID already exists. Use an evidence-backed claim or recovery workflow instead of silently taking ownership.',
+                'game_player_id' => (string) __('That game Player ID already exists. Use an evidence-backed claim or recovery workflow instead of silently taking ownership.'),
             ]);
         }
     }

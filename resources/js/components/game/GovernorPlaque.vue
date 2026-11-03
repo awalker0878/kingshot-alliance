@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useLocale } from '@/localization';
+
+const { t } = useLocale();
+
 defineProps<{
   name: string;
   rank?: string | null;
@@ -10,7 +14,8 @@ defineProps<{
   <div class="ks-governor-plaque">
     <div class="ks-governor-plaque__portrait">♞</div>
     <div>
-      <small>Governor</small><strong>{{ name }}</strong
+      <small>{{ t('giftCodes.workspace.governor') }}</small
+      ><strong>{{ name }}</strong
       ><span
         ><template v-if="rank">{{ rank }}</template
         ><template v-if="alliance"> · {{ alliance }}</template

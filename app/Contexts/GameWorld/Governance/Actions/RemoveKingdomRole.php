@@ -50,7 +50,7 @@ final readonly class RemoveKingdomRole
                     ->when($assignment->expires_at === null, static fn ($query) => $query->whereNull('expires_at'))
                     ->exists();
                 if (! $anotherAdminExists) {
-                    throw ValidationException::withMessages(['role' => 'A Kingdom must retain effective administration and cannot remove its last lasting Kingdom Admin.']);
+                    throw ValidationException::withMessages(['role' => (string) __('A Kingdom must retain effective administration and cannot remove its last lasting Kingdom Admin.')]);
                 }
             }
 

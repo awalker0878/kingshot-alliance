@@ -44,6 +44,6 @@ final readonly class DeclineKingdomIntelligenceShareInvitation
 
     private function invalidToken(): ValidationException
     {
-        return ValidationException::withMessages(['token' => 'The sharing invitation is invalid, expired, or already used.']);
+        return ValidationException::withMessages(['token' => (string) __('The sharing invitation is invalid, expired, or already used.')]);
     }
 }

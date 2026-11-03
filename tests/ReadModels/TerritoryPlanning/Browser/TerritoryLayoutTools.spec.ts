@@ -16,7 +16,11 @@ async function login(page: Page): Promise<void> {
     const label = (await switcher.textContent()) ?? '';
     if (/select governor/i.test(label)) {
       await switcher.click();
-      await page.getByRole('listbox', { name: 'Active Governor' }).getByRole('option').first().click();
+      await page
+        .getByRole('listbox', { name: 'Active Governor' })
+        .getByRole('option')
+        .first()
+        .click();
       await page.waitForURL('**/dashboard');
     }
   }
@@ -63,7 +67,7 @@ test('Layout Tools closes atomic editing, CSV, annotation and Hive-template oper
   await expect(annotation.getByLabel('Target Y')).toBeVisible();
 
   await page.getByLabel('Template name').fill('KM tools browser template');
-  await page.getByLabel('City count').fill('4');
+  await page.getByLabel('Governor cities', { exact: true }).fill('4');
   await page.getByLabel('Spacing').fill('0');
   await page.getByRole('button', { name: 'Save template' }).click();
   await expect(page.getByText(/Hive template “KM tools browser template” saved/)).toBeVisible();

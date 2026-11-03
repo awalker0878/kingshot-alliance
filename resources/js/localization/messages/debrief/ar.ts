@@ -42,6 +42,25 @@ const messages = {
     noPreviousHelp: 'تظهر المقارنة بعد وجود صيد دب سابق مكتمل لهذا التحالف.',
     history: 'السجل',
     runHistory: 'سجل صيد الدب',
+    signals: {
+      evidence: 'حالة الدليل',
+      factualSignals: 'المقارنة المسجلة',
+      reviewPending: 'لا يزال هناك صف أو أكثر من صفوف المحافظ المستوردة بحاجة إلى مراجعة الهوية.',
+      newPersonalBest: 'أفضل أداء شخصي جديد من النتائج المقبولة',
+      damageDirection: 'الأضرار {direction}',
+      rallyDirection: 'المشاركة في التجمع {direction}',
+      evidenceStates: {
+        accepted: 'النتيجة المقبولة',
+        recorded_without_accepted_evidence: 'النتيجة المسجلة دون أدلة مقبولة من لقطات الشاشة',
+        unavailable: 'لم تسجل أي نتيجة',
+      },
+      directions: {
+        unknown: 'غير قابلة للمقارنة',
+        increased: 'ارتفع',
+        decreased: 'انخفض',
+        unchanged: 'دون تغيير',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

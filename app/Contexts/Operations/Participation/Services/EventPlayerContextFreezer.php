@@ -77,7 +77,7 @@ final readonly class EventPlayerContextFreezer
         $alliance = $this->alliances->lockCurrent($allianceId);
         if ($player->kingdomId !== $alliance->kingdomId) {
             throw ValidationException::withMessages([
-                'player' => 'The Player is no longer in the Alliance Event Kingdom.',
+                'player' => (string) __('The Player is no longer in the Alliance Event Kingdom.'),
             ]);
         }
 
@@ -88,7 +88,7 @@ final readonly class EventPlayerContextFreezer
     {
         if ($kingdomId === '' || $player->kingdomId !== $kingdomId) {
             throw ValidationException::withMessages([
-                'player' => 'The Player is no longer in the Kingdom Event target.',
+                'player' => (string) __('The Player is no longer in the Kingdom Event target.'),
             ]);
         }
 
@@ -100,7 +100,7 @@ final readonly class EventPlayerContextFreezer
         $alliance = $this->alliances->lockCurrent($allianceId);
         if ($alliance->kingdomId !== $kingdomId) {
             throw ValidationException::withMessages([
-                'represented_alliance_id' => 'Represented Alliance does not match the Event Kingdom.',
+                'represented_alliance_id' => (string) __('Represented Alliance does not match the Event Kingdom.'),
             ]);
         }
 

@@ -63,7 +63,7 @@ final readonly class SaveTerritoryPlan
         ?array $annotations = null,
     ): TerritoryPlanMutationReceipt {
         if (! Str::isUuid($mutationId) || $expectedRevision < 1) {
-            throw ValidationException::withMessages(['mutation_id' => 'A valid mutation UUID and positive expected revision are required.']);
+            throw ValidationException::withMessages(['mutation_id' => (string) __('A valid mutation UUID and positive expected revision are required.')]);
         }
         $mutationId = strtolower($mutationId);
         // Hash the exact owner command, including actor, operation, plan and base revision.
@@ -71,7 +71,7 @@ final readonly class SaveTerritoryPlan
             'revision' => $expectedRevision, 'alliances' => $alliances, 'groups' => $groups,
             'objects' => $objects, 'preferences' => $preferences, 'annotations' => $annotations], JSON_THROW_ON_ERROR);
         if (strlen($request) > 5_000_000) {
-            throw ValidationException::withMessages(['layout' => 'The save command exceeds the five megabyte limit.']);
+            throw ValidationException::withMessages(['layout' => (string) __('The save command exceeds the five megabyte limit.')]);
         }
         $requestChecksum = hash('sha256', $request);
         $layout = $this->contract->normalize($alliances, $groups, $objects, $preferences);
@@ -101,7 +101,7 @@ final readonly class SaveTerritoryPlan
                 $this->authorization->authorizeManage($context);
             }
             if ($context->plan->status === TerritoryPlanStatus::Archived) {
-                throw ValidationException::withMessages(['plan' => 'Archived plans are read-only. Clone this plan to resume editing.']);
+                throw ValidationException::withMessages(['plan' => (string) __('Archived plans are read-only. Clone this plan to resume editing.')]);
             }
 
             $receiptQuery = TerritorySaveReceipt::query()->where('territory_plan_id', $planId)
@@ -110,7 +110,7 @@ final readonly class SaveTerritoryPlan
             if ($stored !== null) {
                 $this->collaboration->authorizeSaveReplay($context, $stored->required_layer_keys, $stored->requires_manage);
                 if (! hash_equals($stored->request_checksum, $requestChecksum)) {
-                    throw ValidationException::withMessages(['mutation_id' => 'This mutation UUID was already used for a different save command.']);
+                    throw ValidationException::withMessages(['mutation_id' => (string) __('This mutation UUID was already used for a different save command.')]);
                 }
                 if (! hash_equals($stored->layout_checksum, $this->snapshots->checksum($stored->snapshot))) {
                     throw new \LogicException('Territory save receipt integrity failed.');

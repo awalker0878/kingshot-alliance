@@ -45,7 +45,7 @@ final readonly class CastEventPollVote
             if ($poll->status !== EventPollStatus::Open
                 || ($poll->opens_at !== null && $now->lessThan(CarbonImmutable::instance($poll->opens_at)->utc()))
                 || ($poll->closes_at !== null && ! $now->lessThan(CarbonImmutable::instance($poll->closes_at)->utc()))) {
-                throw ValidationException::withMessages(['poll' => 'Voting is not currently open.']);
+                throw ValidationException::withMessages(['poll' => (string) __('Voting is not currently open.')]);
             }
 
             $ids = array_values(array_unique(array_map('strval', $optionIds)));
@@ -53,7 +53,7 @@ final readonly class CastEventPollVote
                 throw ValidationException::withMessages(['options' => 'Select between 1 and '.$poll->max_choices.' option(s).']);
             }
             if (EventPollOption::query()->where('poll_id', $poll->id)->whereIn('id', $ids)->count() !== count($ids)) {
-                throw ValidationException::withMessages(['options' => 'One or more selected poll options are invalid.']);
+                throw ValidationException::withMessages(['options' => (string) __('One or more selected poll options are invalid.')]);
             }
 
             EventPollVote::query()->where('poll_id', $poll->id)->where('player_id', $actorPlayerId)->delete();

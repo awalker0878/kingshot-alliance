@@ -8,7 +8,7 @@ const messages = {
       'ตรวจสอบดาเมจที่บันทึก การเข้าร่วม การร่วม Rally Governor ที่ยังจับคู่ไม่ได้ และเปรียบเทียบกับการล่าครั้งล่าสุด',
     totalDamage: 'ดาเมจรวม',
     governors: 'Governor',
-    governor: 'Governor',
+    governor: 'ผู้ว่าการ',
     governorCount: '{count} Governor',
     attendance: 'การเข้าร่วม',
     recordedRallies: 'Rally ที่บันทึก',
@@ -43,6 +43,25 @@ const messages = {
     noPreviousHelp: 'การเปรียบเทียบจะแสดงเมื่อ Alliance นี้มี Bear Hunt ก่อนหน้าที่เสร็จสิ้นแล้ว',
     history: 'ประวัติ',
     runHistory: 'ประวัติ Bear Hunt',
+    signals: {
+      evidence: 'สถานะหลักฐาน',
+      factualSignals: 'การบันทึกการเปรียบเทียบ',
+      reviewPending: 'ยังคงต้องตรวจสอบตัวตนของบรรทัดที่นำเข้าไปหนึ่งหรือมากกว่าบรรทัด',
+      newPersonalBest: 'ความเร็วสูงสุดใหม่จากผลลัพธ์ที่ยอมรับ',
+      damageDirection: 'ความเสียหาย {direction}',
+      rallyDirection: 'เข้าร่วมการแข่งขัน {direction}',
+      evidenceStates: {
+        accepted: 'ผลการจับภาพหน้าจอที่ยอมรับ',
+        recorded_without_accepted_evidence: 'ผลการบันทึกที่ไม่มีหลักฐานภาพถ่ายหน้าจอที่ยอมรับได้',
+        unavailable: 'ไม่มีผลการบันทึก',
+      },
+      directions: {
+        unknown: 'ไม่มีอะไรเทียบได้',
+        increased: 'เพิ่มขึ้น',
+        decreased: 'ลดลง',
+        unchanged: 'ไม่เปลี่ยนแปลง',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

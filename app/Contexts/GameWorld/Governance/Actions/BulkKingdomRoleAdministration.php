@@ -38,16 +38,16 @@ final readonly class BulkKingdomRoleAdministration
         }
 
         if (! array_is_list($playerIds) || count($playerIds) > 50) {
-            throw ValidationException::withMessages(['players' => 'Bulk Kingdom role administration is limited to 50 Governors.']);
+            throw ValidationException::withMessages(['players' => (string) __('Bulk Kingdom role administration is limited to 50 Governors.')]);
         }
         foreach ($playerIds as $playerId) {
             if (! is_string($playerId) || ! Str::isUlid($playerId)) {
-                throw ValidationException::withMessages(['players' => 'Every Governor must have a valid identifier.']);
+                throw ValidationException::withMessages(['players' => (string) __('Every Governor must have a valid identifier.')]);
             }
         }
         $playerIds = array_values(array_unique($playerIds));
         if (! in_array($operation, ['assign', 'remove'], true)) {
-            throw ValidationException::withMessages(['operation' => 'Unsupported Kingdom role bulk operation.']);
+            throw ValidationException::withMessages(['operation' => (string) __('Unsupported Kingdom role bulk operation.')]);
         }
         $role = KingdomRole::query()->whereKey($roleId)->where('kingdom_id', $kingdomId)->whereNull('archived_at')->firstOrFail();
         $players = Player::query()->whereIn('id', $playerIds)->get()->keyBy('id');

@@ -8,7 +8,7 @@ const messages = {
       'Xem sát thương đã ghi nhận, điểm danh, tham gia Rally, Governor chưa khớp và so sánh với các lần săn gần đây.',
     totalDamage: 'Tổng sát thương',
     governors: 'Governor',
-    governor: 'Governor',
+    governor: 'Thống đốc',
     governorCount: '{count} Governor',
     attendance: 'Điểm danh',
     recordedRallies: 'Rally đã ghi nhận',
@@ -44,6 +44,25 @@ const messages = {
       'So sánh sẽ xuất hiện khi Alliance này có một Bear Hunt trước đó đã hoàn thành.',
     history: 'Lịch sử',
     runHistory: 'Lịch sử Bear Hunt',
+    signals: {
+      evidence: 'Trạng thái bằng chứng',
+      factualSignals: 'So sánh ghi lại',
+      reviewPending: 'Một hoặc nhiều hàng thống đốc nhập khẩu vẫn cần xem xét danh tính.',
+      newPersonalBest: 'Kỷ lục cá nhân mới từ kết quả chấp nhận',
+      damageDirection: 'Thương vong {direction}',
+      rallyDirection: 'Đại hội tham gia {direction}',
+      evidenceStates: {
+        accepted: 'Kết quả chụp màn hình chấp nhận',
+        recorded_without_accepted_evidence: 'Kết quả ghi lại không có bằng chứng được chấp nhận',
+        unavailable: 'Không ghi lại kết quả',
+      },
+      directions: {
+        unknown: 'không so sánh được',
+        increased: 'tăng',
+        decreased: 'giảm',
+        unchanged: 'không thay đổi',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

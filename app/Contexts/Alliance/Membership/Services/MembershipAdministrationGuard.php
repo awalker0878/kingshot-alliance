@@ -24,7 +24,7 @@ final readonly class MembershipAdministrationGuard
 
         if ((string) $target->player_id === (string) $context->actor->playerId) {
             throw ValidationException::withMessages([
-                'membership' => 'Use the leave-alliance action to change the active Player membership.',
+                'membership' => (string) __('Use the leave-alliance action to change the active Player membership.'),
             ]);
         }
 
@@ -41,7 +41,7 @@ final readonly class MembershipAdministrationGuard
         }
 
         throw ValidationException::withMessages([
-            'membership' => 'Transfer R5 Alliance leadership before changing this membership.',
+            'membership' => (string) __('Transfer R5 Alliance leadership before changing this membership.'),
         ]);
     }
 

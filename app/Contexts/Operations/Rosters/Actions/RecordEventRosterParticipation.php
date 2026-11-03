@@ -44,7 +44,7 @@ final readonly class RecordEventRosterParticipation
         EventRosterMemberStatus $status,
     ): void {
         if (! in_array($status, [EventRosterMemberStatus::Participated, EventRosterMemberStatus::Absent], true)) {
-            throw ValidationException::withMessages(['status' => 'Roster participation must be recorded as participated or absent.']);
+            throw ValidationException::withMessages(['status' => (string) __('Roster participation must be recorded as participated or absent.')]);
         }
 
         DB::transaction(function () use ($actorPlayerId, $occurrenceId, $memberId, $status): void {
@@ -58,7 +58,7 @@ final readonly class RecordEventRosterParticipation
             $roster = EventRoster::query()->whereKey($member->roster_id)->where('occurrence_id', $occurrence->id)->sharedLock()->firstOrFail();
 
             if (in_array($member->statusEnum(), [EventRosterMemberStatus::Declined, EventRosterMemberStatus::Removed], true)) {
-                throw ValidationException::withMessages(['status' => 'Declined or removed roster assignments cannot receive participation.']);
+                throw ValidationException::withMessages(['status' => (string) __('Declined or removed roster assignments cannot receive participation.')]);
             }
 
             $playerId = (string) $member->player_id;
@@ -69,7 +69,7 @@ final readonly class RecordEventRosterParticipation
                     && $context->target->allianceId !== null
                     && $this->rosterEntries->lockActiveRosterPresence($context->target->allianceId, $playerId);
                 if (! $this->participants->eligibleAgainstTarget($context->target, $player, $activeRosterPresence)) {
-                    throw ValidationException::withMessages(['player' => 'This Player is not eligible for the Event target.']);
+                    throw ValidationException::withMessages(['player' => (string) __('This Player is not eligible for the Event target.')]);
                 }
                 $this->contexts->freeze($occurrence, $player, $member->alliance_id === null ? null : (string) $member->alliance_id);
             }

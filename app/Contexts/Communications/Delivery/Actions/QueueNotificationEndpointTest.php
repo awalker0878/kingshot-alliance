@@ -28,7 +28,7 @@ final readonly class QueueNotificationEndpointTest
         return DB::transaction(function () use ($recipientUserId, $playerId, $endpointId): string {
             $actor = $this->players->lockCurrent($playerId);
             if ($actor->userId !== $recipientUserId) {
-                throw ValidationException::withMessages(['player' => 'The active Governor no longer belongs to this account.']);
+                throw ValidationException::withMessages(['player' => (string) __('The active Governor no longer belongs to this account.')]);
             }
 
             $endpoint = NotificationEndpoint::query()
@@ -38,7 +38,7 @@ final readonly class QueueNotificationEndpointTest
                 ->lockForUpdate()
                 ->firstOrFail();
             if (! $endpoint->enabled) {
-                throw ValidationException::withMessages(['endpoint' => 'Resume this destination before testing it.']);
+                throw ValidationException::withMessages(['endpoint' => (string) __('Resume this destination before testing it.')]);
             }
 
             $now = CarbonImmutable::now('UTC');
@@ -51,7 +51,7 @@ final readonly class QueueNotificationEndpointTest
                 ->count();
             if ($recent >= 3) {
                 throw ValidationException::withMessages([
-                    'endpoint' => 'Endpoint testing is temporarily rate limited.',
+                    'endpoint' => (string) __('Endpoint testing is temporarily rate limited.'),
                 ]);
             }
 

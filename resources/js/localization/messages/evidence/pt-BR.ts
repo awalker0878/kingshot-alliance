@@ -18,7 +18,7 @@ const messages = {
     empty: 'Nenhuma captura foi enviada para esta Caçada ao Urso ainda.',
     acceptedReports: 'Relatórios de batalha salvos',
     originalName: 'Origem',
-    status: 'Status',
+    status: 'Estado',
     received: 'Recebido',
     security: 'Detalhes da origem',
     dimensions: 'Dimensões',

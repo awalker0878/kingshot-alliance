@@ -39,7 +39,7 @@ final readonly class RallyAllianceResolver
 
         if (! $alliance instanceof AllianceReference) {
             throw ValidationException::withMessages([
-                'alliance_id' => 'This Alliance is not a valid Rally context for the Event.',
+                'alliance_id' => (string) __('This Alliance is not a valid Rally context for the Event.'),
             ]);
         }
 

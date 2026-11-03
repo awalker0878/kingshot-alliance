@@ -41,7 +41,7 @@ final class TransferParticipantQuery
             $position = $this->cursors->decode($cursor, $scope);
             $id = $position['id'] ?? null;
             if (array_keys($position) !== ['id'] || ! is_string($id) || ! preg_match('/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/Di', $id)) {
-                throw ValidationException::withMessages(['participant_cursor' => 'The participant cursor is invalid.']);
+                throw ValidationException::withMessages(['participant_cursor' => (string) __('The participant cursor is invalid.')]);
             }
             $query->where('id', '>', $id);
         }

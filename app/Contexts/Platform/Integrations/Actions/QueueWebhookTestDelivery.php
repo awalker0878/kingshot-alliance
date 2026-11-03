@@ -39,7 +39,7 @@ final readonly class QueueWebhookTestDelivery
                 ->findOrFail($subscriptionId);
 
             if (! $subscription->is_active || $subscription->revoked_at !== null) {
-                throw ValidationException::withMessages(['webhook' => 'Only active webhook subscriptions can receive a test delivery.']);
+                throw ValidationException::withMessages(['webhook' => (string) __('Only active webhook subscriptions can receive a test delivery.')]);
             }
 
             $messageId = (string) Str::ulid();

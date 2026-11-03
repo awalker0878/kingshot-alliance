@@ -35,7 +35,7 @@ final readonly class ActivateRosterEntryForTransfer
             $this->authorization->authorizeContext($context, AlliancePermission::MembershipManage);
             $player = $this->players->lockCurrent($targetPlayerId);
             if ($player->kingdomId !== (string) $context->alliance->kingdom_id) {
-                throw ValidationException::withMessages(['completion' => 'The incoming Player must belong to the Alliance Kingdom before activating its roster entry.']);
+                throw ValidationException::withMessages(['completion' => (string) __('The incoming Player must belong to the Alliance Kingdom before activating its roster entry.')]);
             }
 
             $entry = AllianceRosterEntry::query()

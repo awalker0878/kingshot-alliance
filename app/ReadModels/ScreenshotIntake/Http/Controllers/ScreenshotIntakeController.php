@@ -22,7 +22,7 @@ final class ScreenshotIntakeController extends Controller
         $user = $request->user();
         abort_unless($user instanceof User, 401);
         $actor = $this->playerContext->playerOrNull();
-        abort_unless($actor instanceof PlayerReference, 409, 'Select a Player before importing battle reports.');
+        abort_unless($actor instanceof PlayerReference, 409, (string) __('Select a Player before importing battle reports.'));
 
         return Inertia::render('Operations/Events/Evidence', [
             'user' => ['name' => (string) $user->name, 'email' => (string) $user->email],

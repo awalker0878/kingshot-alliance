@@ -7,6 +7,14 @@ import RoomBanner from '@/components/game/RoomBanner.vue';
 import StatSeal from '@/components/game/StatSeal.vue';
 import AppButton from '@/components/ui/AppButton.vue';
 import ConfirmActionDialog from '@/components/ui/ConfirmActionDialog.vue';
+import {
+  calendarDateInZone,
+  calendarMonthDays,
+  eventDateKey,
+  formatEventTime,
+  resolveTimeZone,
+  shiftCalendarMonth,
+} from '@/features/events/time';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useLocale } from '@/localization';
 
@@ -87,21 +95,25 @@ const props = defineProps<{
   eventBulkResult: EventBulkResult | null;
 }>();
 
-const { t, formatDate } = useLocale();
+const { t, locale, formatDate } = useLocale();
+const displayTimeZone = computed(() => resolveTimeZone(props.userTimezone));
 const scope = ref<ScopeFilter>('all');
 const view = ref<'agenda' | 'calendar'>('agenda');
-const monthCursor = ref(new Date());
+const monthCursor = ref(calendarDateInZone(new Date(), displayTimeZone.value));
 const selectedEventIds = ref<string[]>(props.eventBulkResult?.failedItemIds ?? []);
 const bulkBusy = ref(false);
 const bulkConfirmationOpen = ref(false);
 const scopeOptions: ScopeFilter[] = ['all', 'player', 'alliance', 'kingdom'];
-const weekdayDates = Array.from({ length: 7 }, (_, index) => new Date(2024, 0, 7 + index, 12));
+const weekdayDates = Array.from(
+  { length: 7 },
+  (_, index) => new Date(Date.UTC(2024, 0, 7 + index, 12)),
+);
 
-function dateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+function eventDate(value: string, options: Intl.DateTimeFormatOptions): string {
+  return formatEventTime(value, locale.value, displayTimeZone.value, options);
+}
+function calendarDate(value: Date, options: Intl.DateTimeFormatOptions): string {
+  return formatDate(value, { ...options, timeZone: 'UTC' });
 }
 const visibleEvents = computed(() =>
   props.events.filter((event) => scope.value === 'all' || event.scope === scope.value),
@@ -127,37 +139,17 @@ const bulkPreviewMatchesSelection = computed(() => {
 const grouped = computed(() => {
   const groups = new Map<string, EventRow[]>();
   for (const event of visibleEvents.value) {
-    const key = dateKey(new Date(event.startsAt));
+    const key = eventDateKey(event.startsAt, displayTimeZone.value);
     groups.set(key, [...(groups.get(key) ?? []), event]);
   }
   return [...groups.entries()];
 });
 const monthDays = computed(() => {
-  const year = monthCursor.value.getFullYear();
-  const month = monthCursor.value.getMonth();
-  const first = new Date(year, month, 1);
-  const last = new Date(year, month + 1, 0);
-  const eventsByDay = new Map<string, EventRow[]>();
-  for (const event of visibleEvents.value) {
-    const key = dateKey(new Date(event.startsAt));
-    eventsByDay.set(key, [...(eventsByDay.get(key) ?? []), event]);
-  }
-  const days: Array<{ date: Date; key: string; current: boolean; events: EventRow[] }> = [];
-  const start = new Date(first);
-  start.setDate(first.getDate() - first.getDay());
-  const end = new Date(last);
-  end.setDate(last.getDate() + (6 - last.getDay()));
-  for (const cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
-    const date = new Date(cursor);
-    const key = dateKey(date);
-    days.push({
-      date,
-      key,
-      current: date.getMonth() === month,
-      events: eventsByDay.get(key) ?? [],
-    });
-  }
-  return days;
+  const eventsByDay = new Map(grouped.value);
+  return calendarMonthDays(monthCursor.value).map((day) => ({
+    ...day,
+    events: eventsByDay.get(day.key) ?? [],
+  }));
 });
 
 watch(
@@ -229,11 +221,7 @@ function bulkOutcomeLabel(code: string): string {
   return t(`events.bulk.outcomes.${code}`);
 }
 function moveMonth(delta: number): void {
-  monthCursor.value = new Date(
-    monthCursor.value.getFullYear(),
-    monthCursor.value.getMonth() + delta,
-    1,
-  );
+  monthCursor.value = shiftCalendarMonth(monthCursor.value, delta);
 }
 function displayName(event: EventRow): string {
   return event.title || t(event.nameKey);
@@ -267,6 +255,9 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
         }}</a>
       </template>
     </RoomBanner>
+    <p class="mt-3 text-sm text-[var(--ks-muted)]" data-testid="event-display-timezone">
+      {{ t('events.time.yourTime', { zone: displayTimeZone }) }}
+    </p>
 
     <section class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
       <StatSeal :label="t('events.calendar.title')" :value="props.events.length" icon="▦" />
@@ -321,7 +312,7 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
               <p class="mt-1 text-xs text-amber-200">{{ t(`events.attention.${item.action}`) }}</p>
               <p class="mt-2 text-xs text-[var(--ks-muted)]">
                 {{
-                  formatDate(new Date(item.startsAt), {
+                  eventDate(item.startsAt, {
                     month: 'short',
                     day: 'numeric',
                     hour: 'numeric',
@@ -504,7 +495,7 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
             <div class="border-b border-[var(--ks-border)] bg-black/15 px-4 py-3">
               <p class="ks-kicker">
                 {{
-                  formatDate(new Date(`${date}T12:00:00`), {
+                  calendarDate(new Date(`${date}T12:00:00Z`), {
                     weekday: 'long',
                     month: 'long',
                     day: 'numeric',
@@ -516,6 +507,8 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
               <div
                 v-for="event in rows"
                 :key="event.id"
+                data-testid="event-agenda-row"
+                :data-event-id="event.id"
                 class="group grid gap-4 p-4 transition hover:bg-white/[0.018] sm:grid-cols-[1.5rem_7rem_minmax(0,1fr)_auto] sm:items-center"
               >
                 <div class="min-h-5">
@@ -531,11 +524,9 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
                 </div>
                 <div>
                   <div class="text-xl font-[var(--ks-font-display)] text-[var(--ks-gold-bright)]">
-                    {{
-                      formatDate(new Date(event.startsAt), { hour: 'numeric', minute: '2-digit' })
-                    }}
+                    {{ eventDate(event.startsAt, { hour: 'numeric', minute: '2-digit' }) }}
                   </div>
-                  <div class="mt-1 text-[.66rem] text-[var(--ks-muted)]">{{ event.timezone }}</div>
+                  <div class="mt-1 text-[.66rem] text-[var(--ks-muted)]">{{ displayTimeZone }}</div>
                 </div>
                 <div class="min-w-0">
                   <div class="flex items-center gap-3">
@@ -588,7 +579,7 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
               ‹
             </button>
             <h2 id="events-month-title" class="ks-display text-xl font-semibold">
-              {{ formatDate(monthCursor, { month: 'long', year: 'numeric' }) }}
+              {{ calendarDate(monthCursor, { month: 'long', year: 'numeric' }) }}
             </h2>
             <button
               type="button"
@@ -605,10 +596,10 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
             >
               <div
                 v-for="date in weekdayDates"
-                :key="date.getDay()"
+                :key="date.getUTCDay()"
                 class="bg-[var(--ks-surface-2)] p-2 text-center text-xs font-bold text-[var(--ks-muted)]"
               >
-                {{ formatDate(date, { weekday: 'short' }) }}
+                {{ calendarDate(date, { weekday: 'short' }) }}
               </div>
               <div
                 v-for="day in monthDays"
@@ -616,7 +607,7 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
                 class="min-h-28 bg-[var(--ks-bg-elevated)] p-2"
                 :class="day.current ? '' : 'opacity-35'"
               >
-                <div class="text-xs font-semibold">{{ day.date.getDate() }}</div>
+                <div class="text-xs font-semibold">{{ day.date.getUTCDate() }}</div>
                 <div class="mt-2 space-y-1">
                   <Link
                     v-for="event in day.events.slice(0, 3)"
@@ -655,7 +646,7 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
               <p class="mt-1 text-xs text-[var(--ks-muted)]">
                 {{ t('events.reminders.starts') }} ·
                 {{
-                  formatDate(new Date(reminder.startsAt), {
+                  eventDate(reminder.startsAt, {
                     month: 'short',
                     day: 'numeric',
                     hour: 'numeric',
@@ -671,15 +662,15 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
         <section class="ks-surface p-5">
           <p class="ks-kicker">{{ t('events.calendar.viewOptions') }}</p>
           <h2 class="ks-display mt-1 text-xl font-semibold">
-            {{ formatDate(monthCursor, { month: 'long', year: 'numeric' }) }}
+            {{ calendarDate(monthCursor, { month: 'long', year: 'numeric' }) }}
           </h2>
           <div class="mt-4 grid grid-cols-7 gap-1 text-center text-[.68rem]">
             <div
               v-for="date in weekdayDates"
-              :key="date.getDay()"
+              :key="date.getUTCDay()"
               class="py-1 text-[var(--ks-muted)]"
             >
-              {{ formatDate(date, { weekday: 'narrow' }) }}
+              {{ calendarDate(date, { weekday: 'narrow' }) }}
             </div>
             <div
               v-for="day in monthDays"
@@ -694,7 +685,7 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
                   : '',
               ]"
             >
-              {{ day.date.getDate()
+              {{ day.date.getUTCDate()
               }}<span
                 v-if="day.events.length"
                 class="absolute bottom-1 h-1 w-1 rounded-full bg-[var(--ks-teal-bright)]"

@@ -25,7 +25,7 @@ final readonly class TransferEvidenceReferenceGuard
         if ($reference === null) {
             if ($sourceType === TransferSourceType::Evidence) {
                 throw ValidationException::withMessages([
-                    'evidence_id' => 'An approved Evidence reference is required for an Evidence source.',
+                    'evidence_id' => (string) __('An approved Evidence reference is required for an Evidence source.'),
                 ]);
             }
 
@@ -34,7 +34,7 @@ final readonly class TransferEvidenceReferenceGuard
 
         if (! $this->evidence->belongsToAlliance($reference, $allianceId)) {
             throw ValidationException::withMessages([
-                'evidence_id' => 'The Evidence reference is not available in this Alliance.',
+                'evidence_id' => (string) __('The Evidence reference is not available in this Alliance.'),
             ]);
         }
 
@@ -43,7 +43,7 @@ final readonly class TransferEvidenceReferenceGuard
             && ! $this->evidence->isApprovedForAlliance($reference, $allianceId)
         ) {
             throw ValidationException::withMessages([
-                'evidence_id' => 'An Evidence source must reference the latest approved Evidence review.',
+                'evidence_id' => (string) __('An Evidence source must reference the latest approved Evidence review.'),
             ]);
         }
 

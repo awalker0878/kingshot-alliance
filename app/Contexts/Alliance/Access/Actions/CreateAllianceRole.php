@@ -34,10 +34,10 @@ final readonly class CreateAllianceRole
         $name = trim($name);
         $key = Str::slug($name);
         if ($name === '' || $key === '') {
-            throw ValidationException::withMessages(['name' => 'Role name is required.']);
+            throw ValidationException::withMessages(['name' => (string) __('Role name is required.')]);
         }
         if (mb_strlen($name) > 100 || strlen($key) > 64) {
-            throw ValidationException::withMessages(['name' => 'Use a shorter role name.']);
+            throw ValidationException::withMessages(['name' => (string) __('Use a shorter role name.')]);
         }
 
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $name, $key, $permissions): string {
@@ -58,7 +58,7 @@ final readonly class CreateAllianceRole
                 'archived_at' => null,
             ]);
             if (! $role->wasRecentlyCreated) {
-                throw ValidationException::withMessages(['name' => 'A specialist role with this key already exists.']);
+                throw ValidationException::withMessages(['name' => (string) __('A specialist role with this key already exists.')]);
             }
 
             $permissionIds = [];

@@ -214,7 +214,7 @@ final class EventRallyController extends Controller
     private function player(): PlayerReference
     {
         $player = $this->playerContext->playerOrNull();
-        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before performing Rally operations.');
+        abort_unless($player instanceof PlayerReference, 409, (string) __('Select a Player before performing Rally operations.'));
 
         return $player;
     }

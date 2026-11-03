@@ -134,7 +134,9 @@ function reviewed(value: string | null): string {
               <dd class="mt-1 font-semibold">{{ content.locale }}</dd>
             </div>
             <div>
-              <dt class="text-xs text-[var(--ks-muted)]">{{ t('contentExperience.published') }}</dt>
+              <dt class="text-xs text-[var(--ks-muted)]">
+                {{ t('contentExperience.publishedItems') }}
+              </dt>
               <dd class="mt-1 font-semibold">{{ published(content.publishedAt) }}</dd>
             </div>
             <template v-if="content.provenance">

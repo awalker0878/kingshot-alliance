@@ -27,7 +27,7 @@ final readonly class GovernorProgressionObservationValidator
         string $datasetChecksum,
     ): array {
         if (! $kind->isGovernorProgression()) {
-            throw ValidationException::withMessages(['kind' => 'The observation kind is not Governor Progression Evidence.']);
+            throw ValidationException::withMessages(['kind' => (string) __('The observation kind is not Governor Progression Evidence.')]);
         }
         if ($this->structured->supports($kind)) {
             return $this->structured->validate($kind, $payload, $datasetId, $datasetChecksum);
@@ -41,7 +41,7 @@ final readonly class GovernorProgressionObservationValidator
             EvidenceKind::GovernorHeroGear => $this->heroGear($payload, $dataset),
             EvidenceKind::GovernorGear => $this->governorGear($payload, $dataset),
             EvidenceKind::GovernorCharms => $this->charms($payload, $dataset),
-            default => throw ValidationException::withMessages(['kind' => 'Unsupported Governor Progression observation kind.']),
+            default => throw ValidationException::withMessages(['kind' => (string) __('Unsupported Governor Progression observation kind.')]),
         };
     }
 
@@ -69,7 +69,7 @@ final readonly class GovernorProgressionObservationValidator
             $result['kingdom_number'] = $this->integer($payload['kingdom_number'], 1, 999999, 'payload.kingdom_number');
         }
         if ($result === []) {
-            throw ValidationException::withMessages(['payload' => 'A Governor profile observation must contain at least one reviewed fact.']);
+            throw ValidationException::withMessages(['payload' => (string) __('A Governor profile observation must contain at least one reviewed fact.')]);
         }
 
         return $result;
@@ -83,18 +83,18 @@ final readonly class GovernorProgressionObservationValidator
     {
         $this->closedKeys($payload, ['heroes', 'complete_roster_capture'], 'payload');
         if (! is_array($payload['heroes'] ?? null) || $payload['heroes'] === [] || count($payload['heroes']) > 34) {
-            throw ValidationException::withMessages(['payload.heroes' => 'A Hero roster observation must contain 1-34 reviewed Heroes.']);
+            throw ValidationException::withMessages(['payload.heroes' => (string) __('A Hero roster observation must contain 1-34 reviewed Heroes.')]);
         }
         $heroes = [];
         $seen = [];
         foreach (array_values($payload['heroes']) as $index => $row) {
             if (! is_array($row)) {
-                throw ValidationException::withMessages(["payload.heroes.$index" => 'A reviewed Hero row must be an object.']);
+                throw ValidationException::withMessages(["payload.heroes.$index" => (string) __('A reviewed Hero row must be an object.')]);
             }
             $this->closedKeys($row, ['hero_id', 'level', 'star', 'widget_level'], "payload.heroes.$index");
             $heroId = $this->heroId($row['hero_id'] ?? null, $dataset, "payload.heroes.$index.hero_id");
             if (isset($seen[$heroId])) {
-                throw ValidationException::withMessages(["payload.heroes.$index.hero_id" => 'A Hero may appear only once in one roster observation.']);
+                throw ValidationException::withMessages(["payload.heroes.$index.hero_id" => (string) __('A Hero may appear only once in one roster observation.')]);
             }
             $seen[$heroId] = true;
             $item = ['hero_id' => $heroId];
@@ -124,7 +124,7 @@ final readonly class GovernorProgressionObservationValidator
         $this->optionalInteger($result, 'substar', $payload, 0, 5, 'payload.substar');
         $this->optionalInteger($result, 'widget_level', $payload, 0, 10, 'payload.widget_level');
         if (count($result) === 1) {
-            throw ValidationException::withMessages(['payload' => 'A Hero detail observation must contain at least one observed progression fact in addition to Hero identity.']);
+            throw ValidationException::withMessages(['payload' => (string) __('A Hero detail observation must contain at least one observed progression fact in addition to Hero identity.')]);
         }
 
         return $result;
@@ -175,25 +175,25 @@ final readonly class GovernorProgressionObservationValidator
     {
         $this->closedKeys($payload, ['charms'], 'payload');
         if (! is_array($payload['charms'] ?? null) || $payload['charms'] === [] || count($payload['charms']) > 18) {
-            throw ValidationException::withMessages(['payload.charms' => 'A Charm observation must contain 1-18 reviewed Charm slots.']);
+            throw ValidationException::withMessages(['payload.charms' => (string) __('A Charm observation must contain 1-18 reviewed Charm slots.')]);
         }
         $maxLevel = $this->maximumCharmLevel($dataset);
         $rows = [];
         $seen = [];
         foreach (array_values($payload['charms']) as $index => $row) {
             if (! is_array($row)) {
-                throw ValidationException::withMessages(["payload.charms.$index" => 'A reviewed Charm row must be an object.']);
+                throw ValidationException::withMessages(["payload.charms.$index" => (string) __('A reviewed Charm row must be an object.')]);
             }
             $this->closedKeys($row, ['slot_id', 'level'], "payload.charms.$index");
             $slotId = $this->identifier($row['slot_id'] ?? null, 64, "payload.charms.$index.slot_id");
             if (isset($seen[$slotId])) {
-                throw ValidationException::withMessages(["payload.charms.$index.slot_id" => 'A Charm slot may appear only once in one observation.']);
+                throw ValidationException::withMessages(["payload.charms.$index.slot_id" => (string) __('A Charm slot may appear only once in one observation.')]);
             }
             $seen[$slotId] = true;
             $item = ['slot_id' => $slotId];
             $this->optionalInteger($item, 'level', $row, 0, $maxLevel, "payload.charms.$index.level");
             if (count($item) === 1) {
-                throw ValidationException::withMessages(["payload.charms.$index" => 'A Charm slot must contain a reviewed level.']);
+                throw ValidationException::withMessages(["payload.charms.$index" => (string) __('A Charm slot must contain a reviewed level.')]);
             }
             $rows[] = $item;
         }
@@ -212,13 +212,13 @@ final readonly class GovernorProgressionObservationValidator
         ?ProgressionDataset $dataset = null,
     ): array {
         if (! is_array($value) || $value === [] || count($value) > 12) {
-            throw ValidationException::withMessages([$field => 'A Gear observation must contain 1-12 reviewed slots.']);
+            throw ValidationException::withMessages([$field => (string) __('A Gear observation must contain 1-12 reviewed slots.')]);
         }
         $rows = [];
         $seen = [];
         foreach (array_values($value) as $index => $row) {
             if (! is_array($row)) {
-                throw ValidationException::withMessages(["$field.$index" => 'A reviewed Gear row must be an object.']);
+                throw ValidationException::withMessages(["$field.$index" => (string) __('A reviewed Gear row must be an object.')]);
             }
             $allowed = $allowMastery
                 ? ['slot_id', 'quality', 'level', 'mastery_level']
@@ -226,7 +226,7 @@ final readonly class GovernorProgressionObservationValidator
             $this->closedKeys($row, $allowed, "$field.$index");
             $slotId = $this->identifier($row['slot_id'] ?? null, 64, "$field.$index.slot_id");
             if (isset($seen[$slotId])) {
-                throw ValidationException::withMessages(["$field.$index.slot_id" => 'A Gear slot may appear only once in one observation.']);
+                throw ValidationException::withMessages(["$field.$index.slot_id" => (string) __('A Gear slot may appear only once in one observation.')]);
             }
             $seen[$slotId] = true;
             $item = ['slot_id' => $slotId];
@@ -250,7 +250,7 @@ final readonly class GovernorProgressionObservationValidator
                 $this->assertGovernorGearStep($dataset, (string) $item['quality'], (int) $item['star'], "$field.$index");
             }
             if (count($item) === 1) {
-                throw ValidationException::withMessages(["$field.$index" => 'A Gear slot must contain at least one reviewed progression fact.']);
+                throw ValidationException::withMessages(["$field.$index" => (string) __('A Gear slot must contain at least one reviewed progression fact.')]);
             }
             $rows[] = $item;
         }
@@ -263,7 +263,7 @@ final readonly class GovernorProgressionObservationValidator
     {
         if ($max === null || $max < 1) {
             if ($requirePinnedBound) {
-                throw ValidationException::withMessages([$field => 'The pinned Progression dataset does not expose a factual bound for this reviewed field.']);
+                throw ValidationException::withMessages([$field => (string) __('The pinned Progression dataset does not expose a factual bound for this reviewed field.')]);
             }
 
             return $this->integer($value, 0, 1000, $field);
@@ -275,7 +275,7 @@ final readonly class GovernorProgressionObservationValidator
     private function heroId(mixed $value, ProgressionDataset $dataset, string $field): string
     {
         if (! is_string($value) || ($canonical = $this->progression->canonicalHeroId($value, $dataset)) === null) {
-            throw ValidationException::withMessages([$field => 'Hero identity must exist in the pinned factual Progression dataset.']);
+            throw ValidationException::withMessages([$field => (string) __('Hero identity must exist in the pinned factual Progression dataset.')]);
         }
 
         return $canonical;
@@ -285,7 +285,7 @@ final readonly class GovernorProgressionObservationValidator
     {
         $catalogue = $dataset->catalogue('governor_charms');
         if (! is_array($catalogue)) {
-            throw ValidationException::withMessages(['payload.charms' => 'The pinned Progression dataset does not expose the Governor Charm level ladder.']);
+            throw ValidationException::withMessages(['payload.charms' => (string) __('The pinned Progression dataset does not expose the Governor Charm level ladder.')]);
         }
         $data = $catalogue['data'] ?? null;
         $levels = is_array($data) && is_array($data['charmLevels'] ?? null) ? $data['charmLevels'] : [];
@@ -296,7 +296,7 @@ final readonly class GovernorProgressionObservationValidator
             }
         }
         if ($max < 1) {
-            throw ValidationException::withMessages(['payload.charms' => 'The pinned Progression dataset does not expose the Governor Charm level ladder.']);
+            throw ValidationException::withMessages(['payload.charms' => (string) __('The pinned Progression dataset does not expose the Governor Charm level ladder.')]);
         }
 
         return $max;
@@ -355,7 +355,7 @@ final readonly class GovernorProgressionObservationValidator
             }
         }
 
-        throw ValidationException::withMessages([$field => 'Governor Gear tier/quality must exist in the pinned factual Progression dataset.']);
+        throw ValidationException::withMessages([$field => (string) __('Governor Gear tier/quality must exist in the pinned factual Progression dataset.')]);
     }
 
     private function assertGovernorGearStep(ProgressionDataset $dataset, string $tier, int $star, string $field): void
@@ -366,7 +366,7 @@ final readonly class GovernorProgressionObservationValidator
             }
         }
 
-        throw ValidationException::withMessages([$field => 'Governor Gear tier/star state must exist in the pinned factual Progression dataset.']);
+        throw ValidationException::withMessages([$field => (string) __('Governor Gear tier/star state must exist in the pinned factual Progression dataset.')]);
     }
 
     /**
@@ -407,7 +407,7 @@ final readonly class GovernorProgressionObservationValidator
     {
         $value = is_int($value) ? (string) $value : (is_string($value) ? trim($value) : '');
         if (preg_match('/^\d{1,19}$/', $value) !== 1) {
-            throw ValidationException::withMessages([$field => 'The reviewed value must contain 1-19 digits.']);
+            throw ValidationException::withMessages([$field => (string) __('The reviewed value must contain 1-19 digits.')]);
         }
         $canonical = ltrim($value, '0');
 
@@ -417,7 +417,7 @@ final readonly class GovernorProgressionObservationValidator
     private function line(mixed $value, int $max, string $field): string
     {
         if (! is_string($value) || ($value = trim($value)) === '' || mb_strlen($value) > $max) {
-            throw ValidationException::withMessages([$field => 'The reviewed text is missing or too long.']);
+            throw ValidationException::withMessages([$field => (string) __('The reviewed text is missing or too long.')]);
         }
 
         return $value;
@@ -427,7 +427,7 @@ final readonly class GovernorProgressionObservationValidator
     {
         $value = $this->line($value, $max, $field);
         if (preg_match('/^[a-z0-9][a-z0-9._-]*$/', $value) !== 1) {
-            throw ValidationException::withMessages([$field => 'The reviewed identifier is invalid.']);
+            throw ValidationException::withMessages([$field => (string) __('The reviewed identifier is invalid.')]);
         }
 
         return $value;

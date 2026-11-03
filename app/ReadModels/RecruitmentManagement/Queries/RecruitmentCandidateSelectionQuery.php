@@ -28,7 +28,7 @@ final readonly class RecruitmentCandidateSelectionQuery
         $search = trim($search);
         if (! in_array($kind, ['members', 'roster', 'templates'], true) || mb_strlen($search) > 160
             || ($selectedId !== null && ! preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/Di', $selectedId))) {
-            throw ValidationException::withMessages(['q' => 'The recruitment selection request is invalid.']);
+            throw ValidationException::withMessages(['q' => (string) __('The recruitment selection request is invalid.')]);
         }
 
         $base = match ($kind) {
@@ -57,7 +57,7 @@ final readonly class RecruitmentCandidateSelectionQuery
             $name = $position['name'] ?? null;
             $id = $position['id'] ?? null;
             if (! is_string($name) || mb_strlen($name) > 255 || ! is_string($id) || ! preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/Di', $id)) {
-                throw ValidationException::withMessages(['cursor' => 'The recruitment selection cursor is invalid.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The recruitment selection cursor is invalid.')]);
             }
             $choices->where(static function (Builder $after) use ($name, $id): void {
                 $after->where('name', '>', $name)->orWhere(static function (Builder $tie) use ($name, $id): void {

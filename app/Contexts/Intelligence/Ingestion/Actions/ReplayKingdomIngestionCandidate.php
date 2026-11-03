@@ -63,17 +63,17 @@ final readonly class ReplayKingdomIngestionCandidate
 
             if ($candidate->state !== KingdomIngestionCandidateState::Quarantined) {
                 throw ValidationException::withMessages([
-                    'candidate' => 'Only quarantined ingestion candidates can be replayed.',
+                    'candidate' => (string) __('Only quarantined ingestion candidates can be replayed.'),
                 ]);
             }
             if ($subscription->state !== KingdomIngestionSubscriptionState::Active) {
                 throw ValidationException::withMessages([
-                    'subscription' => 'The ingestion subscription must be active before replay.',
+                    'subscription' => (string) __('The ingestion subscription must be active before replay.'),
                 ]);
             }
             if ($scope->kingdomId !== (string) $subscription->kingdom_id) {
                 throw ValidationException::withMessages([
-                    'subscription' => 'Replay is blocked because the alliance Kingdom no longer matches the subscription context.',
+                    'subscription' => (string) __('Replay is blocked because the alliance Kingdom no longer matches the subscription context.'),
                 ]);
             }
 
@@ -81,7 +81,7 @@ final readonly class ReplayKingdomIngestionCandidate
             if ($adapter->version() !== $subscription->adapter_version
                 || ! in_array($candidate->target_kind, $adapter->supportedTargetKinds(), true)) {
                 throw ValidationException::withMessages([
-                    'subscription' => 'Replay is blocked because the candidate source/version is no longer approved.',
+                    'subscription' => (string) __('Replay is blocked because the candidate source/version is no longer approved.'),
                 ]);
             }
 

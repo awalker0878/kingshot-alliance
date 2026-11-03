@@ -1,0 +1,263 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import process from 'node:process';
+import { createHash } from 'node:crypto';
+import { execFileSync as runFile } from 'node:child_process';
+import { createServer } from 'vite';
+import { flattenMessages } from './lib/localization-completeness.mjs';
+import { riskEntry, stableUnflaggedSample } from './lib/localization-risk.mjs';
+
+const originalRef = '7cf387b628bbbaeb81d10120340e559b46403bee';
+const currentMode = process.argv.includes('--current');
+const outputArg = process.argv.slice(2).find((value) => !value.startsWith('--'));
+const output = path.resolve(outputArg ?? (currentMode ? '.translation-pr1-current' : '.translation-pr1-baseline'));
+const temp = currentMode ? null : await fs.mkdtemp(path.resolve('.translation-pinned-source-'));
+const sourceRoot = temp ?? process.cwd();
+if (temp) {
+  try {
+    const archive = runFile('git', ['archive', originalRef, 'resources/js/localization', 'lang', 'app'], {
+      maxBuffer: 128 * 1024 * 1024,
+    });
+    runFile('tar', ['-x', '-C', temp], { input: archive, maxBuffer: 128 * 1024 * 1024 });
+  } catch (error) {
+    await fs.rm(temp, { recursive: true, force: true });
+    throw new Error('Immutable source baseline ' + originalRef + ' is unavailable; do not substitute HEAD: ' + String(error));
+  }
+}
+const sampleCount = Number(process.env.LOCALIZATION_RISK_SAMPLE_SIZE ?? 32);
+if (!Number.isSafeInteger(sampleCount) || sampleCount < 1) {
+  throw new Error('LOCALIZATION_RISK_SAMPLE_SIZE must be a positive integer.');
+}
+const baselineRef = originalRef;
+const sourceRevision = currentMode ? 'corrected-working-tree' : originalRef;
+const sourcePath = (...segments) => path.join(sourceRoot, ...segments);
+const readJson = async (file) => JSON.parse(await fs.readFile(sourcePath(file), 'utf8'));
+const hash = (value) => createHash('sha256').update(value).digest('hex');
+await fs.mkdir(output, { recursive: true });
+
+const vite = await createServer({
+  configFile: false,
+  root: sourceRoot,
+  server: { middlewareMode: true },
+  appType: 'custom',
+});
+let domains, locales, raw, effective;
+try {
+  const registry = await vite.ssrLoadModule('/resources/js/localization/registry.ts');
+  domains = registry.localizationDomains;
+  ({ localeCodes: locales } = await vite.ssrLoadModule('/resources/js/localization/locales.ts'));
+  const { loadCatalogue } = await vite.ssrLoadModule('/resources/js/localization/loader.ts');
+  raw = {};
+  effective = {};
+  for (const domain of domains) {
+    raw[domain] = {};
+    effective[domain] = {};
+    for (const locale of locales) {
+      raw[domain][locale] = flattenMessages(
+        (await registry.importDomainCatalogue(domain, locale)).default,
+      );
+      effective[domain][locale] = flattenMessages(await loadCatalogue(domain, locale));
+    }
+  }
+} finally {
+  await vite.close();
+}
+
+const server = {};
+for (const locale of locales) {
+  server[locale] = await readJson(path.join('lang', locale + '.json'));
+}
+const englishAccounts = await fs.readFile(sourcePath('lang/en/accounts.php'), 'utf8');
+const phpLiteral = /=>\s*('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*")\s*,/g;
+const decodePhp = (literal) => literal.slice(1, -1).replace(/\\(['"\\])/g, '$1');
+const accountTranslations = {};
+for (const locale of locales.filter((code) => code !== 'en')) {
+  const localized = await fs.readFile(sourcePath('lang', locale, 'accounts.php'), 'utf8');
+  accountTranslations[locale] = [...localized.matchAll(phpLiteral)].map((match) => decodePhp(match[1]));
+}
+const accounts = [...englishAccounts.matchAll(phpLiteral)].map((match, index) => ({
+  catalogue: 'server',
+  domain: 'accounts',
+  key: 'accounts.php#' + (index + 1),
+  source: decodePhp(match[1]),
+}));
+
+const conflicts = [];
+const messageIndex = new Map();
+for (const domain of domains) {
+  const base = raw[domain].en;
+  const merged = effective[domain].en;
+  for (const [key, source] of Object.entries(merged)) {
+    if (!(key in base) || source !== base[key]) {
+      conflicts.push({
+        domain,
+        key,
+        original: base[key] ?? null,
+        winner: source,
+        kind: key in base ? 'overridden' : 'overlay-added',
+      });
+    }
+    const matches = messageIndex.get(key) ?? [];
+    matches.push({ domain, value: source });
+    messageIndex.set(key, matches);
+  }
+}
+const duplicatedKeys = [...messageIndex.entries()]
+  .filter(([, values]) => values.length > 1)
+  .map(([key, occurrences]) => ({ key, occurrences }))
+  .sort((a, b) => a.key.localeCompare(b.key));
+conflicts.sort((a, b) => (a.domain + ':' + a.key).localeCompare(b.domain + ':' + b.key));
+
+const entries = [];
+for (const domain of domains) {
+  for (const [key, source] of Object.entries(effective[domain].en)) {
+    entries.push(riskEntry('client', domain, key, source));
+  }
+}
+for (const source of Object.keys(server.en)) {
+  entries.push(riskEntry('server', 'json', source, source));
+}
+for (const message of accounts) {
+  entries.push(riskEntry(message.catalogue, message.domain, message.key, message.source));
+}
+const flagged = entries.filter((entry) => entry.reasons.length > 0);
+const sampleReviewsFile = path.resolve('resources/data/localization/risk-sample-decisions.json');
+const sampleDecisions = await fs.readFile(sampleReviewsFile, 'utf8')
+  .then((value) => JSON.parse(value)).catch((error) => {
+    if (error.code === 'ENOENT') return { version: 1, decisions: {} };
+    throw error;
+  });
+const samples = {};
+const sampleMetrics = {};
+let openSampleMisses = 0;
+for (const locale of locales.filter((code) => code !== 'en')) {
+  samples[locale] = stableUnflaggedSample(entries, locale, sampleCount, baselineRef)
+    .map((entry) => {
+      const reviewKey = [entry.catalogue, entry.domain, entry.key].join(':');
+      const review = sampleDecisions.decisions?.[locale]?.[reviewKey] ?? null;
+      return {
+      ...entry,
+      translation: entry.catalogue === 'client'
+        ? effective[entry.domain][locale]?.[entry.key] ?? null
+        : entry.domain === 'json'
+          ? server[locale]?.[entry.key] ?? null
+          : accountTranslations[locale]?.[Number(entry.key.split('#')[1]) - 1] ?? null,
+      auditStatus: review ? 'reviewed' : 'unreviewed',
+      reviewOutcome: review?.isTier1 === true ? 'missed-tier-1' : review ? 'not-tier-1' : null,
+      reviewedBy: review?.reviewer ?? null,
+      triaged: review?.triaged === true,
+    };
+    });
+  const decisions = samples[locale];
+  const reviewed = decisions.filter((item) => item.auditStatus === 'reviewed');
+  const misses = reviewed.filter((item) => item.reviewOutcome === 'missed-tier-1');
+  const open = misses.filter((item) => !item.triaged);
+  openSampleMisses += open.length;
+  sampleMetrics[locale] = {
+    sampled: decisions.length,
+    reviewed: reviewed.length,
+    unreviewed: decisions.length - reviewed.length,
+    missedTier1: misses.length,
+    estimatedMissRate: reviewed.length ? misses.length / reviewed.length : null,
+    status: open.length ? 'CRITICAL_MISSES_UNTRIAGED' :
+      reviewed.length < decisions.length ? 'REVIEW_REQUIRED' : 'SAMPLE_REVIEWED',
+    attention: open.map((item) => [item.catalogue, item.domain, item.key].join(':')),
+  };
+}
+
+const phpFiles = {};
+const phpCatalogueEntries = {};
+for (const locale of locales) {
+  const directory = sourcePath('lang', locale);
+  const filenames = await fs.readdir(directory).catch(() => []);
+  phpFiles[locale] = {};
+  phpCatalogueEntries[locale] = {};
+  for (const filename of filenames.filter((name) => name.endsWith('.php')).sort()) {
+    const source = await fs.readFile(path.join(directory, filename), 'utf8');
+    phpFiles[locale][filename] = { sha256: hash(source), bytes: Buffer.byteLength(source) };
+    phpCatalogueEntries[locale][filename] = [...source.matchAll(phpLiteral)].map((match, index) => ({
+      key: filename + '#' + (index + 1),
+      value: decodePhp(match[1]),
+      keyStatus: 'positional-until-php-key-parser',
+      sourceStatus: filename === 'accounts.php' ? 'local-source-available' : 'upstream-framework-source-not-in-repository',
+      reviewStatus: 'unreviewed',
+    }));
+  }
+}
+
+let build = { status: 'missing', note: 'Run npm run build before this exporter to capture emitted Vite assets.' };
+try {
+  const manifest = JSON.parse(await fs.readFile('public/build/manifest.json', 'utf8'));
+  const chunks = [];
+  for (const entry of Object.values(manifest)) {
+    if (!entry.file?.endsWith('.js')) continue;
+    chunks.push({
+      source: entry.src ?? null,
+      file: entry.file,
+      bytes: (await fs.stat(path.join('public/build', entry.file))).size,
+      isLocale: Boolean(entry.src?.startsWith('resources/js/localization/messages/')),
+      isPage: Boolean(entry.src?.startsWith('resources/js/pages/')),
+    });
+  }
+  chunks.sort((a, b) => (a.source ?? a.file).localeCompare(b.source ?? b.file));
+  const largestPage = chunks.filter((chunk) => chunk.isPage).sort((a, b) => b.bytes - a.bytes)[0];
+  build = { status: 'captured', largestPage: largestPage ?? null, chunks };
+} catch (error) {
+  build.note = 'Cannot capture production assets: ' + String(error);
+}
+
+const report = {
+  version: 1,
+  baselineRef,
+  sourceRevision,
+  samplingSeed: baselineRef,
+  domains,
+  locales,
+  clientSourceEntries: entries.filter((entry) => entry.catalogue === 'client').length,
+  serverJsonSourceEntries: Object.keys(server.en).length,
+  serverAccountsSourceEntries: accounts.length,
+  candidateTier1Entries: flagged.length,
+  unflaggedEntries: entries.length - flagged.length,
+  perLocaleCandidateReviewUnits: Object.fromEntries(
+    locales.filter((code) => code !== 'en').map((locale) => [locale, flagged.length]),
+  ),
+  nonFlaggedSamplePerLocale: sampleCount,
+  note: 'Candidate counts are provisional; sampled results must be reviewed before a miss rate can be asserted.',
+  reviewDisclaimer: 'Keyword rules produce candidates, not an exhaustive risk inventory or linguistic approvals.',
+  frameworkNote: 'Framework auth/validation/password PHP strings are inventoried by file hash; full source-key review is a subsequent task against the locked Laravel vendor version.',
+};
+const files = {
+  'baseline-metadata.json': report,
+  'raw-catalogues.json': raw,
+  'effective-all-locales.json': effective,
+  'effective-en.json': Object.fromEntries(domains.map((domain) => [domain, effective[domain].en])),
+  'server-catalogues.json': server,
+  'server-php-hashes.json': phpFiles,
+  'server-php-catalogues.json': phpCatalogueEntries,
+  'overlay-conflicts.json': { mergesOrAdditions: conflicts, duplicateAcrossDomains: duplicatedKeys },
+  'semantic-risk-inventory.json': { flagged, total: entries.length },
+  'risk-sample-metrics.json': sampleMetrics,
+  'risk-unflagged-samples.json': {
+    instructions: 'A qualified reviewer records whether each sampled unflagged entry is actually Tier 1. For each locale, miss-rate estimate = promoted-to-Tier-1 / reviewed sample count; report confidence and possible selection bias.',
+    samples,
+  },
+  'vite-chunks.json': build,
+};
+for (const [name, data] of Object.entries(files)) {
+  await fs.writeFile(path.join(output, name), JSON.stringify(data, null, 2) + '\n');
+}
+if (temp) await fs.rm(temp, { recursive: true, force: true });
+console.log(JSON.stringify({
+  output,
+  baselineRef,
+  sourceRevision,
+  ...report,
+  overlayMergeOrAdditionCount: conflicts.length,
+  crossDomainDuplicateKeys: duplicatedKeys.length,
+  buildStatus: build.status,
+  sampleMetrics,
+}, null, 2));
+if (openSampleMisses > 0) {
+  console.error('CRITICAL: ' + openSampleMisses + ' untriaged Tier 1 omissions identified in non-flagged sampling');
+  process.exitCode = 1;
+}

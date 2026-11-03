@@ -46,14 +46,14 @@ final readonly class TransitionKingdomIngestionSubscription
             if ($target === KingdomIngestionSubscriptionState::Active) {
                 if ($scope->kingdomId !== (string) $subscription->kingdom_id) {
                     throw ValidationException::withMessages([
-                        'state' => 'A subscription can only be activated for the alliance current Kingdom.',
+                        'state' => (string) __('A subscription can only be activated for the alliance current Kingdom.'),
                     ]);
                 }
 
                 $adapter = $this->adapters->require($subscription->adapter_key);
                 if ($adapter->version() !== $subscription->adapter_version) {
                     throw ValidationException::withMessages([
-                        'state' => 'The configured source adapter version is no longer approved for activation.',
+                        'state' => (string) __('The configured source adapter version is no longer approved for activation.'),
                     ]);
                 }
 

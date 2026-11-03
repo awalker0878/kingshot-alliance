@@ -25,7 +25,7 @@ final readonly class AuthenticateApiCredential
     {
         $token = $request->bearerToken();
         if (! is_string($token) || ! preg_match('/^ks_live_([a-f0-9]{12})\.([a-f0-9]{64})$/', $token, $matches)) {
-            abort(401, 'A valid API credential is required.');
+            abort(401, (string) __('A valid API credential is required.'));
         }
 
         $credential = ApiCredential::query()
@@ -36,12 +36,12 @@ final readonly class AuthenticateApiCredential
             || ! hash_equals($credential->secret_hash, hash('sha256', $matches[2]))
             || ! $credential->active()
             || ! $credential->allows($requiredScope)) {
-            abort(401, 'The API credential is invalid, expired, revoked, or missing the required scope.');
+            abort(401, (string) __('The API credential is invalid, expired, revoked, or missing the required scope.'));
         }
 
         $alliance = $this->alliances->find((string) $credential->alliance_id);
         if ($alliance === null || ! $this->availability->allowsApi($alliance->allianceId)) {
-            abort(403, 'The alliance is not available for API access.');
+            abort(403, (string) __('The alliance is not available for API access.'));
         }
 
         $this->recordUse->handle((string) $credential->id);

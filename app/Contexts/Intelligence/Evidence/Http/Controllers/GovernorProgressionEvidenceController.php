@@ -89,7 +89,7 @@ final class GovernorProgressionEvidenceController extends Controller
             ->whereNull('transfer_plan_id')
             ->whereNull('transfer_participant_id')
             ->firstOrFail();
-        abort_if($item->path === null, 410, 'The retained evidence image has been deleted.');
+        abort_if($item->path === null, 410, (string) __('The retained evidence image has been deleted.'));
         $disk = Storage::disk((string) $item->disk);
         $stream = $disk->readStream((string) $item->path);
         abort_unless(is_resource($stream), 404);
@@ -246,7 +246,7 @@ final class GovernorProgressionEvidenceController extends Controller
     {
         $player = $context->player();
         $scope = $this->allianceScopes->findForPlayer($player->playerId, $player->kingdomId);
-        abort_if($scope === null, 403, 'An active Alliance membership is required.');
+        abort_if($scope === null, 403, (string) __('An active Alliance membership is required.'));
 
         return [$player->playerId, $scope->allianceId];
     }

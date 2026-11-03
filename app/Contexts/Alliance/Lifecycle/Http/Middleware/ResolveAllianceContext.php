@@ -25,10 +25,10 @@ final readonly class ResolveAllianceContext
     public function handle(Request $request, Closure $next): Response
     {
         $player = $this->players->playerOrNull();
-        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before opening Alliance operations.');
+        abort_unless($player instanceof PlayerReference, 409, (string) __('Select a Player before opening Alliance operations.'));
 
         $scope = $this->memberships->findForPlayer($player->playerId, $player->kingdomId);
-        abort_unless($scope instanceof AllianceScopeReference, 409, 'The active Player is not currently in an active Alliance in this Kingdom.');
+        abort_unless($scope instanceof AllianceScopeReference, 409, (string) __('The active Player is not currently in an active Alliance in this Kingdom.'));
 
         $this->context->activate($player, $scope);
         $request->attributes->set('active_player_id', $scope->playerId);

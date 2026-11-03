@@ -47,13 +47,13 @@ final readonly class ModerateGiftCode
 
         $reason = $reason === null ? null : trim($reason);
         if ($action->requiresReason() && ($reason === null || $reason === '')) {
-            throw ValidationException::withMessages(['reason' => 'A moderation reason is required for this action.']);
+            throw ValidationException::withMessages(['reason' => (string) __('A moderation reason is required for this action.')]);
         }
         if ($action === GiftCodeModerationAction::ResolveDispute && $proposedStatus === null) {
-            throw ValidationException::withMessages(['proposed_status' => 'A resolved status is required.']);
+            throw ValidationException::withMessages(['proposed_status' => (string) __('A resolved status is required.')]);
         }
         if ($action === GiftCodeModerationAction::CorrectExpiry && ! array_key_exists('expires_at', $metadata)) {
-            throw ValidationException::withMessages(['expires_at' => 'A corrected expiry value is required.']);
+            throw ValidationException::withMessages(['expires_at' => (string) __('A corrected expiry value is required.')]);
         }
 
         return DB::transaction(function () use (
@@ -69,7 +69,7 @@ final readonly class ModerateGiftCode
             $giftCode = GiftCode::query()->whereKey($giftCodeId)->lockForUpdate()->firstOrFail();
             if ($expectedStatusRevision !== null && $giftCode->status_revision !== $expectedStatusRevision) {
                 throw ValidationException::withMessages([
-                    'expected_status_revision' => 'Gift Code trust changed after this review loaded. Refresh and review the latest evidence before deciding.',
+                    'expected_status_revision' => (string) __('Gift Code trust changed after this review loaded. Refresh and review the latest evidence before deciding.'),
                 ]);
             }
             $evidenceIds = array_values(array_unique(array_map('strval', $evidenceIds)));
@@ -80,7 +80,7 @@ final readonly class ModerateGiftCode
                     ->count();
                 if ($matched !== count($evidenceIds)) {
                     throw ValidationException::withMessages([
-                        'evidence_ids' => 'Every evidence reference must belong to the Gift Code being reviewed.',
+                        'evidence_ids' => (string) __('Every evidence reference must belong to the Gift Code being reviewed.'),
                     ]);
                 }
             }

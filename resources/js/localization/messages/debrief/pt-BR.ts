@@ -44,6 +44,27 @@ const messages = {
       'A comparação aparece quando existe uma Caça ao Urso concluída anteriormente para esta Aliança.',
     history: 'Histórico',
     runHistory: 'Histórico da Caça ao Urso',
+    signals: {
+      evidence: 'Status da evidência',
+      factualSignals: 'Comparação gravada',
+      reviewPending:
+        'Uma ou mais linhas de governador importadas ainda precisam de revisão de identidade.',
+      newPersonalBest: 'Novo recorde pessoal a partir de resultados aceitos',
+      damageDirection: 'Danos {direction}',
+      rallyDirection: 'Participação em rali {direction}',
+      evidenceStates: {
+        accepted: 'Resultado de captura de tela aceito',
+        recorded_without_accepted_evidence:
+          'Resultado gravado sem evidência de captura de tela aceita',
+        unavailable: 'Nenhum resultado registrado',
+      },
+      directions: {
+        unknown: 'não é comparável',
+        increased: 'aumentou',
+        decreased: 'diminuiu',
+        unchanged: 'sem alterações',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

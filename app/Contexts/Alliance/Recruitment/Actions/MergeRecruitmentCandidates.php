@@ -36,7 +36,7 @@ final class MergeRecruitmentCandidates
         ?string $reason = null,
     ): string {
         if ($sourceCandidateId === $targetCandidateId) {
-            throw ValidationException::withMessages(['candidate' => 'A recruitment candidate cannot be merged into itself.']);
+            throw ValidationException::withMessages(['candidate' => (string) __('A recruitment candidate cannot be merged into itself.')]);
         }
 
         $reason = RecruitmentTextInput::reason($reason);
@@ -56,7 +56,7 @@ final class MergeRecruitmentCandidates
             $sourceCandidate = $locked->get($sourceCandidateId);
             $targetCandidate = $locked->get($targetCandidateId);
             if (! $sourceCandidate instanceof RecruitmentCandidate || ! $targetCandidate instanceof RecruitmentCandidate) {
-                throw ValidationException::withMessages(['candidate' => 'Both recruitment candidates must belong to the active Alliance.']);
+                throw ValidationException::withMessages(['candidate' => (string) __('Both recruitment candidates must belong to the active Alliance.')]);
             }
             $sourceCandidate->ensureNotAnonymized();
             $targetCandidate->ensureNotAnonymized();
@@ -65,10 +65,10 @@ final class MergeRecruitmentCandidates
                 return (string) $targetCandidate->id;
             }
             if ($sourceCandidate->merged_into_id !== null) {
-                throw ValidationException::withMessages(['source' => 'The source candidate has already been merged.']);
+                throw ValidationException::withMessages(['source' => (string) __('The source candidate has already been merged.')]);
             }
             if ($targetCandidate->merged_into_id !== null) {
-                throw ValidationException::withMessages(['target' => 'A candidate that was merged into another record cannot be the merge target.']);
+                throw ValidationException::withMessages(['target' => (string) __('A candidate that was merged into another record cannot be the merge target.')]);
             }
 
             $this->copyReviewers((string) $context->alliance->id, $sourceCandidate, $targetCandidate, $context->actor->playerId);

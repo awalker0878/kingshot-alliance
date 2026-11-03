@@ -43,22 +43,22 @@ final readonly class CreateAlliance
             $this->accounts->lockActive($actorUserId);
             $candidate = $this->players->require($ownerPlayerId);
             if ($candidate->userId !== $actorUserId || $candidate->canonicalPlayerId !== null) {
-                throw ValidationException::withMessages(['player' => 'Select a current Player owned by this account.']);
+                throw ValidationException::withMessages(['player' => (string) __('Select a current Player owned by this account.')]);
             }
             // Kingdom precedes Player, matching identity persistence. Account
             // serialization also coordinates release, reconciliation and deletion.
             try {
                 $this->kingdoms->lockActiveShared($candidate->kingdomId);
             } catch (ModelNotFoundException) {
-                throw ValidationException::withMessages(['kingdom' => 'The selected Kingdom is archived or unavailable.']);
+                throw ValidationException::withMessages(['kingdom' => (string) __('The selected Kingdom is archived or unavailable.')]);
             }
             $owner = $this->players->lockCurrent($ownerPlayerId);
             if ($owner->userId !== $actorUserId || $owner->kingdomId !== $candidate->kingdomId) {
-                throw ValidationException::withMessages(['player' => 'Player ownership or Kingdom changed. Reload before creating an Alliance.']);
+                throw ValidationException::withMessages(['player' => (string) __('Player ownership or Kingdom changed. Reload before creating an Alliance.')]);
             }
 
             if ($this->memberships->hasAnyActiveForPlayer($ownerPlayerId)) {
-                throw ValidationException::withMessages(['player' => 'The active Player already belongs to an Alliance.']);
+                throw ValidationException::withMessages(['player' => (string) __('The active Player already belongs to an Alliance.')]);
             }
 
             $alliance = Alliance::query()->firstOrCreate(['slug' => $settings->slug], [
@@ -67,7 +67,7 @@ final readonly class CreateAlliance
                 'status' => AllianceStatus::Active,
             ]);
             if (! $alliance->wasRecentlyCreated) {
-                throw ValidationException::withMessages(['slug' => 'This Alliance URL name is already in use.']);
+                throw ValidationException::withMessages(['slug' => (string) __('This Alliance URL name is already in use.')]);
             }
             try {
                 DB::transaction(static fn () => AllianceMembership::query()->create([
@@ -81,7 +81,7 @@ final readonly class CreateAlliance
                 if (! $this->memberships->hasAnyActiveForPlayer($ownerPlayerId)) {
                     throw $exception;
                 }
-                throw ValidationException::withMessages(['player' => 'The active Player already belongs to an Alliance.']);
+                throw ValidationException::withMessages(['player' => (string) __('The active Player already belongs to an Alliance.')]);
             }
 
             // Provision specialist roles, including Gift Code Coordinator, without

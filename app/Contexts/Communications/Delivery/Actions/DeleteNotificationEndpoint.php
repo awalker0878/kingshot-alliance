@@ -22,7 +22,7 @@ final readonly class DeleteNotificationEndpoint
         DB::transaction(function () use ($recipientUserId, $playerId, $endpointId): void {
             $actor = $this->players->lockCurrent($playerId);
             if ($actor->userId !== $recipientUserId) {
-                throw ValidationException::withMessages(['player' => 'The active Governor no longer belongs to this account.']);
+                throw ValidationException::withMessages(['player' => (string) __('The active Governor no longer belongs to this account.')]);
             }
 
             $endpoint = NotificationEndpoint::query()

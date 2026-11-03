@@ -66,13 +66,13 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
             }
             if ($candidate->target_kind !== KingdomIngestionTargetKind::PlayerSnapshot) {
                 throw ValidationException::withMessages([
-                    'candidate' => 'This promotion path accepts only player snapshot candidates.',
+                    'candidate' => (string) __('This promotion path accepts only player snapshot candidates.'),
                 ]);
             }
             if ($subscription->state !== KingdomIngestionSubscriptionState::Active
                 || $batch->state !== KingdomIngestionBatchState::Pending) {
                 throw ValidationException::withMessages([
-                    'subscription' => 'The ingestion subscription and batch must still be active before a candidate can be promoted.',
+                    'subscription' => (string) __('The ingestion subscription and batch must still be active before a candidate can be promoted.'),
                 ]);
             }
 
@@ -206,7 +206,7 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
         if ($candidate->promoted_record_type !== KingdomIngestionTargetKind::PlayerSnapshot->value
             || $candidate->promoted_record_id === null) {
             throw ValidationException::withMessages([
-                'candidate' => 'The promoted candidate does not contain a valid player snapshot reference.',
+                'candidate' => (string) __('The promoted candidate does not contain a valid player snapshot reference.'),
             ]);
         }
 
@@ -216,7 +216,7 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
             ->exists();
         if (! $exists) {
             throw ValidationException::withMessages([
-                'candidate' => 'The promoted player snapshot no longer exists.',
+                'candidate' => (string) __('The promoted player snapshot no longer exists.'),
             ]);
         }
 
@@ -249,7 +249,7 @@ final readonly class PromoteKingdomIngestionPlayerSnapshot
             || ($progressionLevel !== null && ! is_string($progressionLevel))
             || ($observedAllianceTag !== null && ! is_string($observedAllianceTag))) {
             throw ValidationException::withMessages([
-                'candidate' => 'The normalized player snapshot payload is invalid.',
+                'candidate' => (string) __('The normalized player snapshot payload is invalid.'),
             ]);
         }
 

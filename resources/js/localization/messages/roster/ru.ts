@@ -77,6 +77,8 @@ const messages = {
     changeFrom: '{change} с {date}',
     noComparisonRows: 'Нет сопоставимой истории Губернаторов.',
     powerTrends: 'Тренды мощи',
+    pageResults: 'Показано {count} из {total} соответствующих губернаторов.',
+    pageSizeHelp: 'До {pageSize} губернаторов на странице.',
   },
   rosterManage: {
     manageSubtitle:
@@ -157,6 +159,41 @@ const messages = {
     source: 'Источник',
     recordedBy: 'Записал',
     noSnapshots: 'Для этого Губернатора нет записей разведки.',
+    progressionHelp:
+      'Используйте точное обозначение печи или прогрессии. Kingshot Alliance не выводит уровни игры.',
+    sincePriorObservation: 'после предыдущего наблюдения',
+    observedChanges: 'Наблюдаемые изменения',
+    nameChanged: 'Имя',
+    progressionChanged: 'Прогресс',
+    allianceChanged: 'альянс метка',
+    noObservedChange: 'Никаких изменений в наблюдаемых областях не произошло',
+    earlierHistoryNotShown:
+      'Более ранние наблюдения существуют за пределами 250-строкового лимита отображения.',
+    capability: {
+      eyebrow: 'Профиль губернатора де-факто',
+      title: 'Что мы знаем об этом губернаторе',
+      help: 'Истории авторизованных владельцев отображаются отдельно с их исходными датами и ссылками на рабочие процессы. Этот профиль не рассчитывает силу или рейтинг качества регулятора.',
+      events: 'участие в мероприятиях',
+      eventSummary: '{completed} завершено · {absent} отсутствует · {unresolved} не решено',
+      noEvents: 'Нет авторизованной истории событий для этого альянса.',
+      bearHunt: 'Медвежья охота',
+      recordedRuns: '{count} зарегистрированные результаты губернатора',
+      latestDamage: 'Последний признанный ущерб',
+      openDebrief: 'Открытый дебрифинг',
+      noRecordedRuns: 'Нет зарегистрировано никаких результатов Bear Hunt Governor.',
+      rallies: 'Участие в ралли',
+      noRallies: 'В видимой истории событий не записывается никаких назначений Rally.',
+      battlePlans: 'Задания BattlePlan',
+      noBattlePlans: 'Никакие задания BattlePlan не записываются в видимой истории событий.',
+      transfer: 'Оценка переноса',
+      noTransfer: 'Этот управляющий не включен в текущий план передачи.',
+      evidence: 'Прогрессивное доказательство',
+      evidenceSummary:
+        '{review} обзор · {pending} ожидающий · {committed} подтверждённый · {failed} неудачный',
+      latestEvidence: 'Последние доказательства: {date}',
+      openOwner: 'Открыть рабочий процесс владельца',
+      unavailable: 'Эта проекция владельца недоступна при нынешнем уровне полномочий.',
+    },
   },
 } satisfies MessageCatalogue;
 

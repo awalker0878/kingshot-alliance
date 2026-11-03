@@ -36,13 +36,13 @@ final readonly class CreateTerritoryRendition
     ): array {
         $bytes = base64_decode($contentBase64, true);
         if ($bytes === false || $bytes === '' || strlen($bytes) > self::MAX_BYTES) {
-            throw ValidationException::withMessages(['content' => 'Rendition content must be valid base64 between 1 byte and 5 MB.']);
+            throw ValidationException::withMessages(['content' => (string) __('Rendition content must be valid base64 between 1 byte and 5 MB.')]);
         }
         if (! in_array($scope, ['world', 'viewport', 'alliance', 'hive'], true)) {
-            throw ValidationException::withMessages(['scope' => 'Rendition scope is unsupported.']);
+            throw ValidationException::withMessages(['scope' => (string) __('Rendition scope is unsupported.')]);
         }
         if (! in_array($mediaType, ['image/png', 'image/svg+xml', 'application/pdf'], true)) {
-            throw ValidationException::withMessages(['media_type' => 'Rendition media type is unsupported.']);
+            throw ValidationException::withMessages(['media_type' => (string) __('Rendition media type is unsupported.')]);
         }
         $this->assertMediaMatches($mediaType, $bytes);
         $this->assertMetadata($metadata);
@@ -57,7 +57,7 @@ final readonly class CreateTerritoryRendition
                 ->firstOrFail();
             if ($revision->map_dataset_id !== $context->plan->map_dataset_id
                 || ! hash_equals($revision->map_dataset_checksum, $context->plan->map_dataset_checksum)) {
-                throw ValidationException::withMessages(['revision' => 'Renditions must use the plan revision map pin.']);
+                throw ValidationException::withMessages(['revision' => (string) __('Renditions must use the plan revision map pin.')]);
             }
 
             $rendition = TerritoryRendition::query()->firstOrCreate(
@@ -99,7 +99,7 @@ final readonly class CreateTerritoryRendition
             default => false,
         };
         if (! $valid) {
-            throw ValidationException::withMessages(['content' => 'Rendition bytes do not match the declared media type.']);
+            throw ValidationException::withMessages(['content' => (string) __('Rendition bytes do not match the declared media type.')]);
         }
     }
 
@@ -125,10 +125,10 @@ final readonly class CreateTerritoryRendition
             'map_dataset_id', 'map_dataset_checksum', 'width', 'height', 'exported_at',
         ];
         if (array_diff(array_keys($metadata), $allowed) !== []) {
-            throw ValidationException::withMessages(['metadata' => 'Rendition metadata contains unsupported fields.']);
+            throw ValidationException::withMessages(['metadata' => (string) __('Rendition metadata contains unsupported fields.')]);
         }
         if (strlen(json_encode($metadata, JSON_THROW_ON_ERROR)) > 20_000) {
-            throw ValidationException::withMessages(['metadata' => 'Rendition metadata is too large.']);
+            throw ValidationException::withMessages(['metadata' => (string) __('Rendition metadata is too large.')]);
         }
     }
 

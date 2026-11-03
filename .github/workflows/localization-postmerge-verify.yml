@@ -1,0 +1,75 @@
+name: Localization post-merge baseline fingerprints
+
+on:
+  push:
+    branches:
+      - codex/audit-stabilization
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-merged-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout merged target with pinned source history
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Configure Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate pinned and actual target-branch exports
+        run: |
+          node scripts/prepare-localization-baseline.mjs .translation-pr1-baseline
+          node scripts/prepare-localization-baseline.mjs .translation-pr3-current --current
+
+      - name: Verify original immutable pinned 8-hash baseline
+        run: |
+          node scripts/check-localization-baseline-fingerprints.mjs --pinned-only
+          node scripts/test-localization-fingerprint-mutation.mjs
+
+      - name: Verify six unchanged corrected effective/server/risk fingerprints
+        run: node scripts/check-localization-pr3-parity.mjs .translation-pr3-current
+
+      - name: Verify approved raw-source structural changes only
+        run: |
+          node scripts/check-localization-pr3-postmerge-source.mjs
+          node scripts/test-localization-pr3-postmerge-source-mutation.mjs
+          node scripts/check-localization-pr3-overlay-overlap.mjs
+          node scripts/check-localization-pr3-recipient-collisions.mjs
+          node scripts/check-localization-pr3-recipient-language-review.mjs
+
+      - name: Negative control — effective message and precedence mutations must fail
+        run: |
+          node scripts/test-localization-pr3-effective-mutation.mjs
+          node scripts/test-localization-pr3-precedence-mutation.mjs
+          node scripts/report-localization-tier1a.mjs
+
+      - name: Upload post-merge verification evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: localization-postmerge-fingerprints
+          path: |
+            .translation-pr3-current/postmerge-source-delta.json
+            .translation-pr3-current/effective-all-locales.json
+            .translation-pr3-current/effective-en.json
+            .translation-pr3-current/server-catalogues.json
+            .translation-pr3-current/server-php-catalogues.json
+            .translation-pr3-current/server-php-hashes.json
+            .translation-pr3-current/semantic-risk-inventory.json
+            .translation-pr3-current/transfer-overlay-overlap.json
+            .translation-pr3-current/recipient-overlay-overlap.json
+            .translation-pr1-baseline/tier1a-exploratory.json
+          if-no-files-found: warn
+          retention-days: 14

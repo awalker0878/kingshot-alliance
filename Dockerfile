@@ -12,8 +12,11 @@ FROM composer:2.10 AS composer
 
 FROM php:8.5-fpm-alpine AS php-base
 
-RUN apk add --no-cache \
-        curl \
+# Refresh inherited curl libraries as well as newly installed runtime packages.
+# The version floor excludes CVE-2026-92392 in older PHP base-image layers.
+RUN apk add --no-cache --upgrade \
+        'curl>=8.23.0-r0' \
+        'libcurl>=8.23.0-r0' \
         freetype \
         icu-libs \
         libjpeg-turbo \

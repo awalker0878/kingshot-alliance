@@ -52,7 +52,7 @@ final readonly class ExecuteExternalActorAction
                     ->lock('for update nowait')
                     ->firstOrFail();
                 if (! $credential->active() || ! $credential->allows('event-participation:write')) {
-                    throw ValidationException::withMessages(['credential' => 'The API credential cannot perform Event participation writes.']);
+                    throw ValidationException::withMessages(['credential' => (string) __('The API credential cannot perform Event participation writes.')]);
                 }
 
                 $link = ExternalActorLink::query()
@@ -77,13 +77,13 @@ final readonly class ExecuteExternalActorAction
                 );
                 if (! hash_equals((string) $receipt->request_hash, $requestHash) || $receipt->action !== $action) {
                     throw ValidationException::withMessages([
-                        'idempotency_key' => 'This idempotency key was already used for a different request.',
+                        'idempotency_key' => (string) __('This idempotency key was already used for a different request.'),
                     ]);
                 }
                 if (! $receipt->wasRecentlyCreated) {
                     if ($receipt->status !== 'succeeded' || ! is_array($receipt->response)) {
                         throw ValidationException::withMessages([
-                            'idempotency_key' => 'This request is already being processed.',
+                            'idempotency_key' => (string) __('This request is already being processed.'),
                         ]);
                     }
 

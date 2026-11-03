@@ -50,7 +50,7 @@ final class SubmitRecruitmentApplication
         ?int $applicantUserId = null,
     ): string {
         if (count($answers) > RecruitmentConfigurationCapacity::ACTIVE_QUESTIONS) {
-            throw ValidationException::withMessages(['answers' => 'Answer only the current application questions.']);
+            throw ValidationException::withMessages(['answers' => (string) __('Answer only the current application questions.')]);
         }
         $cleanName = RecruitmentInput::requiredText($fullName, 'full_name', RecruitmentInput::LIMITS['fullName']);
         $normalizedEmail = RecruitmentInput::email($email);
@@ -81,14 +81,14 @@ final class SubmitRecruitmentApplication
 
             if ($currentAlliance->status !== AllianceStatus::Active) {
                 throw ValidationException::withMessages([
-                    'application' => 'Recruitment applications are unavailable while the Alliance is not active.',
+                    'application' => (string) __('Recruitment applications are unavailable while the Alliance is not active.'),
                 ]);
             }
 
             try {
                 $this->kingdoms->lockActiveShared((string) $currentAlliance->kingdom_id);
             } catch (ModelNotFoundException) {
-                throw ValidationException::withMessages(['application' => 'Recruitment applications are unavailable while the Kingdom is not active.']);
+                throw ValidationException::withMessages(['application' => (string) __('Recruitment applications are unavailable while the Kingdom is not active.')]);
             }
 
             $settings = RecruitmentSetting::query()
@@ -99,11 +99,11 @@ final class SubmitRecruitmentApplication
             if (! $settings instanceof RecruitmentSetting
                 || ! $settings->is_open
                 || $settings->application_mode === RecruitmentApplicationMode::Closed) {
-                throw ValidationException::withMessages(['application' => 'Recruitment applications are currently closed.']);
+                throw ValidationException::withMessages(['application' => (string) __('Recruitment applications are currently closed.')]);
             }
 
             if ($currentApplicant !== null && Str::lower($currentApplicant->email) !== $normalizedEmail) {
-                throw ValidationException::withMessages(['email' => 'Use the email address associated with your account.']);
+                throw ValidationException::withMessages(['email' => (string) __('Use the email address associated with your account.')]);
             }
 
             $applicationInvite = $this->resolveApplicationInvite(
@@ -129,7 +129,7 @@ final class SubmitRecruitmentApplication
 
             if ($duplicate instanceof RecruitmentCandidate) {
                 throw ValidationException::withMessages([
-                    'email' => 'An active recruitment application already exists for this email address.',
+                    'email' => (string) __('An active recruitment application already exists for this email address.'),
                 ]);
             }
 
@@ -142,7 +142,7 @@ final class SubmitRecruitmentApplication
                 ->get();
 
             if (array_diff(array_keys($answers), $questions->modelKeys()) !== []) {
-                throw ValidationException::withMessages(['answers' => 'The application questions changed. Refresh the form before submitting.']);
+                throw ValidationException::withMessages(['answers' => (string) __('The application questions changed. Refresh the form before submitting.')]);
             }
 
             /** @var list<array{question: RecruitmentQuestion, answer: array<string, mixed>}> $validatedAnswers */
@@ -236,7 +236,7 @@ final class SubmitRecruitmentApplication
         }
 
         if ($applicationToken === null || trim($applicationToken) === '') {
-            throw ValidationException::withMessages(['application_token' => 'A recruitment application invitation is required.']);
+            throw ValidationException::withMessages(['application_token' => (string) __('A recruitment application invitation is required.')]);
         }
 
         $invite = RecruitmentApplicationInvite::query()
@@ -246,11 +246,11 @@ final class SubmitRecruitmentApplication
             ->first();
 
         if (! $invite instanceof RecruitmentApplicationInvite || $invite->used_at !== null || $invite->expires_at->isPast()) {
-            throw ValidationException::withMessages(['application_token' => 'This recruitment application invitation is invalid or expired.']);
+            throw ValidationException::withMessages(['application_token' => (string) __('This recruitment application invitation is invalid or expired.')]);
         }
 
         if ($invite->email !== null && Str::lower($invite->email) !== $normalizedEmail) {
-            throw ValidationException::withMessages(['email' => 'This recruitment application invitation was issued for another email address.']);
+            throw ValidationException::withMessages(['email' => (string) __('This recruitment application invitation was issued for another email address.')]);
         }
 
         return $invite;

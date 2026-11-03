@@ -42,7 +42,7 @@ final readonly class UploadMediaAsset
 
         $disk = (string) config('content.media_disk', 'local');
         if ($disk === 'public') {
-            throw ValidationException::withMessages(['media' => 'Content media must use a private storage disk.']);
+            throw ValidationException::withMessages(['media' => (string) __('Content media must use a private storage disk.')]);
         }
 
         $mimeType = (string) $file->getMimeType();
@@ -51,7 +51,7 @@ final readonly class UploadMediaAsset
         $size = $file->getSize();
 
         if (! in_array($mimeType, $allowedMimes, true) || ! is_int($size) || $size < 1 || $size > $maxBytes) {
-            throw ValidationException::withMessages(['media' => 'The uploaded media type or size is not permitted.']);
+            throw ValidationException::withMessages(['media' => (string) __('The uploaded media type or size is not permitted.')]);
         }
 
         $scan = $this->scanner->scan($file);
@@ -71,7 +71,7 @@ final readonly class UploadMediaAsset
 
         $sha256 = hash_file('sha256', $file->getPathname());
         if (! is_string($sha256)) {
-            throw ValidationException::withMessages(['media' => 'The uploaded media could not be checksummed.']);
+            throw ValidationException::withMessages(['media' => (string) __('The uploaded media could not be checksummed.')]);
         }
 
         $extension = match ($mimeType) {
@@ -80,14 +80,14 @@ final readonly class UploadMediaAsset
             'image/webp' => 'webp',
             'image/gif' => 'gif',
             'application/pdf' => 'pdf',
-            default => throw ValidationException::withMessages(['media' => 'Unsupported media type.']),
+            default => throw ValidationException::withMessages(['media' => (string) __('Unsupported media type.')]),
         };
 
         $snapshot = new TenantContextSnapshot($allianceId, $actorPlayerId);
         $path = $snapshot->storagePath('media/'.Str::ulid().'.'.$extension);
         $stored = Storage::disk($disk)->putFileAs(dirname($path), $file, basename($path));
         if ($stored === false) {
-            throw ValidationException::withMessages(['media' => 'The uploaded media could not be stored.']);
+            throw ValidationException::withMessages(['media' => (string) __('The uploaded media could not be stored.')]);
         }
 
         try {

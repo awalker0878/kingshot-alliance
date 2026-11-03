@@ -30,6 +30,9 @@ function applyDocumentLocale(locale: LocaleCode): void {
   const definition = localeDefinition(locale);
   document.documentElement.lang = definition.code;
   document.documentElement.dir = definition.direction;
+  // Keep server validation and account-email requests in the selected UI language.
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `kingshot_locale=${locale}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
 }
 
 function activeDomains(): LocalizationDomain[] {

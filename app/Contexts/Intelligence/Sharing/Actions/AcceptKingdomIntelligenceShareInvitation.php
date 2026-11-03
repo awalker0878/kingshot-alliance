@@ -45,11 +45,11 @@ final readonly class AcceptKingdomIntelligenceShareInvitation
             }
             $sourceAllianceId = (string) $share->source_alliance_id;
             if ($sourceAllianceId === $recipientAllianceId) {
-                throw ValidationException::withMessages(['sharing' => 'An alliance cannot accept its own sharing invitation.']);
+                throw ValidationException::withMessages(['sharing' => (string) __('An alliance cannot accept its own sharing invitation.')]);
             }
             $source = $this->alliances->lockCurrent($sourceAllianceId);
             if ($source->kingdomId !== (string) $share->kingdom_id || $recipientScope->kingdomId !== (string) $share->kingdom_id) {
-                throw ValidationException::withMessages(['sharing' => 'Both alliances must still be in the invitation Kingdom before sharing can be accepted.']);
+                throw ValidationException::withMessages(['sharing' => (string) __('Both alliances must still be in the invitation Kingdom before sharing can be accepted.')]);
             }
             $existing = KingdomIntelligenceShare::query()
                 ->where('source_alliance_id', $sourceAllianceId)
@@ -58,7 +58,7 @@ final readonly class AcceptKingdomIntelligenceShareInvitation
                 ->where('state', KingdomIntelligenceShareState::Active->value)
                 ->where('id', '!=', $share->id)->lockForUpdate()->first();
             if ($existing instanceof KingdomIntelligenceShare) {
-                throw ValidationException::withMessages(['sharing' => 'An active directional sharing agreement already exists for these alliances in this Kingdom.']);
+                throw ValidationException::withMessages(['sharing' => (string) __('An active directional sharing agreement already exists for these alliances in this Kingdom.')]);
             }
             $share->forceFill([
                 'recipient_alliance_id' => $recipientAllianceId,
@@ -92,6 +92,6 @@ final readonly class AcceptKingdomIntelligenceShareInvitation
 
     private function invalidToken(): ValidationException
     {
-        return ValidationException::withMessages(['token' => 'The sharing invitation is invalid, expired, or already used.']);
+        return ValidationException::withMessages(['token' => (string) __('The sharing invitation is invalid, expired, or already used.')]);
     }
 }

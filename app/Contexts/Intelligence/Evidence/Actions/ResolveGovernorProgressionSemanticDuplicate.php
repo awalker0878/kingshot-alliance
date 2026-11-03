@@ -41,7 +41,7 @@ final readonly class ResolveGovernorProgressionSemanticDuplicate
         $this->roster->requireActiveOrTracked($allianceId, $rosterEntryId);
         $justification = trim($justification);
         if (mb_strlen($justification) < 8 || mb_strlen($justification) > 1000) {
-            throw ValidationException::withMessages(['duplicate_resolution' => 'Explain why this semantically duplicate screenshot represents a legitimate separate observation.']);
+            throw ValidationException::withMessages(['duplicate_resolution' => (string) __('Explain why this semantically duplicate screenshot represents a legitimate separate observation.')]);
         }
 
         DB::transaction(function () use ($actorPlayerId, $allianceId, $rosterEntryId, $reviewId, $justification): void {
@@ -55,7 +55,7 @@ final readonly class ResolveGovernorProgressionSemanticDuplicate
                 ->lockForUpdate()
                 ->firstOrFail();
             if ($review->status !== EvidenceReviewStatus::DuplicateBlocked || $review->semantic_duplicate_review_id === null) {
-                throw ValidationException::withMessages(['review' => 'This review is not blocked by a semantic duplicate.']);
+                throw ValidationException::withMessages(['review' => (string) __('This review is not blocked by a semantic duplicate.')]);
             }
             $latestId = GovernorProgressionEvidenceReview::query()
                 ->where('evidence_id', $review->evidence_id)
@@ -63,7 +63,7 @@ final readonly class ResolveGovernorProgressionSemanticDuplicate
                 ->orderByDesc('id')
                 ->value('id');
             if ((string) $latestId !== (string) $review->id) {
-                throw ValidationException::withMessages(['review' => 'Resolve the latest review revision instead.']);
+                throw ValidationException::withMessages(['review' => (string) __('Resolve the latest review revision instead.')]);
             }
 
             $review->forceFill([

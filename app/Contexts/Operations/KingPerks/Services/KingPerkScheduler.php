@@ -73,7 +73,7 @@ final readonly class KingPerkScheduler
         DB::transaction(function () use ($actorPlayerId, $planId): void {
             [$plan, $event, $actor] = $this->writeState->managerPlan($actorPlayerId, $planId);
             if ($plan->status === KingPerkPlanStatus::Closed) {
-                throw ValidationException::withMessages(['plan' => 'A closed King Perks plan cannot be published.']);
+                throw ValidationException::withMessages(['plan' => (string) __('A closed King Perks plan cannot be published.')]);
             }
 
             $plan->forceFill([
@@ -110,7 +110,7 @@ final readonly class KingPerkScheduler
                 return;
             }
             if ($record->status !== KingPerkAppointmentStatus::Scheduled) {
-                throw ValidationException::withMessages(['appointment' => 'Only a scheduled appointment can be confirmed.']);
+                throw ValidationException::withMessages(['appointment' => (string) __('Only a scheduled appointment can be confirmed.')]);
             }
 
             $record->forceFill(['status' => KingPerkAppointmentStatus::Confirmed, 'confirmed_at' => now()])->save();
@@ -123,7 +123,7 @@ final readonly class KingPerkScheduler
         DB::transaction(function () use ($actorPlayerId, $appointmentId): void {
             [$record, $plan, $event, $actor] = $this->writeState->selfAppointment($actorPlayerId, $appointmentId);
             if (! in_array($record->status, [KingPerkAppointmentStatus::Scheduled, KingPerkAppointmentStatus::Confirmed], true)) {
-                throw ValidationException::withMessages(['appointment' => 'Only a future scheduled or confirmed appointment can be declined.']);
+                throw ValidationException::withMessages(['appointment' => (string) __('Only a future scheduled or confirmed appointment can be declined.')]);
             }
 
             $record->forceFill(['status' => KingPerkAppointmentStatus::Cancelled])->save();
@@ -136,7 +136,7 @@ final readonly class KingPerkScheduler
         DB::transaction(function () use ($actorPlayerId, $appointmentId): void {
             [$record, $plan, $event, $actor] = $this->writeState->managerAppointment($actorPlayerId, $appointmentId);
             if (! in_array($record->status, [KingPerkAppointmentStatus::Scheduled, KingPerkAppointmentStatus::Confirmed], true)) {
-                throw ValidationException::withMessages(['appointment' => 'Only a scheduled or confirmed appointment can be marked active.']);
+                throw ValidationException::withMessages(['appointment' => (string) __('Only a scheduled or confirmed appointment can be marked active.')]);
             }
 
             $record->forceFill(['status' => KingPerkAppointmentStatus::Active, 'actual_started_at' => now()])->save();
@@ -147,7 +147,7 @@ final readonly class KingPerkScheduler
     public function markAppointment(string $actorPlayerId, string $appointmentId, KingPerkAppointmentStatus $status): void
     {
         if (! in_array($status, [KingPerkAppointmentStatus::Completed, KingPerkAppointmentStatus::NoShow], true)) {
-            throw ValidationException::withMessages(['status' => 'Only completed or no-show may be recorded here.']);
+            throw ValidationException::withMessages(['status' => (string) __('Only completed or no-show may be recorded here.')]);
         }
 
         DB::transaction(function () use ($actorPlayerId, $appointmentId, $status): void {
@@ -193,7 +193,7 @@ final readonly class KingPerkScheduler
         DB::transaction(function () use ($actorPlayerId, $appointmentId, $cancelledAt): void {
             [$record, $plan, $event, $actor] = $this->writeState->managerAppointment($actorPlayerId, $appointmentId);
             if ($record->status === KingPerkAppointmentStatus::Completed) {
-                throw ValidationException::withMessages(['appointment' => 'A completed appointment cannot be cancelled.']);
+                throw ValidationException::withMessages(['appointment' => (string) __('A completed appointment cannot be cancelled.')]);
             }
 
             $start = $cancelledAt->utc();
@@ -227,7 +227,7 @@ final readonly class KingPerkScheduler
         ?string $notes = null,
     ): void {
         if ($effectDurationMinutes < 1 || $effectDurationMinutes > 10080) {
-            throw ValidationException::withMessages(['effect_duration_minutes' => 'Skill duration must be between 1 minute and 7 days.']);
+            throw ValidationException::withMessages(['effect_duration_minutes' => (string) __('Skill duration must be between 1 minute and 7 days.')]);
         }
 
         DB::transaction(function () use ($actorPlayerId, $planId, $skill, $activationAt, $effectDurationMinutes, $notes): void {
@@ -235,7 +235,7 @@ final readonly class KingPerkScheduler
             $this->assertOpenPlan($plan);
             $activation = $activationAt->utc();
             if ($activation->lt($plan->window_starts_at) || $activation->gt($plan->window_ends_at)) {
-                throw ValidationException::withMessages(['planned_activation_at' => 'King Skill activation must begin during the preparation window.']);
+                throw ValidationException::withMessages(['planned_activation_at' => (string) __('King Skill activation must begin during the preparation window.')]);
             }
 
             $record = KingSkillPlan::query()->create([
@@ -280,7 +280,7 @@ final readonly class KingPerkScheduler
         $this->assertOpenPlan($plan);
         $target = $this->players->lockCurrent($targetPlayerId);
         if ($target->kingdomId !== (string) $plan->kingdom_id) {
-            throw ValidationException::withMessages(['player_id' => 'The selected Player is not currently in this Kingdom.']);
+            throw ValidationException::withMessages(['player_id' => (string) __('The selected Player is not currently in this Kingdom.')]);
         }
 
         $start = $startsAt->utc();
@@ -295,7 +295,7 @@ final readonly class KingPerkScheduler
                 ->lockForUpdate()
                 ->firstOrFail();
             if (! in_array($record->status, [KingPerkAppointmentStatus::Scheduled, KingPerkAppointmentStatus::Confirmed], true)) {
-                throw ValidationException::withMessages(['appointment_id' => 'Only a future scheduled or confirmed appointment can be edited in place.']);
+                throw ValidationException::withMessages(['appointment_id' => (string) __('Only a future scheduled or confirmed appointment can be edited in place.')]);
             }
         }
 
@@ -341,7 +341,7 @@ final readonly class KingPerkScheduler
         KingPerkAppointmentStatus $status,
     ): void {
         if (in_array($record->status, [KingPerkAppointmentStatus::Cancelled, KingPerkAppointmentStatus::Completed], true)) {
-            throw ValidationException::withMessages(['appointment' => 'This appointment is already final.']);
+            throw ValidationException::withMessages(['appointment' => (string) __('This appointment is already final.')]);
         }
 
         $record->forceFill([
@@ -362,7 +362,7 @@ final readonly class KingPerkScheduler
     private function assertOpenPlan(KingPerkPlan $plan): void
     {
         if ($plan->status === KingPerkPlanStatus::Closed) {
-            throw ValidationException::withMessages(['plan' => 'This King Perks plan is closed.']);
+            throw ValidationException::withMessages(['plan' => (string) __('This King Perks plan is closed.')]);
         }
     }
 
@@ -370,7 +370,7 @@ final readonly class KingPerkScheduler
     {
         if ($start->lt($plan->window_starts_at) || $end->gt($plan->window_ends_at)) {
             throw ValidationException::withMessages([
-                'starts_at' => 'The entire appointment must fit inside the Kingdom of Power preparation window.',
+                'starts_at' => (string) __('The entire appointment must fit inside the Kingdom of Power preparation window.'),
             ]);
         }
     }
@@ -400,7 +400,7 @@ final readonly class KingPerkScheduler
             ->exists();
 
         if ($appointments || $blocked) {
-            throw ValidationException::withMessages(['starts_at' => 'This appointment position is occupied or cooling down for the requested interval.']);
+            throw ValidationException::withMessages(['starts_at' => (string) __('This appointment position is occupied or cooling down for the requested interval.')]);
         }
     }
 
@@ -426,7 +426,7 @@ final readonly class KingPerkScheduler
             $existingStart = CarbonImmutable::instance($existing->starts_at);
             if ($start->lt($existingBlockedUntil) && $existingStart->lt($newBlockedUntil)) {
                 throw ValidationException::withMessages([
-                    'player_id' => 'The selected Player is already appointed or inside the post-appointment cooldown window.',
+                    'player_id' => (string) __('The selected Player is already appointed or inside the post-appointment cooldown window.'),
                 ]);
             }
         }
@@ -441,11 +441,11 @@ final readonly class KingPerkScheduler
         DB::transaction(function () use ($actorPlayerId, $skillId, $status, $eventName): void {
             [$record, , $event, $actor] = $this->writeState->managerSkill($actorPlayerId, $skillId);
             if ($status === KingSkillStatus::ScheduledInGame && $record->status !== KingSkillStatus::Planned) {
-                throw ValidationException::withMessages(['skill' => 'Only a planned King Skill can be marked scheduled in game.']);
+                throw ValidationException::withMessages(['skill' => (string) __('Only a planned King Skill can be marked scheduled in game.')]);
             }
             if ($status === KingSkillStatus::Activated
                 && ! in_array($record->status, [KingSkillStatus::Planned, KingSkillStatus::ScheduledInGame], true)) {
-                throw ValidationException::withMessages(['skill' => 'Only a planned or scheduled King Skill can be marked activated.']);
+                throw ValidationException::withMessages(['skill' => (string) __('Only a planned or scheduled King Skill can be marked activated.')]);
             }
 
             $attributes = ['status' => $status];

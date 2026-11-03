@@ -41,16 +41,16 @@ final readonly class SaveEventPhase
         ?string $phaseId = null,
     ): void {
         if (! preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $key)) {
-            throw ValidationException::withMessages(['key' => 'Phase key must use lowercase letters, numbers, and hyphens.']);
+            throw ValidationException::withMessages(['key' => (string) __('Phase key must use lowercase letters, numbers, and hyphens.')]);
         }
         if (($name === null || trim($name) === '') && ($nameKey === null || trim($nameKey) === '')) {
-            throw ValidationException::withMessages(['name' => 'A phase name is required.']);
+            throw ValidationException::withMessages(['name' => (string) __('A phase name is required.')]);
         }
         if (($startsAt === null) !== ($endsAt === null)) {
-            throw ValidationException::withMessages(['starts_at' => 'Phase start and end must both be provided or both be empty.']);
+            throw ValidationException::withMessages(['starts_at' => (string) __('Phase start and end must both be provided or both be empty.')]);
         }
         if ($startsAt !== null && $endsAt !== null && ! $endsAt->greaterThan($startsAt)) {
-            throw ValidationException::withMessages(['ends_at' => 'Phase end must be after phase start.']);
+            throw ValidationException::withMessages(['ends_at' => (string) __('Phase end must be after phase start.')]);
         }
 
         DB::transaction(function () use (

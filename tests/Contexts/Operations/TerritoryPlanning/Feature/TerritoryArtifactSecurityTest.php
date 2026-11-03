@@ -78,7 +78,7 @@ final class TerritoryArtifactSecurityTest extends TestCase
         $this->assertPrivateNoStore($preview);
     }
 
-    public function test_rendition_boundary_rejects_active_svg_and_cross_scope_reads(): void
+    public function test_rendition_boundary_rejects_active_svg(): void
     {
         [$user, $actor, $planId, $revisionId] = $this->publishedPlan(61702);
         $session = [$this->sessionKey() => $actor->playerId];
@@ -98,21 +98,33 @@ final class TerritoryArtifactSecurityTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors('content');
         self::assertSame(0, TerritoryRendition::query()->count());
+    }
+
+    public function test_artifact_boundaries_reject_cross_scope_reads(): void
+    {
+        // Start a separate HTTP session for the outsider. Switching actingAs
+        // after an owner request retains the owner's auth.session password hash
+        // and tests a login redirect instead of the artifact authorization rule.
+        [, , $planId] = $this->publishedPlan(61704);
 
         $scenario = new ScenarioFactory;
         $outsiderUser = $scenario->authUser();
         $this->verify($outsiderUser);
-        $outsider = $scenario->player((int) $outsiderUser->id, 61702);
+        $outsider = $scenario->player((int) $outsiderUser->id, 61704);
 
         $this->actingAs($outsiderUser)
             ->withSession([$this->sessionKey() => $outsider->playerId])
             ->get(route('territory.coordinates.export', ['plan' => $planId]))
-            ->assertForbidden();
+            ->assertForbidden()
+            ->assertDontSee('key,type,variant_key,x,y,rotation,alliance_key', false);
 
         $this->actingAs($outsiderUser)
             ->withSession([$this->sessionKey() => $outsider->playerId])
             ->get(route('territory.renditions.index', ['plan' => $planId]))
-            ->assertForbidden();
+            ->assertForbidden()
+            ->assertDontSee('content_base64');
+
+        $this->assertAuthenticatedAs($outsiderUser);
     }
 
     public function test_rendition_list_withholds_bytes_and_explicit_reopen_is_private_no_store(): void

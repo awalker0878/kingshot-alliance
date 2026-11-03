@@ -81,7 +81,7 @@ final class TransferEvidenceController extends Controller
             ->where('transfer_plan_id', $plan)
             ->where('transfer_participant_id', $participant)
             ->firstOrFail();
-        abort_if($item->path === null, 410, 'The retained evidence image has been deleted.');
+        abort_if($item->path === null, 410, (string) __('The retained evidence image has been deleted.'));
         $disk = Storage::disk((string) $item->disk);
         $stream = $disk->readStream((string) $item->path);
         abort_unless(is_resource($stream), 404);

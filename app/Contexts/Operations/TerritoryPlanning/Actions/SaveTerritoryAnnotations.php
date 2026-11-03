@@ -35,7 +35,7 @@ final readonly class SaveTerritoryAnnotations
             $context = $this->writeState->lock($actorPlayerId, $planId);
             $this->authorization->authorizeManage($context);
             if ($context->plan->status === TerritoryPlanStatus::Archived) {
-                throw ValidationException::withMessages(['plan' => 'Archived plans are read-only.']);
+                throw ValidationException::withMessages(['plan' => (string) __('Archived plans are read-only.')]);
             }
             if ($context->plan->revision !== $expectedRevision) {
                 throw new TerritoryRevisionConflict($expectedRevision, $context->plan->revision);

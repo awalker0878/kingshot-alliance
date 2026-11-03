@@ -30,7 +30,7 @@ abstract readonly class RecordsGovernorProgressionEvidence
         string $idempotencyKey,
     ): GovernorProgressionEvidenceRecordResult {
         if ($schemaVersion !== $expectedSchemaVersion) {
-            throw ValidationException::withMessages(['schema_version' => 'The reviewed screenshot schema version does not match this destination Action.']);
+            throw ValidationException::withMessages(['schema_version' => (string) __('The reviewed screenshot schema version does not match this destination Action.')]);
         }
 
         return $this->writer->record(

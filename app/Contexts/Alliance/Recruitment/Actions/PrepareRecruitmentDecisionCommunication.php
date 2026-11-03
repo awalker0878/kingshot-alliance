@@ -45,7 +45,7 @@ final class PrepareRecruitmentDecisionCommunication
 
             if ($candidate->merged_into_id !== null) {
                 throw ValidationException::withMessages([
-                    'candidate' => 'Prepare communications from the current merged candidate record.',
+                    'candidate' => (string) __('Prepare communications from the current merged candidate record.'),
                 ]);
             }
 
@@ -56,12 +56,12 @@ final class PrepareRecruitmentDecisionCommunication
                 ->firstOrFail();
 
             if (! $template->is_active) {
-                throw ValidationException::withMessages(['template' => 'This recruitment decision template is inactive.']);
+                throw ValidationException::withMessages(['template' => (string) __('This recruitment decision template is inactive.')]);
             }
 
             if ($candidate->stage !== $template->decision_stage) {
                 throw ValidationException::withMessages([
-                    'template' => 'The candidate stage must match the selected decision template.',
+                    'template' => (string) __('The candidate stage must match the selected decision template.'),
                 ]);
             }
 

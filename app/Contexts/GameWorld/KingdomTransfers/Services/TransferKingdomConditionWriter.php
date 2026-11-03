@@ -49,19 +49,19 @@ final readonly class TransferKingdomConditionWriter
         $kingdom = $this->kingdoms->handle($kingdomNumber);
         if ($kingdom === null) {
             throw ValidationException::withMessages([
-                'kingdom' => 'A target Kingdom is required.',
+                'kingdom' => (string) __('A target Kingdom is required.'),
             ]);
         }
         if ($characterAgeThresholdDays !== null && ($characterAgeThresholdDays < TransferOfficialRulebook::MIN_CHARACTER_AGE_THRESHOLD_DAYS || $characterAgeThresholdDays > TransferOfficialRulebook::MAX_CHARACTER_AGE_THRESHOLD_DAYS)) {
             throw ValidationException::withMessages([
-                'character_age_threshold_days' => 'The official character-age threshold must be between 90 and 180 days.',
+                'character_age_threshold_days' => (string) __('The official character-age threshold must be between 90 and 180 days.'),
             ]);
         }
 
         $sourceReference = trim($sourceReference);
         if ($sourceReference === '') {
             throw ValidationException::withMessages([
-                'source_reference' => 'A source reference is required.',
+                'source_reference' => (string) __('A source reference is required.'),
             ]);
         }
         $evidenceId = $this->evidence->assertUsable($allianceId, $sourceType, $evidenceId);
@@ -85,7 +85,7 @@ final readonly class TransferKingdomConditionWriter
         ) {
             if (! $isCorrection || ! $sourceType->isAuthoritative()) {
                 throw ValidationException::withMessages([
-                    'power_cap' => 'The Power Cap is fixed after Phase II begins. A changed value must be recorded explicitly as an authoritative correction.',
+                    'power_cap' => (string) __('The Power Cap is fixed after Phase II begins. A changed value must be recorded explicitly as an authoritative correction.'),
                 ]);
             }
         }

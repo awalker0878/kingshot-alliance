@@ -40,7 +40,7 @@ final readonly class RespondRallyAssignment
         RallyAssignmentStatus $status,
     ): void {
         if (! in_array($status, [RallyAssignmentStatus::Confirmed, RallyAssignmentStatus::Declined], true)) {
-            throw ValidationException::withMessages(['status' => 'Rally assignment response must be confirmed or declined.']);
+            throw ValidationException::withMessages(['status' => (string) __('Rally assignment response must be confirmed or declined.')]);
         }
 
         DB::transaction(function () use ($actorPlayerId, $occurrenceId, $assignmentId, $status): void {
@@ -78,7 +78,7 @@ final readonly class RespondRallyAssignment
                 ->firstOrFail();
 
             if (in_array($assignment->statusEnum(), [RallyAssignmentStatus::Removed, RallyAssignmentStatus::Participated, RallyAssignmentStatus::Absent], true)) {
-                throw ValidationException::withMessages(['status' => 'This Rally assignment can no longer be confirmed or declined.']);
+                throw ValidationException::withMessages(['status' => (string) __('This Rally assignment can no longer be confirmed or declined.')]);
             }
 
             if ($status === RallyAssignmentStatus::Confirmed && ! $assignment->statusEnum()->occupiesAssignment()) {
@@ -92,7 +92,7 @@ final readonly class RespondRallyAssignment
                         ->where('id', '!=', $assignment->id)
                         ->count();
                     if ($group->max_joiners !== null && $joiners >= (int) $group->max_joiners) {
-                        throw ValidationException::withMessages(['status' => 'This Rally group has reached its maximum joiners.']);
+                        throw ValidationException::withMessages(['status' => (string) __('This Rally group has reached its maximum joiners.')]);
                     }
                 }
 
@@ -102,7 +102,7 @@ final readonly class RespondRallyAssignment
                     ->whereIn('status', $occupying)
                     ->where('id', '!=', $assignment->id)
                     ->exists()) {
-                    throw ValidationException::withMessages(['status' => 'The Rally lead slot has been reassigned.']);
+                    throw ValidationException::withMessages(['status' => (string) __('The Rally lead slot has been reassigned.')]);
                 }
 
                 if ($assignment->slot_number !== null && RallyAssignment::query()
@@ -111,7 +111,7 @@ final readonly class RespondRallyAssignment
                     ->whereIn('status', $occupying)
                     ->where('id', '!=', $assignment->id)
                     ->exists()) {
-                    throw ValidationException::withMessages(['status' => 'This Rally slot has been reassigned.']);
+                    throw ValidationException::withMessages(['status' => (string) __('This Rally slot has been reassigned.')]);
                 }
 
                 if (RallyAssignment::query()
@@ -122,7 +122,7 @@ final readonly class RespondRallyAssignment
                         ->where('occurrence_id', $occurrence->id)
                         ->where('alliance_id', $alliance->allianceId))
                     ->exists()) {
-                    throw ValidationException::withMessages(['status' => 'This Player has another active Rally assignment for the same Alliance.']);
+                    throw ValidationException::withMessages(['status' => (string) __('This Player has another active Rally assignment for the same Alliance.')]);
                 }
 
                 $this->contexts->freeze($occurrence, $context->actor, $alliance->allianceId);

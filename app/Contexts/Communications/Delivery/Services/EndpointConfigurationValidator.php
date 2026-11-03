@@ -19,7 +19,7 @@ final readonly class EndpointConfigurationValidator
             DeliveryChannel::Telegram => $this->telegram($configuration),
             DeliveryChannel::WebPush => $this->webPush($configuration),
             DeliveryChannel::InApp, DeliveryChannel::Email => throw ValidationException::withMessages([
-                'channel' => 'Choose a configurable external delivery channel.',
+                'channel' => (string) __('Choose a configurable external delivery channel.'),
             ]),
         };
     }
@@ -42,7 +42,7 @@ final readonly class EndpointConfigurationValidator
             || $user !== null
             || ! preg_match('#^/api(?:/v\d+)?/webhooks/\d+/[A-Za-z0-9._-]+$#', $path)) {
             throw ValidationException::withMessages([
-                'webhook_url' => 'Enter an official HTTPS Discord webhook URL.',
+                'webhook_url' => (string) __('Enter an official HTTPS Discord webhook URL.'),
             ]);
         }
 
@@ -57,10 +57,10 @@ final readonly class EndpointConfigurationValidator
         $botToken = trim($configuration['bot_token'] ?? '');
         $chatId = trim($configuration['chat_id'] ?? '');
         if (! preg_match('/^\d{6,12}:[A-Za-z0-9_-]{30,}$/', $botToken)) {
-            throw ValidationException::withMessages(['bot_token' => 'Enter a valid Telegram bot token.']);
+            throw ValidationException::withMessages(['bot_token' => (string) __('Enter a valid Telegram bot token.')]);
         }
         if (! preg_match('/^-?\d{5,20}$/', $chatId)) {
-            throw ValidationException::withMessages(['chat_id' => 'Enter a valid Telegram chat ID.']);
+            throw ValidationException::withMessages(['chat_id' => (string) __('Enter a valid Telegram chat ID.')]);
         }
 
         return ['bot_token' => $botToken, 'chat_id' => $chatId];
@@ -86,7 +86,7 @@ final readonly class EndpointConfigurationValidator
             || mb_strlen($endpoint) > 2048
             || ! $this->allowedPushHost($host)) {
             throw ValidationException::withMessages([
-                'endpoint' => 'The browser push service endpoint is not supported.',
+                'endpoint' => (string) __('The browser push service endpoint is not supported.'),
             ]);
         }
 
@@ -94,12 +94,12 @@ final readonly class EndpointConfigurationValidator
         $authSecret = $this->base64UrlDecode($auth);
         if ($publicKey === null || strlen($publicKey) !== 65 || ord($publicKey[0]) !== 4) {
             throw ValidationException::withMessages([
-                'p256dh' => 'The browser push public key is invalid.',
+                'p256dh' => (string) __('The browser push public key is invalid.'),
             ]);
         }
         if ($authSecret === null || strlen($authSecret) !== 16) {
             throw ValidationException::withMessages([
-                'auth' => 'The browser push authentication secret is invalid.',
+                'auth' => (string) __('The browser push authentication secret is invalid.'),
             ]);
         }
 

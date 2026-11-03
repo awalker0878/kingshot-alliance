@@ -75,7 +75,7 @@ final readonly class SharedKingdomIntelligenceHistoryCursor
     private function invalid(): ValidationException
     {
         return ValidationException::withMessages([
-            'cursor' => 'The shared-intelligence history cursor is invalid or no longer applicable.',
+            'cursor' => (string) __('The shared-intelligence history cursor is invalid or no longer applicable.'),
         ]);
     }
 }

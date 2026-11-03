@@ -56,7 +56,7 @@ final readonly class RosterQuery
 
             if (! is_int($stateRank) || ! is_string($observedName) || ! is_string($entryId)) {
                 throw ValidationException::withMessages([
-                    'cursor' => 'The roster cursor is incomplete.',
+                    'cursor' => (string) __('The roster cursor is incomplete.'),
                 ]);
             }
 

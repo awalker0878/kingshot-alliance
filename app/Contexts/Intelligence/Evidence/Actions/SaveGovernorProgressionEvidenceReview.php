@@ -59,17 +59,17 @@ final readonly class SaveGovernorProgressionEvidenceReview
         try {
             $captured = CarbonImmutable::parse($capturedAt)->utc();
         } catch (Throwable) {
-            throw ValidationException::withMessages(['captured_at' => 'The screenshot capture time is invalid.']);
+            throw ValidationException::withMessages(['captured_at' => (string) __('The screenshot capture time is invalid.')]);
         }
         if ($captured->gt(CarbonImmutable::now('UTC')->addMinutes(5))) {
-            throw ValidationException::withMessages(['captured_at' => 'The screenshot capture time cannot be more than five minutes in the future.']);
+            throw ValidationException::withMessages(['captured_at' => (string) __('The screenshot capture time cannot be more than five minutes in the future.')]);
         }
 
         return DB::transaction(function () use ($actorPlayerId, $allianceId, $rosterEntryId, $evidenceId, $normalizationAttemptId, $captured, $payload, $entryBefore): string {
             [, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
             $entry = $this->roster->requireActiveOrTracked($allianceId, $rosterEntryId);
             if ($entry->playerId !== $entryBefore->playerId) {
-                throw ValidationException::withMessages(['evidence' => 'The target roster entry changed while the review was being saved. Review the current Governor scope again.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('The target roster entry changed while the review was being saved. Review the current Governor scope again.')]);
             }
 
             $evidence = GameEvidence::query()
@@ -86,12 +86,12 @@ final readonly class SaveGovernorProgressionEvidenceReview
                 EvidenceLifecycleStatus::Approved,
                 EvidenceLifecycleStatus::Failed,
             ], true) || $evidence->path === null || $evidence->redacted_at !== null) {
-                throw ValidationException::withMessages(['evidence' => 'The screenshot is no longer available for review.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('The screenshot is no longer available for review.')]);
             }
             $kind = EvidenceKind::from((string) $evidence->getRawOriginal('kind'));
             $expected = EvidenceKind::from((string) $evidence->getRawOriginal('expected_kind'));
             if (! $kind->isGovernorProgression() || $kind !== $expected) {
-                throw ValidationException::withMessages(['evidence' => 'The screenshot class has not been safely verified.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('The screenshot class has not been safely verified.')]);
             }
             $schema = $this->schemas->require($kind);
             $normalization = ProgressionNormalizationAttempt::query()
@@ -114,7 +114,7 @@ final readonly class SaveGovernorProgressionEvidenceReview
                 ->sharedLock()
                 ->firstOrFail();
             if ((float) $classification->confidence < $schema->minimumClassificationConfidence) {
-                throw ValidationException::withMessages(['evidence' => 'Classification confidence is below the supported schema threshold.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('Classification confidence is below the supported schema threshold.')]);
             }
 
             $datasetId = (string) $normalization->progression_dataset_id;
@@ -218,7 +218,7 @@ final readonly class SaveGovernorProgressionEvidenceReview
                 'payload' => $payload,
             ], JSON_THROW_ON_ERROR));
         } catch (JsonException $exception) {
-            throw ValidationException::withMessages(['payload' => 'The reviewed Governor Progression meaning could not be fingerprinted.']);
+            throw ValidationException::withMessages(['payload' => (string) __('The reviewed Governor Progression meaning could not be fingerprinted.')]);
         }
     }
 }

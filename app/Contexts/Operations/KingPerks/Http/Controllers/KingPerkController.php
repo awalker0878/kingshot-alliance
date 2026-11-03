@@ -273,7 +273,7 @@ final class KingPerkController extends Controller
     private function player(): PlayerReference
     {
         $player = $this->playerContext->playerOrNull();
-        abort_unless($player instanceof PlayerReference, 409, 'Select a Governor before managing Position Perks.');
+        abort_unless($player instanceof PlayerReference, 409, (string) __('Select a Governor before managing Position Perks.'));
 
         return $player;
     }

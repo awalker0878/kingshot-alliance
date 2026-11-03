@@ -30,7 +30,7 @@ final readonly class AddPassword
 
             if ($user->supportsPasswordAuthentication()) {
                 throw ValidationException::withMessages([
-                    'password' => 'A Kingshot Alliance password is already configured.',
+                    'password' => (string) __('A Kingshot Alliance password is already configured.'),
                 ]);
             }
 

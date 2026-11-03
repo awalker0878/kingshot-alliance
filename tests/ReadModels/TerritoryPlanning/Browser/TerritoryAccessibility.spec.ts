@@ -38,13 +38,14 @@ async function openExplorer(page: Page): Promise<void> {
     if (!activated) break;
   }
 
-  throw new Error(`Unable to activate a Governor and open Territory Explorer; ended at ${page.url()}`);
+  throw new Error(
+    `Unable to activate a Governor and open Territory Explorer; ended at ${page.url()}`,
+  );
 }
 
-test('@km16 Explorer exposes semantic keyboard, touch, responsive and RTL journeys', async (
-  { page },
-  testInfo,
-) => {
+test('@km16 Explorer exposes semantic keyboard, touch, responsive and RTL journeys', async ({
+  page,
+}, testInfo) => {
   await openExplorer(page);
 
   if (testInfo.project.name === 'rtl-tablet') {
@@ -57,22 +58,27 @@ test('@km16 Explorer exposes semantic keyboard, touch, responsive and RTL journe
     await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
   }
 
-  const compactNavigation = page.locator('nav[aria-label]:visible').first();
+  const compactNavigation = page.getByTestId('territory-panel-navigation');
   if (await compactNavigation.isVisible()) {
     const compactButtons = compactNavigation.getByRole('button');
     expect(await compactButtons.count()).toBeGreaterThanOrEqual(3);
     await compactButtons.last().click();
   }
 
-  const semanticList = page.locator('ul[aria-label]:visible').filter({
-    has: page.locator('button[aria-pressed]'),
-  }).first();
+  const semanticList = page
+    .locator('ul[aria-label]:visible')
+    .filter({
+      has: page.locator('button[aria-pressed]'),
+    })
+    .first();
   await expect(semanticList).toBeVisible();
   const objectButton = semanticList.locator('button[aria-pressed]').first();
   await expect(objectButton).toBeVisible();
   await objectButton.focus();
   await expect(objectButton).toBeFocused();
   await page.keyboard.press('Enter');
+  await expect(objectButton).toBeVisible();
+  await expect(objectButton).toBeFocused();
   await expect(objectButton).toHaveAttribute('aria-pressed', 'true');
 
   if (await compactNavigation.isVisible()) {

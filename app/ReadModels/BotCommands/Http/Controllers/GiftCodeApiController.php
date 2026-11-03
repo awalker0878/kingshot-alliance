@@ -20,7 +20,7 @@ final class GiftCodeApiController extends Controller
             'status' => ['nullable', Rule::in(['active', 'pending', 'disputed', 'expired', 'history'])],
         ]);
         $status = (string) ($validated['status'] ?? 'active');
-        abort_if($status !== 'active', 403, 'This credential may read verified active Gift Codes only.');
+        abort_if($status !== 'active', 403, (string) __('This credential may read verified active Gift Codes only.'));
 
         $page = $giftCodes->page(
             (int) ($validated['limit'] ?? 25),

@@ -41,25 +41,25 @@ final readonly class KingPerkRequestService
         DB::transaction(function () use ($actorPlayerId, $planId, $category, $availableFrom, $availableUntil, $preferredType, $plannedSpeedupMinutes, $plannedResourceAmount, $notes): void {
             [$plan, $event, $actor] = $this->writeState->selfPlan($actorPlayerId, $planId);
             if (! in_array($plan->status, [KingPerkPlanStatus::Published, KingPerkPlanStatus::Active], true)) {
-                throw ValidationException::withMessages(['plan' => 'Appointment requests open after the King Perks schedule is published.']);
+                throw ValidationException::withMessages(['plan' => (string) __('Appointment requests open after the King Perks schedule is published.')]);
             }
 
             $start = $availableFrom->utc();
             $end = $availableUntil->utc();
             if (! $end->greaterThan($start)) {
-                throw ValidationException::withMessages(['availability_ends_at' => 'Availability end must be after the start.']);
+                throw ValidationException::withMessages(['availability_ends_at' => (string) __('Availability end must be after the start.')]);
             }
             if ($start->lt($plan->window_starts_at) || $end->gt($plan->window_ends_at)) {
-                throw ValidationException::withMessages(['availability_starts_at' => 'Availability must fit inside the preparation window.']);
+                throw ValidationException::withMessages(['availability_starts_at' => (string) __('Availability must fit inside the preparation window.')]);
             }
             if ($preferredType !== null && ! in_array($preferredType, $category->preferredAppointments(), true)) {
-                throw ValidationException::withMessages(['preferred_appointment_type' => 'That appointment is not applicable to the selected preparation focus.']);
+                throw ValidationException::withMessages(['preferred_appointment_type' => (string) __('That appointment is not applicable to the selected preparation focus.')]);
             }
             if ($plannedSpeedupMinutes !== null && ($plannedSpeedupMinutes < 0 || $plannedSpeedupMinutes > 5256000)) {
-                throw ValidationException::withMessages(['planned_speedup_minutes' => 'Planned speedups must be between 0 and 5,256,000 minutes.']);
+                throw ValidationException::withMessages(['planned_speedup_minutes' => (string) __('Planned speedups must be between 0 and 5,256,000 minutes.')]);
             }
             if ($plannedResourceAmount !== null && $plannedResourceAmount < 0) {
-                throw ValidationException::withMessages(['planned_resource_amount' => 'Planned resource amount cannot be negative.']);
+                throw ValidationException::withMessages(['planned_resource_amount' => (string) __('Planned resource amount cannot be negative.')]);
             }
 
             $request = KingPerkRequest::query()->create([
@@ -88,7 +88,7 @@ final readonly class KingPerkRequestService
         DB::transaction(function () use ($actorPlayerId, $requestId): void {
             [$request, , $event, $actor] = $this->writeState->selfRequest($actorPlayerId, $requestId);
             if ($request->status === KingPerkRequestStatus::Scheduled) {
-                throw ValidationException::withMessages(['request' => 'A scheduled request must be released by Kingdom leadership.']);
+                throw ValidationException::withMessages(['request' => (string) __('A scheduled request must be released by Kingdom leadership.')]);
             }
 
             $request->forceFill(['status' => KingPerkRequestStatus::Withdrawn])->save();
@@ -101,7 +101,7 @@ final readonly class KingPerkRequestService
         DB::transaction(function () use ($actorPlayerId, $requestId): void {
             [$request, , $event, $actor] = $this->writeState->managerRequest($actorPlayerId, $requestId);
             if ($request->status !== KingPerkRequestStatus::Submitted) {
-                throw ValidationException::withMessages(['request' => 'Only a submitted appointment request can be declined.']);
+                throw ValidationException::withMessages(['request' => (string) __('Only a submitted appointment request can be declined.')]);
             }
 
             $request->forceFill([
@@ -125,7 +125,7 @@ final readonly class KingPerkRequestService
                 ->firstOrFail();
 
             if ($request->status !== KingPerkRequestStatus::Submitted) {
-                throw ValidationException::withMessages(['request' => 'Only a submitted appointment request can be scheduled.']);
+                throw ValidationException::withMessages(['request' => (string) __('Only a submitted appointment request can be scheduled.')]);
             }
 
             $request->forceFill([

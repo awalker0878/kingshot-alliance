@@ -22,11 +22,11 @@ final readonly class RetryTerritorySpatialEvidenceProcessing
         DB::transaction(function () use ($actorPlayerId, $allianceId, $kingdomId, $evidenceId): void {
             [$scope] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
             if ($scope->kingdomId !== $kingdomId) {
-                throw ValidationException::withMessages(['kingdom_id' => 'The Territory evidence belongs to historical Kingdom context.']);
+                throw ValidationException::withMessages(['kingdom_id' => (string) __('The Territory evidence belongs to historical Kingdom context.')]);
             }
             $evidence = GameEvidence::query()->whereKey($evidenceId)->where('alliance_id', $allianceId)->where('kingdom_id', $kingdomId)->lockForUpdate()->firstOrFail();
             if ($evidence->expected_kind !== EvidenceKind::TerritoryMapObservation || in_array($evidence->lifecycle_status, [EvidenceLifecycleStatus::Deleted, EvidenceLifecycleStatus::Committed, EvidenceLifecycleStatus::Committing], true)) {
-                throw ValidationException::withMessages(['evidence' => 'This Territory evidence cannot be reprocessed in its current state.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('This Territory evidence cannot be reprocessed in its current state.')]);
             }
             $evidence->forceFill(['kind' => EvidenceKind::Unknown, 'lifecycle_status' => EvidenceLifecycleStatus::Uploaded])->save();
         });

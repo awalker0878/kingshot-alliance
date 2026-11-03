@@ -15,11 +15,11 @@ final readonly class FormationComposition
     ) {
         foreach (['infantry' => $infantry, 'cavalry' => $cavalry, 'archer' => $archer] as $key => $value) {
             if ($value < 0 || $value > 100) {
-                throw ValidationException::withMessages([$key.'_percent' => 'Troop percentages must be between 0 and 100.']);
+                throw ValidationException::withMessages([$key.'_percent' => (string) __('Troop percentages must be between 0 and 100.')]);
             }
         }
         if ($infantry + $cavalry + $archer !== 100) {
-            throw ValidationException::withMessages(['formation' => 'Infantry, cavalry, and archer percentages must total exactly 100.']);
+            throw ValidationException::withMessages(['formation' => (string) __('Infantry, cavalry, and archer percentages must total exactly 100.')]);
         }
     }
 

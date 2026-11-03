@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "version": "2026.10.26.1",
+  "generated_at": "2026-10-26",
+  "source_kind": "generated_original_app_art",
+  "generator": "ChatGPT built-in image generation; model version not exposed",
+  "scope": "Decorative companion-app rooms. These images do not represent authentic game structures, geometry, progression recipes or rewards.",
+  "review": "Agent visual inspection completed. User review remains available in draft PR #179.",
+  "scenes": [
+    {
+      "key": "territory-command",
+      "brief_id": "SCN-14",
+      "title": "Territory command",
+      "prompt": "Use case: stylized-concept. Asset type: original decorative environment for the Kingshot Alliance companion web application's Territory command page. Create one polished painterly medieval strategy environment, not a screenshot or UI mockup. Landscape master image, 2048 by 1536 pixels (4:3). A surveyor's room overlooking a distant green valley through an arched window; on the center-right a sturdy oak surveyor's table with a simple blank abstract terrain maquette, a brass compass and a few unmarked wooden planning pieces. No real map, no factual coordinates. Believable stone, dark timber, brass and parchment materials, restrained brushwork and simplified readable silhouettes. Near-black green #050A0B shadows, deep teal #087A73 accents, antique gold #C99A47, warm ivory #F4ECDA highlights. Soft warm lantern key light, cool teal daylight fill, rich separated midtones that stay legible under a dark website scrim. Keep the left 45 percent mostly quiet dim stone and atmospheric shadow for localized HTML headings. Cluster the principal table and window between x=55% and x=85%, y=30% and y=75% so both a wide 8:3 banner crop and a right-centered portrait crop retain the subject. Eye-level three-quarter view, calm and purposeful, elegant handcrafted game art. No people, letters, numbers, pseudo-writing, emblems, logos, watermarks, buttons, UI, arrows, glowing magic, extreme bloom or text of any kind.",
+      "master": {
+        "path": "resources/data/room-art/masters/territory-command.png",
+        "width": 1448,
+        "height": 1086,
+        "byte_size": 2574418,
+        "sha256": "a41c2ef4658feb81402333a47380e2d346919e37dd63dbfee61dbbd9ba0728f4"
+      },
+      "desktop": {
+        "crop": {
+          "x": 0,
+          "y": 280,
+          "width": 1448,
+          "height": 543
+        },
+        "width": 1280,
+        "height": 480,
+        "max_bytes": 256000,
+        "path": "public/images/kingshot/generated/territory-command-desktop.webp",
+        "byte_size": 79966,
+        "sha256": "f52de84a152a470e40ef48788da1e09767f8bc422ebbdbf68a8d99d9e0209233"
+      },
+      "mobile": {
+        "crop": {
+          "x": 550,
+          "y": 0,
+          "width": 814,
+          "height": 1086
+        },
+        "width": 768,
+        "height": 1024,
+        "max_bytes": 153600,
+        "path": "public/images/kingshot/generated/territory-command-mobile.webp",
+        "byte_size": 89072,
+        "sha256": "3c1cffa071aa7d8e0048704b683475d6990b6fb17049714881822a214b297774"
+      }
+    },
+    {
+      "key": "gift-code-vault",
+      "brief_id": "SCN-15",
+      "title": "Gift-code vault",
+      "prompt": "Use case: stylized-concept. Asset type: original decorative environment for the Kingshot Alliance companion application's Gift-code vault. Create one polished painterly medieval strategy environment, image only. Landscape 4:3 master, ideally 2048 by 1536 pixels. Inside a quiet stone treasury, an elegant modest oak reward chest with antique brass fittings sits open on a wooden table on the center-right. It contains just a few blank unmarked gift tokens, neatly folded teal cloth and sealed plain parcels; soft warm lantern light illuminates the contents naturally. The image suggests managing gifts, never a promised quantity or value. Calm, sophisticated handcrafted game art, believable dark oak, stone, brass and fabric; restrained painterly detail, readable silhouettes. Palette near-black green #050A0B, deep teal #087A73, antique gold #C99A47, warm ivory #F4ECDA. Warm key light with cool teal ambient fill. Match a medieval surveyor's room in camera height, three-quarter perspective, materials and restrained brushwork. Leave the left 45 percent quiet and low contrast for localized HTML headings. Place the chest mainly x=58%-85%, y=35%-72% for wide 8:3 banner and right-centered portrait crops. Maintain separated midtones under a dark UI scrim. No people, currency piles, numbers, letters, codes, pseudo-writing, emblems, logos, watermarks, text, buttons, UI, magic beams, reward badges, arrows or extreme bloom.",
+      "master": {
+        "path": "resources/data/room-art/masters/gift-code-vault.png",
+        "width": 1448,
+        "height": 1086,
+        "byte_size": 2034226,
+        "sha256": "11012dc7c1d3997bd5f82ba635215e79f6deb0ef1f1e10726332e3732ad48a0f"
+      },
+      "desktop": {
+        "crop": {
+          "x": 0,
+          "y": 240,
+          "width": 1448,
+          "height": 543
+        },
+        "width": 1280,
+        "height": 480,
+        "max_bytes": 256000,
+        "path": "public/images/kingshot/generated/gift-code-vault-desktop.webp",
+        "byte_size": 51976,
+        "sha256": "63bc8a9486f9de7e92e080cc1e3b0530b59d4d4f6a695283a2a053b9ed74e54e"
+      },
+      "mobile": {
+        "crop": {
+          "x": 570,
+          "y": 0,
+          "width": 814,
+          "height": 1086
+        },
+        "width": 768,
+        "height": 1024,
+        "max_bytes": 153600,
+        "path": "public/images/kingshot/generated/gift-code-vault-mobile.webp",
+        "byte_size": 74820,
+        "sha256": "c4a72457d1233e827fddbb8432b48d57e28c98fb3c6a09984848e6d36712942d"
+      }
+    },
+    {
+      "key": "progression-forge",
+      "brief_id": "SCN-16",
+      "title": "Progression workshop",
+      "prompt": "Use case: stylized-concept. Asset type: original decorative Progression workshop scene for a medieval strategy companion web application. One polished painterly game environment, not a UI mockup. Landscape 4:3 master, ideally 2048 by 1536 pixels. A quiet stone-and-oak craft workshop. On the center-right stand a simple neutral steel breastplate on a wooden armor stand, a workbench, a small anvil and a restrained set of well-kept hand tools and raw materials arranged neatly. Show thoughtful craft and gradual improvement, no specific identifiable game gear or recipes. Restrained high quality painterly detail, believable iron, worn oak, stone and leather. Palette near-black green #050A0B shadows, deep teal #087A73 cloth accents, antique gold #C99A47 lamplight, warm ivory #F4ECDA highlights. Soft warm lantern key light and cool teal daylight fill, separated midtones that survive a dark website scrim. Match eye-level three-quarter perspective and handcrafted material style of a medieval surveyor's room and reward vault. Keep left 45 percent quiet, dim and low contrast for localized HTML text. Main armor/workbench composition should sit at x=55%-85%, y=28%-73%, readable within a wide 8:3 banner and a right-centered portrait crop. No people, letters, numbers, pseudo-writing, readable books, logos, watermark, UI, buttons, skill trees, progression arrows, magical glow, giant weapons or extreme bloom.",
+      "master": {
+        "path": "resources/data/room-art/masters/progression-forge.png",
+        "width": 1448,
+        "height": 1086,
+        "byte_size": 2522648,
+        "sha256": "7279ea37e33451298329bcee20ea21db7d227de764b9c2e8f4a37cad86fd28fb"
+      },
+      "desktop": {
+        "crop": {
+          "x": 0,
+          "y": 185,
+          "width": 1448,
+          "height": 543
+        },
+        "width": 1280,
+        "height": 480,
+        "max_bytes": 256000,
+        "path": "public/images/kingshot/generated/progression-forge-desktop.webp",
+        "byte_size": 62370,
+        "sha256": "e246d03ae3e34821453889fe190f89a2cd6a790ead15b8029139c3d4082557f6"
+      },
+      "mobile": {
+        "crop": {
+          "x": 520,
+          "y": 0,
+          "width": 814,
+          "height": 1086
+        },
+        "width": 768,
+        "height": 1024,
+        "max_bytes": 153600,
+        "path": "public/images/kingshot/generated/progression-forge-mobile.webp",
+        "byte_size": 107882,
+        "sha256": "20a331a10e1f53c65aee4b55c5e2f22ccdcae99e4b68fd36d45488b078fdb843"
+      }
+    },
+    {
+      "key": "assistant-archive",
+      "brief_id": "SCN-17",
+      "title": "Assistant archive",
+      "prompt": "Use case: stylized-concept. Asset type: original decorative Assistant archive environment for a medieval strategy companion web application. Create one polished painterly handcrafted game scene, image only, landscape 4:3 master ideally 2048 by 1536 pixels. A calm stone-and-dark-oak research archive with shelves of closed books, a center-right reading desk, one open completely blank parchment book, a warm brass lantern and a few rolled unmarked scrolls. The visual suggests careful research and guidance. Match the eye-level three-quarter perspective, believable oak/stone/brass materials, restrained painterly detail and simple readable silhouettes of a medieval surveyor's room, treasury and craft workshop. Palette near-black green #050A0B shadows, deep teal #087A73 cloth and ambient fill, antique gold #C99A47 lamplight and warm ivory #F4ECDA highlights. Soft warm key light balanced by cool daylight, separated midtones that survive a dark website scrim. Keep the left 45 percent quiet, dim, low detail and low contrast for localized HTML text. Place desk, blank book and lantern mainly between x=55%-85%, y=32%-72% so an 8:3 wide banner and a right-centered portrait crop retain them. No people, faces, robots, speech bubbles, symbols of autonomous action, letters, numbers, pseudo-writing, readable book spines, logos, emblems, watermark, text, UI, buttons, magical beams, arrows or extreme bloom.",
+      "master": {
+        "path": "resources/data/room-art/masters/assistant-archive.png",
+        "width": 1448,
+        "height": 1086,
+        "byte_size": 2357669,
+        "sha256": "7b8a5426ebea8c9435c444f50ab6d70c3dd97cfa63ffdc2f1994f8ffbfb70d82"
+      },
+      "desktop": {
+        "crop": {
+          "x": 0,
+          "y": 230,
+          "width": 1448,
+          "height": 543
+        },
+        "width": 1280,
+        "height": 480,
+        "max_bytes": 256000,
+        "path": "public/images/kingshot/generated/assistant-archive-desktop.webp",
+        "byte_size": 54372,
+        "sha256": "4df3e2be87cd8671af883194ccc3dadfb75ce9e9b2f41bbfaf0317ff6553e567"
+      },
+      "mobile": {
+        "crop": {
+          "x": 530,
+          "y": 0,
+          "width": 814,
+          "height": 1086
+        },
+        "width": 768,
+        "height": 1024,
+        "max_bytes": 153600,
+        "path": "public/images/kingshot/generated/assistant-archive-mobile.webp",
+        "byte_size": 68652,
+        "sha256": "d663722d67aadaae62b5d97380b5710672a1b9bfe3d26458bc56e401f4ba0a62"
+      }
+    }
+  ]
+}

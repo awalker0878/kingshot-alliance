@@ -23,10 +23,10 @@ final readonly class PreviewBulkAllianceRankChange
     {
         $membershipIds = array_values(array_unique($membershipIds));
         if ($membershipIds === [] || count($membershipIds) > 50) {
-            throw ValidationException::withMessages(['membership_ids' => 'Select between 1 and 50 Alliance memberships.']);
+            throw ValidationException::withMessages(['membership_ids' => (string) __('Select between 1 and 50 Alliance memberships.')]);
         }
         if ($rank === AllianceRank::R5) {
-            throw ValidationException::withMessages(['rank' => 'Use Alliance leadership transfer to assign R5.']);
+            throw ValidationException::withMessages(['rank' => (string) __('Use Alliance leadership transfer to assign R5.')]);
         }
         $this->authorization->authorize($actorPlayerId, $allianceId, AlliancePermission::RoleManage);
 
@@ -36,7 +36,7 @@ final readonly class PreviewBulkAllianceRankChange
             ->where('status', MembershipStatus::Active->value)
             ->firstOrFail();
         if (! $actor->rank->canDelegate($rank)) {
-            throw ValidationException::withMessages(['rank' => 'You cannot assign a rank above your current rank.']);
+            throw ValidationException::withMessages(['rank' => (string) __('You cannot assign a rank above your current rank.')]);
         }
 
         $rows = AllianceMembership::query()->where('alliance_id', $allianceId)->whereIn('id', $membershipIds)->get()->keyBy('id');

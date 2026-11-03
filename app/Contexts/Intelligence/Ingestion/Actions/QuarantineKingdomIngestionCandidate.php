@@ -24,7 +24,7 @@ final readonly class QuarantineKingdomIngestionCandidate
         $reasonCode = trim($reasonCode);
         if (preg_match('/^[a-z0-9][a-z0-9._-]{0,79}$/', $reasonCode) !== 1) {
             throw ValidationException::withMessages([
-                'reason' => 'The quarantine reason must be a stable lowercase code.',
+                'reason' => (string) __('The quarantine reason must be a stable lowercase code.'),
             ]);
         }
 
@@ -50,7 +50,7 @@ final readonly class QuarantineKingdomIngestionCandidate
             if ($candidate->state === KingdomIngestionCandidateState::Quarantined) {
                 if ($candidate->quarantine_code !== $reasonCode) {
                     throw ValidationException::withMessages([
-                        'reason' => 'An already-quarantined candidate cannot be relabelled in place.',
+                        'reason' => (string) __('An already-quarantined candidate cannot be relabelled in place.'),
                     ]);
                 }
 
@@ -58,7 +58,7 @@ final readonly class QuarantineKingdomIngestionCandidate
             }
             if ($candidate->state !== KingdomIngestionCandidateState::Pending) {
                 throw ValidationException::withMessages([
-                    'candidate' => 'Only pending ingestion candidates can be quarantined.',
+                    'candidate' => (string) __('Only pending ingestion candidates can be quarantined.'),
                 ]);
             }
 

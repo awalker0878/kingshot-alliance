@@ -46,7 +46,7 @@ final readonly class RecruitmentDuplicateFinder
             $submittedAt = $position['submitted_at'] ?? null;
             $id = $position['id'] ?? null;
             if (! is_string($submittedAt) || ! is_string($id)) {
-                throw ValidationException::withMessages(['cursor' => 'The duplicate candidate cursor is incomplete.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The duplicate candidate cursor is incomplete.')]);
             }
             $query->where(static function (Builder $row) use ($submittedAt, $id): void {
                 $row->where('submitted_at', '>', $submittedAt)->orWhere(static function (Builder $tie) use ($submittedAt, $id): void {

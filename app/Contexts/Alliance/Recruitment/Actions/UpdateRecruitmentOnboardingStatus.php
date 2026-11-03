@@ -50,7 +50,7 @@ final class UpdateRecruitmentOnboardingStatus
 
             if ($candidate->merged_into_id !== null) {
                 throw ValidationException::withMessages([
-                    'candidate' => 'Update onboarding on the current merged candidate record.',
+                    'candidate' => (string) __('Update onboarding on the current merged candidate record.'),
                 ]);
             }
 

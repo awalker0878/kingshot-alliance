@@ -175,6 +175,9 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
+        with:
+          fetch-depth: 0
+
       - name: Verify npm lockfile
         run: test -f package-lock.json
 
@@ -192,6 +195,35 @@ jobs:
 
       - name: Run frontend checks
         run: npm run check
+
+      - name: Capture PR 1 localization baseline
+        if: ${{ github.event_name == 'pull_request' && startsWith(github.head_ref, 'codex/localization-pr1-') }}
+        run: npm run localization:baseline
+
+      - name: Verify pinned baseline reproducibility and export corrected tree
+        if: ${{ github.event_name == 'pull_request' && startsWith(github.head_ref, 'codex/localization-pr1-') }}
+        run: |
+          node scripts/prepare-localization-baseline.mjs .translation-pr1-baseline-repeat
+          diff -qr .translation-pr1-baseline .translation-pr1-baseline-repeat
+          node scripts/prepare-localization-baseline.mjs .translation-pr1-corrected --current
+          node scripts/prepare-localization-baseline.mjs .translation-pr1-corrected-repeat --current
+          diff -qr .translation-pr1-corrected .translation-pr1-corrected-repeat
+          node scripts/check-localization-baseline-fingerprints.mjs
+          node scripts/test-localization-fingerprint-mutation.mjs
+          node scripts/report-localization-tier1a.mjs
+          node -e "let b=require('./.translation-pr1-baseline/baseline-metadata.json');if(b.baselineRef!=='7cf387b628bbbaeb81d10120340e559b46403bee'||b.sourceRevision!==b.baselineRef)process.exit(1)"
+
+      - name: Upload PR 1 localization baseline
+        if: ${{ always() && github.event_name == 'pull_request' && startsWith(github.head_ref, 'codex/localization-pr1-') }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: localization-pr1-baseline
+          path: |
+            .translation-pr1-baseline/
+            .translation-pr1-corrected/
+          if-no-files-found: warn
+          include-hidden-files: true
+          retention-days: 14
 
   container:
     name: Container, staging, and recovery

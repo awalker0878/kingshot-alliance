@@ -69,11 +69,11 @@ final readonly class TransferWorkflowHistoryQuery
             $id = $position['id'] ?? null;
             if (! is_string($at) || ! preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d{1,6})?$/D', $at)
                 || ! is_string($id) || ! preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/Di', $id)) {
-                throw ValidationException::withMessages(['cursor' => 'The workflow history cursor is invalid.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The workflow history cursor is invalid.')]);
             }
             $parsed = DateTimeImmutable::createFromFormat('!Y-m-d H:i:s.u', $at, new DateTimeZone('UTC'));
             if ($parsed === false || $parsed->format('Y-m-d H:i:s.u') !== $at) {
-                throw ValidationException::withMessages(['cursor' => 'The workflow history timestamp is invalid.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The workflow history timestamp is invalid.')]);
             }
             $query->where(function (Builder $older) use ($at, $id): void {
                 $older->where('created_at', '<', $at)->orWhere(function (Builder $tie) use ($at, $id): void {

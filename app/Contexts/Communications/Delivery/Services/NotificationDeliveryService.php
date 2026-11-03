@@ -114,39 +114,39 @@ final readonly class NotificationDeliveryService
     {
         if (! preg_match('/^[a-z0-9][a-z0-9_.-]{0,95}$/', $intent->notificationType)) {
             throw ValidationException::withMessages([
-                'notification_type' => 'Notification type is invalid.',
+                'notification_type' => (string) __('Notification type is invalid.'),
             ]);
         }
 
         if ($intent->recipientUserId < 1) {
-            throw ValidationException::withMessages(['recipient' => 'Notification recipient is invalid.']);
+            throw ValidationException::withMessages(['recipient' => (string) __('Notification recipient is invalid.')]);
         }
 
         if ($intent->playerId !== null && ! preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/i', $intent->playerId)) {
-            throw ValidationException::withMessages(['player' => 'Notification Governor is invalid.']);
+            throw ValidationException::withMessages(['player' => (string) __('Notification Governor is invalid.')]);
         }
 
         foreach ($intent->eligiblePlayerIds as $playerId) {
             if (! preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/i', $playerId)) {
-                throw ValidationException::withMessages(['players' => 'An eligible Governor is invalid.']);
+                throw ValidationException::withMessages(['players' => (string) __('An eligible Governor is invalid.')]);
             }
         }
 
         $title = trim($intent->title);
         if ($title === '' || mb_strlen($title) > 240) {
-            throw ValidationException::withMessages(['title' => 'Notification title is invalid.']);
+            throw ValidationException::withMessages(['title' => (string) __('Notification title is invalid.')]);
         }
 
         if ($intent->body !== null && mb_strlen($intent->body) > 12000) {
-            throw ValidationException::withMessages(['body' => 'Notification body is too long.']);
+            throw ValidationException::withMessages(['body' => (string) __('Notification body is too long.')]);
         }
 
         if ($intent->subjectType !== null && mb_strlen($intent->subjectType) > 64) {
-            throw ValidationException::withMessages(['subject_type' => 'Notification subject type is too long.']);
+            throw ValidationException::withMessages(['subject_type' => (string) __('Notification subject type is too long.')]);
         }
 
         if ($intent->subjectId !== null && mb_strlen($intent->subjectId) > 64) {
-            throw ValidationException::withMessages(['subject_id' => 'Notification subject ID is too long.']);
+            throw ValidationException::withMessages(['subject_id' => (string) __('Notification subject ID is too long.')]);
         }
 
         if ($intent->actionUrl !== null) {
@@ -156,14 +156,14 @@ final readonly class NotificationDeliveryService
                 || str_contains($intent->actionUrl, "\r")
                 || str_contains($intent->actionUrl, "\n")) {
                 throw ValidationException::withMessages([
-                    'action_url' => 'Notification action URL must be a safe application-relative path.',
+                    'action_url' => (string) __('Notification action URL must be a safe application-relative path.'),
                 ]);
             }
         }
 
         if ($intent->maxAttempts < 1 || $intent->maxAttempts > 10) {
             throw ValidationException::withMessages([
-                'max_attempts' => 'Notification attempt budget must be between 1 and 10.',
+                'max_attempts' => (string) __('Notification attempt budget must be between 1 and 10.'),
             ]);
         }
     }

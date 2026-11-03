@@ -47,17 +47,17 @@ final class KingdomMapDatasetQuery
     public function require(string $datasetId, ?string $expectedChecksum = null): KingdomMapDataset
     {
         if (! preg_match('/^[a-z0-9][a-z0-9._-]{1,119}$/', $datasetId)) {
-            throw ValidationException::withMessages(['map_dataset_id' => 'The selected map dataset is invalid.']);
+            throw ValidationException::withMessages(['map_dataset_id' => (string) __('The selected map dataset is invalid.')]);
         }
 
         $path = base_path(self::DIRECTORY.'/'.$datasetId.'.json');
         if (! is_file($path)) {
-            throw ValidationException::withMessages(['map_dataset_id' => 'The selected map dataset is unavailable.']);
+            throw ValidationException::withMessages(['map_dataset_id' => (string) __('The selected map dataset is unavailable.')]);
         }
 
         $dataset = $this->load($path);
         if ($expectedChecksum !== null && ! hash_equals($dataset->checksum, $expectedChecksum)) {
-            throw ValidationException::withMessages(['map_dataset_id' => 'The selected map dataset changed and must be reloaded before saving.']);
+            throw ValidationException::withMessages(['map_dataset_id' => (string) __('The selected map dataset changed and must be reloaded before saving.')]);
         }
 
         return $dataset;

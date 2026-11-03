@@ -18,7 +18,7 @@ final class TerritoryWorkspaceViewContract
     public function validate(array $views, KingdomMapDataset $dataset): array
     {
         if (! array_is_list($views)) {
-            throw ValidationException::withMessages(['views' => 'Saved views must be a list.']);
+            throw ValidationException::withMessages(['views' => (string) __('Saved views must be a list.')]);
         }
         $bounds = $dataset->data['bounds'];
         Validator::make(['views' => $views], [

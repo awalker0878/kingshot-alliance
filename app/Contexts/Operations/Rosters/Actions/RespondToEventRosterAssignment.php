@@ -37,7 +37,7 @@ final readonly class RespondToEventRosterAssignment
         EventRosterMemberStatus $status,
     ): void {
         if (! in_array($status, [EventRosterMemberStatus::Confirmed, EventRosterMemberStatus::Declined], true)) {
-            throw ValidationException::withMessages(['status' => 'Roster assignment response must be confirmed or declined.']);
+            throw ValidationException::withMessages(['status' => (string) __('Roster assignment response must be confirmed or declined.')]);
         }
 
         DB::transaction(function () use ($actorPlayerId, $occurrenceId, $memberId, $status): void {
@@ -54,26 +54,26 @@ final readonly class RespondToEventRosterAssignment
                 throw new AuthorizationException;
             }
             if (in_array($member->statusEnum(), [EventRosterMemberStatus::Removed, EventRosterMemberStatus::Participated, EventRosterMemberStatus::Absent], true)) {
-                throw ValidationException::withMessages(['status' => 'This roster assignment can no longer be confirmed or declined.']);
+                throw ValidationException::withMessages(['status' => (string) __('This roster assignment can no longer be confirmed or declined.')]);
             }
 
             if ($status === EventRosterMemberStatus::Confirmed && ! $member->statusEnum()->occupiesSlot()) {
                 $occupying = $this->occupyingStatuses();
                 $activeCount = EventRosterMember::query()->where('roster_id', $roster->id)->whereIn('status', $occupying)->count();
                 if ($roster->capacity !== null && $activeCount >= (int) $roster->capacity) {
-                    throw ValidationException::withMessages(['status' => 'This roster is now at capacity.']);
+                    throw ValidationException::withMessages(['status' => (string) __('This roster is now at capacity.')]);
                 }
                 if ($member->slot_number !== null && EventRosterMember::query()
                     ->where('roster_id', $roster->id)->where('slot_number', $member->slot_number)->whereIn('status', $occupying)
                     ->where('id', '!=', $member->id)->exists()) {
-                    throw ValidationException::withMessages(['status' => 'This roster slot has been reassigned.']);
+                    throw ValidationException::withMessages(['status' => (string) __('This roster slot has been reassigned.')]);
                 }
                 if (EventRosterMember::query()
                     ->where('player_id', $actorPlayerId)->whereIn('status', $occupying)->where('id', '!=', $member->id)
                     ->whereHas('roster', static fn ($query) => $query
                         ->where('occurrence_id', $occurrence->id)
                         ->where('assignment_group', $roster->assignment_group))->exists()) {
-                    throw ValidationException::withMessages(['status' => 'This Player has another active assignment in the same roster group.']);
+                    throw ValidationException::withMessages(['status' => (string) __('This Player has another active assignment in the same roster group.')]);
                 }
 
                 $this->contexts->freeze($occurrence, $context->actor, $member->alliance_id === null ? null : (string) $member->alliance_id);

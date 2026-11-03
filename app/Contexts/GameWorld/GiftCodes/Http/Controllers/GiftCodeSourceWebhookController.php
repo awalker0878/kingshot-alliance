@@ -95,25 +95,25 @@ final class GiftCodeSourceWebhookController extends Controller
     {
         $secret = trim((string) config('game_world.gift_codes.source_webhook_secret', ''));
         if (strlen($secret) < 32) {
-            abort(503, 'Gift Code source webhook verification is not configured.');
+            abort(503, (string) __('Gift Code source webhook verification is not configured.'));
         }
         $timestamp = trim((string) $request->header('X-Kingshot-Timestamp', ''));
         $signature = trim((string) $request->header('X-Kingshot-Signature', ''));
         if (! ctype_digit($timestamp) || preg_match('/^sha256=([a-f0-9]{64})$/D', $signature, $matches) !== 1) {
-            throw ValidationException::withMessages(['signature' => 'The source webhook signature is invalid.']);
+            throw ValidationException::withMessages(['signature' => (string) __('The source webhook signature is invalid.')]);
         }
         $skew = max(60, min(3600, (int) config('game_world.gift_codes.source_webhook_clock_skew_seconds', 300)));
         if (abs(time() - (int) $timestamp) > $skew) {
-            throw ValidationException::withMessages(['signature' => 'The source webhook timestamp is outside the accepted window.']);
+            throw ValidationException::withMessages(['signature' => (string) __('The source webhook timestamp is outside the accepted window.')]);
         }
         $expected = hash_hmac('sha256', $sourceId.'.'.$timestamp.'.'.$request->getContent(), $secret);
         if (! hash_equals($expected, $matches[1])) {
-            throw ValidationException::withMessages(['signature' => 'The source webhook signature is invalid.']);
+            throw ValidationException::withMessages(['signature' => (string) __('The source webhook signature is invalid.')]);
         }
 
         $replayKey = 'gift-code-source-webhook:'.hash('sha256', $sourceId.'|'.$timestamp.'|'.$matches[1]);
         if (! Cache::add($replayKey, true, $skew * 2)) {
-            throw ValidationException::withMessages(['signature' => 'This source webhook delivery was already processed.']);
+            throw ValidationException::withMessages(['signature' => (string) __('This source webhook delivery was already processed.')]);
         }
     }
 }

@@ -48,7 +48,7 @@ final readonly class KingdomIngestionMutationState
             if ($nullable) {
                 return null;
             }
-            throw ValidationException::withMessages(['subscription' => 'Automated Kingdom ingestion is unavailable while the Alliance is not active.']);
+            throw ValidationException::withMessages(['subscription' => (string) __('Automated Kingdom ingestion is unavailable while the Alliance is not active.')]);
         }
 
         $query = KingdomIngestionSubscription::query()->whereKey($route->id)->where('alliance_id', $alliance->allianceId)->lockForUpdate();

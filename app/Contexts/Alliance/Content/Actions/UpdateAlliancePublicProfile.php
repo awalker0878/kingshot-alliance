@@ -109,7 +109,7 @@ final readonly class UpdateAlliancePublicProfile
 
         if (! $media instanceof MediaAsset || ! str_starts_with((string) $media->mime_type, 'image/')) {
             throw ValidationException::withMessages([
-                $slot.'_media_id' => 'Branding media must be an active, clean image from this alliance.',
+                $slot.'_media_id' => (string) __('Branding media must be an active, clean image from this alliance.'),
             ]);
         }
 

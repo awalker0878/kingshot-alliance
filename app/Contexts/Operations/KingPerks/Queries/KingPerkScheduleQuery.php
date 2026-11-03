@@ -108,7 +108,7 @@ final readonly class KingPerkScheduleQuery
             : $event->occurrences->firstWhere('id', $occurrenceId);
 
         if (! $occurrence instanceof EventOccurrence) {
-            throw ValidationException::withMessages(['occurrence' => 'No matching Kingdom of Power occurrence was found.']);
+            throw ValidationException::withMessages(['occurrence' => (string) __('No matching Kingdom of Power occurrence was found.')]);
         }
 
         return $occurrence;
@@ -134,7 +134,7 @@ final readonly class KingPerkScheduleQuery
         $kingdom = $event->kingdom_id === null ? null : $this->kingdoms->find((string) $event->kingdom_id);
         if (! $eventType instanceof EventType || $kingdom === null) {
             throw ValidationException::withMessages([
-                'event' => 'King Perks require a Kingdom-scoped Event with a valid Event type.',
+                'event' => (string) __('King Perks require a Kingdom-scoped Event with a valid Event type.'),
             ]);
         }
 

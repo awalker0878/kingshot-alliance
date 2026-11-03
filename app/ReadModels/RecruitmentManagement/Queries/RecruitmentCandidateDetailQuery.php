@@ -207,7 +207,7 @@ final readonly class RecruitmentCandidateDetailQuery
             $name = $position['name'] ?? null;
             $id = $position['id'] ?? null;
             if (! is_string($name) || mb_strlen($name) > 255 || ! is_string($id) || ! preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/Di', $id)) {
-                throw ValidationException::withMessages(['cursor' => 'The candidate attachment cursor is invalid.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The candidate attachment cursor is invalid.')]);
             }
             $query->where(static function (QueryBuilder $after) use ($name, $id): void {
                 $after->where('name', '>', $name)->orWhere(static function (QueryBuilder $tie) use ($name, $id): void {
@@ -235,7 +235,7 @@ final readonly class RecruitmentCandidateDetailQuery
             $at = $position['at'] ?? null;
             $id = $position['id'] ?? null;
             if (! is_string($at) || ! is_string($id)) {
-                throw ValidationException::withMessages(['cursor' => 'The recruitment history cursor is incomplete.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The recruitment history cursor is incomplete.')]);
             }
             $query->where(static function (Builder $row) use ($column, $at, $id): void {
                 $row->where($column, '<', $at)->orWhere(static function (Builder $tie) use ($column, $at, $id): void {

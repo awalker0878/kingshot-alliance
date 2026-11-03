@@ -68,6 +68,37 @@ const messages = {
     chooseOption: 'Escolha uma opção',
     submit: 'Enviar candidatura',
     submitting: 'Enviando…',
+    attributionBoard: 'Conselho de recrutamento público',
+    attributionAlliancePage: 'Página pública da aliança',
+    attributionShareLink: 'Compartilhar o link',
+    attributionBotCommand: 'Aliança Bot Comando',
+    attributionHelp:
+      'Esse rótulo de origem visível ajuda a aliança a entender quais links de recrutamento funcionam. Ele não identifica ou rastreia você.',
+  },
+  recruitmentBoard: {
+    eyebrow: 'Aliança de descoberta',
+    title: 'Encontre uma aliança',
+    body: 'Explore alianças que abriram o recrutamento público. Filtre a lista, compartilhe a visualização atual e aplique através das perguntas próprias de cada aliança.',
+    search: 'Pesquisar',
+    searchPlaceholder: 'nome da aliança, título de recrutamento ou introdução',
+    kingdom: 'Reino',
+    allKingdoms: 'Todos os reinos',
+    language: 'Idioma',
+    allLanguages: 'Todos os idiomas',
+    applyFilters: 'Aplicar filtros',
+    clearFilters: 'Limpar filtros',
+    copyLink: 'Copiar link filtrado',
+    copied: 'Link copiado',
+    resultCount: '{count} recrutando alianças',
+    capped:
+      'Mostrando os primeiros 100 resultados. Refine os filtros para ver um resultado mais focado.',
+    noMatchesTitle: 'Nenhuma aliança de recrutamento corresponde',
+    noMatchesBody:
+      'Tente limpar um filtro ou verifique novamente quando mais alianças optarem pelo recrutamento público.',
+    viewAlliance: 'Ver a aliança',
+    apply: 'Aplicar',
+    publicOnly: 'Apenas as alianças que optaram pelo recrutamento público são mostradas',
+    listedByAlliance: 'Listado pela equipe de recrutamento da aliança',
   },
 } satisfies MessageCatalogue;
 

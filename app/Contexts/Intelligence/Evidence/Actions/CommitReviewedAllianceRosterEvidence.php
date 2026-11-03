@@ -116,7 +116,7 @@ final readonly class CommitReviewedAllianceRosterEvidence
                 ->lockForUpdate()
                 ->firstOrFail();
             if ($review->status !== EvidenceReviewStatus::Approved) {
-                throw ValidationException::withMessages(['review' => 'Only an approved roster review can be committed.']);
+                throw ValidationException::withMessages(['review' => (string) __('Only an approved roster review can be committed.')]);
             }
 
             $evidence = AllianceRosterEvidence::query()
@@ -125,7 +125,7 @@ final readonly class CommitReviewedAllianceRosterEvidence
                 ->lockForUpdate()
                 ->firstOrFail();
             if (! in_array($evidence->lifecycle_status, [EvidenceLifecycleStatus::Approved, EvidenceLifecycleStatus::Committed], true)) {
-                throw ValidationException::withMessages(['evidence' => 'The approved screenshot provenance is no longer valid.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('The approved screenshot provenance is no longer valid.')]);
             }
 
             $idempotencyKey = hash('sha256', 'alliance-roster-v1|'.$allianceId.'|'.$reviewId.'|'.$review->semantic_fingerprint);

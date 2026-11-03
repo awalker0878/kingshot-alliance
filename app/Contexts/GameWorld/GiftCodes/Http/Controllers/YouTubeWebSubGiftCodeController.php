@@ -160,18 +160,18 @@ final class YouTubeWebSubGiftCodeController extends Controller
     ): void {
         $secret = trim((string) config('game_world.gift_codes.youtube_websub_secret', ''));
         if (strlen($secret) < 32) {
-            abort(503, 'YouTube WebSub verification is not configured.');
+            abort(503, (string) __('YouTube WebSub verification is not configured.'));
         }
         $header = trim((string) $request->header('X-Hub-Signature', ''));
         if (preg_match('/^(sha1|sha256)=([a-f0-9]+)$/D', $header, $matches) !== 1) {
             $activity->handle((string) $source->id, 'signature_failure');
-            throw ValidationException::withMessages(['signature' => 'The YouTube WebSub signature is missing or invalid.']);
+            throw ValidationException::withMessages(['signature' => (string) __('The YouTube WebSub signature is missing or invalid.')]);
         }
         $algorithm = $matches[1];
         $expected = hash_hmac($algorithm, $body, $secret);
         if (! hash_equals($expected, $matches[2])) {
             $activity->handle((string) $source->id, 'signature_failure');
-            throw ValidationException::withMessages(['signature' => 'The YouTube WebSub signature is invalid.']);
+            throw ValidationException::withMessages(['signature' => (string) __('The YouTube WebSub signature is invalid.')]);
         }
     }
 

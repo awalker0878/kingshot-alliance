@@ -46,7 +46,7 @@ final readonly class TransferGroupWriter
         $source = trim($sourceReference);
         if ($label === '' || $source === '' || $kingdomNumbers === []) {
             throw ValidationException::withMessages([
-                'group' => 'Official label, Kingdom membership and source reference are required.',
+                'group' => (string) __('Official label, Kingdom membership and source reference are required.'),
             ]);
         }
         $evidenceId = $this->evidence->assertUsable($allianceId, $sourceType, $evidenceId);
@@ -61,7 +61,7 @@ final readonly class TransferGroupWriter
         sort($kingdomIds);
         if ($kingdomIds === []) {
             throw ValidationException::withMessages([
-                'kingdom_numbers' => 'At least one valid Kingdom is required.',
+                'kingdom_numbers' => (string) __('At least one valid Kingdom is required.'),
             ]);
         }
 
@@ -74,7 +74,7 @@ final readonly class TransferGroupWriter
             ->exists();
         if ($otherMembership) {
             throw ValidationException::withMessages([
-                'kingdom_numbers' => 'A Kingdom cannot belong to two current official Transfer Groups in the same window.',
+                'kingdom_numbers' => (string) __('A Kingdom cannot belong to two current official Transfer Groups in the same window.'),
             ]);
         }
 

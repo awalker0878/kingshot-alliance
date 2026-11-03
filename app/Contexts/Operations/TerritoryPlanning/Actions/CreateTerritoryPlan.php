@@ -42,12 +42,12 @@ final readonly class CreateTerritoryPlan
         $name = trim($name);
         if ($name === '' || mb_strlen($name) > 160) {
             throw ValidationException::withMessages([
-                'name' => 'Plan name is required and must be 160 characters or fewer.',
+                'name' => (string) __('Plan name is required and must be 160 characters or fewer.'),
             ]);
         }
         if (($scope === TerritoryPlanScope::Alliance) !== ($ownerAllianceId !== null && $ownerAllianceId !== '')) {
             throw ValidationException::withMessages([
-                'scope' => 'Alliance plans require one owner Alliance; Kingdom plans do not.',
+                'scope' => (string) __('Alliance plans require one owner Alliance; Kingdom plans do not.'),
             ]);
         }
 

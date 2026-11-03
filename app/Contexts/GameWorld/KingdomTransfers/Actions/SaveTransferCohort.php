@@ -37,26 +37,26 @@ final readonly class SaveTransferCohort
             $this->assertMutable($context->kingdomId(), $plan);
             $cohort = $cohortId === null ? new TransferCohort(['alliance_id' => $allianceId, 'transfer_plan_id' => $plan->id]) : TransferCohort::query()->where('alliance_id', $allianceId)->where('transfer_plan_id', $plan->id)->whereKey($cohortId)->lockForUpdate()->firstOrFail();
             if ($cohort->exists && $cohort->state === TransferCohortState::Archived) {
-                throw ValidationException::withMessages(['cohort' => 'Archived transfer cohorts cannot be edited.']);
+                throw ValidationException::withMessages(['cohort' => (string) __('Archived transfer cohorts cannot be edited.')]);
             }
             $name = trim($attributes['name']);
             if ($name === '') {
-                throw ValidationException::withMessages(['name' => 'A transfer cohort name is required.']);
+                throw ValidationException::withMessages(['name' => (string) __('A transfer cohort name is required.')]);
             }
             $direction = $attributes['direction'];
             if (! in_array($direction, [TransferDirection::Incoming, TransferDirection::Outgoing], true)) {
-                throw ValidationException::withMessages(['direction' => 'Transfer cohorts coordinate incoming or outgoing participants.']);
+                throw ValidationException::withMessages(['direction' => (string) __('Transfer cohorts coordinate incoming or outgoing participants.')]);
             }
             $duplicate = TransferCohort::query()->where('transfer_plan_id', $plan->id)->where('state', TransferCohortState::Active->value)->whereRaw('lower(name) = lower(?)', [$name]);
             if ($cohort->exists) {
                 $duplicate->where('id', '<>', $cohort->id);
             } if ($duplicate->exists()) {
-                throw ValidationException::withMessages(['name' => 'An active transfer cohort with that name already exists in this plan.']);
+                throw ValidationException::withMessages(['name' => (string) __('An active transfer cohort with that name already exists in this plan.')]);
             }
             $destination = $direction === TransferDirection::Incoming ? Kingdom::query()->findOrFail($plan->home_kingdom_id) : $this->kingdom($attributes['destination_kingdom'] ?? null);
             $destinationId = $destination instanceof Kingdom ? (string) $destination->id : $destination?->kingdomId;
             if ($direction === TransferDirection::Outgoing && $destinationId === (string) $plan->home_kingdom_id) {
-                throw ValidationException::withMessages(['destination_kingdom' => 'An outgoing cohort destination must differ from the plan home Kingdom.']);
+                throw ValidationException::withMessages(['destination_kingdom' => (string) __('An outgoing cohort destination must differ from the plan home Kingdom.')]);
             }
             $coordinatorId = $this->coordinatorId($allianceId, $attributes['coordinator_player_id'] ?? null);
             $notes = $this->nullableText($attributes['manager_notes'] ?? null);
@@ -80,9 +80,9 @@ final readonly class SaveTransferCohort
         } $rows = TransferParticipant::query()->where('alliance_id', $allianceId)->where('transfer_plan_id', $plan->id)->where('transfer_cohort_id', $cohort->id)->whereNull('withdrawn_at')->sharedLock()->get();
         foreach ($rows as $row) {
             if ($row->direction === TransferDirection::Staying || $row->direction !== $direction) {
-                throw ValidationException::withMessages(['direction' => 'The cohort direction is incompatible with an assigned Governor.']);
+                throw ValidationException::withMessages(['direction' => (string) __('The cohort direction is incompatible with an assigned Governor.')]);
             } if ($direction === TransferDirection::Outgoing && $destinationId !== null && $row->destination_kingdom_id !== $destinationId) {
-                throw ValidationException::withMessages(['destination_kingdom' => 'The cohort destination is incompatible with an assigned Governor.']);
+                throw ValidationException::withMessages(['destination_kingdom' => (string) __('The cohort destination is incompatible with an assigned Governor.')]);
             }
         }
     }
@@ -93,7 +93,7 @@ final readonly class SaveTransferCohort
         if ($id === '') {
             return null;
         } if (! $this->memberships->isActiveMember($allianceId, $id)) {
-            throw ValidationException::withMessages(['coordinator_player_id' => 'The coordinator must be an active Player in this Alliance.']);
+            throw ValidationException::withMessages(['coordinator_player_id' => (string) __('The coordinator must be an active Player in this Alliance.')]);
         } $this->players->require($id);
 
         return $id;
@@ -119,9 +119,9 @@ final readonly class SaveTransferCohort
     private function assertMutable(string $allianceKingdomId, TransferPlan $plan): void
     {
         if (! in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true)) {
-            throw ValidationException::withMessages(['cohort' => 'Transfer cohorts can only be changed while the plan is Draft or Open.']);
+            throw ValidationException::withMessages(['cohort' => (string) __('Transfer cohorts can only be changed while the plan is Draft or Open.')]);
         } if ($allianceKingdomId !== (string) $plan->home_kingdom_id) {
-            throw ValidationException::withMessages(['cohort' => 'The transfer plan home Kingdom does not match the Alliance Kingdom.']);
+            throw ValidationException::withMessages(['cohort' => (string) __('The transfer plan home Kingdom does not match the Alliance Kingdom.')]);
         }
     }
 }

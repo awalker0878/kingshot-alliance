@@ -37,7 +37,7 @@ final readonly class SubmitGiftCode
             $code = trim($attributes['code']);
             if (! preg_match('/^[A-Za-z0-9_-]{3,64}$/', $code)) {
                 throw ValidationException::withMessages([
-                    'code' => 'Use 3–64 letters, numbers, dashes, or underscores.',
+                    'code' => (string) __('Use 3–64 letters, numbers, dashes, or underscores.'),
                 ]);
             }
 
@@ -46,7 +46,7 @@ final readonly class SubmitGiftCode
             $source = GiftCodeSource::tryFrom($sourceValue);
             if (! in_array($source, [GiftCodeSource::Manual, GiftCodeSource::Community], true)) {
                 throw ValidationException::withMessages([
-                    'source_type' => 'Registered Gift Code evidence can only be created through a platform-approved source.',
+                    'source_type' => (string) __('Registered Gift Code evidence can only be created through a platform-approved source.'),
                 ]);
             }
 

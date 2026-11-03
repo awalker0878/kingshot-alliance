@@ -42,7 +42,7 @@ final readonly class EventPlayerHistoryQuery
         $validScopes = array_map(static fn (EventScope $case): string => $case->value, EventScope::cases());
         if ($scope !== null && $scope !== '' && ! in_array($scope, $validScopes, true)) {
             throw ValidationException::withMessages([
-                'scope' => 'Event scope must be player, alliance, or kingdom.',
+                'scope' => (string) __('Event scope must be player, alliance, or kingdom.'),
             ]);
         }
 
@@ -51,7 +51,7 @@ final readonly class EventPlayerHistoryQuery
             : null;
         if ($outcome !== null && $outcome !== '' && ! in_array($outcome, ['completed', 'absent', 'excused', 'unresolved'], true)) {
             throw ValidationException::withMessages([
-                'participation_outcome' => 'Participation outcome must be completed, absent, excused, or unresolved.',
+                'participation_outcome' => (string) __('Participation outcome must be completed, absent, excused, or unresolved.'),
             ]);
         }
 

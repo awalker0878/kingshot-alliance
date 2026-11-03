@@ -37,7 +37,7 @@ final class NoticeReactionController extends Controller
             );
         } catch (ModelNotFoundException) {
             throw ValidationException::withMessages([
-                'reaction' => 'This Alliance Notice is no longer available for reactions.',
+                'reaction' => (string) __('This Alliance Notice is no longer available for reactions.'),
             ]);
         }
 
@@ -56,7 +56,7 @@ final class NoticeReactionController extends Controller
             $removeReaction->handle($scope->allianceId, $scope->playerId, $content);
         } catch (ModelNotFoundException) {
             throw ValidationException::withMessages([
-                'reaction' => 'This Alliance Notice is no longer available for reactions.',
+                'reaction' => (string) __('This Alliance Notice is no longer available for reactions.'),
             ]);
         }
 

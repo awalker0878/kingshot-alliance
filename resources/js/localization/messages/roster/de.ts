@@ -79,6 +79,8 @@ const messages = {
     changeFrom: '{change} seit {date}',
     noComparisonRows: 'Keine vergleichbare Gouverneur-Historie verfügbar.',
     powerTrends: 'Machttrends',
+    pageResults: 'Zeige {count} von {total} passenden Reglern.',
+    pageSizeHelp: 'Bis zu {pageSize} Regler pro Seite.',
   },
   rosterManage: {
     manageSubtitle:
@@ -159,6 +161,42 @@ const messages = {
     source: 'Quelle',
     recordedBy: 'Erfasst von',
     noSnapshots: 'Für diesen Gouverneur wurden keine Scout-Einträge erfasst.',
+    progressionHelp:
+      'Verwenden Sie das genaue beobachtete Ofen- oder Fortschrittslabel. Kingshot Alliance schließt keine Spiellevel ab.',
+    sincePriorObservation: 'seit vorheriger Beobachtung',
+    observedChanges: 'Beobachtete Veränderungen',
+    nameChanged: 'Name',
+    progressionChanged: 'Fortschritt',
+    allianceChanged: 'Allianz-Tag',
+    noObservedChange: 'Kein beobachtete Feld geändert',
+    earlierHistoryNotShown:
+      'Frühere Beobachtungen existieren über die 250-zeilige Anzeigegrenze hinaus.',
+    capability: {
+      eyebrow: 'Faktisches Gouverneursprofil',
+      title: 'Was wir über diesen Gouverneur wissen',
+      help: 'Autorisierte Besitzerhistorien werden separat mit ihren ursprünglichen Daten und Workflow-Links angezeigt. Dieses Profil berechnet keine Stärke oder Qualitätsbewertung des Governors.',
+      events: 'Teilnahme an Veranstaltungen',
+      eventSummary: '{completed} abgeschlossen · {absent} fehlt · {unresolved} nicht gelöst',
+      noEvents: 'Für diese Allianz ist keine autorisierte Ereignishistorie aufgezeichnet.',
+      bearHunt: 'Bear Hunt Leistung',
+      recordedRuns: '{count} aufgezeichnete Governor-Ergebnisse',
+      latestDamage: 'Letzte akzeptierte Schäden',
+      openDebrief: 'Nachbesprechung öffnen',
+      noRecordedRuns: 'Es ist kein Bear Hunt Governor Ergebnis aufgezeichnet.',
+      rallies: 'Rallye Teilnahme',
+      noRallies: 'In der sichtbaren Ereignishistorie werden keine Rally-Zuweisungen aufgezeichnet.',
+      battlePlans: 'BattlePlan-Zuweisungen',
+      noBattlePlans:
+        'Es werden keine BattlePlan-Zuweisungen in der sichtbaren Ereignishistorie aufgezeichnet.',
+      transfer: 'Transferbewertung',
+      noTransfer: 'Dieser Gouverneur ist nicht im aktuellen Transferplan enthalten.',
+      evidence: 'Fortschrittsbelege',
+      evidenceSummary:
+        '{review} Überprüfung · {pending} ausstehend · {committed} übergeben · {failed} fehlgeschlagen',
+      latestEvidence: 'Neueste Beweise: {date}',
+      openOwner: 'Eigentümer-Workflow öffnen',
+      unavailable: 'Diese Eigentümerprojektion ist mit der aktuellen Autorität nicht verfügbar.',
+    },
   },
 } satisfies MessageCatalogue;
 

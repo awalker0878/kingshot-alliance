@@ -32,20 +32,20 @@ final readonly class StartKingdomIngestionBatch
 
             if ($subscription->state !== KingdomIngestionSubscriptionState::Active) {
                 throw ValidationException::withMessages([
-                    'subscription' => 'Only active ingestion subscriptions can start a batch.',
+                    'subscription' => (string) __('Only active ingestion subscriptions can start a batch.'),
                 ]);
             }
 
             if ($context->alliance->kingdomId !== (string) $subscription->kingdom_id) {
                 throw ValidationException::withMessages([
-                    'subscription' => 'Ingestion is blocked because the alliance Kingdom no longer matches the subscription context.',
+                    'subscription' => (string) __('Ingestion is blocked because the alliance Kingdom no longer matches the subscription context.'),
                 ]);
             }
 
             $adapter = $this->adapters->require($subscription->adapter_key);
             if ($adapter->version() !== $subscription->adapter_version) {
                 throw ValidationException::withMessages([
-                    'subscription' => 'Ingestion is blocked because the configured adapter version is no longer approved.',
+                    'subscription' => (string) __('Ingestion is blocked because the configured adapter version is no longer approved.'),
                 ]);
             }
 
@@ -120,7 +120,7 @@ final readonly class StartKingdomIngestionBatch
         }
 
         if (mb_strlen($value) > $max) {
-            throw ValidationException::withMessages([$field => 'The source identifier is too long.']);
+            throw ValidationException::withMessages([$field => (string) __('The source identifier is too long.')]);
         }
 
         return $value;

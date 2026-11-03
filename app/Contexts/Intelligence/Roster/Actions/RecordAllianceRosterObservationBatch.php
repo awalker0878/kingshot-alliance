@@ -46,7 +46,7 @@ final readonly class RecordAllianceRosterObservationBatch
                 ->first();
             if ($existing instanceof AllianceRosterObservationBatch) {
                 if ((string) $existing->alliance_id !== $allianceId) {
-                    throw ValidationException::withMessages(['evidence' => 'The destination receipt belongs to another Alliance.']);
+                    throw ValidationException::withMessages(['evidence' => (string) __('The destination receipt belongs to another Alliance.')]);
                 }
 
                 return new AllianceRosterObservationBatchReceipt((string) $existing->id, (int) $existing->observations_count);
@@ -78,7 +78,7 @@ final readonly class RecordAllianceRosterObservationBatch
                     ? (string) $row['roster_entry_id']
                     : null;
                 if ($rosterEntryId !== null && ! isset($knownRosterEntries[$rosterEntryId])) {
-                    throw ValidationException::withMessages(["rows.{$index}.roster_entry_id" => 'The reviewed roster link no longer belongs to this Alliance.']);
+                    throw ValidationException::withMessages(["rows.{$index}.roster_entry_id" => (string) __('The reviewed roster link no longer belongs to this Alliance.')]);
                 }
 
                 AllianceRosterObservation::query()->create([

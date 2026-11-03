@@ -67,6 +67,37 @@ const messages = {
     chooseOption: '選択してください',
     submit: '申請を送信',
     submitting: '送信中…',
+    attributionBoard: '公募委員会',
+    attributionAlliancePage: 'あなたは あなたの同盟の公式ページに',
+    attributionShareLink: '連合のリンクを共有',
+    attributionBotCommand: '連合ボットコマンド',
+    attributionHelp:
+      'この可視的なソースラベルは、同盟がどのような招聘リンクが働いているかを理解するのに役立つ。 あなたを特定したり追跡することはありません。',
+  },
+  recruitmentBoard: {
+    eyebrow: 'ディスカバリー',
+    title: '連合を探す',
+    body: '募集を開いた連合を探索して リストをフィルタリングし、現在の見方を共有し、各同盟の独自の質問を通して応用する。',
+    search: '検索',
+    searchPlaceholder: '連合名 招集称号 紹介',
+    kingdom: '王国',
+    allKingdoms: 'すべての王国',
+    language: '言語',
+    allLanguages: 'すべての言語',
+    applyFilters: 'フィルタを適用',
+    clearFilters: 'フィルタをクリア',
+    copyLink: 'フィルタリングされたリンクをコピー',
+    copied: 'リンクをコピー',
+    resultCount: '{count} 招集同盟',
+    capped:
+      '最初の100のマッチを表示しています。 絞り込みの結果を見るにはフィルタを絞り込んでください。',
+    noMatchesTitle: '招集同盟が一致しない',
+    noMatchesBody:
+      'フィルタをクリアしてみましょう。もっと多くの同盟が公開招集に参加するときは、再確認してください。',
+    viewAlliance: '連合を見る',
+    apply: '適用',
+    publicOnly: '公開招集に参加した同盟のみが表示されます',
+    listedByAlliance: '連合招集チームによるリスト',
   },
 } satisfies MessageCatalogue;
 

@@ -29,7 +29,7 @@ final readonly class RequestAccountEmailChange
             $user->ensureActive();
 
             if (hash_equals(Str::lower((string) $user->email), $email)) {
-                throw ValidationException::withMessages(['email' => 'Choose a different email address.']);
+                throw ValidationException::withMessages(['email' => (string) __('Choose a different email address.')]);
             }
 
             if (User::query()
@@ -38,7 +38,7 @@ final readonly class RequestAccountEmailChange
                     $query->where('email', $email)->orWhere('pending_email', $email);
                 })
                 ->exists()) {
-                throw ValidationException::withMessages(['email' => 'The email has already been taken.']);
+                throw ValidationException::withMessages(['email' => (string) __('The email has already been taken.')]);
             }
 
             $user->forceFill([

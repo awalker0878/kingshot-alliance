@@ -31,7 +31,7 @@ final readonly class ConfirmAccountPassword
             abort_unless($user->supportsPasswordAuthentication(), 403);
 
             if (! Hash::check($password, (string) $user->getAuthPassword())) {
-                throw ValidationException::withMessages(['password' => 'The provided password is incorrect.']);
+                throw ValidationException::withMessages(['password' => (string) __('The provided password is incorrect.')]);
             }
 
             $this->audit->record(event: 'auth.password.confirmed', actor: $user, subject: $user);
