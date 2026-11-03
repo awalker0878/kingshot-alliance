@@ -1,5 +1,6 @@
 import { computed, readonly, ref } from 'vue';
 
+import { createLocaleLoadCoordinator } from './async-coordinator';
 import { loadDomains, resolveMessage } from './loader';
 import {
   defaultLocale,
@@ -13,8 +14,7 @@ import type { TranslationParams } from './types';
 
 const storageKey = 'kingshot.locale';
 const currentLocale = ref<LocaleCode>(defaultLocale);
-let currentPageDomains: LocalizationDomain[] = [];
-let localeRequest = 0;
+const localeLoadFailed = ref(false);
 
 function interpolate(value: string, params?: TranslationParams): string {
   if (!params) return value;
@@ -25,43 +25,55 @@ function interpolate(value: string, params?: TranslationParams): string {
   });
 }
 
-function applyDocumentLocale(locale: LocaleCode): void {
+function applyDocumentLanguage(locale: LocaleCode): void {
   if (typeof document === 'undefined') return;
   const definition = localeDefinition(locale);
   document.documentElement.lang = definition.code;
   document.documentElement.dir = definition.direction;
+}
+
+function writeLocaleCookie(locale: LocaleCode): void {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return;
   // Keep server validation and account-email requests in the selected UI language.
   const secure = window.location.protocol === 'https:' ? '; Secure' : '';
   document.cookie = `kingshot_locale=${locale}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
 }
 
-function activeDomains(): LocalizationDomain[] {
-  return ['core', ...currentPageDomains];
-}
+const coordinator = createLocaleLoadCoordinator<LocaleCode, LocalizationDomain>({
+  initialLocale: defaultLocale,
+  coreDomain: 'core',
+  domainsForPage,
+  load: loadDomains,
+  commit(locale) {
+    currentLocale.value = locale;
+    localeLoadFailed.value = false;
+    applyDocumentLanguage(locale);
+  },
+  persistSelection(locale, persist) {
+    // PR 5B can replace cookie and local-storage reconciliation here without
+    // modifying the generation-guarded request/commit lifecycle.
+    writeLocaleCookie(locale);
+
+    if (persist && typeof window !== 'undefined') {
+      window.localStorage.setItem(storageKey, locale);
+    }
+  },
+  loadFailed() {
+    localeLoadFailed.value = true;
+  },
+});
 
 export async function ensureDomain(domain: LocalizationDomain): Promise<void> {
-  await loadDomains(currentLocale.value, ['core', domain]);
+  await coordinator.ensureDomain(domain);
 }
 
 export async function ensurePageDomains(pageName: string): Promise<void> {
-  const domains = domainsForPage(pageName);
-  await loadDomains(currentLocale.value, ['core', ...domains]);
-  currentPageDomains = domains;
+  await coordinator.ensurePageDomains(pageName);
 }
 
 export async function setLocale(locale: LocaleCode, persist = true): Promise<void> {
   if (!hasLocaleCatalogue(locale)) return;
-
-  const request = ++localeRequest;
-  await loadDomains(locale, activeDomains());
-  if (request !== localeRequest) return;
-
-  currentLocale.value = locale;
-  applyDocumentLocale(locale);
-
-  if (persist && typeof window !== 'undefined') {
-    window.localStorage.setItem(storageKey, locale);
-  }
+  await coordinator.setLocale(locale, persist);
 }
 
 export async function initializeLocale(preferredLocale?: string | null): Promise<void> {
@@ -80,13 +92,14 @@ export async function initializeLocale(preferredLocale?: string | null): Promise
     );
   const selected = locale ?? defaultLocale;
 
-  applyDocumentLocale(selected);
-  await loadDomains(selected, ['core']);
-  currentLocale.value = selected;
+  await coordinator.setLocale(selected, false);
 }
 
 export function t(key: string, params?: TranslationParams): string {
-  return interpolate(resolveMessage(currentLocale.value, activeDomains(), key) ?? key, params);
+  return interpolate(
+    resolveMessage(currentLocale.value, coordinator.activeDomains(), key) ?? key,
+    params,
+  );
 }
 
 export function formatNumber(value: number, options?: Intl.NumberFormatOptions): string {
@@ -112,6 +125,7 @@ export function useLocale() {
 
   return {
     locale: readonly(currentLocale),
+    localeLoadFailed: readonly(localeLoadFailed),
     definition,
     direction: computed(() => definition.value.direction),
     availableLocales,

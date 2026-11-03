@@ -102,32 +102,37 @@ export async function loadCatalogue(
   if (cached) return cached;
   const existing = pending.get(key);
   if (existing) return existing;
-  const request = importDomainCatalogue(domain, locale).then(async (module) => {
-    let catalogue = module.default;
-    // Translated catalogues include the full English extension surface. Applying
-    // an English-only extension here would overwrite the selected language.
-    if (locale !== defaultLocale) {
-      catalogues.set(key, catalogue);
-      pending.delete(key);
+  const request = importDomainCatalogue(domain, locale)
+    .then(async (module) => {
+      let catalogue = module.default;
+      // Translated catalogues include the full English extension surface. Applying
+      // an English-only extension here would overwrite the selected language.
+      if (locale !== defaultLocale) {
+        return catalogue;
+      }
+      if (domain === 'assistant') catalogue = await assistantCatalogue(catalogue, locale);
+      if (domain === 'events') catalogue = await eventsCatalogue(catalogue, locale);
+      if (domain === 'progression') catalogue = await progressionCatalogue(catalogue, locale);
+      if (domain === 'territory') catalogue = await territoryCatalogue(catalogue);
+      if (domain === 'core' || domain === 'alliance')
+        catalogue = await allianceCapabilityExpansionCatalogue(catalogue);
+      if (domain === 'core' || domain === 'kingdom')
+        catalogue = await governanceCapabilityExpansionCatalogue(catalogue, locale);
+      if (domain === 'core') catalogue = await giftCodeWorkspaceCatalogue(catalogue);
+      if (domain === 'core' || domain === 'account')
+        catalogue = await governorLifecycleCatalogue(catalogue, locale);
+      if (['alliance', 'assistant', 'kingdom'].includes(domain))
+        catalogue = await intelligenceChangeCatalogue(catalogue, locale);
       return catalogue;
-    }
-    if (domain === 'assistant') catalogue = await assistantCatalogue(catalogue, locale);
-    if (domain === 'events') catalogue = await eventsCatalogue(catalogue, locale);
-    if (domain === 'progression') catalogue = await progressionCatalogue(catalogue, locale);
-    if (domain === 'territory') catalogue = await territoryCatalogue(catalogue);
-    if (domain === 'core' || domain === 'alliance')
-      catalogue = await allianceCapabilityExpansionCatalogue(catalogue);
-    if (domain === 'core' || domain === 'kingdom')
-      catalogue = await governanceCapabilityExpansionCatalogue(catalogue, locale);
-    if (domain === 'core') catalogue = await giftCodeWorkspaceCatalogue(catalogue);
-    if (domain === 'core' || domain === 'account')
-      catalogue = await governorLifecycleCatalogue(catalogue, locale);
-    if (['alliance', 'assistant', 'kingdom'].includes(domain))
-      catalogue = await intelligenceChangeCatalogue(catalogue, locale);
-    catalogues.set(key, catalogue);
-    pending.delete(key);
-    return catalogue;
-  });
+    })
+    .then((catalogue) => {
+      catalogues.set(key, catalogue);
+      return catalogue;
+    })
+    .finally(() => {
+      // Clear pending on both success and failure; a rejected import must be retryable.
+      pending.delete(key);
+    });
   pending.set(key, request);
   return request;
 }
