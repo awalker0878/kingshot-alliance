@@ -45,7 +45,14 @@ $probe = static function (string $raw, string $label) use ($shorten): array {
 
 $headerResults = [];
 foreach ($fixture['malformedHeaders'] as $case) {
-    $headerResults[] = $probe($case['header'], $case['description']);
+    $observed = $probe($case['header'], $case['description']);
+    if ($observed['selected'] !== $case['expected']) {
+        throw new RuntimeException('Strict raw-header fixture mismatch: '.$case['description']
+            .' expected '.var_export($case['expected'], true)
+            .' actual '.var_export($observed['selected'], true));
+    }
+
+    $headerResults[] = $observed;
 }
 foreach ($fixture['headers'] as $case) {
     $headerResults[] = $probe($case['header'], 'weighted-header-example');

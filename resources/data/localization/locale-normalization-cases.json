@@ -382,6 +382,11 @@
       "header": "fr-CA;q=0.4,de-DE;q=0.1",
       "expected": "fr",
       "description": "Valid weighted fallback without malformed input"
+    },
+    {
+      "header": "fr-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-cd;q=1,de-DE;q=0.4",
+      "expected": "de",
+      "description": "Overlong high-quality French range must not hide a valid lower-quality German fallback"
     }
   ],
   "realisticBrowserHeaders": [
