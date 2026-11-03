@@ -1,0 +1,112 @@
+name: Localization PR3 effective catalogue parity
+
+on:
+  pull_request:
+    branches:
+      - codex/audit-stabilization
+    paths:
+      - 'resources/js/localization/**'
+      - 'scripts/check-localization-pr3-*.mjs'
+      - 'scripts/test-localization-pr3-*.mjs'
+      - 'resources/data/localization/baseline-fingerprints.json'
+      - '.github/workflows/localization-pr3-effective-parity.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  effective-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout source and pinned baseline history
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - name: Configure Node 24
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Guard Event Command import boundary for the nearly-full Manage page
+        run: node scripts/check-localization-pr3-event-import-graph.mjs
+
+      - name: Build and retain actual Vite asset budgets
+        run: |
+          npm run build
+          npm run check:localization-chunks
+          npm run check:performance-budgets
+      - name: Export current runtime catalogues
+        run: node scripts/prepare-localization-baseline.mjs .translation-pr3-current --current
+      - name: Compare complete 17-locale effective runtime values with verified PR1 hashes
+        run: node scripts/check-localization-pr3-parity.mjs .translation-pr3-current
+      - name: Export immutable baseline including original overlay collision report
+        run: node scripts/prepare-localization-baseline.mjs .translation-pr1-baseline
+
+      - name: Audit collisions, winners and exact receipt-key preservation
+        run: node scripts/check-localization-pr3-overlay-overlap.mjs
+
+      - name: Prove a one-character English source mutation fails parity
+        run: node scripts/test-localization-pr3-effective-mutation.mjs
+
+      - name: Check differing-value recipient overlay winners
+        run: node scripts/check-localization-pr3-recipient-collisions.mjs
+
+      - name: Confirm all 41 recipient translations exist and retain placeholders, without signing off semantics
+        run: node scripts/check-localization-pr3-recipient-language-review.mjs
+
+      - name: Reject deliberately reversed recipient overlay precedence
+        run: node scripts/test-localization-pr3-precedence-mutation.mjs
+
+      - name: Retrieve PR1 merged-target production Vite chunk evidence
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          run-id: 41492664793
+          name: localization-pr1-baseline
+          path: .translation-pr3-original-artifact
+          github-token: ${{ github.token }}
+
+      - name: Compare Vite source-mapped chunk sizes against original artifact
+        run: |
+          baseline=$(find .translation-pr3-original-artifact -path '*/.translation-pr1-corrected/vite-chunks.json' -o -path '*/translation-pr1-corrected/vite-chunks.json' | head -n 1)
+          if [ -z "$baseline" ]; then
+            echo 'Missing corrected PR1 Vite evidence; do not claim chunk comparison.' >&2
+            exit 1
+          fi
+          node scripts/report-localization-pr3-chunks.mjs "$baseline" .translation-pr3-current/vite-chunks.json
+      - name: Compare cold Account and Transfer English domain + overlay bytes
+        run: |
+          baseline=$(find .translation-pr3-original-artifact -path '*/.translation-pr1-corrected/vite-chunks.json' -o -path '*/translation-pr1-corrected/vite-chunks.json' | head -n 1)
+          node scripts/report-localization-pr3-first-visit.mjs "$baseline" .translation-pr3-current/vite-chunks.json
+
+      - name: Rebuild identical pinned merged-target Vite assets for actual compression comparison
+        run: |
+          git worktree add --detach .translation-pr3-baseline-build a5151e717020cfe00a32aeddcca6279f9c7042fe
+          ln -s "$PWD/node_modules" .translation-pr3-baseline-build/node_modules
+          npm --prefix .translation-pr3-baseline-build run build
+
+      - name: Compare actual emitted Account and Transfer JS asset gzip and Brotli bytes
+        run: |
+          baseline=$(find .translation-pr3-original-artifact -path '*/.translation-pr1-corrected/vite-chunks.json' -o -path '*/translation-pr1-corrected/vite-chunks.json' | head -n 1)
+          node scripts/report-localization-pr3-compressed.mjs .translation-pr3-baseline-build . "$baseline" .translation-pr3-current/vite-chunks.json
+
+      - name: Retain machine-readable parity evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: localization-pr3-effective-parity
+          path: |
+            .translation-pr3-current/effective-en.json
+            .translation-pr3-current/vite-chunks.json
+            .translation-pr3-current/vite-chunk-comparison.json
+            .translation-pr3-current/first-entry-domain-costs.json
+            .translation-pr3-current/compressed-first-entry-costs.json
+            .translation-pr3-current/transfer-overlay-overlap.json
+            .translation-pr3-current/recipient-overlay-overlap.json
+            .translation-pr3-current/recipient-language-review.json
+          retention-days: 14
+          if-no-files-found: warn

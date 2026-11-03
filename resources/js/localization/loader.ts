@@ -48,10 +48,6 @@ async function eventsCatalogue(
   const { eventCommandLabels } = await import('./event-command-labels');
   return mergeCatalogue(base, eventCommandLabels(locale));
 }
-async function transfersCatalogue(base: MessageCatalogue): Promise<MessageCatalogue> {
-  const { transferEvidenceLabels } = await import('./transfer-evidence-labels');
-  return mergeCatalogue(base, transferEvidenceLabels());
-}
 async function progressionCatalogue(
   base: MessageCatalogue,
   locale: LocaleCode,
@@ -85,13 +81,6 @@ async function intelligenceChangeCatalogue(
   const { intelligenceChangeLabels } = await import('./intelligence-change-labels');
   return mergeCatalogue(base, intelligenceChangeLabels(locale));
 }
-async function communicationsRecipientDeliveryCatalogue(
-  base: MessageCatalogue,
-): Promise<MessageCatalogue> {
-  const { communicationsRecipientDeliveryLabels } =
-    await import('./communications-recipient-delivery-labels');
-  return mergeCatalogue(base, communicationsRecipientDeliveryLabels());
-}
 async function giftCodeWorkspaceCatalogue(base: MessageCatalogue): Promise<MessageCatalogue> {
   const { giftCodeWorkspaceLabels } = await import('./gift-code-workspace-labels');
   return mergeCatalogue(base, giftCodeWorkspaceLabels());
@@ -124,7 +113,6 @@ export async function loadCatalogue(
     }
     if (domain === 'assistant') catalogue = await assistantCatalogue(catalogue, locale);
     if (domain === 'events') catalogue = await eventsCatalogue(catalogue, locale);
-    if (domain === 'transfers') catalogue = await transfersCatalogue(catalogue);
     if (domain === 'progression') catalogue = await progressionCatalogue(catalogue, locale);
     if (domain === 'territory') catalogue = await territoryCatalogue(catalogue);
     if (domain === 'core' || domain === 'alliance')
@@ -136,7 +124,6 @@ export async function loadCatalogue(
       catalogue = await governorLifecycleCatalogue(catalogue, locale);
     if (['alliance', 'assistant', 'kingdom'].includes(domain))
       catalogue = await intelligenceChangeCatalogue(catalogue, locale);
-    if (domain === 'account') catalogue = await communicationsRecipientDeliveryCatalogue(catalogue);
     catalogues.set(key, catalogue);
     pending.delete(key);
     return catalogue;
