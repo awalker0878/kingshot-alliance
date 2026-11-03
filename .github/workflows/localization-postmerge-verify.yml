@@ -44,6 +44,7 @@ jobs:
       - name: Verify approved raw-source structural changes only
         run: |
           node scripts/check-localization-pr3-postmerge-source.mjs
+          node scripts/test-localization-pr3-postmerge-source-mutation.mjs
           node scripts/check-localization-pr3-overlay-overlap.mjs
           node scripts/check-localization-pr3-recipient-collisions.mjs
           node scripts/check-localization-pr3-recipient-language-review.mjs
