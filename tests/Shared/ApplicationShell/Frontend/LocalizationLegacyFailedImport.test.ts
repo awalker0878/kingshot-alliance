@@ -19,6 +19,7 @@ function loadIsolatedLoader(source: string) {
   const exports: Record<string, unknown> = {};
   const requireMock = (specifier: string): unknown => {
     if (specifier === './locales') return { defaultLocale: 'en' };
+    if (specifier === './governor-lifecycle-labels') return { governorLifecycleLabels: () => ({}) };
     if (specifier === './registry') return {
       importDomainCatalogue(_domain: string, locale: TestLocale) {
         importCalls++;
