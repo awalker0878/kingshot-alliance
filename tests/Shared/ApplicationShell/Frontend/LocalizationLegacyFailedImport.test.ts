@@ -61,6 +61,32 @@ test('pre-fix loader never retries a previously rejected import promise (negativ
   console.log('LEGACY DEFECT REPRODUCED: rejected promise permanently blocks a later catalogue retry');
 });
 
+test('actual 7cf387b Account/en retry fails, while the current canonical Account loader succeeds', async () => {
+  // Read the original source directly from the immutable Git object at test
+  // time. No copy of the old loader is maintained by this test.
+  const original = execFileSync('git', [
+    'show',
+    '7cf387b628bbbaeb81d10120340e559b46403bee:resources/js/localization/loader.ts',
+  ], { encoding: 'utf8' });
+  const current = readFileSync('resources/js/localization/loader.ts', 'utf8');
+  const before = loadIsolatedLoader(original);
+  await assert.rejects(before.loader.loadCatalogue('account', 'en'), /simulated first import rejection/);
+  await assert.rejects(before.loader.loadCatalogue('account', 'en'), /simulated first import rejection/,
+    'the actual 7cf387b loader must fail the required successful second Account import');
+  assert.equal(before.importCalls(), 1, 'actual baseline permanently reuses the rejected Account promise');
+  assert.throws(
+    () => assert.equal(before.importCalls(), 2, 'successful retry requires a second Account import'),
+    /successful retry requires a second Account import/,
+  );
+
+  const after = loadIsolatedLoader(current);
+  await assert.rejects(after.loader.loadCatalogue('account', 'en'), /simulated first import rejection/);
+  const recovered = await after.loader.loadCatalogue('account', 'en');
+  assert.equal(recovered.notifications?.eyebrow, 'Recipient delivery');
+  assert.equal(after.importCalls(), 2, 'fixed code invokes the registry again');
+  console.log('REAL BASELINE ACCOUNT DEFECT: 7cf387b Account/en retry failed (1 import); current Account/en recovered after 2 imports');
+});
+
 test('fixed loader discards the rejection and retries successfully (positive control)', async () => {
   const fixed = loadIsolatedLoader(readFileSync('resources/js/localization/loader.ts', 'utf8'));
   await assert.rejects(fixed.loader.loadCatalogue('core', 'fr'), /simulated first import rejection/);
