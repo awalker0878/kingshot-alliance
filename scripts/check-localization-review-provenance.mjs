@@ -60,7 +60,8 @@ export function reviewEvidenceMatches(r, review, pr) {
     && review.user?.login?.toLowerCase() === r.reviewer.toLowerCase()
     && review.commit_id === r.reviewedCommitSha
     && pr?.head?.sha === r.reviewedCommitSha
-    && pr.user?.login?.toLowerCase() !== r.reviewer.toLowerCase()
+    && typeof pr.user?.login === 'string'
+    && pr.user.login.toLowerCase() !== r.reviewer.toLowerCase()
     && pr?.number === r.reviewedPr
     && typeof review.submitted_at === 'string' && review.submitted_at.length > 0
     && typeof review.body === 'string'

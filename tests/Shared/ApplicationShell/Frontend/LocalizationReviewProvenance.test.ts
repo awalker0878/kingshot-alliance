@@ -51,6 +51,7 @@ test('stale GitHub review head, wrong account, dismissed review, and self-approv
   assert.equal(reviewEvidenceMatches(r, { ...review, user: { login: 'impersonator' } }, pr), false);
   assert.equal(reviewEvidenceMatches(r, { ...review, state: 'DISMISSED' }, pr), false);
   assert.equal(reviewEvidenceMatches(r, review, { ...pr, user: { login: r.reviewer } }), false);
+  assert.equal(reviewEvidenceMatches(r, review, { ...pr, user: undefined }), false);
   assert.equal(reviewEvidenceMatches(r, { ...review, body: 'Approved but without digest' }, pr), false);
 });
 test('self-issued record, invalid identity, tampered digest, or stale text fails', async () => {
