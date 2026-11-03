@@ -3,17 +3,6 @@ name: Localization review provenance
 on:
   pull_request:
     branches: [codex/audit-stabilization]
-    paths:
-      - '.github/CODEOWNERS'
-      - '.github/workflows/localization-review-provenance.yml'
-      - 'resources/data/localization/reviews/**'
-      - 'resources/data/localization/reviewer-assignments.json'
-      - 'scripts/report-localization-tier1a.mjs'
-      - 'scripts/prepare-localization-baseline.mjs'
-      - 'resources/js/localization/**'
-      - 'lang/**'
-      - 'scripts/check-localization-review-provenance.mjs'
-      - 'tests/Shared/ApplicationShell/Frontend/LocalizationReviewProvenance.test.ts'
   push:
     branches: [codex/audit-stabilization]
   workflow_dispatch:
