@@ -8,6 +8,17 @@ import ts from 'typescript';
 type TestLocale = 'en' | 'fr';
 type Catalogue = { hello: string; notifications?: { eyebrow: string } };
 
+function canonicalEnglishAccount(): Catalogue {
+  // Use the actual merged PR3 catalogue rather than simulating its contents.
+  const source = readFileSync('resources/js/localization/messages/account/en.ts', 'utf8');
+  const code = ts.transpileModule(source, {
+    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS },
+  }).outputText;
+  const exports: Record<string, unknown> = {};
+  runInNewContext(code, { exports });
+  return (exports as { default: Catalogue }).default;
+}
+
 function loadIsolatedLoader(source: string) {
   const code = ts.transpileModule(source, {
     compilerOptions: {
@@ -24,7 +35,11 @@ function loadIsolatedLoader(source: string) {
       importDomainCatalogue(_domain: string, locale: TestLocale) {
         importCalls++;
         if (importCalls === 1) return Promise.reject(new Error('simulated first import rejection'));
-        return Promise.resolve({ default: { hello: locale === 'fr' ? 'Bonjour' : 'Hello', ...(locale === 'en' ? { notifications: { eyebrow: 'Recipient delivery' } } : {}) } });
+        return Promise.resolve({
+          default: _domain === 'account' && locale === 'en'
+            ? canonicalEnglishAccount()
+            : { hello: locale === 'fr' ? 'Bonjour' : 'Hello' },
+        });
       },
     };
     throw new Error('Unexpected dependency in isolated loader: ' + specifier);
@@ -69,4 +84,29 @@ test('merged account canonical messages retry after a failed import without relo
   assert.equal(cached.notifications?.eyebrow, 'Recipient delivery');
   assert.equal(fixed.importCalls(), 2, 'resolved catalogue is cached after successful retry');
   console.log('MERGED ACCOUNT IMPORT RETRY VERIFIED: failed once, recovered canonical Recipient delivery message without overlay');
+});
+
+test('mutation control: removing loader finally cleanup makes canonical Account retry fail again', async () => {
+  const source = readFileSync('resources/js/localization/loader.ts', 'utf8');
+  const cleanup = [
+    '    .finally(() => {',
+    '      // Clear pending on both success and failure; a rejected import must be retryable.',
+    '      pending.delete(key);',
+    '    });',
+  ].join('\n');
+  assert.equal(source.split(cleanup).length - 1, 1, 'real loader must have one precise cleanup block');
+  const mutant = loadIsolatedLoader(source.replace(cleanup, ';'));
+  await assert.rejects(mutant.loader.loadCatalogue('account', 'en'), /simulated first import rejection/);
+  await assert.rejects(
+    mutant.loader.loadCatalogue('account', 'en'),
+    /simulated first import rejection/,
+    'without finally, the exact same Account retry must fail, not silently succeed',
+  );
+  assert.equal(mutant.importCalls(), 1, 'mutant must retain the rejected promise instead of importing twice');
+  const clean = loadIsolatedLoader(source);
+  await assert.rejects(clean.loader.loadCatalogue('account', 'en'), /simulated first import rejection/);
+  const messages = await clean.loader.loadCatalogue('account', 'en');
+  assert.equal(messages.notifications?.eyebrow, 'Recipient delivery');
+  assert.equal(clean.importCalls(), 2);
+  console.log('ACCOUNT RETRY MUTATION REJECTED: removing finally traps rejected promise; actual canonical Account source succeeds only with cleanup');
 });
