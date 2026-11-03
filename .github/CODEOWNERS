@@ -3,3 +3,11 @@
 /docs/ @awalker0878
 /Dockerfile @awalker0878
 /docker-compose.yml @awalker0878
+
+# Interim governance custodian, NOT a native-language reviewer.
+# Replace/add qualified native-reviewer handles only after consent and
+# repository access, and require code-owner approval via branch rules.
+/resources/js/localization/ @awalker0878
+/resources/data/localization/reviews/ @awalker0878
+/lang/ @awalker0878
+/scripts/check-localization-review-provenance.mjs @awalker0878

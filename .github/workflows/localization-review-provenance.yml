@@ -1,0 +1,44 @@
+name: Localization review provenance
+
+on:
+  pull_request:
+    branches: [codex/audit-stabilization]
+    paths:
+      - '.github/CODEOWNERS'
+      - '.github/workflows/localization-review-provenance.yml'
+      - 'resources/data/localization/reviews/**'
+      - 'resources/js/localization/**'
+      - 'lang/**'
+      - 'scripts/check-localization-review-provenance.mjs'
+      - 'tests/Shared/ApplicationShell/Frontend/LocalizationReviewProvenance.test.ts'
+  push:
+    branches: [codex/audit-stabilization]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  provenance:
+    name: Verify recorded native approvals
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Check forged, stale and bad-review fixtures
+        run: node --test tests/Shared/ApplicationShell/Frontend/LocalizationReviewProvenance.test.ts
+      - name: Export current authoritative source and translations
+        run: node scripts/prepare-localization-baseline.mjs .translation-pr6-current --current
+      - name: Verify hashes and actual GitHub APPROVED review attestations
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/check-localization-review-provenance.mjs
