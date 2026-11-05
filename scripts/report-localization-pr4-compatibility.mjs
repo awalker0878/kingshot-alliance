@@ -37,7 +37,7 @@ try {
   const oldPHP = phpResults(originalPhpFile);
   const newPHP = phpResults(path.resolve(phpFile));
   const rows = inputs.map((input, i) => ({
-    input, oldTS: oldTS[i], newTS: newTS[i],
+    input, codePoints: typeof input === 'string' ? [...input].map((character) => 'U+' + character.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')) : null, oldTS: oldTS[i], newTS: newTS[i],
     oldPHP: oldPHP[i], newPHP: newPHP[i],
     phpChanged: oldPHP[i] !== newPHP[i],
     tsChanged: oldTS[i] !== newTS[i],

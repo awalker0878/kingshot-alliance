@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "description": "Shared explicit-source normalization contract. The first valid candidate wins; callers determine source precedence. Client-side 5B persistence remains out of scope. Raw HTTP Accept-Language uses a strict bounded language-range profile with q-sorting; these raw-header cases are not standalone-tag fixtures.",
+  "version": 2,
+  "description": "Shared explicit-source normalization contract. The first valid candidate wins; callers determine source precedence. Client-side 5B persistence remains out of scope. Raw HTTP Accept-Language uses a strict bounded language-range profile with q-sorting; these raw-header cases are not standalone-tag fixtures. Standalone boundary trimming accepts U+0020, U+0009, U+000A, U+000D and U+000B only; NUL is rejected before trimming.",
   "cases": [
     {
       "input": "en",
@@ -209,6 +209,111 @@
     {
       "input": "PT_BR",
       "expected": "pt-BR"
+    },
+    {
+      "description": "Boundary U+0020",
+      "input": " fr ",
+      "expected": "fr"
+    },
+    {
+      "description": "Boundary U+0009",
+      "input": "\tfr\t",
+      "expected": "fr"
+    },
+    {
+      "description": "Boundary U+000A",
+      "input": "\nfr\n",
+      "expected": "fr"
+    },
+    {
+      "description": "Boundary U+000D",
+      "input": "\rfr\r",
+      "expected": "fr"
+    },
+    {
+      "description": "Boundary U+000B",
+      "input": "\u000bfr\u000b",
+      "expected": "fr"
+    },
+    {
+      "description": "Boundary U+00A0",
+      "input": "\u00a0fr\u00a0",
+      "expected": null
+    },
+    {
+      "description": "Boundary U+FEFF",
+      "input": "\ufefffr\ufeff",
+      "expected": null
+    },
+    {
+      "description": "Boundary U+000C",
+      "input": "\ffr\f",
+      "expected": null
+    },
+    {
+      "description": "Boundary U+0000",
+      "input": "\u0000fr\u0000",
+      "expected": null
+    },
+    {
+      "description": "Boundary U+2003",
+      "input": "\u2003fr\u2003",
+      "expected": null
+    },
+    {
+      "description": "Boundary U+2028",
+      "input": "\u2028fr\u2028",
+      "expected": null
+    },
+    {
+      "description": "Boundary U+2029",
+      "input": "\u2029fr\u2029",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+0020",
+      "input": "fr CA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+0009",
+      "input": "fr\tCA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+000A",
+      "input": "fr\nCA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+000D",
+      "input": "fr\rCA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+000B",
+      "input": "fr\u000bCA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+000C",
+      "input": "fr\fCA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+0000",
+      "input": "fr\u0000CA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+00A0",
+      "input": "fr\u00a0CA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+FEFF",
+      "input": "fr\ufeffCA",
+      "expected": null
     }
   ],
   "priority": [
@@ -235,6 +340,18 @@
     {
       "candidates": [],
       "expected": "en"
+    },
+    {
+      "candidates": ["\u00a0fr\u00a0", "pt_BR"],
+      "expected": "pt-BR"
+    },
+    {
+      "candidates": ["\ufefffr\ufeff", "pt_BR"],
+      "expected": "pt-BR"
+    },
+    {
+      "candidates": ["\ffr\f", "pt_BR"],
+      "expected": "pt-BR"
     }
   ],
   "headers": [
@@ -277,6 +394,21 @@
       "header": "fr-CA;q=0.8,en-US;q=0.5",
       "cookie": "de",
       "expected": "de"
+    },
+    {
+      "cookie": "\u00a0ar\u00a0",
+      "header": "fr-CA;q=0.8,en;q=0.2",
+      "expected": "fr"
+    },
+    {
+      "cookie": "\ufeffar\ufeff",
+      "header": "fr-CA;q=0.8,en;q=0.2",
+      "expected": "fr"
+    },
+    {
+      "cookie": "\far\f",
+      "header": "fr-CA;q=0.8,en;q=0.2",
+      "expected": "fr"
     }
   ],
   "malformedHeaders": [
@@ -369,6 +501,21 @@
       "header": "fr-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-cd;q=1,de-DE;q=0.4",
       "expected": "de",
       "description": "Overlong high-quality French range must not hide a valid lower-quality German fallback"
+    },
+    {
+      "description": "Raw U+00A0 is not HTTP optional whitespace",
+      "header": "\u00a0ar\u00a0,de-DE;q=0.5",
+      "expected": "de"
+    },
+    {
+      "description": "Raw U+FEFF is not HTTP optional whitespace",
+      "header": "\ufeffar\ufeff,de-DE;q=0.5",
+      "expected": "de"
+    },
+    {
+      "description": "Raw U+000C is not HTTP optional whitespace",
+      "header": "\far\f,de-DE;q=0.5",
+      "expected": "de"
     }
   ],
   "realisticBrowserHeaders": [

@@ -71,7 +71,11 @@ const localeTagPattern = /^[a-z]{2,3}(?:-[a-z0-9]{2,8})*(?:-[a-z0-9](?:-[a-z0-9]
 
 export function normalizeLocale(value: string | null | undefined): LocaleCode | null {
   if (typeof value !== 'string' || value.includes('\0')) return null;
-  const normalized = value.trim().replaceAll('_', '-').toLowerCase();
+  // Match PHP's standalone trim after rejecting NUL. HTTP has its own SP/HTAB grammar.
+  const normalized = value
+    .replace(/^[ \t\n\r\v]+|[ \t\n\r\v]+$/g, '')
+    .replaceAll('_', '-')
+    .toLowerCase();
   if (normalized.length > 128 || !localeTagPattern.test(normalized)) return null;
 
   if (normalized === 'pt' || normalized === 'pt-br' || normalized.startsWith('pt-br-'))

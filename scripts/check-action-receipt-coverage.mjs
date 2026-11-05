@@ -13,7 +13,7 @@ const allianceExpansionCataloguePath = new URL('../resources/js/localization/all
 const governanceExpansionCataloguePath = new URL('../resources/js/localization/governance-capability-expansion-labels.ts', import.meta.url);
 const giftCodeWorkspaceCataloguePath = new URL('../resources/js/localization/gift-code-workspace-labels.ts', import.meta.url);
 const governorLifecycleCataloguePath = new URL('../resources/js/localization/governor-lifecycle-labels.ts', import.meta.url);
-const transferCataloguePath = new URL('../resources/js/localization/transfer-evidence-labels.ts', import.meta.url);
+const transferCataloguePath = new URL('../resources/js/localization/messages/transfers/en.ts', import.meta.url);
 function filesUnder(directory) { return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => { const path = join(directory, entry.name); return entry.isDirectory() ? filesUnder(path) : [path]; }); }
 function receiptArguments(source, filename) {
   const argumentsList = []; let cursor = 0;
@@ -50,7 +50,7 @@ const receiptSources = [
   receiptSource(governanceExpansionCatalogue, '    receipts: {', '\n    },\n    governanceExpansion:', 'governance-capability-expansion-labels.ts'),
   receiptSource(giftCodeWorkspaceCatalogue, '  receipts: {', '\n  },\n};', 'gift-code-workspace-labels.ts'),
   receiptSource(governorLifecycleCatalogue, '  receipts: {', '\n  },\n  common:', 'governor-lifecycle-labels.ts'),
-  receiptSource(transferCatalogue, '  receipts: {', '\n  },\n  kingdomP7D:', 'transfer-evidence-labels.ts'),
+  receiptSource(transferCatalogue, '  receipts: {', '\n  },\n  kingdomP7D:', 'transfers/en.ts'),
 ];
 const translatedCodes = new Set(['completed']);
 for (const source of receiptSources) { for (const match of source.matchAll(/\n\s+'([a-z][a-z0-9-]{2,119})':/g)) translatedCodes.add(match[1]); }

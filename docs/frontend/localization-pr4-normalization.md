@@ -1,6 +1,6 @@
 # PR 4 — shared locale normalization contract (draft)
 
-**Base:** `codex/audit-stabilization` at verified merge `a5151e717020cfe00a32aeddcca6279f9c7042fe`. PR 3 is independent.
+**Integration order:** merge #187, then #181, then this PR. The November 5 follow-up includes those runtime fixes as a merge parent; the two #183 catalogue moves are retained. Earlier evidence below is historical, not validation of the new head.
 
 ## OWNER-APPROVED STRICT RAW HEADER POLICY (November 2, 2026)
 
@@ -54,6 +54,15 @@ Verified in [CI 41513069567](https://github.com/awalker0878/kingshot-alliance/ac
 
 **Historical context (superseded by the two written owner approvals above):** Rejecting these malformed values means Laravel now ignores the cookie and uses the next browser Accept-Language candidate (or English), rather than accepting its misleading prefix. That is intentional fail-closed validation, but potentially observable behaviour; PHP owners must explicitly approve it. Supported locales and valid tags, including `pt_BR`, `pt-br`, `ar-u-nu-latn` and `zh-Hant-HK`, remain accepted. Accept-Language q-weights are parsed by the validated raw-header selector rather than being passed to standalone normalization.
 
-**Rollback boundary:** The client fixtures, TypeScript normalizer and compatibility-audit tooling are the first independent commit; all three PHP files (normalizer, middleware, PHP fixture regression test) are in a **second distinct commit**. Review or revert that second commit independently. `SupportedAllianceLocale` remains untouched. No 5B cookie/localStorage write code is included.
+**Rollback boundary:** Treat `SupportedLocale`, `AcceptLanguageLocale`, `ResolveRequestLocale`, their shared fixtures and PHP/request tests as one strict-policy change. Do not revert only the raw-header selector while retaining expectations that depend on it. The November 5 whitespace follow-up preserves PHP behaviour and changes only TypeScript trimming, fixtures and diagnostics; reverting it reopens the cross-runtime whitespace gap. Runtime work inherited from #181/#187 has its own rollback boundary. `SupportedAllianceLocale` remains untouched. No 5B preference synchronization is introduced by this PR.
+
 
 **Full comparison:** the job stores `localization-pr4-compatibility-delta.json` for exact long input strings. The 52-case finite matrix is not a proof of exhaustive behaviour across infinitely many possible strings.
+
+## November 5 whitespace parity follow-up
+
+The current fixture has **73 standalone cases**, **9 ordered-preference cases**, **11 cookie/header cases**, **21 malformed-header cases**, and **8 realistic browser examples**. The compatibility report derives these counts from data and annotates standalone inputs with explicit Unicode code points. Against the original `a5151e7` baseline, 23 enumerated inputs change in at least one runtime; all 73 now agree between PHP and TypeScript.
+
+Preserve the approved PHP standalone policy: reject NUL first; trim boundary U+0020, U+0009, U+000A, U+000D and U+000B. Reject NBSP (U+00A0), BOM (U+FEFF), form feed (U+000C), EM SPACE (U+2003), line/paragraph separators, and embedded whitespace. Raw HTTP ranges still trim only SP/HTAB and reject controls; valid lower-weight candidates survive malformed ranges.
+
+Local validation after integration: two frontend fixture tests; 11 PHP/unit/request tests, 218 assertions; compatibility, raw-header diagnostics and eight browser-preference examples passed. These finite fixtures do not prove universal language-tag equivalence. Final-head CI, browser execution and independent HTTP/PHP review remain required.
