@@ -288,7 +288,7 @@ test('real index: failed Arabic load cannot touch DOM/cookie/storage, retry comm
 test('DOM guard negative control: removing the generation checks permits stale Arabic RTL', async () => {
   const source = readFileSync('resources/js/localization/async-coordinator.ts', 'utf8');
   const guard = 'if (request !== localeRequest) return;';
-  assert.equal(source.split(guard).length - 1, 2, 'the source must have both stale-generation checks');
+  assert.equal(source.split(guard).length - 1, 3, 'the source must guard stale success, failure and final commit');
   const broken = source.replaceAll(guard, '/* mutation: stale locale request may commit */');
   const h = actualFrontendHarness(broken);
 

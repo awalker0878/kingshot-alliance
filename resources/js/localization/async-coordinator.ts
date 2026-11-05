@@ -19,7 +19,8 @@ export function createLocaleLoadCoordinator<Locale extends string, Domain extend
 ) {
   let locale = options.initialLocale;
   let currentPageDomains: Domain[] = [];
-  let requestedPageDomains: Domain[] = [];
+  let pendingPage: { request: number; name: string; domains: Domain[]; cleanup(): void } | null =
+    null;
   let localeRequest = 0;
   let pageRequest = 0;
 
@@ -30,8 +31,17 @@ export function createLocaleLoadCoordinator<Locale extends string, Domain extend
       // The final commit must cover the newest page-domain selection.
       while (true) {
         const pageVersion = pageRequest;
-        const domains = pageVersion ? requestedPageDomains : currentPageDomains;
-        await options.load(next, [options.coreDomain, ...domains]);
+        // The previous page remains visible until Inertia accepts the next one.
+        const domains = [
+          ...new Set([options.coreDomain, ...currentPageDomains, ...(pendingPage?.domains ?? [])]),
+        ];
+        try {
+          await options.load(next, domains);
+        } catch (error) {
+          if (request !== localeRequest) return;
+          if (pageVersion !== pageRequest) continue;
+          throw error;
+        }
         if (request !== localeRequest) return;
         if (pageVersion === pageRequest) break;
       }
@@ -45,19 +55,64 @@ export function createLocaleLoadCoordinator<Locale extends string, Domain extend
     options.persistSelection?.(next, persist);
   }
 
-  async function ensurePageDomains(pageName: string): Promise<void> {
+  function preparePageDomains(pageName: string, signal?: AbortSignal) {
     const request = ++pageRequest;
     const domains = options.domainsForPage(pageName);
-    requestedPageDomains = domains;
-    while (true) {
-      const requestedLocale = locale;
-      await options.load(requestedLocale, [options.coreDomain, ...domains]);
-      if (request !== pageRequest) return;
-      if (requestedLocale === locale) {
-        currentPageDomains = domains;
-        return;
+
+    let cancelled = false;
+    const cleanup = () => signal?.removeEventListener('abort', cancel);
+    const cancel = () => {
+      cleanup();
+      cancelled = true;
+      if (pendingPage?.request === request) {
+        pendingPage = null;
+        ++pageRequest;
       }
+    };
+    pendingPage?.cleanup();
+    pendingPage = { request, name: pageName, domains, cleanup };
+    signal?.addEventListener('abort', cancel, { once: true });
+    if (signal?.aborted) cancel();
+
+    const ready = (async () => {
+      try {
+        while (true) {
+          if (cancelled) throw new Error('Page localization cancelled');
+          const requestedLocale = locale;
+          await options.load(requestedLocale, [options.coreDomain, ...domains]);
+          if (cancelled) throw new Error('Page localization cancelled');
+          if (request !== pendingPage?.request || requestedLocale === locale) return;
+        }
+      } catch (error) {
+        cancel();
+        throw error;
+      }
+    })();
+
+    return {
+      ready,
+      cancel,
+      accept() {
+        if (!cancelled && pendingPage?.request === request) activatePageDomains(pageName);
+      },
+    };
+  }
+
+  // Called synchronously when Inertia's Vue adapter accepts a page, including
+  // replace/history visits (which do not all emit a navigate event).
+  function activatePageDomains(pageName: string): void {
+    currentPageDomains = options.domainsForPage(pageName);
+    if (pendingPage?.name === pageName) {
+      pendingPage.cleanup();
+      pendingPage = null;
     }
+    ++pageRequest;
+  }
+
+  async function ensurePageDomains(pageName: string): Promise<void> {
+    const page = preparePageDomains(pageName);
+    await page.ready;
+    page.accept();
   }
 
   async function ensureDomain(domain: Domain): Promise<void> {
@@ -67,6 +122,8 @@ export function createLocaleLoadCoordinator<Locale extends string, Domain extend
   return {
     setLocale,
     ensurePageDomains,
+    preparePageDomains,
+    activatePageDomains,
     ensureDomain,
     getLocale: () => locale,
     activeDomains: () => [options.coreDomain, ...currentPageDomains],

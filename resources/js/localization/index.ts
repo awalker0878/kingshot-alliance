@@ -71,6 +71,14 @@ export async function ensurePageDomains(pageName: string): Promise<void> {
   await coordinator.ensurePageDomains(pageName);
 }
 
+export function preparePageDomains(pageName: string, signal?: AbortSignal) {
+  return coordinator.preparePageDomains(pageName, signal);
+}
+
+export function activatePageDomains(pageName: string): void {
+  coordinator.activatePageDomains(pageName);
+}
+
 export async function setLocale(locale: LocaleCode, persist = true): Promise<void> {
   if (!hasLocaleCatalogue(locale)) return;
   await coordinator.setLocale(locale, persist);
