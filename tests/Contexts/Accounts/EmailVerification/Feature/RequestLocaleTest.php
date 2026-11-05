@@ -34,4 +34,66 @@ final class RequestLocaleTest extends TestCase
         $middleware->handle(Request::create('/'), static fn (): Response => new Response);
         self::assertSame('en', app()->getLocale());
     }
+
+    public function test_accept_language_quality_weights_are_parsed_before_single_tag_normalization(): void
+    {
+        $fixturePath = dirname(__DIR__, 5).'/resources/data/localization/locale-normalization-cases.json';
+        $raw = file_get_contents($fixturePath);
+        self::assertNotFalse($raw);
+        $headers = json_decode($raw, true, 512, JSON_THROW_ON_ERROR)['headers'];
+        $middleware = new ResolveRequestLocale;
+
+        foreach ($headers as $case) {
+            $request = Request::create(
+                '/',
+                cookies: $case['cookie'] === null ? [] : ['kingshot_locale' => $case['cookie']],
+                server: ['HTTP_ACCEPT_LANGUAGE' => $case['header']],
+            );
+
+            // Raw ranges are validated and quality-sorted by AcceptLanguageLocale;
+            // Symfony getLanguages() is intentionally not the policy authority.
+
+            $response = $middleware->handle($request, static function () use ($case): Response {
+                self::assertSame($case['expected'], app()->getLocale(), $case['header']);
+
+                return new Response('locale resolved', 200);
+            });
+            self::assertSame(200, $response->getStatusCode(), 'Rejected inputs must fall back, never fail with 4xx.');
+        }
+    }
+
+    public function test_realistic_browser_headers_select_same_expected_locale_as_client(): void
+    {
+        $raw = file_get_contents(dirname(__DIR__, 5).'/resources/data/localization/locale-normalization-cases.json');
+        self::assertNotFalse($raw);
+        $cases = json_decode($raw, true, 512, JSON_THROW_ON_ERROR)['realisticBrowserHeaders'];
+
+        foreach ($cases as $case) {
+            $request = Request::create('/', server: ['HTTP_ACCEPT_LANGUAGE' => $case['header']]);
+            $response = (new ResolveRequestLocale)->handle($request, static function () use ($case): Response {
+                self::assertSame($case['expected'], app()->getLocale(), $case['header']);
+
+                return new Response('browser preference parity', 200);
+            });
+            self::assertSame(200, $response->getStatusCode());
+        }
+    }
+
+    public function test_malformed_raw_accept_language_ranges_are_rejected_without_4xx(): void
+    {
+        $raw = file_get_contents(dirname(__DIR__, 5).'/resources/data/localization/locale-normalization-cases.json');
+        self::assertNotFalse($raw);
+        $cases = json_decode($raw, true, 512, JSON_THROW_ON_ERROR)['malformedHeaders'];
+        $middleware = new ResolveRequestLocale;
+
+        foreach ($cases as $case) {
+            $request = Request::create('/', server: ['HTTP_ACCEPT_LANGUAGE' => $case['header']]);
+            $response = $middleware->handle($request, static function () use ($case): Response {
+                self::assertSame($case['expected'], app()->getLocale(), $case['description']);
+
+                return new Response('fallback', 200);
+            });
+            self::assertSame(200, $response->getStatusCode(), $case['description']);
+        }
+    }
 }
