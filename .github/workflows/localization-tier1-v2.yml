@@ -1,0 +1,51 @@
+name: Localization Tier1 v2 pinned risk-screen replay
+
+on:
+  pull_request:
+    branches:
+      - codex/audit-stabilization
+    paths:
+      - 'scripts/report-localization-tier1a-v2.mjs'
+      - 'scripts/build-localization-tier1-blind-review.mjs'
+      - 'docs/frontend/localization-tier1-english-risk-rubric.md'
+      - 'scripts/report-localization-tier1a.mjs'
+      - 'resources/data/localization/baseline-fingerprints.json'
+      - 'docs/frontend/localization-tier1-v2-risk-screen.md'
+      - '.github/workflows/localization-tier1-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pinned-screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout pinned history
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - name: Setup Node 24
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Regenerate immutable English and sampling input
+        run: node scripts/prepare-localization-baseline.mjs .translation-pr1-baseline
+      - name: Replay 511 and revised full-source risk screen with pinned SHA-256 inputs
+        run: node scripts/report-localization-tier1a-v2.mjs .translation-pr1-baseline .translation-pr1-baseline/tier1a-v2-exploratory.json
+      - name: Generate SHA-pinned, blinded English-source review queue
+        run: node scripts/build-localization-tier1-blind-review.mjs .translation-pr1-baseline/risk-unflagged-samples.json .translation-pr1-baseline
+      - name: Retain reviewed-input requirements and machine-readable candidates
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: localization-tier1-v2-screen
+          path: |
+            .translation-pr1-baseline/tier1a-v2-exploratory.json
+            .translation-pr1-baseline/english-source-blind-queue.csv
+            .translation-pr1-baseline/english-source-second-review-blind-50.csv
+            .translation-pr1-baseline/english-source-blind-queue-metadata.json
+          retention-days: 30
