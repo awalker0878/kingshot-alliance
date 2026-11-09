@@ -4,14 +4,18 @@ import { expect, test } from '@playwright/test';
 const manifest = JSON.parse(readFileSync('public/build/manifest.json', 'utf8')) as Record<string, { file: string }>;
 const chunk = (domain: string, locale: string) => `/build/${manifest[`resources/js/localization/messages/${domain}/${locale}.ts`]!.file}`;
 
+// Page routing cannot intercept requests made by the production service worker.
+// Isolate the network-failure boundary while retaining the real built modules.
+test.use({ serviceWorkers: 'block' });
+
 test('failed navigation chunk keeps the displayed home page translatable', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.locator('h1')).toContainText('Gather your Alliance.');
   let blocked = false;
   await page.route(`**${chunk('auth', 'en')}`, async route => {
     blocked = true;
     await route.abort('failed');
   });
+  await page.goto('/');
+  await expect(page.locator('h1')).toContainText('Gather your Alliance.');
   // The real Inertia request reaches the real page resolver; only its new
   // localization-domain import fails. Home must remain the accepted page.
   await page.locator('header a[href="/login"]').click();
@@ -24,11 +28,16 @@ test('failed navigation chunk keeps the displayed home page translatable', async
 });
 
 test('failed language chunk restores selection and provides accessible retry', async ({ page }) => {
+  let blocked = false;
+  await page.route(`**${chunk('public', 'fr')}`, async route => {
+    blocked = true;
+    await route.abort('failed');
+  });
   await page.goto('/');
   const select = page.locator('select').first();
   await expect(select).toHaveValue('en');
-  await page.route(`**${chunk('public', 'fr')}`, route => route.abort('failed'));
   await select.selectOption('fr');
+  await expect.poll(() => blocked).toBe(true);
   await expect(select).toHaveValue('en');
   await expect(select).toHaveAttribute('aria-invalid', 'true');
   await expect(page.getByRole('alert')).toContainText('Language');
