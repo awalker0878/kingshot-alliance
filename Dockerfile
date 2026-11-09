@@ -8,7 +8,7 @@ COPY resources ./resources
 COPY tsconfig.json vite.config.ts ./
 RUN npm run build
 
-FROM composer:2.10 AS composer
+FROM composer:2.11 AS composer
 
 FROM php:8.5-fpm-alpine AS php-base
 
