@@ -5,13 +5,17 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
+import { normalizeLocale } from '../resources/js/localization/locales.ts';
 
 const baseline = 'a5151e717020cfe00a32aeddcca6279f9c7042fe';
-const fixture = JSON.parse(readFileSync('resources/data/localization/locale-normalization-cases.json', 'utf8'));
+const fixture = JSON.parse(
+  readFileSync('resources/data/localization/locale-normalization-cases.json', 'utf8'),
+);
 const inputs = fixture.cases.map(({ input }) => input);
 const phpFile = 'app/Shared/Infrastructure/Http/SupportedLocale.php';
 const tsFile = 'resources/js/localization/locales.ts';
-const fromGit = (file) => execFileSync('git', ['show', baseline + ':' + file], { encoding: 'utf8' });
+const fromGit = (file) =>
+  execFileSync('git', ['show', baseline + ':' + file], { encoding: 'utf8' });
 const root = mkdtempSync(path.join(tmpdir(), 'kingshot-pr4-compat-'));
 
 function tsResults(source) {
@@ -23,9 +27,11 @@ function tsResults(source) {
   return inputs.map((input) => exports.normalizeLocale(input));
 }
 function phpResults(file) {
-  const program = String.raw`require $argv[1]; $inputs = json_decode(file_get_contents("php://stdin"), true, 512, JSON_THROW_ON_ERROR); $output = []; foreach ($inputs as $candidate) { $output[] = \App\Shared\Infrastructure\Http\SupportedLocale::normalize($candidate); } echo json_encode($output, JSON_THROW_ON_ERROR);`;
+  const program = String.raw`if (is_file(dirname($argv[1]).'/LocaleDefinitions.php')) { require dirname($argv[1]).'/LocaleDefinitions.php'; } require $argv[1]; $inputs = json_decode(file_get_contents("php://stdin"), true, 512, JSON_THROW_ON_ERROR); $output = []; foreach ($inputs as $candidate) { $output[] = \App\Shared\Infrastructure\Http\SupportedLocale::normalize($candidate); } echo json_encode($output, JSON_THROW_ON_ERROR);`;
   const raw = execFileSync('php', ['-r', program, file], {
-    input: JSON.stringify(inputs), encoding: 'utf8', maxBuffer: 1024 * 1024,
+    input: JSON.stringify(inputs),
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024,
   });
   return JSON.parse(raw);
 }
@@ -33,12 +39,22 @@ try {
   const originalPhpFile = path.join(root, 'SupportedLocale.php');
   writeFileSync(originalPhpFile, fromGit(phpFile));
   const oldTS = tsResults(fromGit(tsFile));
-  const newTS = tsResults(readFileSync(tsFile, 'utf8'));
+  const newTS = inputs.map(normalizeLocale);
   const oldPHP = phpResults(originalPhpFile);
   const newPHP = phpResults(path.resolve(phpFile));
   const rows = inputs.map((input, i) => ({
-    input, codePoints: typeof input === 'string' ? [...input].map((character) => 'U+' + character.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')) : null, oldTS: oldTS[i], newTS: newTS[i],
-    oldPHP: oldPHP[i], newPHP: newPHP[i],
+    input,
+    codePoints:
+      typeof input === 'string'
+        ? [...input].map(
+            (character) =>
+              'U+' + character.codePointAt(0).toString(16).toUpperCase().padStart(4, '0'),
+          )
+        : null,
+    oldTS: oldTS[i],
+    newTS: newTS[i],
+    oldPHP: oldPHP[i],
+    newPHP: newPHP[i],
     phpChanged: oldPHP[i] !== newPHP[i],
     tsChanged: oldTS[i] !== newTS[i],
     existingBaselineDivergence: oldTS[i] !== oldPHP[i],
@@ -63,8 +79,18 @@ try {
       'The client request-generation code, SupportedAllianceLocale and cookie/localStorage state are unchanged.',
     ],
   };
-  writeFileSync('localization-pr4-compatibility-delta.json', JSON.stringify(report, null, 2) + '\n');
-  console.log('PR4 COMPATIBILITY DELTA: ' + JSON.stringify({ fixtureCount: rows.length, changedCount: changes.length, changedCases: changes }));
+  writeFileSync(
+    'localization-pr4-compatibility-delta.json',
+    JSON.stringify(report, null, 2) + '\n',
+  );
+  console.log(
+    'PR4 COMPATIBILITY DELTA: ' +
+      JSON.stringify({
+        fixtureCount: rows.length,
+        changedCount: changes.length,
+        changedCases: changes,
+      }),
+  );
   if (report.newDivergences.length) process.exitCode = 1;
 } finally {
   rmSync(root, { recursive: true, force: true });

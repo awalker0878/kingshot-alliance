@@ -6,6 +6,9 @@ on:
       - codex/audit-stabilization
     paths:
       - 'resources/js/localization/locales.ts'
+      - 'resources/js/localization/locale-definitions.generated.ts'
+      - 'resources/data/localization/locales.json'
+      - 'app/Shared/Infrastructure/Http/LocaleDefinitions.php'
       - 'app/Shared/Infrastructure/Http/SupportedLocale.php'
       - 'resources/data/localization/locale-normalization-cases.json'
       - 'scripts/report-localization-pr4-compatibility.mjs'

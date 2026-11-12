@@ -1,0 +1,230 @@
+{
+  "version": 1,
+  "defaultLocale": "en",
+  "locales": [
+    {
+      "code": "en",
+      "nativeName": "English",
+      "englishName": "English",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "en",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "ar",
+      "nativeName": "العربية",
+      "englishName": "Arabic",
+      "direction": "rtl",
+      "aliases": [
+        {
+          "tag": "ar",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "de",
+      "nativeName": "Deutsch",
+      "englishName": "German",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "de",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "es",
+      "nativeName": "Español",
+      "englishName": "Spanish",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "es",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "fr",
+      "nativeName": "Français",
+      "englishName": "French",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "fr",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "id",
+      "nativeName": "Bahasa Indonesia",
+      "englishName": "Indonesian",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "id",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "it",
+      "nativeName": "Italiano",
+      "englishName": "Italian",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "it",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "ja",
+      "nativeName": "日本語",
+      "englishName": "Japanese",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "ja",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "ko",
+      "nativeName": "한국어",
+      "englishName": "Korean",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "ko",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "pl",
+      "nativeName": "Polski",
+      "englishName": "Polish",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "pl",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "pt-BR",
+      "nativeName": "Português (Brasil)",
+      "englishName": "Portuguese (Brazil)",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "pt",
+          "descendants": false
+        },
+        {
+          "tag": "pt-br",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "ru",
+      "nativeName": "Русский",
+      "englishName": "Russian",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "ru",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "th",
+      "nativeName": "ไทย",
+      "englishName": "Thai",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "th",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "tr",
+      "nativeName": "Türkçe",
+      "englishName": "Turkish",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "tr",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "vi",
+      "nativeName": "Tiếng Việt",
+      "englishName": "Vietnamese",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "vi",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "zh-CN",
+      "nativeName": "简体中文",
+      "englishName": "Chinese (Simplified)",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "zh",
+          "descendants": false
+        },
+        {
+          "tag": "zh-cn",
+          "descendants": true
+        },
+        {
+          "tag": "zh-hans",
+          "descendants": true
+        }
+      ]
+    },
+    {
+      "code": "zh-TW",
+      "nativeName": "繁體中文",
+      "englishName": "Chinese (Traditional)",
+      "direction": "ltr",
+      "aliases": [
+        {
+          "tag": "zh-tw",
+          "descendants": true
+        },
+        {
+          "tag": "zh-hant",
+          "descendants": true
+        },
+        {
+          "tag": "zh-hk",
+          "descendants": true
+        }
+      ]
+    }
+  ]
+}

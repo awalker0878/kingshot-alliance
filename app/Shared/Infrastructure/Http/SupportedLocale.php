@@ -7,7 +7,7 @@ namespace App\Shared\Infrastructure\Http;
 final class SupportedLocale
 {
     /** @var list<string> */
-    public const CODES = ['en', 'ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW'];
+    public const CODES = LocaleDefinitions::CODES;
 
     public static function normalize(mixed $value): ?string
     {
@@ -19,19 +19,13 @@ final class SupportedLocale
         if (strlen($code) > 128 || preg_match('/\A[a-z]{2,3}(?:-[a-z0-9]{2,8})*(?:-[a-z0-9](?:-[a-z0-9]{2,8})+)*\z/D', $code) !== 1) {
             return null;
         }
-        if ($code === 'pt' || $code === 'pt-br' || str_starts_with($code, 'pt-br-')) {
-            return 'pt-BR';
-        }
-        if (preg_match('/\Azh-(tw|hant|hk)(-|$)/', $code) === 1) {
-            return 'zh-TW';
-        }
-        if ($code === 'zh' || preg_match('/\Azh-(cn|hans)(-|$)/', $code) === 1) {
-            return 'zh-CN';
+        foreach (LocaleDefinitions::ALIASES as $alias) {
+            if ($code === $alias['tag'] || ($alias['descendants'] && str_starts_with($code, $alias['tag'].'-'))) {
+                return $alias['code'];
+            }
         }
 
-        $language = explode('-', $code)[0];
-
-        return in_array($language, self::CODES, true) ? $language : null;
+        return null;
     }
 
     /** @param array<array-key, mixed> $candidates */
@@ -44,11 +38,16 @@ final class SupportedLocale
             }
         }
 
-        return 'en';
+        return LocaleDefinitions::DEFAULT;
+    }
+
+    public static function direction(mixed $value): string
+    {
+        return LocaleDefinitions::LOCALES[self::orDefault($value)]['direction'];
     }
 
     public static function orDefault(mixed $value): string
     {
-        return self::normalize($value) ?? 'en';
+        return self::normalize($value) ?? LocaleDefinitions::DEFAULT;
     }
 }

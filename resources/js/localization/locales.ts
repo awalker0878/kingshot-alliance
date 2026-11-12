@@ -1,59 +1,18 @@
-export const localeCodes = [
-  'en',
-  'ar',
-  'de',
-  'es',
-  'fr',
-  'id',
-  'it',
-  'ja',
-  'ko',
-  'pl',
-  'pt-BR',
-  'ru',
-  'th',
-  'tr',
-  'vi',
-  'zh-CN',
-  'zh-TW',
-] as const;
+import {
+  defaultLocale,
+  localeAliases,
+  localeCodes,
+  locales,
+  type LocaleCode,
+  type LocaleDefinition,
+} from './locale-definitions.generated.ts';
 
-export type LocaleCode = (typeof localeCodes)[number];
-export type TextDirection = 'ltr' | 'rtl';
-
-export type LocaleDefinition = {
-  code: LocaleCode;
-  nativeName: string;
-  englishName: string;
-  direction: TextDirection;
-};
-
-export const defaultLocale: LocaleCode = 'en';
-
-export const locales: readonly LocaleDefinition[] = [
-  { code: 'en', nativeName: 'English', englishName: 'English', direction: 'ltr' },
-  { code: 'ar', nativeName: 'العربية', englishName: 'Arabic', direction: 'rtl' },
-  { code: 'de', nativeName: 'Deutsch', englishName: 'German', direction: 'ltr' },
-  { code: 'es', nativeName: 'Español', englishName: 'Spanish', direction: 'ltr' },
-  { code: 'fr', nativeName: 'Français', englishName: 'French', direction: 'ltr' },
-  { code: 'id', nativeName: 'Bahasa Indonesia', englishName: 'Indonesian', direction: 'ltr' },
-  { code: 'it', nativeName: 'Italiano', englishName: 'Italian', direction: 'ltr' },
-  { code: 'ja', nativeName: '日本語', englishName: 'Japanese', direction: 'ltr' },
-  { code: 'ko', nativeName: '한국어', englishName: 'Korean', direction: 'ltr' },
-  { code: 'pl', nativeName: 'Polski', englishName: 'Polish', direction: 'ltr' },
-  {
-    code: 'pt-BR',
-    nativeName: 'Português (Brasil)',
-    englishName: 'Portuguese (Brazil)',
-    direction: 'ltr',
-  },
-  { code: 'ru', nativeName: 'Русский', englishName: 'Russian', direction: 'ltr' },
-  { code: 'th', nativeName: 'ไทย', englishName: 'Thai', direction: 'ltr' },
-  { code: 'tr', nativeName: 'Türkçe', englishName: 'Turkish', direction: 'ltr' },
-  { code: 'vi', nativeName: 'Tiếng Việt', englishName: 'Vietnamese', direction: 'ltr' },
-  { code: 'zh-CN', nativeName: '简体中文', englishName: 'Chinese (Simplified)', direction: 'ltr' },
-  { code: 'zh-TW', nativeName: '繁體中文', englishName: 'Chinese (Traditional)', direction: 'ltr' },
-] as const;
+export { defaultLocale, localeCodes, locales } from './locale-definitions.generated.ts';
+export type {
+  LocaleCode,
+  LocaleDefinition,
+  TextDirection,
+} from './locale-definitions.generated.ts';
 
 const localeSet = new Set<string>(localeCodes);
 
@@ -62,7 +21,10 @@ export function isLocaleCode(value: string): value is LocaleCode {
 }
 
 export function localeDefinition(code: LocaleCode): LocaleDefinition {
-  return locales.find((locale) => locale.code === code) ?? locales[0]!;
+  return (
+    locales.find((locale) => locale.code === code) ??
+    locales.find((locale) => locale.code === defaultLocale)!
+  );
 }
 
 // Permit standard language-region/script subtags, but reject malformed/untrusted paths
@@ -78,30 +40,12 @@ export function normalizeLocale(value: string | null | undefined): LocaleCode | 
     .toLowerCase();
   if (normalized.length > 128 || !localeTagPattern.test(normalized)) return null;
 
-  if (normalized === 'pt' || normalized === 'pt-br' || normalized.startsWith('pt-br-'))
-    return 'pt-BR';
-
-  if (
-    normalized === 'zh-tw' ||
-    normalized.startsWith('zh-tw-') ||
-    normalized === 'zh-hant' ||
-    normalized.startsWith('zh-hant-') ||
-    normalized === 'zh-hk' ||
-    normalized.startsWith('zh-hk-')
-  )
-    return 'zh-TW';
-
-  if (
-    normalized === 'zh' ||
-    normalized === 'zh-cn' ||
-    normalized.startsWith('zh-cn-') ||
-    normalized === 'zh-hans' ||
-    normalized.startsWith('zh-hans-')
-  )
-    return 'zh-CN';
-
-  const language = normalized.split('-')[0];
-  return localeCodes.find((code) => code === language) ?? null;
+  return (
+    localeAliases.find(
+      ({ tag, descendants }) =>
+        normalized === tag || (descendants && normalized.startsWith(tag + '-')),
+    )?.code ?? null
+  );
 }
 
 /** Explicit preference precedence comes from caller-provided source order. */
