@@ -328,6 +328,29 @@ jobs:
             echo "- License: \`$license\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Verify localization in the immutable runtime image
+        shell: bash
+        run: |
+          # No bind mounts: both catalogues and the probe must come from the image.
+          docker run --rm --network none --entrypoint php \
+            -e APP_KEY=base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0= \
+            -e APP_URL=http://localhost -e CACHE_STORE=array -e SESSION_DRIVER=array \
+            -e PULSE_ENABLED=false "$APP_IMAGE_ID" scripts/check-localization-image.php
+
+          # The same check must detect the original packaging defect.
+          docker run --rm --network none --user root --entrypoint sh \
+            -e APP_KEY=base64:Wb1PHh03m1vXbmyRxlI+Y96TqgK7Vyt8H/lkQ8o1SP0= \
+            -e APP_URL=http://localhost -e CACHE_STORE=array -e SESSION_DRIVER=array \
+            -e PULSE_ENABLED=false "$APP_IMAGE_ID" -c '
+              rm -rf lang
+              if php scripts/check-localization-image.php > /tmp/localization-negative.log 2>&1; then
+                cat /tmp/localization-negative.log
+                exit 1
+              fi
+              cat /tmp/localization-negative.log
+              grep -F "Missing lang/NOTICE.md" /tmp/localization-negative.log
+            '
+
       - name: Run ephemeral staging deployment
         shell: bash
         run: |
