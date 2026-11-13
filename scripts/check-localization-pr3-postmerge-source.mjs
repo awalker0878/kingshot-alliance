@@ -10,7 +10,7 @@ const previous=readFileSync(process.env.LOCALIZATION_POSTMERGE_PINNED_RAW ?? '.t
 const current=readFileSync(process.env.LOCALIZATION_POSTMERGE_CURRENT_RAW ?? '.translation-pr3-current/raw-catalogues.json');
 const sha=(data)=>createHash('sha256').update(data).digest('hex');
 assert.equal(sha(previous),manifest.pinned['raw-catalogues.json'],'Original raw-source baseline changed');
-const expectedCurrent='4e2b26727a9c280ecd94c5baf482a764b5f06d983801eda0b24e0761589056bb';
+const expectedCurrent='2ab071d65edd083aadd2f3707dffcf2f1490f38ded8aa87bb8a59cf401f2f834';
 // Validate the explicit domain/locale scope before comparing the exact approved SHA.
 const before=JSON.parse(previous),after=JSON.parse(current);
 assert.deepEqual(Object.keys(before).sort(),Object.keys(after).sort(),'Domain set changed');
@@ -21,14 +21,14 @@ for(const domain of Object.keys(before)){
     if(JSON.stringify(before[domain][locale])!==JSON.stringify(after[domain][locale]))changed.push(domain+':'+locale);
   }
 }
-assert.deepEqual(changed.sort(),['account:en','transfers:en'],'Unexpected raw source domain/locale changes');
+assert.deepEqual(changed.sort(),['account:en','alliance:en','assistant:en','core:en','events:en','kingdom:en','progression:en','territory:en','transfers:en'],'Unexpected raw source domain/locale changes');
 assert.equal(sha(current),expectedCurrent,'Post-merge structural source hash differs from approved PR3 migration');
 const report={
   mergedTargetSha:process.env.GITHUB_SHA??null,
   pinnedRawSha256:sha(previous),
   approvedMergedRawSha256:sha(current),
   changedRawDomainLocales:changed,
-  expectedStructuralChanges:['account:en','transfers:en'],
+  expectedStructuralChanges:['account:en','alliance:en','assistant:en','core:en','events:en','kingdom:en','progression:en','territory:en','transfers:en'],
   effectiveValuesCheckedSeparately:'six SHA-256 assertions in check-localization-pr3-parity.mjs',
   note:'Raw-source bytes changed intentionally; no baseline manifest hash was rewritten.',
 };

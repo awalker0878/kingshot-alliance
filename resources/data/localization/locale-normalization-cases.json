@@ -1,0 +1,563 @@
+{
+  "version": 2,
+  "description": "Shared explicit-source normalization contract. The first valid candidate wins; callers determine source precedence. Client-side 5B persistence remains out of scope. Raw HTTP Accept-Language uses a strict bounded language-range profile with q-sorting; these raw-header cases are not standalone-tag fixtures. Standalone boundary trimming accepts U+0020, U+0009, U+000A, U+000D and U+000B only; NUL is rejected before trimming.",
+  "cases": [
+    {
+      "input": "en",
+      "expected": "en"
+    },
+    {
+      "input": "EN-us",
+      "expected": "en"
+    },
+    {
+      "input": "fr-CA",
+      "expected": "fr"
+    },
+    {
+      "input": "es-419",
+      "expected": "es"
+    },
+    {
+      "input": " ar-IQ ",
+      "expected": "ar"
+    },
+    {
+      "input": "pt",
+      "expected": "pt-BR"
+    },
+    {
+      "input": "pt_BR",
+      "expected": "pt-BR"
+    },
+    {
+      "input": "PT-br",
+      "expected": "pt-BR"
+    },
+    {
+      "input": "pt-BR-x-private",
+      "expected": "pt-BR"
+    },
+    {
+      "input": "zh",
+      "expected": "zh-CN"
+    },
+    {
+      "input": "zh-cn",
+      "expected": "zh-CN"
+    },
+    {
+      "input": "zh-Hans-CN",
+      "expected": "zh-CN"
+    },
+    {
+      "input": "zh-hant",
+      "expected": "zh-TW"
+    },
+    {
+      "input": "zh_Hant_HK",
+      "expected": "zh-TW"
+    },
+    {
+      "input": "zh-HK",
+      "expected": "zh-TW"
+    },
+    {
+      "input": "zh-TW-x-private",
+      "expected": "zh-TW"
+    },
+    {
+      "input": "de-CH",
+      "expected": "de"
+    },
+    {
+      "input": "JA-jp",
+      "expected": "ja"
+    },
+    {
+      "input": "",
+      "expected": null
+    },
+    {
+      "input": null,
+      "expected": null
+    },
+    {
+      "input": "../fr",
+      "expected": null
+    },
+    {
+      "input": "fr/../../en",
+      "expected": null
+    },
+    {
+      "input": "en--US",
+      "expected": null
+    },
+    {
+      "input": "fr-CA-",
+      "expected": null
+    },
+    {
+      "input": "zh-cnX",
+      "expected": null
+    },
+    {
+      "input": "pt-brX",
+      "expected": null
+    },
+    {
+      "input": "zh-hantX",
+      "expected": null
+    },
+    {
+      "input": "en\u0000",
+      "expected": null
+    },
+    {
+      "input": "not-a-language",
+      "expected": null
+    },
+    {
+      "input": "hi-IN",
+      "expected": null
+    },
+    {
+      "input": "ar-u-nu-latn",
+      "expected": "ar"
+    },
+    {
+      "input": "ar-u-ca-gregory",
+      "expected": "ar"
+    },
+    {
+      "input": "zh-Hant-HK-x-private",
+      "expected": "zh-TW"
+    },
+    {
+      "input": "fr-x-private",
+      "expected": "fr"
+    },
+    {
+      "input": "fr-CA;q=0.8",
+      "expected": null
+    },
+    {
+      "input": "fr;q=0.9",
+      "expected": null
+    },
+    {
+      "input": "fr-CA,fr;q=0.8",
+      "expected": null
+    },
+    {
+      "input": "fr-CA x",
+      "expected": null
+    },
+    {
+      "input": "*",
+      "expected": null
+    },
+    {
+      "input": " fr ",
+      "expected": "fr"
+    },
+    {
+      "input": "    ",
+      "expected": null
+    },
+    {
+      "input": "fr__CA",
+      "expected": null
+    },
+    {
+      "input": "pt_brX",
+      "expected": null
+    },
+    {
+      "input": "pt-BR;q=1",
+      "expected": null
+    },
+    {
+      "input": "en*;q=0.5",
+      "expected": null
+    },
+    {
+      "input": "fr-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-cd",
+      "expected": null
+    },
+    {
+      "input": "ar-u-",
+      "expected": null
+    },
+    {
+      "input": "en-x-a",
+      "expected": null
+    },
+    {
+      "input": "fr-CA\n",
+      "expected": "fr"
+    },
+    {
+      "input": "fr-CA\u0000",
+      "expected": null
+    },
+    {
+      "input": "en;q=1",
+      "expected": null
+    },
+    {
+      "input": "PT_BR",
+      "expected": "pt-BR"
+    },
+    {
+      "description": "Boundary U+0020",
+      "input": " fr ",
+      "expected": "fr"
+    },
+    {
+      "description": "Boundary U+0009",
+      "input": "\tfr\t",
+      "expected": "fr"
+    },
+    {
+      "description": "Boundary U+000A",
+      "input": "\nfr\n",
+      "expected": "fr"
+    },
+    {
+      "description": "Boundary U+000D",
+      "input": "\rfr\r",
+      "expected": "fr"
+    },
+    {
+      "description": "Boundary U+000B",
+      "input": "\u000bfr\u000b",
+      "expected": "fr"
+    },
+    {
+      "description": "Boundary U+00A0",
+      "input": "\u00a0fr\u00a0",
+      "expected": null
+    },
+    {
+      "description": "Boundary U+FEFF",
+      "input": "\ufefffr\ufeff",
+      "expected": null
+    },
+    {
+      "description": "Boundary U+000C",
+      "input": "\ffr\f",
+      "expected": null
+    },
+    {
+      "description": "Boundary U+0000",
+      "input": "\u0000fr\u0000",
+      "expected": null
+    },
+    {
+      "description": "Boundary U+2003",
+      "input": "\u2003fr\u2003",
+      "expected": null
+    },
+    {
+      "description": "Boundary U+2028",
+      "input": "\u2028fr\u2028",
+      "expected": null
+    },
+    {
+      "description": "Boundary U+2029",
+      "input": "\u2029fr\u2029",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+0020",
+      "input": "fr CA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+0009",
+      "input": "fr\tCA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+000A",
+      "input": "fr\nCA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+000D",
+      "input": "fr\rCA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+000B",
+      "input": "fr\u000bCA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+000C",
+      "input": "fr\fCA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+0000",
+      "input": "fr\u0000CA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+00A0",
+      "input": "fr\u00a0CA",
+      "expected": null
+    },
+    {
+      "description": "Embedded U+FEFF",
+      "input": "fr\ufeffCA",
+      "expected": null
+    }
+  ],
+  "priority": [
+    {
+      "candidates": ["../fr", "pt_BR", "de-CH"],
+      "expected": "pt-BR"
+    },
+    {
+      "candidates": ["zh-Hant-HK", "fr-CA"],
+      "expected": "zh-TW"
+    },
+    {
+      "candidates": ["bogus", "fr-CA"],
+      "expected": "fr"
+    },
+    {
+      "candidates": ["zh-cnX", null, "es-419"],
+      "expected": "es"
+    },
+    {
+      "candidates": [null, "", "zz"],
+      "expected": "en"
+    },
+    {
+      "candidates": [],
+      "expected": "en"
+    },
+    {
+      "candidates": ["\u00a0fr\u00a0", "pt_BR"],
+      "expected": "pt-BR"
+    },
+    {
+      "candidates": ["\ufefffr\ufeff", "pt_BR"],
+      "expected": "pt-BR"
+    },
+    {
+      "candidates": ["\ffr\f", "pt_BR"],
+      "expected": "pt-BR"
+    }
+  ],
+  "headers": [
+    {
+      "header": "fr-CA;q=0.8,en-US;q=0.5",
+      "cookie": null,
+      "expected": "fr"
+    },
+    {
+      "header": "pt-BR;q=1,fr-CA;q=0.8",
+      "cookie": null,
+      "expected": "pt-BR"
+    },
+    {
+      "header": "en-US;q=0.2,fr-CA;q=0.9",
+      "cookie": null,
+      "expected": "fr"
+    },
+    {
+      "header": "zh-Hant-HK;q=0.9,en-US;q=0.1",
+      "cookie": null,
+      "expected": "zh-TW"
+    },
+    {
+      "header": "zz-ZZ;q=1,es-419;q=0.7",
+      "cookie": "../invalid",
+      "expected": "es"
+    },
+    {
+      "header": "*,zz-ZZ;q=0.9,xx;q=0.8",
+      "cookie": "fr-CA;q=0.8",
+      "expected": "en"
+    },
+    {
+      "header": "*,zz-ZZ;q=0.9,xx;q=0.8",
+      "cookie": null,
+      "expected": "en"
+    },
+    {
+      "header": "fr-CA;q=0.8,en-US;q=0.5",
+      "cookie": "de",
+      "expected": "de"
+    },
+    {
+      "cookie": "\u00a0ar\u00a0",
+      "header": "fr-CA;q=0.8,en;q=0.2",
+      "expected": "fr"
+    },
+    {
+      "cookie": "\ufeffar\ufeff",
+      "header": "fr-CA;q=0.8,en;q=0.2",
+      "expected": "fr"
+    },
+    {
+      "cookie": "\far\f",
+      "header": "fr-CA;q=0.8,en;q=0.2",
+      "expected": "fr"
+    }
+  ],
+  "malformedHeaders": [
+    {
+      "header": ";;, , ;,zz-ZZ;q=0.9",
+      "expected": "en",
+      "description": "Stray separators and unsupported language"
+    },
+    {
+      "header": "fr-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-cd;q=1,xx-ZZ;q=0.5",
+      "expected": "en",
+      "description": "Overlong language tag with unsupported backup"
+    },
+    {
+      "header": ";;, , ;,fr-CA;q=0.9",
+      "expected": "fr",
+      "description": "Valid French candidate after garbage separators must be retained"
+    },
+    {
+      "header": "zh-hantX;q=1,xx-ZZ;q=0.5",
+      "expected": "en",
+      "description": "Spoofed Chinese script-like range cannot fall back to zh-CN"
+    },
+    {
+      "header": "pt-brX;q=1,xx-ZZ;q=0.5",
+      "expected": "en",
+      "description": "Spoofed Portuguese region-like range cannot fall back to pt-BR"
+    },
+    {
+      "header": "zh-hantX;q=1,fr-CA;q=0.4",
+      "expected": "fr",
+      "description": "Malformed highest-weight range is discarded; valid lower-weight French survives"
+    },
+    {
+      "header": "pt-brX;q=1,es-419;q=0.4",
+      "expected": "es",
+      "description": "Malformed Portuguese range is discarded; valid Spanish survives"
+    },
+    {
+      "header": "fr-CA-;q=1,pt-BR;q=0.3",
+      "expected": "pt-BR",
+      "description": "Malformed trailing separator does not eclipse a later valid candidate"
+    },
+    {
+      "header": "fr-CA;q=0.2,de-DE;q=0.9",
+      "expected": "de",
+      "description": "Valid q ordering is preserved across supported languages"
+    },
+    {
+      "header": "fr-CA;q=0.7,de-DE;q=0.7",
+      "expected": "fr",
+      "description": "Equal q values retain original header order"
+    },
+    {
+      "header": "fr-CA;q=0,es-MX;q=0.6",
+      "expected": "es",
+      "description": "q=0 range is not an acceptable fallback"
+    },
+    {
+      "header": "fr-CA;q=1.5,de-DE;q=0.4",
+      "expected": "de",
+      "description": "Invalid q parameter discarded; later valid candidate retained"
+    },
+    {
+      "header": "fr_CA;q=1,de-DE;q=0.5",
+      "expected": "de",
+      "description": "Underscore is invalid in a raw HTTP language range"
+    },
+    {
+      "header": "fr-CA;q=1;foo=bar,ja-JP;q=0.3",
+      "expected": "ja",
+      "description": "Additional unexpected header parameter invalidates that range"
+    },
+    {
+      "header": "*,zz-ZZ;q=0.9,fr-CA;q=0.8",
+      "expected": "fr",
+      "description": "Wildcard/unsupported entries do not hide later supported range"
+    },
+    {
+      "header": "zh-Hant-HK-x-private;q=0.8,fr-CA;q=0.1",
+      "expected": "zh-TW",
+      "description": "Valid script/region/private-use ranges still map to the supported locale"
+    },
+    {
+      "header": "fr-CA;q=0.4,de-DE;q=0.1",
+      "expected": "fr",
+      "description": "Valid weighted fallback without malformed input"
+    },
+    {
+      "header": "fr-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-ab-cd;q=1,de-DE;q=0.4",
+      "expected": "de",
+      "description": "Overlong high-quality French range must not hide a valid lower-quality German fallback"
+    },
+    {
+      "description": "Raw U+00A0 is not HTTP optional whitespace",
+      "header": "\u00a0ar\u00a0,de-DE;q=0.5",
+      "expected": "de"
+    },
+    {
+      "description": "Raw U+FEFF is not HTTP optional whitespace",
+      "header": "\ufeffar\ufeff,de-DE;q=0.5",
+      "expected": "de"
+    },
+    {
+      "description": "Raw U+000C is not HTTP optional whitespace",
+      "header": "\far\f,de-DE;q=0.5",
+      "expected": "de"
+    }
+  ],
+  "realisticBrowserHeaders": [
+    {
+      "header": "en-US,en;q=0.9",
+      "navigatorLanguages": ["en-US", "en"],
+      "expected": "en"
+    },
+    {
+      "header": "pt-BR,pt;q=0.9,en;q=0.8",
+      "navigatorLanguages": ["pt-BR", "pt", "en"],
+      "expected": "pt-BR"
+    },
+    {
+      "header": "zh-Hant-TW,zh;q=0.9,en;q=0.8",
+      "navigatorLanguages": ["zh-Hant-TW", "zh", "en"],
+      "expected": "zh-TW"
+    },
+    {
+      "header": "ar-IQ,ar;q=0.9,en;q=0.8",
+      "navigatorLanguages": ["ar-IQ", "ar", "en"],
+      "expected": "ar"
+    },
+    {
+      "header": "fr-CA,fr;q=0.9,en;q=0.8",
+      "navigatorLanguages": ["fr-CA", "fr", "en"],
+      "expected": "fr"
+    },
+    {
+      "header": "es-MX,es;q=0.9,en;q=0.8",
+      "navigatorLanguages": ["es-MX", "es", "en"],
+      "expected": "es"
+    },
+    {
+      "header": "zh-Hans-CN,zh;q=0.9,en;q=0.8",
+      "navigatorLanguages": ["zh-Hans-CN", "zh", "en"],
+      "expected": "zh-CN"
+    },
+    {
+      "header": "id-ID,id;q=0.9,en;q=0.8",
+      "navigatorLanguages": ["id-ID", "id", "en"],
+      "expected": "id"
+    }
+  ]
+}
