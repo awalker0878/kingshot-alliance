@@ -88,11 +88,13 @@ COPY app ./app
 COPY bootstrap ./bootstrap
 COPY config ./config
 COPY database ./database
+COPY lang ./lang
 COPY public ./public
 COPY resources/views ./resources/views
 COPY routes ./routes
 COPY storage ./storage
 COPY artisan composer.json composer.lock LICENSE ./
+COPY scripts/check-localization-image.php ./scripts/check-localization-image.php
 COPY --from=frontend /app/public/build ./public/build
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf

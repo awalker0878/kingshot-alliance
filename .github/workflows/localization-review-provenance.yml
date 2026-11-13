@@ -1,0 +1,87 @@
+name: Localization review provenance
+
+on:
+  pull_request:
+    branches: [codex/audit-stabilization]
+  push:
+    branches: [codex/audit-stabilization]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  provenance:
+    name: Verify recorded native approvals
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          coverage: none
+      - name: Install locked PHP sources for framework message identities
+        run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
+      - name: Check forged, stale and bad-review fixtures
+        run: node --test tests/Shared/ApplicationShell/Frontend/LocalizationReviewProvenance.test.ts tests/Shared/ApplicationShell/Frontend/LocalizationReleaseCoverage.test.ts
+      - name: Export current authoritative source and translations
+        run: |
+          node scripts/prepare-localization-baseline.mjs .translation-pr6-current --current
+          node scripts/export-localization-php-keys.mjs .translation-pr6-current/server-php-stable-keys.json --framework
+      - name: Verify hashes and actual GitHub APPROVED review attestations
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/check-localization-review-provenance.mjs
+      - name: Retain exact review inputs for the separate release gate
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: localization-review-inputs
+          path: |
+            .translation-pr6-current/effective-all-locales.json
+            .translation-pr6-current/server-catalogues.json
+            .translation-pr6-current/server-php-stable-keys.json
+            .translation-pr6-current/semantic-risk-inventory.json
+            .translation-pr6-current/review-integrity.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+
+  release-coverage:
+    name: Require approved native review coverage
+    needs: provenance
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: localization-review-inputs
+          path: .translation-pr6-current
+      - name: Fail closed on unapproved scope or incomplete native coverage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/check-localization-release-coverage.mjs
+      - name: Retain release readiness result
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: localization-release-coverage
+          path: .translation-pr6-current/release-coverage.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30

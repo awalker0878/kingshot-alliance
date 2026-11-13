@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "status": "review_required",
+  "description": "Release scope awaits independent source-risk adjudication and owner approval. Exploratory candidate counts are not an approved scope.",
+  "sourceRevision": null,
+  "classifierSha256": null,
+  "localeRegistrySha256": null,
+  "units": [],
+  "approval": null
+}
