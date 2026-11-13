@@ -16,94 +16,6 @@ function readPath(source: MessageCatalogue | undefined, path: string): string | 
   }, source);
   return typeof value === 'string' ? value : null;
 }
-function mergeCatalogue(base: MessageCatalogue, overlay: MessageCatalogue): MessageCatalogue {
-  const result: MessageCatalogue = { ...base };
-  for (const [key, value] of Object.entries(overlay)) {
-    if (typeof value === 'string') {
-      result[key] = value;
-      continue;
-    }
-    const current = result[key];
-    result[key] = mergeCatalogue(typeof current === 'object' ? current : {}, value);
-  }
-  return result;
-}
-async function assistantCatalogue(
-  base: MessageCatalogue,
-  locale: LocaleCode,
-): Promise<MessageCatalogue> {
-  const [{ assistantGameWorldExtension }, { assistantTransferLabels }] = await Promise.all([
-    import('./assistant-gameworld-extension'),
-    import('./assistant-transfer-labels'),
-  ]);
-  return mergeCatalogue(
-    mergeCatalogue(base, assistantGameWorldExtension(locale)),
-    assistantTransferLabels(locale),
-  );
-}
-async function eventsCatalogue(
-  base: MessageCatalogue,
-  locale: LocaleCode,
-): Promise<MessageCatalogue> {
-  const { eventCommandLabels } = await import('./event-command-labels');
-  return mergeCatalogue(base, eventCommandLabels(locale));
-}
-async function transfersCatalogue(base: MessageCatalogue): Promise<MessageCatalogue> {
-  const { transferEvidenceLabels } = await import('./transfer-evidence-labels');
-  return mergeCatalogue(base, transferEvidenceLabels());
-}
-async function progressionCatalogue(
-  base: MessageCatalogue,
-  locale: LocaleCode,
-): Promise<MessageCatalogue> {
-  const { progressionPlannerLabels } = await import('./progression-planner-labels');
-  return mergeCatalogue(base, progressionPlannerLabels(locale));
-}
-async function territoryCatalogue(base: MessageCatalogue): Promise<MessageCatalogue> {
-  const { territoryReconciliationLabels } = await import('./territory-reconciliation-labels');
-  return mergeCatalogue(base, territoryReconciliationLabels());
-}
-async function allianceCapabilityExpansionCatalogue(
-  base: MessageCatalogue,
-): Promise<MessageCatalogue> {
-  const { allianceCapabilityExpansionLabels } =
-    await import('./alliance-capability-expansion-labels');
-  return mergeCatalogue(base, allianceCapabilityExpansionLabels());
-}
-async function governanceCapabilityExpansionCatalogue(
-  base: MessageCatalogue,
-  locale: LocaleCode,
-): Promise<MessageCatalogue> {
-  const { governanceCapabilityExpansionLabels } =
-    await import('./governance-capability-expansion-labels');
-  return mergeCatalogue(base, governanceCapabilityExpansionLabels(locale));
-}
-async function intelligenceChangeCatalogue(
-  base: MessageCatalogue,
-  locale: LocaleCode,
-): Promise<MessageCatalogue> {
-  const { intelligenceChangeLabels } = await import('./intelligence-change-labels');
-  return mergeCatalogue(base, intelligenceChangeLabels(locale));
-}
-async function communicationsRecipientDeliveryCatalogue(
-  base: MessageCatalogue,
-): Promise<MessageCatalogue> {
-  const { communicationsRecipientDeliveryLabels } =
-    await import('./communications-recipient-delivery-labels');
-  return mergeCatalogue(base, communicationsRecipientDeliveryLabels());
-}
-async function giftCodeWorkspaceCatalogue(base: MessageCatalogue): Promise<MessageCatalogue> {
-  const { giftCodeWorkspaceLabels } = await import('./gift-code-workspace-labels');
-  return mergeCatalogue(base, giftCodeWorkspaceLabels());
-}
-async function governorLifecycleCatalogue(
-  base: MessageCatalogue,
-  locale: LocaleCode,
-): Promise<MessageCatalogue> {
-  const { governorLifecycleLabels } = await import('./governor-lifecycle-labels');
-  return mergeCatalogue(base, governorLifecycleLabels(locale));
-}
-
 export async function loadCatalogue(
   domain: LocalizationDomain,
   locale: LocaleCode,
@@ -113,34 +25,16 @@ export async function loadCatalogue(
   if (cached) return cached;
   const existing = pending.get(key);
   if (existing) return existing;
-  const request = importDomainCatalogue(domain, locale).then(async (module) => {
-    let catalogue = module.default;
-    // Translated catalogues include the full English extension surface. Applying
-    // an English-only extension here would overwrite the selected language.
-    if (locale !== defaultLocale) {
+  const request = importDomainCatalogue(domain, locale)
+    .then((module) => module.default)
+    .then((catalogue) => {
       catalogues.set(key, catalogue);
-      pending.delete(key);
       return catalogue;
-    }
-    if (domain === 'assistant') catalogue = await assistantCatalogue(catalogue, locale);
-    if (domain === 'events') catalogue = await eventsCatalogue(catalogue, locale);
-    if (domain === 'transfers') catalogue = await transfersCatalogue(catalogue);
-    if (domain === 'progression') catalogue = await progressionCatalogue(catalogue, locale);
-    if (domain === 'territory') catalogue = await territoryCatalogue(catalogue);
-    if (domain === 'core' || domain === 'alliance')
-      catalogue = await allianceCapabilityExpansionCatalogue(catalogue);
-    if (domain === 'core' || domain === 'kingdom')
-      catalogue = await governanceCapabilityExpansionCatalogue(catalogue, locale);
-    if (domain === 'core') catalogue = await giftCodeWorkspaceCatalogue(catalogue);
-    if (domain === 'core' || domain === 'account')
-      catalogue = await governorLifecycleCatalogue(catalogue, locale);
-    if (['alliance', 'assistant', 'kingdom'].includes(domain))
-      catalogue = await intelligenceChangeCatalogue(catalogue, locale);
-    if (domain === 'account') catalogue = await communicationsRecipientDeliveryCatalogue(catalogue);
-    catalogues.set(key, catalogue);
-    pending.delete(key);
-    return catalogue;
-  });
+    })
+    .finally(() => {
+      // Clear pending on both success and failure; a rejected import must be retryable.
+      pending.delete(key);
+    });
   pending.set(key, request);
   return request;
 }

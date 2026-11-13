@@ -24,3 +24,12 @@ The finite manual 41-key Recipient Delivery audit exposed multiple misses, but *
 - [ ] Update #182's **recruitment scope** from 511 to the reviewed v2 count only after the pinned replay and the named domain-owner decision. Keep the 33 account PHP candidates first, add the high-risk security claim and lifecycle/expiry keys irrespective of raw counts.
 - [ ] Do not alter PR #183's zero-diff catalogue migration, PR #184's locale behaviour or the pinned PR #180 baseline. This is **candidate discovery**, not a reviewed translation release.
 
+## Stable PHP identities and frozen review inputs
+
+The original fingerprint outputs and the 511/613 classifier reports remain unchanged. A separate PHP export reads actual nested catalogue arrays using PHP, producing Laravel `group.dotted.key` identities. The historical ordinal bridge is generated only from immutable `7cf387b628bbbaeb81d10120340e559b46403bee` and requires exact source-text agreement before mapping a candidate. Repeated English text never identifies a message by itself. New review claims must not use `accounts.php#N`.
+
+`build-localization-stable-risk-scope.mjs` emits a separate 613-candidate report with durable identities, legacy references and SHA-256 bindings to the classifier and identity bridge. It explicitly remains exploratory, with zero native approvals and no approved release scope. The immutable six parity outputs are not rewritten.
+
+The v2 blinded queues still contain 492 unique source keys across 512 placements and an independently ordered 50-key overlap. Their metadata now binds both queue bytes, classifier, source revision, sampled inputs and identity bridge. The new seed identifies this stable-key revision; old queue IDs must not be mixed into it. No human decisions exist in either round. Freeze these exact artifacts before assigning reviewers, lock both independent judgments before deblinding, and record adjudication separately from native translation approval.
+
+PHP key integration checks prove reordering and repeated wording do not rebind identities, actual PHP escaping is retained, and ambiguous dotted paths fail. Current framework sources can be included explicitly with `--framework` after installing locked Composer dependencies; pinned historical exports cannot borrow current vendor files.
