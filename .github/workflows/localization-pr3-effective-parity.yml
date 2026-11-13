@@ -8,6 +8,7 @@ on:
       - 'resources/js/localization/**'
       - 'scripts/check-localization-pr3-*.mjs'
       - 'scripts/test-localization-pr3-*.mjs'
+      - 'scripts/*localization-overlay-*.mjs'
       - 'resources/data/localization/baseline-fingerprints.json'
       - '.github/workflows/localization-pr3-effective-parity.yml'
   workflow_dispatch:
@@ -46,6 +47,14 @@ jobs:
         run: node scripts/check-localization-pr3-parity.mjs .translation-pr3-current
       - name: Export immutable baseline including original overlay collision report
         run: node scripts/prepare-localization-baseline.mjs .translation-pr1-baseline
+
+      - name: Audit every remaining overlay against its actual historical merge chain
+        run: |
+          node scripts/check-localization-overlay-consolidation.mjs
+          node scripts/check-localization-pr3-postmerge-source.mjs
+          node scripts/test-localization-pr3-postmerge-source-mutation.mjs
+          node scripts/test-localization-overlay-precedence.mjs
+          node scripts/test-product-language-debt.mjs
 
       - name: Audit collisions, winners and exact receipt-key preservation
         run: node scripts/check-localization-pr3-overlay-overlap.mjs
@@ -94,6 +103,13 @@ jobs:
           baseline=$(find .translation-pr3-original-artifact -path '*/.translation-pr1-corrected/vite-chunks.json' -o -path '*/translation-pr1-corrected/vite-chunks.json' | head -n 1)
           node scripts/report-localization-pr3-compressed.mjs .translation-pr3-baseline-build . "$baseline" .translation-pr3-current/vite-chunks.json
 
+      - name: Rebuild the pre-consolidation head and compare all remaining domain costs
+        run: |
+          git worktree add --detach .translation-overlay-baseline-build 355d975d3b1f37e0decb3bf80803596c0570eb6d
+          ln -s "$PWD/node_modules" .translation-overlay-baseline-build/node_modules
+          npm --prefix .translation-overlay-baseline-build run build
+          node scripts/report-localization-overlay-costs.mjs .translation-overlay-baseline-build/public/build public/build
+
       - name: Retain machine-readable parity evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -108,5 +124,8 @@ jobs:
             .translation-pr3-current/transfer-overlay-overlap.json
             .translation-pr3-current/recipient-overlay-overlap.json
             .translation-pr3-current/recipient-language-review.json
+            .translation-pr3-current/remaining-overlay-inventory.json
+            .translation-pr3-current/remaining-overlay-costs.json
+            .translation-pr3-current/postmerge-source-delta.json
           retention-days: 14
           if-no-files-found: warn
