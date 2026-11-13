@@ -1,6 +1,8 @@
 import type { MessageCatalogue } from '../../types';
 const messages = {
-  navigation: { progression: 'Progression' },
+  navigation: {
+    progression: 'Progression',
+  },
   progression: {
     title: 'Factual Progression',
     eyebrow: 'KingShot reference data',
@@ -212,6 +214,57 @@ const messages = {
     userPlanningIntent: 'user planning intent',
     unpinnedLegacyLoadout: 'legacy loadout without dataset pin',
     noLoadouts: 'No loadouts have been saved for this Governor.',
+    goalPlanner: 'Progression Goal Planner',
+    goalPlannerHelp:
+      'Compare an authorized observed state with a factual target from one immutable dataset. Resource totals appear only when that progression family has passed its calculator evidence gate.',
+    noDataset: 'No progression dataset is published',
+    noDatasetHelp:
+      'Factual planning and calculation are unavailable until an immutable progression release is published. No observed state or resource total has been inferred.',
+    selectGoal: 'Choose a factual goal',
+    currentToTarget: 'Current observed state → target',
+    goalFamily: 'Progression family',
+    selectGoalFamily: 'Select a progression family',
+    goalSubject: 'Subject',
+    selectGoalSubject: 'Select a subject',
+    targetState: 'Target factual state',
+    selectTargetState: 'Select a target',
+    noDeterministicStates:
+      'This subject does not have a deterministic state ladder in the pinned dataset. No progression distance or calculation will be inferred.',
+    observationDataset: 'Observation normalized with',
+    currentStateUnknown: 'Current state is unknown',
+    staleObservationHelp:
+      'This observed state is older than the {days}-day freshness threshold. Its factual value and provenance are preserved; capture a newer observation when current-state confidence matters.',
+    datasetMismatchHelp:
+      'This observation was normalized with a different progression dataset. The historical observation is preserved, but resource calculation is disabled until current state is re-observed or explicitly reconciled to this pinned release.',
+    calculationBlockedDatasetMismatch:
+      'Calculator evidence is ready for this family, but this scenario cannot be calculated because the observed current state is pinned to a different dataset.',
+    factualTarget: 'Factual target',
+    targetPinnedHelp: 'Target resolved from immutable dataset {version}.',
+    stepsRemaining: '{count} progression transitions remaining',
+    progressionPath: 'Factual progression path',
+    chooseTargetHelp: 'Choose a factual target to compare it with the observed current state.',
+    prerequisites: 'Prerequisites',
+    sourcedPrerequisites: 'Sourced prerequisite facts',
+    prerequisiteUnknown: 'observed satisfaction unknown',
+    calculatorEvidence: 'Calculator evidence gate',
+    calculatorStatus: 'Resource calculation status',
+    noCalculatorProgram:
+      'This planning family has no approved calculator program. Factual goal planning remains available.',
+    calculateResources: 'Calculate resource delta',
+    calculationResult: 'Evidence-backed calculation',
+    resourceRequirements: 'Resource requirements',
+    calculationUnavailable: 'Calculation unavailable',
+    calculationVersion: 'Calculation version',
+    transitionsIncluded: 'Transitions included',
+    calculatorState: {
+      calculator_ready: 'Calculator ready',
+      qualified_pending_implementation: 'Evidence qualified — implementation pending',
+      evidence_review: 'Evidence under review',
+      evidence_incomplete: 'Evidence incomplete',
+      source_gap: 'Source gap',
+      evidence_conflict: 'Evidence conflict',
+      unsupported: 'Calculator unsupported',
+    },
   },
 } satisfies MessageCatalogue;
 export default messages;

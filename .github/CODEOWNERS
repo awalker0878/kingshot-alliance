@@ -12,3 +12,6 @@
 /resources/data/localization/reviewer-assignments.json @awalker0878
 /lang/ @awalker0878
 /scripts/check-localization-review-provenance.mjs @awalker0878
+/scripts/check-localization-release-coverage.mjs @awalker0878
+/resources/data/localization/release-review-scope.json @awalker0878
+/resources/data/localization/scope-approvers.json @awalker0878

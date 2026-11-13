@@ -1,38 +1,53 @@
-# PR 6 — localization review provenance (draft)
+# Native review integrity and release coverage
 
-This workflow is a **record-integrity checker**, not a native-language review certificate. No native reviewers are authorized solely because this PR exists, and an AI/English-source-risk classification cannot be converted into a human translation approval.
+Two distinct CI checks now run on every PR against the audit target and on pushes to that target. `Verify recorded native approvals` checks the integrity of claims that exist. `Require approved native review coverage` separately requires a nonempty, independently approved scope and a verified native approval for every required message/locale pair. Empty records may pass integrity while the release coverage check fails with `REVIEW_REQUIRED`.
 
-## Attestable review records
+There are currently zero reviewer assignments, zero scope approvers and zero native approval records. The release scope is explicitly unapproved. No classifier result, AI output or empty directory constitutes linguistic approval.
 
-Each approved JSON file under resources/data/localization/reviews binds one catalogue (client or server), domain, source key, locale, reviewer GitHub login, PR number, PR review ID, reviewed commit SHA, exact English-source SHA-256 and translation SHA-256. The approved record has version=1, decision=approved and scope=native-translation. The filename is SHA-256 of catalogue:domain:key:locale with .json suffix. The reviewBindingSha256 is computed by the exported binding function in scripts/check-localization-review-provenance.mjs. No invented identities, review numbers or signed records may be added.
+## Native records and stable identities
 
-A qualified native reviewer must use the **real GitHub PR Approve review action**, on the specified commit, and include the following line (with the actual digest):
+Each JSON record in `resources/data/localization/reviews` has `version: 2`, `decision: approved` and `scope: native-translation`. It binds catalogue, domain, key, locale, exact source/translation SHA-256, reviewer GitHub login, reviewed PR, reviewed commit and review ID. The filename is SHA-256 of `catalogue:domain:key:locale` with a `.json` suffix; `binding()` in the provenance checker computes `reviewBindingSha256`.
 
-Approval-Record-SHA256: <reviewBindingSha256>
+PHP keys use Laravel group/key identities such as `accounts.mail.verify.subject`. Positional identities such as `accounts.php#1` are rejected. The PHP exporter evaluates trusted catalogue arrays with PHP itself, preserving escaping and nested keys. Current exports can include locked Laravel English framework catalogues with recorded file and Composer-lock hashes. Missing source or translation text cannot be approved. The separate immutable ordinal bridge exists only to recover the historical candidate identity; it is never a new approval reference.
 
-The GitHub API validates state=APPROVED, GitHub login, reviewed head and review-body digest. The workflow also re-exports all effective locale messages, server JSON and positional account PHP messages. A changed source or translated string invalidates its prior review. Review decisions in chat, issue comments, spreadsheets and AI output are not approved GitHub reviews.
+A qualified native reviewer must submit an actual GitHub **Approve** review containing an exact line:
 
-## Three required gates before leaving draft
+```
+Approval-Record-SHA256: <actual reviewBindingSha256>
+```
 
-**Assigned identity:** A new resources/data/localization/reviewer-assignments.json starts with version=1, assignments={}. To accept a review, the locale assignment must name the same GitHub login as the real PR APPROVED review, be marked qualified=true and status=active, and cover the exact client/server catalogue and domain. Empty assignments cannot create a valid approval. Appoint qualified native-language reviewers through issue #182; the current governance CODEOWNER is not an automatic native reviewer.
+The checker verifies the authenticated review ID, `APPROVED` state, login, digest, submitted timestamp and live PR head. The record commit, review commit and current head of that reviewed PR must agree. Self-approval, dismissed reviews, wrong IDs, changed text and stale heads fail. Repeated records sharing an approval reuse one authenticated API response within the run.
 
-**Stale approvals:** The checker now fetches both the GitHub APPROVED review and its PR metadata. It requires reviewedCommitSha, the review's commit_id, and the PR's live head.sha to match exactly, even if automatic stale-review dismissal is disabled. It separately rejects a dismissed review, wrong actor, changed text, and reviewer self-approval. Branch rules should STILL enable dismiss-stale-approvals to protect non-localization code paths.
+The reviewer must also have an active, qualified assignment for the exact locale, catalogue and domain in `reviewer-assignments.json`. The locale list derives from the shared registry. CODEOWNERS custody does not imply native proficiency.
 
-**Bootstrapping:** When there are zero assigned reviewers and no approved records, CI passes the provenance **integrity** check, but outputs status=REVIEW_REQUIRED, zero approved, and a clear unreviewed count. The count currently comes from the strict Tier1a *provisional* English risk screen (the original 511-candidate algorithm applied to the current export) times 16 native locales. When that input remains 511, it reports 8176 review-required units, not approvals. This is a staffing estimate, NOT the owner-approved Tier 1 release manifest. The 613 expanded candidate list in PR #185 is separate and must not silently replace the frozen scope. Product/security owners must later freeze the list and add coverage enforcement that fails release when required native approvals are absent.
+## Approved release scope
 
-## Mandatory governance still missing
+`release-review-scope.json` starts with `status: review_required` and no units. After independent English-source classification and adjudication, the product/security owner selects the required message/locale units. Every unit binds a stable identity and exact current English and translated hashes. The manifest also binds the source revision, classifier revision, locale registry and a description of the approved scope.
 
-The provenance job **cannot prove all Tier 1 translations are reviewed** until a product/security-approved list of required Tier 1 message IDs and per-locale coverage is frozen and included in a fail-closed coverage gate. The 511/613 candidate counts are exploratory, not approved scope. An empty registry means zero verified approvals, not green linguistic quality.
+A scope approver must be explicitly appointed in `scope-approvers.json` with active status and source-risk qualification. `scopeBinding()` hashes the complete contract with deterministically sorted units. A real, independent GitHub Approve review on the frozen source PR must contain:
 
-The CODEOWNERS patterns here designate the existing repository governance custodian only. They do NOT represent native proficiency. Recruit qualified 16-locale reviewers in issue #182, add actual qualified GitHub handles to the appropriate patterns, and configure target branch protection/rulesets so code-owner reviews and the provenance workflow are required. GitHub CODEOWNERS without a protected-branch rule is notification, not enforcement. That administrative prerequisite must be verified before accepting native sign-offs.
+```
+Localization-Scope-SHA256: <actual scopeBinding(scope)>
+```
 
-## Acceptance
+Its PR, review ID, login and current head are checked just as strictly as native evidence. Changing units, hashes, classification rules or the locale registry invalidates the scope binding. An empty approved scope is rejected. The original 511 candidates and exploratory 613 are not automatically converted into mandatory release scope.
 
-- [ ] Negative tests for forged review/invalid actor, wrong locale, stale text, and missing approval
-- [ ] Final-head CI confirms provenance checker and zero native approvals until real sign-offs exist
-- [ ] Product/security owner adjudicates Tier 1 scope; CI requires coverage before native high-risk wording can ship
-- [ ] Qualified native reviewers recruited, permissioned, and assigned in CODEOWNERS
-- [ ] Target branch is protected with required code-owner reviews and status checks
-- [ ] Real native-review round-trip validated independently
+Coverage then resolves every unit against current exports and revalidates each native approval. Duplicate units, duplicate records, unsupported locales, missing approvals, stale content, unassigned people and unverifiable GitHub evidence fail. The success result means the independently selected scope is covered; it does not claim every string in every language has been reviewed.
 
-No runtime string, PHP locale parser, cookie, localStorage, or PR 5B behavior changes are in this PR.
+## Operational review round-trip
+
+1. Appoint actual qualified source-risk owners and native reviewers, obtain their consent/access, and protect the governing assignments and scope files through the repository review process.
+2. Freeze the exact source PR head and blinded classification artifacts from #185. Lock independent English judgments before deblinding, adjudicate disagreements and select the release scope.
+3. Export current values, prepare the source/translation hashes and proposed bindings, then let the independent people review those exact values and submit their GitHub Approve attestations.
+4. Record real PR/review IDs and digests in a **separate evidence PR**. Keep the reviewed source PR head unchanged; adding records to that same PR after approval would correctly invalidate its head binding.
+5. Run both checks with read-only authenticated GitHub access. Inspect the retained `review-integrity.json` and `release-coverage.json`, including missing units. Verify a real native reviewer round-trip before treating the process as operational.
+
+Tests use explicit verification fixtures to cover tampering and missing coverage. They are not evidence that a human review round-trip has occurred. No real reviewer has yet completed that acceptance step.
+
+## Governance status and validation
+
+On November 13, 2026, GitHub's branch listing reports `codex/audit-stabilization` at `126ef527cd6f14bb265fdc520551304b6a57c161` with `protected: false`, and the repository ruleset listing is empty. These are observed settings, not an enforced review policy. The maintainer must require code-owner reviews, stale-approval dismissal and the appropriate status checks through repository administration before release acceptance. Adding CODEOWNERS text alone does not enforce them.
+
+The production release checker is tested against the real empty bootstrap: integrity reports zero approvals and release coverage exits unsuccessfully with `REVIEW_REQUIRED`. Eleven focused tests cover valid fixture coverage, empty/unapproved scope, missing units, forged/dismissed approval, stale rules/registry/content, duplicate identities, wrong review IDs, assignments and stable PHP resolution. Hosted final-head validation and a real independent review remain required.
+
+The branch includes prior runtime/registry prerequisites and #185's stable-key infrastructure. This governance slice changes no message value and implements no preference synchronization. It remains draft until the external review and administration requirements are fulfilled.

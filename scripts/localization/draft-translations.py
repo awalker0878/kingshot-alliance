@@ -9,7 +9,8 @@ import re
 import time
 import urllib.request
 
-LOCALES = ['ar', 'de', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'th', 'tr', 'vi', 'zh-CN', 'zh-TW']
+REGISTRY = json.loads((Path(__file__).resolve().parents[2] / 'resources/data/localization/locales.json').read_text())
+LOCALES = [locale['code'] for locale in REGISTRY['locales'] if locale['code'] != REGISTRY['defaultLocale']]
 REVISION = 'aa32bbdeba7880eff2096ec044cb155a340a9400'
 MODEL = 'Nextcloud-AI/madlad400-3b-mt-ct2-int8'
 MODEL_FILES = {
