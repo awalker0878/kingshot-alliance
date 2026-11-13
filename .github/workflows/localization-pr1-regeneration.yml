@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   regeneration:
-    if: github.head_ref == 'codex/localization-pr1-critical-baseline'
+    if: github.head_ref == 'codex/localization-pr1-critical-baseline' || github.head_ref == 'codex/localization-shared-registry'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
@@ -38,7 +38,7 @@ jobs:
       - name: Verify saved drafts are complete
         shell: bash
         run: |
-          for lang in ar de es fr id it ja ko pl pt-BR ru th tr vi zh-CN zh-TW; do
+          for lang in $(node scripts/localization/list-locales.mjs --translated --lines); do
             test -s ".translation-output/${lang}.jsonl" || {
               echo "Missing original draft: ${lang}"; exit 1;
             }
