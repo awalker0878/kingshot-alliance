@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   regeneration:
-    if: github.head_ref == 'codex/localization-pr1-critical-baseline' || github.head_ref == 'codex/localization-shared-registry'
+    if: github.head_ref == 'codex/localization-pr1-critical-baseline' || github.head_ref == 'codex/localization-shared-registry' || github.head_ref == 'codex/localization-integrated-acceptance'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:

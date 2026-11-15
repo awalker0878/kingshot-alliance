@@ -1,6 +1,9 @@
-name: Localization post-merge baseline fingerprints
+name: Localization acceptance and post-merge fingerprints
 
 on:
+  pull_request:
+    branches:
+      - codex/audit-stabilization
   push:
     branches:
       - codex/audit-stabilization
@@ -11,6 +14,7 @@ permissions:
 
 jobs:
   verify-merged-baseline:
+    if: github.event_name != 'pull_request' || github.head_ref == 'codex/localization-integrated-acceptance'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -32,6 +36,30 @@ jobs:
         run: |
           node scripts/prepare-localization-baseline.mjs .translation-pr1-baseline
           node scripts/prepare-localization-baseline.mjs .translation-pr3-current --current
+
+      - name: Record candidate and actual checkout provenance
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          import { createHash } from 'node:crypto';
+          const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+          const git = (ref) => execFileSync('git', ['rev-parse', ref], { encoding: 'utf8' }).trim();
+          const candidate = event.pull_request?.head.sha ?? process.env.GITHUB_SHA;
+          const evidence = {
+            candidateHead: candidate,
+            candidateTree: git(candidate + '^{tree}'),
+            baseHead: event.pull_request?.base.sha ?? null,
+            checkoutCommit: git('HEAD'),
+            checkoutTree: git('HEAD^{tree}'),
+            workflowRun: `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+            composerLockSha256: createHash('sha256').update(readFileSync('composer.lock')).digest('hex'),
+            npmLockSha256: createHash('sha256').update(readFileSync('package-lock.json')).digest('hex'),
+            nativeReleaseApproval: 'not-assessed-by-this-job',
+          };
+          writeFileSync('.translation-pr3-current/build-provenance.json', JSON.stringify(evidence, null, 2) + '\n');
+          console.log(JSON.stringify(evidence, null, 2));
+          JS
 
       - name: Verify original immutable pinned 8-hash baseline
         run: |
@@ -61,6 +89,7 @@ jobs:
         with:
           name: localization-postmerge-fingerprints
           path: |
+            .translation-pr3-current/build-provenance.json
             .translation-pr3-current/postmerge-source-delta.json
             .translation-pr3-current/effective-all-locales.json
             .translation-pr3-current/effective-en.json
@@ -72,4 +101,5 @@ jobs:
             .translation-pr3-current/recipient-overlay-overlap.json
             .translation-pr1-baseline/tier1a-exploratory.json
           if-no-files-found: warn
+          include-hidden-files: true
           retention-days: 14
