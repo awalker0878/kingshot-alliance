@@ -1,3 +1,4 @@
+import { selectLocale } from './select-locale';
 import { expect, test } from '@playwright/test';
 
 const rooms = [
@@ -36,7 +37,7 @@ for (const room of rooms) {
 
     const locales = testInfo.project.name === 'rtl-tablet' ? ['ar'] : ['en', 'fr', 'pt-BR', 'ar'];
     for (const locale of locales) {
-      await page.locator('select').filter({ has: page.locator('option[value="pt-BR"]') }).first().selectOption(locale);
+      await selectLocale(page, locale);
       await expect(page.locator('html')).toHaveAttribute('lang', locale);
       await page.goto(room.path);
       await page.waitForLoadState('networkidle');
