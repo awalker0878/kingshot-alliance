@@ -88,8 +88,13 @@ test('remote failure preserves displayed language and retries the latest shared 
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   const response = await context.request.get('/login');
   expect(await response.text()).toMatch(/<html[^>]+lang="fr"/);
-  // Prevent this tab's notification from starting a new load before explicit retry.
-  await page.evaluate(() => window.addEventListener('storage', (event) => event.stopImmediatePropagation(), { capture: true }));
+  // Pause automatic reconciliation so this journey specifically exercises retry.
+  // Clicking the background tab otherwise legitimately reconciles on window focus.
+  await page.evaluate(() => {
+    const hold = (event: Event) => event.stopImmediatePropagation();
+    for (const name of ['storage', 'focus', 'pageshow']) window.addEventListener(name, hold, { capture: true });
+    document.addEventListener('visibilitychange', hold, { capture: true });
+  });
   await change(peer, 'ar');
   await page.getByRole('button', { name: 'Try again' }).click();
   await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
