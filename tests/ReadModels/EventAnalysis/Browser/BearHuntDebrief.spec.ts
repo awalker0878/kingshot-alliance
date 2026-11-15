@@ -21,7 +21,8 @@ async function openBearHuntDebrief(page: Page): Promise<void> {
     if (/select governor/i.test(label)) {
       await identitySwitcher.click();
       await page.getByRole('listbox', { name: 'Active Governor' }).getByRole('option').first().click();
-      await page.waitForURL('**/dashboard');
+      await expect(page.getByRole('listbox', { name: 'Active Governor' })).toHaveCount(0);
+      await expect(identitySwitcher).toHaveAttribute('aria-busy', 'false');
     }
   }
 
