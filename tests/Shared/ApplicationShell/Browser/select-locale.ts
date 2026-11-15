@@ -9,8 +9,9 @@ export async function selectLocale(page: Page, locale: string): Promise<void> {
   if (openNavigation) await page.locator('header:visible > button').first().click();
   await selector.selectOption(locale);
   await expect(page.locator('html')).toHaveAttribute('lang', locale);
-  await expect(selector).toBeEnabled();
-  if (openNavigation) {
-    await page.locator('aside:visible button').filter({ hasText: /^×$/ }).click();
+  // A layout replacement can already have closed compact navigation. The
+  // selected language is asserted above; do not wait on a disposed selector.
+  if (openNavigation && await selector.isVisible()) {
+    await page.locator('aside:visible button').filter({ hasText: '×' }).click({ timeout: 5000 });
   }
 }

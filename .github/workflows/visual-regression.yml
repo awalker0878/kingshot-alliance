@@ -150,7 +150,9 @@ jobs:
           exit 1
 
       - name: Run visual regression
-        run: npm run test:visual
+        # Preserve traces promptly if repeated failures would exhaust the job.
+        # A successful run still executes the complete configured suite.
+        run: npm run test:visual -- --max-failures=3
 
       - name: Print application failure log
         if: failure()
@@ -158,7 +160,7 @@ jobs:
         run: cat "${RUNNER_TEMP}/ux-p9-server.log" || true
 
       - name: Upload visual failure evidence
-        if: failure()
+        if: failure() || cancelled()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ux-p9-visual-failure

@@ -83,19 +83,24 @@ test('remote failure preserves displayed language and retries the latest shared 
   const peer = await context.newPage();
   await peer.goto('/');
   await page.route(chunk('public', 'fr'), (route) => route.abort('failed'));
+  let blockedArabic = 0;
+  await page.route(chunk('public', 'ar'), (route) => {
+    blockedArabic++;
+    return route.abort('failed');
+  });
   await change(peer, 'fr');
   await expect(page.getByRole('alert')).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   const response = await context.request.get('/login');
   expect(await response.text()).toMatch(/<html[^>]+lang="fr"/);
-  // Pause automatic reconciliation so this journey specifically exercises retry.
-  // Clicking the background tab otherwise legitimately reconciles on window focus.
-  await page.evaluate(() => {
-    const hold = (event: Event) => event.stopImmediatePropagation();
-    for (const name of ['storage', 'focus', 'pageshow']) window.addEventListener(name, hold, { capture: true });
-    document.addEventListener('visibilitychange', hold, { capture: true });
-  });
+  // The background tab remains unable to load either language while its peer
+  // publishes a newer choice. Restore connectivity, then retry that newest choice.
   await change(peer, 'ar');
+  await expect.poll(() => blockedArabic).toBeGreaterThan(0);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.getByRole('alert')).toBeVisible();
+  await page.unroute(chunk('public', 'fr'));
+  await page.unroute(chunk('public', 'ar'));
   await page.getByRole('button', { name: 'Try again' }).click();
   await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
