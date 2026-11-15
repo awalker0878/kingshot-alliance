@@ -49,7 +49,8 @@ test('@km16 Explorer exposes semantic keyboard, touch, responsive and RTL journe
   await openExplorer(page);
 
   if (testInfo.project.name === 'rtl-tablet') {
-    await page.evaluate(() => window.localStorage.setItem('kingshot.locale', 'ar'));
+    await page.locator('select').filter({ has: page.locator('option[value="pt-BR"]') }).first().selectOption('ar');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
     await page.reload();
     await page.waitForLoadState('networkidle');
     await expect(page.locator('html')).toHaveAttribute('lang', 'ar');

@@ -5,14 +5,15 @@ export interface LocaleLoadCoordinatorOptions<Locale extends string, Domain exte
   load(locale: Locale, domains: Domain[]): Promise<void>;
   /** Commit reactive UI state only after the latest successful load. */
   commit(locale: Locale): void;
-  /** Replaceable persistence boundary for Phase 5B; generation logic stays untouched. */
+  /** Optional side effect after an authorized, generation-guarded UI commit. */
   persistSelection?(locale: Locale, persist: boolean): void;
   loadFailed?(error: unknown): void;
 }
 
 /**
  * Single generation-guarded commit path shared by locale and page navigation.
- * Does not own cookie/localStorage precedence (reserved for PR 5B).
+ * Preference reconciliation supplies a final authorization callback; this module
+ * continues to own locale and navigation generations.
  */
 export function createLocaleLoadCoordinator<Locale extends string, Domain extends string>(
   options: LocaleLoadCoordinatorOptions<Locale, Domain>,
@@ -24,7 +25,7 @@ export function createLocaleLoadCoordinator<Locale extends string, Domain extend
   let localeRequest = 0;
   let pageRequest = 0;
 
-  async function setLocale(next: Locale, persist = true): Promise<void> {
+  async function setLocale(next: Locale, persist = true, authorize?: () => boolean): Promise<void> {
     const request = ++localeRequest;
     try {
       // Navigation may start during an in-flight language import.
@@ -50,6 +51,7 @@ export function createLocaleLoadCoordinator<Locale extends string, Domain extend
       throw error;
     }
     if (request !== localeRequest) return;
+    if (authorize && !authorize()) return;
     locale = next;
     options.commit(next);
     options.persistSelection?.(next, persist);

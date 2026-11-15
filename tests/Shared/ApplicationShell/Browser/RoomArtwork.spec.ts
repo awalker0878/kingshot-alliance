@@ -36,7 +36,8 @@ for (const room of rooms) {
 
     const locales = testInfo.project.name === 'rtl-tablet' ? ['ar'] : ['en', 'fr', 'pt-BR', 'ar'];
     for (const locale of locales) {
-      await page.evaluate((value) => window.localStorage.setItem('kingshot.locale', value), locale);
+      await page.locator('select').filter({ has: page.locator('option[value="pt-BR"]') }).first().selectOption(locale);
+      await expect(page.locator('html')).toHaveAttribute('lang', locale);
       await page.goto(room.path);
       await page.waitForLoadState('networkidle');
       await page.evaluate(() => document.fonts.ready);

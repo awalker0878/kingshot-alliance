@@ -10,11 +10,15 @@ import {
   type LocaleCode,
 } from './locales';
 import { domainsForPage, hasLocaleCatalogue, type LocalizationDomain } from './registry';
+import { createLocalePreferences, preferenceStorage } from './preferences';
 import type { TranslationParams } from './types';
 
-const storageKey = 'kingshot.locale';
 const currentLocale = ref<LocaleCode>(defaultLocale);
 const localeLoadFailed = ref(false);
+const desiredLocale = ref<LocaleCode>(defaultLocale);
+const serverDocumentLocale = typeof document === 'undefined' ? null : document.documentElement.lang;
+let preferredStartupLocale: string | null | undefined;
+let listenersInstalled = false;
 
 function interpolate(value: string, params?: TranslationParams): string {
   if (!params) return value;
@@ -32,13 +36,6 @@ function applyDocumentLanguage(locale: LocaleCode): void {
   document.documentElement.dir = definition.direction;
 }
 
-function writeLocaleCookie(locale: LocaleCode): void {
-  if (typeof document === 'undefined' || typeof window === 'undefined') return;
-  // Keep server validation and account-email requests in the selected UI language.
-  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-  document.cookie = `kingshot_locale=${locale}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
-}
-
 const coordinator = createLocaleLoadCoordinator<LocaleCode, LocalizationDomain>({
   initialLocale: defaultLocale,
   coreDomain: 'core',
@@ -49,19 +46,62 @@ const coordinator = createLocaleLoadCoordinator<LocaleCode, LocalizationDomain>(
     localeLoadFailed.value = false;
     applyDocumentLanguage(locale);
   },
-  persistSelection(locale, persist) {
-    // PR 5B can replace cookie and local-storage reconciliation here without
-    // modifying the generation-guarded request/commit lifecycle.
-    writeLocaleCookie(locale);
-
-    if (persist && typeof window !== 'undefined') {
-      window.localStorage.setItem(storageKey, locale);
-    }
-  },
   loadFailed() {
     localeLoadFailed.value = true;
   },
 });
+
+const preferences = createLocalePreferences({
+  readCookie(name) {
+    if (typeof document === 'undefined') return null;
+    const prefix = `${name}=`;
+    return (
+      document.cookie
+        .split(';')
+        .map((part) => part.trim())
+        .find((part) => part.startsWith(prefix))
+        ?.slice(prefix.length) ?? null
+    );
+  },
+  writeCookie(name, value) {
+    if (typeof document === 'undefined' || typeof window === 'undefined') return;
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `${name}=${value}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+  },
+  writeStorage(key, value) {
+    if (typeof window !== 'undefined') window.localStorage.setItem(key, value);
+  },
+  fallbackLocale() {
+    const candidates = [preferredStartupLocale];
+    candidates.push(serverDocumentLocale);
+    if (typeof window !== 'undefined')
+      candidates.push(...window.navigator.languages, window.navigator.language);
+    return candidates.map(normalizeLocale).find((locale) => locale !== null) ?? defaultLocale;
+  },
+  newId: () => globalThis.crypto.randomUUID().replaceAll('-', ''),
+  load: (locale, authorize) => coordinator.setLocale(locale, false, authorize),
+  desired(locale) {
+    desiredLocale.value = locale;
+  },
+});
+
+function installPreferenceListeners(): void {
+  if (listenersInstalled || typeof window === 'undefined') return;
+  listenersInstalled = true;
+  const reconcile = (value?: string | null) => {
+    void preferences.synchronize(value).catch(() => {
+      /* Existing UI and retry remain available. */
+    });
+  };
+  window.addEventListener('storage', (event) => {
+    if (event.key === preferenceStorage || event.key === null) reconcile(event.newValue);
+  });
+  window.addEventListener('focus', () => reconcile());
+  window.addEventListener('pageshow', () => reconcile());
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') reconcile();
+  });
+}
 
 export async function ensureDomain(domain: LocalizationDomain): Promise<void> {
   await coordinator.ensureDomain(domain);
@@ -81,26 +121,21 @@ export function activatePageDomains(pageName: string): void {
 
 export async function setLocale(locale: LocaleCode, persist = true): Promise<void> {
   if (!hasLocaleCatalogue(locale)) return;
-  await coordinator.setLocale(locale, persist);
+  if (persist) await preferences.select(locale);
+  else await coordinator.setLocale(locale, false);
 }
 
 export async function initializeLocale(preferredLocale?: string | null): Promise<void> {
-  const candidates: Array<string | null | undefined> = [preferredLocale];
-
-  if (typeof window !== 'undefined') {
-    candidates.push(window.localStorage.getItem(storageKey));
-    candidates.push(...window.navigator.languages);
-    candidates.push(window.navigator.language);
+  preferredStartupLocale = preferredLocale;
+  installPreferenceListeners();
+  try {
+    await preferences.initialize();
+  } catch {
+    // Mount a usable shell if the selected catalogue fails during startup.
+    // Keep the shared preference and desired locale intact for explicit retry.
+    await coordinator.setLocale(defaultLocale, false);
+    localeLoadFailed.value = true;
   }
-
-  const locale = candidates
-    .map((candidate) => normalizeLocale(candidate))
-    .find(
-      (candidate): candidate is LocaleCode => candidate !== null && hasLocaleCatalogue(candidate),
-    );
-  const selected = locale ?? defaultLocale;
-
-  await coordinator.setLocale(selected, false);
 }
 
 export function t(key: string, params?: TranslationParams): string {
@@ -134,10 +169,12 @@ export function useLocale() {
   return {
     locale: readonly(currentLocale),
     localeLoadFailed: readonly(localeLoadFailed),
+    desiredLocale: readonly(desiredLocale),
     definition,
     direction: computed(() => definition.value.direction),
     availableLocales,
     setLocale,
+    retryLocale: preferences.retry,
     ensureDomain,
     formatNumber,
     formatDate,

@@ -92,7 +92,8 @@ test('Bear Hunt Debrief remains readable and complete on desktop and mobile', as
 
 test('Bear Hunt Debrief long localized strings do not overflow', async ({ page }) => {
   await openBearHuntDebrief(page);
-  await page.evaluate(() => window.localStorage.setItem('kingshot.locale', 'de'));
+  await page.locator('select').filter({ has: page.locator('option[value="pt-BR"]') }).first().selectOption('de');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'de');
   await page.reload();
   await page.waitForLoadState('networkidle');
   await page.evaluate(() => document.fonts.ready);

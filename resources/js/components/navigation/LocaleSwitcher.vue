@@ -4,15 +4,14 @@ import { ref } from 'vue';
 import { useLocale } from '../../localization';
 import type { LocaleCode } from '../../localization/locales';
 
-const { locale, localeLoadFailed, availableLocales, setLocale, t } = useLocale();
-const requestedLocale = ref<LocaleCode | null>(null);
+const { locale, localeLoadFailed, availableLocales, setLocale, retryLocale, t } = useLocale();
 const changing = ref(false);
 
-async function selectLocale(next: LocaleCode): Promise<void> {
-  requestedLocale.value = next;
+async function selectLocale(next?: LocaleCode): Promise<void> {
   changing.value = true;
   try {
-    await setLocale(next);
+    if (next) await setLocale(next);
+    else await retryLocale();
   } catch {
     // The coordinator retains the current locale and exposes the failure below.
   } finally {
@@ -46,13 +45,7 @@ async function changeLocale(event: Event): Promise<void> {
   </label>
   <span v-if="localeLoadFailed" role="alert" class="text-sm text-[var(--ks-text-secondary)]">
     {{ t('common.language') }}: {{ t('giftCodes.needsAttention') }}.
-    <button
-      v-if="requestedLocale"
-      type="button"
-      class="underline"
-      :disabled="changing"
-      @click="selectLocale(requestedLocale)"
-    >
+    <button type="button" class="underline" :disabled="changing" @click="selectLocale()">
       {{ t('giftCodes.tryAgain') }}
     </button>
   </span>

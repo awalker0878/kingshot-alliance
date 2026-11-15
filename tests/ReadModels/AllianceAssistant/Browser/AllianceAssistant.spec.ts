@@ -170,7 +170,8 @@ test('Alliance Assistant supports keyboard submission and a localized non-overfl
   await expect(assistant.getByText(/Swordland starts/)).toBeVisible();
   await expect(assistant.getByText(/Rally Lead/)).toBeVisible();
 
-  await page.evaluate(() => window.localStorage.setItem('kingshot.locale', 'de'));
+  await page.locator('select').filter({ has: page.locator('option[value="pt-BR"]') }).first().selectOption('de');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'de');
   await page.reload();
   await page.waitForLoadState('networkidle');
   await page.evaluate(() => document.fonts.ready);

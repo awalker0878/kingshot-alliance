@@ -12,6 +12,16 @@ use Tests\TestCase;
 
 final class RequestLocaleTest extends TestCase
 {
+    public function test_versioned_cookie_wins_legacy_cookie_and_invalid_metadata_falls_back(): void
+    {
+        $middleware = new ResolveRequestLocale;
+        foreach (['1.'.str_repeat('a', 32).'.7.'.str_repeat('b', 32).'.fr' => 'fr', 'broken' => 'ar'] as $cookie => $expected) {
+            $request = Request::create('/', cookies: ['kingshot_locale_state' => $cookie, 'kingshot_locale' => 'ar'], server: ['HTTP_ACCEPT_LANGUAGE' => 'en']);
+            $middleware->handle($request, static fn (): Response => new Response);
+            self::assertSame($expected, app()->getLocale());
+        }
+    }
+
     public function test_selected_language_takes_precedence_over_the_browser_language(): void
     {
         $request = Request::create('/', cookies: ['kingshot_locale' => 'ar'], server: ['HTTP_ACCEPT_LANGUAGE' => 'fr-CA,en;q=0.8']);

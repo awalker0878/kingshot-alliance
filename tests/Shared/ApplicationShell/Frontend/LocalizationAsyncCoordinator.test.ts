@@ -3,6 +3,7 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
+import { createLocalePreferences } from '../../../../resources/js/localization/preferences.ts';
 import { createLocaleLoadCoordinator } from '../../../../resources/js/localization/async-coordinator.ts';
 
 type Locale = 'en' | 'ar' | 'fr';
@@ -178,9 +179,11 @@ function actualFrontendHarness(coordinatorSourceOverride?: string) {
   const requests: Array<{ locale: Locale; domains: Domain[]; gate: ReturnType<typeof deferred> }> = [];
   const writes = new Map<string, string>();
   const cookieWrites: string[] = [];
+  const cookies = new Map<string, string>();
   const documentElement = { lang: 'en', dir: 'ltr' };
   const browserWindow = {
     location: { protocol: 'https:' },
+    navigator: { languages: ['en'], language: 'en' },
     localStorage: {
       setItem(key: string, value: string) {
         writes.set(key, value);
@@ -189,7 +192,10 @@ function actualFrontendHarness(coordinatorSourceOverride?: string) {
   };
   const fakeDocument = {
     documentElement,
+    get cookie() { return [...cookies].map(([key, value]) => `${key}=${value}`).join('; '); },
     set cookie(value: string) {
+      const [key, content] = value.split(';')[0]!.split('=');
+      cookies.set(key!, content!);
       cookieWrites.push(value);
     },
   };
@@ -202,6 +208,7 @@ function actualFrontendHarness(coordinatorSourceOverride?: string) {
       };
     }
     if (specifier === './async-coordinator') return coordinatorModule;
+    if (specifier === './preferences') return { createLocalePreferences };
     if (specifier === './loader') {
       return {
         loadDomains(locale: Locale, domains: Domain[]) {
@@ -228,6 +235,7 @@ function actualFrontendHarness(coordinatorSourceOverride?: string) {
   const index = evaluateModule('resources/js/localization/index.ts', requireMock, {
     window: browserWindow,
     document: fakeDocument,
+    crypto: globalThis.crypto,
   }) as {
     setLocale(locale: Locale, persist?: boolean): Promise<void>;
     useLocale(): { locale: { value: Locale } };
@@ -249,8 +257,8 @@ test('real index: stale Arabic completion never flips document lang/dir or persi
   assert.equal(h.documentElement.lang, 'fr');
   assert.equal(h.documentElement.dir, 'ltr');
   assert.equal(h.writes.get('kingshot.locale'), 'fr');
-  assert.equal(h.cookieWrites.length, 1);
-  assert.match(h.cookieWrites[0] ?? '', /^kingshot_locale=fr;/);
+  assert.equal(h.cookieWrites.length, 2);
+  assert.match(h.cookieWrites[1] ?? '', /^kingshot_locale=fr;/);
 
   h.requests[0]!.gate.resolve();
   await arabic;
@@ -258,7 +266,7 @@ test('real index: stale Arabic completion never flips document lang/dir or persi
   assert.equal(h.documentElement.lang, 'fr', 'superseded Arabic must not alter document language');
   assert.equal(h.documentElement.dir, 'ltr', 'superseded Arabic must not flip the document to RTL');
   assert.equal(h.writes.get('kingshot.locale'), 'fr');
-  assert.equal(h.cookieWrites.length, 1);
+  assert.equal(h.cookieWrites.length, 2);
   console.log('STALE DOM COMMIT REJECTED: Arabic finished last; document fr/ltr and persisted fr retained');
 });
 
@@ -280,36 +288,37 @@ test('real index: failed Arabic load cannot touch DOM/cookie/storage, retry comm
   assert.equal(h.documentElement.lang, 'ar');
   assert.equal(h.documentElement.dir, 'rtl');
   assert.equal(h.writes.get('kingshot.locale'), 'ar');
-  assert.equal(h.cookieWrites.length, 1);
-  assert.match(h.cookieWrites[0] ?? '', /^kingshot_locale=ar;/);
+  assert.equal(h.cookieWrites.length, 2);
+  assert.match(h.cookieWrites[1] ?? '', /^kingshot_locale=ar;/);
   console.log('FAILED LOAD PRESERVES DOM: en/ltr retained until successful retry commits ar/rtl');
 });
 
-test('DOM guard negative control: removing the generation checks permits stale Arabic RTL', async () => {
+test('DOM guard negative control: removing coordinator generation checks permits stale Arabic RTL', async () => {
   const source = readFileSync('resources/js/localization/async-coordinator.ts', 'utf8');
   const guard = 'if (request !== localeRequest) return;';
-  assert.equal(source.split(guard).length - 1, 3, 'the source must guard stale success, failure and final commit');
+  assert.equal(source.split(guard).length - 1, 3);
   const broken = source.replaceAll(guard, '/* mutation: stale locale request may commit */');
-  const h = actualFrontendHarness(broken);
-
-  const arabic = h.index.setLocale('ar');
-  const french = h.index.setLocale('fr');
-  h.requests[1]!.gate.resolve();
+  const module = evaluateModule('resources/js/localization/async-coordinator.ts', () => { throw new Error('unexpected import'); }, {}, broken);
+  const gates = [deferred(), deferred()];
+  let count = 0;
+  const dom = { lang: 'en', dir: 'ltr' };
+  let persisted = 'en';
+  const coordinator = (module.createLocaleLoadCoordinator as typeof createLocaleLoadCoordinator<Locale, Domain>)({
+    initialLocale: 'en', coreDomain: 'core', domainsForPage: () => [],
+    load: () => gates[count++]!.promise,
+    commit(locale) { dom.lang = locale; dom.dir = locale === 'ar' ? 'rtl' : 'ltr'; },
+    persistSelection(locale) { persisted = locale; },
+  });
+  const arabic = coordinator.setLocale('ar');
+  const french = coordinator.setLocale('fr');
+  gates[1]!.resolve();
   await french;
-  assert.equal(h.documentElement.dir, 'ltr');
-  assert.equal(h.documentElement.lang, 'fr');
-  h.requests[0]!.gate.resolve();
+  assert.equal(dom.dir, 'ltr');
+  gates[0]!.resolve();
   await arabic;
-
-  assert.equal(h.index.useLocale().locale.value, 'ar', 'the mutant wrongly commits stale Arabic');
-  assert.equal(h.documentElement.lang, 'ar', 'mutant must reproduce stale document language');
-  assert.equal(h.documentElement.dir, 'rtl', 'mutant must reproduce visible RTL flip');
-  assert.equal(h.writes.get('kingshot.locale'), 'ar', 'mutant must reproduce stale persistence');
-  assert.throws(
-    () => assert.equal(h.documentElement.dir, 'ltr', 'superseded Arabic must not flip to RTL'),
-    /superseded Arabic must not flip to RTL/,
-    'the positive DOM direction assertion must fail on the deliberately broken coordinator',
-  );
-  console.log('STALE DOM MUTATION DETECTED: removing generation guards caused ar/rtl and stale persistence');
+  assert.equal(dom.lang, 'ar');
+  assert.equal(dom.dir, 'rtl');
+  assert.equal(persisted, 'ar');
+  assert.throws(() => assert.equal(dom.dir, 'ltr', 'superseded Arabic must not flip to RTL'), /superseded Arabic/);
 });
 }
