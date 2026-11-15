@@ -1,3 +1,4 @@
+import { selectLocale } from '../../../Shared/ApplicationShell/Browser/select-locale';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
@@ -49,7 +50,7 @@ test('@km16 Explorer exposes semantic keyboard, touch, responsive and RTL journe
   await openExplorer(page);
 
   if (testInfo.project.name === 'rtl-tablet') {
-    await page.locator('select').filter({ has: page.locator('option[value="pt-BR"]') }).first().selectOption('ar');
+    await selectLocale(page, 'ar');
   await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
     await page.reload();
     await page.waitForLoadState('networkidle');
