@@ -30,7 +30,7 @@ async function openExplorer(page: Page): Promise<void> {
       const listbox = page.locator('[role="listbox"]:visible').last();
       if ((await listbox.count()) && (await listbox.getByRole('option').count())) {
         await listbox.getByRole('option').first().click();
-        await page.waitForLoadState('networkidle');
+        await expect(listbox).toHaveCount(0);
         activated = true;
         break;
       }
@@ -51,7 +51,7 @@ test('@km16 Explorer exposes semantic keyboard, touch, responsive and RTL journe
 
   if (testInfo.project.name === 'rtl-tablet') {
     await selectLocale(page, 'ar');
-  await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
     await page.reload();
     await page.waitForLoadState('networkidle');
     await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
