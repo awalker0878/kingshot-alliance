@@ -7,6 +7,7 @@ The server and browser now share technical locale definitions and maintenance co
 | Location | Responsibility |
 | --- | --- |
 | `resources/data/localization/locales.json` | Authored codes, names, directions, aliases and default |
+| `resources/data/localization/baselines/` | Original Vite chunk inventory, checksum and CI archive provenance |
 | `app/Shared/Infrastructure/Http/LocaleDefinitions.php` | Generated server definitions |
 | `resources/js/localization/locale-definitions.generated.ts` | Generated browser definitions |
 | `lang/<locale>.json` and `lang/<locale>/*.php` | Laravel validation, server responses and account mail |
@@ -44,6 +45,8 @@ These are historical component results observed on November 15, 2026, not substi
 - Run the pinned classifier/stable-identity replay, review-integrity forgery/staleness tests and actual release-coverage command. Zero human evidence is a release failure even when the integrity job correctly accepts an empty record directory.
 - Run all 16 language compiler replays, the macOS pinned export, six effective/server/risk fingerprints, structural raw-source allowlist and their mutation controls. The acceptance branch enables the existing workflows for this purpose.
 - Preserve measured lazy-loading boundaries and performance budgets: initial JavaScript at most 225 KiB and any page at most 72 KiB. No budget increase or fixed expected historical size delta substitutes for measuring the candidate build.
+
+The original PR1 artifact expired after 14 days. Its saved archive was verified against the original CI upload digest and size, and its exact Vite inventory is now retained under `resources/data/localization/baselines/`. The parity job verifies that inventory's SHA-256 before the existing chunk and compression comparisons. Catalogue fingerprints and historical performance measurements remain unchanged; future comparisons no longer depend on downloading this expired artifact.
 
 The six unchanged message/risk fingerprints are:
 

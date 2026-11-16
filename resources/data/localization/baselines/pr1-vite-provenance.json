@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "description": "Exact original production Vite chunk inventory, retained after its GitHub Actions archive expired. Not a regenerated measurement.",
+  "workflowRun": "https://github.com/awalker0878/kingshot-alliance/actions/runs/41492664793",
+  "uploadJob": "https://github.com/awalker0878/kingshot-alliance/actions/runs/41492664793/job/125439418271",
+  "artifactId": 13163878944,
+  "artifactName": "localization-pr1-baseline",
+  "artifactSha256": "338af6e5447a9c329943cc94f922802724a4523935e0732f549e2912a98fd795",
+  "artifactSizeBytes": 8516882,
+  "artifactEntry": ".translation-pr1-corrected/vite-chunks.json",
+  "inventorySha256": "9fb059494ed819dd26073d1c85f1625f30bea626271b6a50716a645355ce3019",
+  "inventorySizeBytes": 87722,
+  "recordedCheckout": "2af118cf1d541ecaf5cc9d7bca29c44345279929",
+  "recordedCheckoutTree": "57c147ab3097595d818702abdfd3cec6badb28fc",
+  "rebuildSource": "a5151e717020cfe00a32aeddcca6279f9c7042fe",
+  "recoveryVerification": "Saved archive SHA-256 and byte count match the original upload log; extracted entry preserved byte-for-byte.",
+  "nodeVersion": "24.22.1",
+  "npmVersion": "11.19.1"
+}
