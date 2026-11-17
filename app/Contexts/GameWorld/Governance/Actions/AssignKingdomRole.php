@@ -44,7 +44,7 @@ final readonly class AssignKingdomRole
         $effective = $this->input->date($effectiveFrom, 'effective_from');
         $expires = $this->input->date($expiresAt, 'expires_at');
         if ($expires !== null && $expires->lte($effective ?? now())) {
-            throw ValidationException::withMessages(['expires_at' => 'Role expiry must be after its effective time.']);
+            throw ValidationException::withMessages(['expires_at' => (string) __('Role expiry must be after its effective time.')]);
         }
 
         return DB::transaction(function () use ($actorPlayerId, $kingdomId, $targetPlayerId, $roleId, $effective, $expires, $reason): string {
@@ -53,7 +53,7 @@ final readonly class AssignKingdomRole
 
             $target = Player::query()->whereKey($targetPlayerId)->lockForUpdate()->firstOrFail();
             if ((string) $target->current_kingdom_id !== $kingdomId || $target->canonical_player_id !== null) {
-                throw ValidationException::withMessages(['player_id' => 'The selected Player is not currently in this Kingdom.']);
+                throw ValidationException::withMessages(['player_id' => (string) __('The selected Player is not currently in this Kingdom.')]);
             }
 
             $role = KingdomRole::query()
@@ -84,7 +84,7 @@ final readonly class AssignKingdomRole
                     ->where('player_id', '!=', $targetPlayerId)
                     ->exists();
                 if (! $survivingAdmin) {
-                    throw ValidationException::withMessages(['expires_at' => 'A temporary Kingdom Admin requires another administrator whose authority survives that expiry.']);
+                    throw ValidationException::withMessages(['expires_at' => (string) __('A temporary Kingdom Admin requires another administrator whose authority survives that expiry.')]);
                 }
             }
 

@@ -22,12 +22,12 @@ final readonly class KingdomRoleDelegation
         $current = $this->facts->findCurrent($actorPlayerId, $kingdomId);
         foreach ($keys as $key) {
             if ($current === null || ! $current->hasPermissionObservedAtRead($key)) {
-                throw ValidationException::withMessages(['permissions' => 'You can delegate only permissions held by the current Governor.']);
+                throw ValidationException::withMessages(['permissions' => (string) __('You can delegate only permissions held by the current Governor.')]);
             }
         }
         $ids = Permission::query()->whereIn('key', $keys)->whereNotNull('owner_key')->pluck('id')->all();
         if (count($ids) !== count($keys)) {
-            throw ValidationException::withMessages(['permissions' => 'Every permission must have a recognized owning context.']);
+            throw ValidationException::withMessages(['permissions' => (string) __('Every permission must have a recognized owning context.')]);
         }
 
         return array_values(array_map(static fn ($id): string => (string) $id, $ids));
@@ -37,7 +37,7 @@ final readonly class KingdomRoleDelegation
     {
         $keys = $role->permissions()->orderBy('permissions.key')->limit(51)->pluck('permissions.key')->all();
         if (count($keys) > 50) {
-            throw ValidationException::withMessages(['role' => 'The role exceeds the supported permission bound.']);
+            throw ValidationException::withMessages(['role' => (string) __('The role exceeds the supported permission bound.')]);
         }
         $this->permissionIds($actorPlayerId, $kingdomId, array_values(array_map(static fn ($key): string => (string) $key, $keys)));
     }

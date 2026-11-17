@@ -38,13 +38,13 @@ final readonly class PublishContentItem
 
             if ((string) $item->slug === ContentItem::ALLIANCE_RULES_SLUG) {
                 throw ValidationException::withMessages([
-                    'content' => 'Alliance Rules are published only through the dedicated Alliance Rules workflow.',
+                    'content' => (string) __('Alliance Rules are published only through the dedicated Alliance Rules workflow.'),
                 ]);
             }
 
             if (! $item->provenanceIsComplete()) {
                 throw ValidationException::withMessages([
-                    'provenance' => 'Knowledge content requires a source label and review date before publication.',
+                    'provenance' => (string) __('Knowledge content requires a source label and review date before publication.'),
                 ]);
             }
 

@@ -30,7 +30,7 @@ final readonly class RequireRecentAccountAuthentication
         abort_if(
             $this->methods->usableMethodCount($user) < 1,
             403,
-            'This Kingshot Alliance account does not have a usable sign-in method.',
+            (string) __('This Kingshot Alliance account does not have a usable sign-in method.'),
         );
 
         return redirect()->guest(route('password.confirm'));

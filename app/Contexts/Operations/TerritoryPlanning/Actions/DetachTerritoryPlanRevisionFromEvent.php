@@ -27,7 +27,7 @@ final readonly class DetachTerritoryPlanRevisionFromEvent
     ): bool {
         if (! preg_match('/^[a-z][a-z0-9_-]{1,39}$/', $purpose)) {
             throw ValidationException::withMessages([
-                'purpose' => 'Territory plan purpose is invalid.',
+                'purpose' => (string) __('Territory plan purpose is invalid.'),
             ]);
         }
 

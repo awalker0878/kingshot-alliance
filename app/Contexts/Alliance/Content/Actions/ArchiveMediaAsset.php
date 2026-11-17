@@ -41,7 +41,7 @@ final readonly class ArchiveMediaAsset
                 ->where('media_id', $asset->id)
                 ->exists()) {
                 throw ValidationException::withMessages([
-                    'media' => 'Remove this asset from alliance branding before archiving it.',
+                    'media' => (string) __('Remove this asset from alliance branding before archiving it.'),
                 ]);
             }
 

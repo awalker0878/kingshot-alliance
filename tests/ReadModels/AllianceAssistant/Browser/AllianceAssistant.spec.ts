@@ -1,10 +1,11 @@
+import { selectLocale } from '../../../Shared/ApplicationShell/Browser/select-locale';
 import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const assistantVisualFingerprints: Record<string, string> = {
-  desktop: '6142c4e26ceedd3336b1a1d859741bf3e841467037be910e87c4b28a862af445',
-  mobile: 'b5dbe13833b51637b445825609ea58480f27e2d1ad4a42e68718c0ebe0bb6f3a',
+  desktop: '0c4fe3a5ef4dfc86633720ca0e7c631bcdc20d03a2ea81a69a0662b8339a64ed',
+  mobile: '81ca186ef262be22e52e343f389955408004bb1a17105677be5b8d61dd407f89',
 };
 
 const citedSwordlandResponse = {
@@ -170,7 +171,8 @@ test('Alliance Assistant supports keyboard submission and a localized non-overfl
   await expect(assistant.getByText(/Swordland starts/)).toBeVisible();
   await expect(assistant.getByText(/Rally Lead/)).toBeVisible();
 
-  await page.evaluate(() => window.localStorage.setItem('kingshot.locale', 'de'));
+  await selectLocale(page, 'de');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'de');
   await page.reload();
   await page.waitForLoadState('networkidle');
   await page.evaluate(() => document.fonts.ready);

@@ -77,6 +77,8 @@ const messages = {
     changeFrom: '{change} od {date}',
     noComparisonRows: 'Brak porównywalnej historii Gubernatorów.',
     powerTrends: 'Trendy mocy',
+    pageResults: 'Wyświetlanie {count} z {total} pasujących gubernatorów.',
+    pageSizeHelp: 'Do {pageSize} gubernatorów na stronie.',
   },
   rosterManage: {
     manageSubtitle:
@@ -158,6 +160,42 @@ const messages = {
     source: 'Źródło',
     recordedBy: 'Zapisane przez',
     noSnapshots: 'Nie zapisano wpisów zwiadowczych dla tego Gubernatora.',
+    progressionHelp:
+      'Użyj dokładnie zaobserwowanego pieca lub etykiety progresji. Kingshot Alliance nie wyprowadza poziomów gry.',
+    sincePriorObservation: 'od poprzedniej obserwacji',
+    observedChanges: 'Obserwowane zmiany',
+    nameChanged: 'Nazwa',
+    progressionChanged: 'Progresja',
+    allianceChanged: 'tag sojuszu',
+    noObservedChange: 'Nie zmieniono żadnego obserwowanego pola',
+    earlierHistoryNotShown:
+      'Wcześniejsze obserwacje istnieją poza limitem wyświetlania 250 wierszy.',
+    capability: {
+      eyebrow: 'Profil gubernatora',
+      title: 'Co wiemy o tym gubernatorze',
+      help: 'Historie autoryzowanych właścicieli są wyświetlane oddzielnie z oryginalnymi datami i linkami do przepływu pracy. Ten profil nie oblicza siły ani jakości wyników.',
+      events: 'Udział w wydarzeniu',
+      eventSummary: '{completed} zakończone · {absent} nieobecne · {unresolved} nierozwiązane',
+      noEvents: 'Dla tego sojuszu nie zarejestrowano żadnej autoryzowanej historii wydarzeń.',
+      bearHunt: 'Bear Hunt',
+      recordedRuns: '{count} zarejestrowane wyniki gubernatora',
+      latestDamage: 'Ostatnie zaakceptowane uszkodzenia',
+      openDebrief: 'Otwórz podsumowanie',
+      noRecordedRuns: 'Nie zarejestrowano żadnego wyniku gubernatora Bear Hunt.',
+      rallies: 'Udział w rajdzie',
+      noRallies: 'Żadne przydziały Rally nie są rejestrowane w widocznej historii zdarzeń.',
+      battlePlans: 'BattlePlan',
+      noBattlePlans:
+        'Żadne przydziały BattlePlan nie są rejestrowane w widocznej historii zdarzeń.',
+      transfer: 'Ocena transferu',
+      noTransfer: 'Ten gubernator nie jest w aktualnym planie transferu.',
+      evidence: 'Dowody progresji',
+      evidenceSummary:
+        '{review} recenzja · {pending} oczekuje · {committed} zatwierdzono · {failed} nie powiodło się',
+      latestEvidence: 'Najnowsze dowody: {date}',
+      openOwner: 'Otwarty właściciel workflow',
+      unavailable: 'Ta projekcja właściciela jest niedostępna z bieżącym autorytetem.',
+    },
   },
 } satisfies MessageCatalogue;
 

@@ -32,7 +32,7 @@ final readonly class UpdateAllianceRank
     ): string {
         if ($rank === AllianceRank::R5) {
             throw ValidationException::withMessages([
-                'rank' => 'Use Alliance leadership transfer to assign R5.',
+                'rank' => (string) __('Use Alliance leadership transfer to assign R5.'),
             ]);
         }
 
@@ -41,7 +41,7 @@ final readonly class UpdateAllianceRank
             $this->authority->authorizeContext($context, AlliancePermission::RoleManage);
 
             if (! $context->membership->rank->canDelegate($rank)) {
-                throw ValidationException::withMessages(['rank' => 'You cannot assign a rank above your current rank.']);
+                throw ValidationException::withMessages(['rank' => (string) __('You cannot assign a rank above your current rank.')]);
             }
 
             $locked = AllianceMembership::query()
@@ -53,13 +53,13 @@ final readonly class UpdateAllianceRank
 
             if ((string) $locked->player_id === (string) $context->actor->playerId) {
                 throw ValidationException::withMessages([
-                    'rank' => 'The active Player cannot change its own rank through rank administration.',
+                    'rank' => (string) __('The active Player cannot change its own rank through rank administration.'),
                 ]);
             }
 
             if ($locked->rank === AllianceRank::R5) {
                 throw ValidationException::withMessages([
-                    'rank' => 'Use Alliance leadership transfer to change the current R5.',
+                    'rank' => (string) __('Use Alliance leadership transfer to change the current R5.'),
                 ]);
             }
 

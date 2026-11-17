@@ -41,6 +41,27 @@ const messages = {
     noPreviousHelp: 'Der Vergleich erscheint nach einer früheren abgeschlossenen Bärenjagd.',
     history: 'Verlauf',
     runHistory: 'Bärenjagd-Verlauf',
+    signals: {
+      evidence: 'Nachweisstatus',
+      factualSignals: 'Aufgezeichneter Vergleich',
+      reviewPending:
+        'Eine oder mehrere importierte Governor-Zeilen müssen noch Identitätsüberprüfung durchlaufen.',
+      newPersonalBest: 'Neue persönliche Bestzeit aus akzeptierten Ergebnissen',
+      damageDirection: 'Schaden {direction}',
+      rallyDirection: 'Rallye-Teilnahme {direction}',
+      evidenceStates: {
+        accepted: 'Akzeptiertes Screenshot-Ergebnis',
+        recorded_without_accepted_evidence:
+          'Aufgezeichnetes Ergebnis ohne akzeptierte Screenshot-Beweise',
+        unavailable: 'Kein aufgezeichnetes Ergebnis',
+      },
+      directions: {
+        unknown: 'Nicht vergleichbar',
+        increased: 'gestiegen',
+        decreased: 'gesunken',
+        unchanged: 'unverändert',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

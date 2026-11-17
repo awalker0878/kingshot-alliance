@@ -41,7 +41,7 @@ final readonly class RestoreContentRevision
 
             if ((string) $item->slug === ContentItem::ALLIANCE_RULES_SLUG) {
                 throw ValidationException::withMessages([
-                    'content' => 'Alliance Rules revisions are managed only through the dedicated Alliance Rules workflow.',
+                    'content' => (string) __('Alliance Rules revisions are managed only through the dedicated Alliance Rules workflow.'),
                 ]);
             }
 
@@ -60,7 +60,7 @@ final readonly class RestoreContentRevision
 
                 if (! $category instanceof ContentCategory) {
                     throw ValidationException::withMessages([
-                        'revision' => 'This revision references a category that no longer exists. Choose a current category before restoring it.',
+                        'revision' => (string) __('This revision references a category that no longer exists. Choose a current category before restoring it.'),
                     ]);
                 }
             }

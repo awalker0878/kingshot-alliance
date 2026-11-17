@@ -45,7 +45,7 @@ final readonly class MembershipManagementQuery
             $membershipId = $position['id'] ?? null;
             if (! is_string($createdAt) || ! is_string($membershipId)) {
                 throw ValidationException::withMessages([
-                    'member_cursor' => 'The membership cursor is incomplete.',
+                    'member_cursor' => (string) __('The membership cursor is incomplete.'),
                 ]);
             }
 

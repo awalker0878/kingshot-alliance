@@ -60,7 +60,7 @@ final class ProgressionTopologyQuery
             'buildings' => $this->buildingSubjects($dataset),
             'troop_tier' => $this->troopSubjects($dataset),
             'vip' => [['id' => 'vip', 'label' => 'VIP', 'context' => []]],
-            default => throw ValidationException::withMessages(['family' => 'The selected progression planner family is unsupported.']),
+            default => throw ValidationException::withMessages(['family' => (string) __('The selected progression planner family is unsupported.')]),
         };
     }
 
@@ -82,7 +82,7 @@ final class ProgressionTopologyQuery
             'buildings' => $this->buildingStates($dataset, $subjectId),
             'troop_tier' => $this->troopTierStates($dataset, $subjectId),
             'vip' => $this->vipStates($dataset),
-            default => throw ValidationException::withMessages(['family' => 'The selected progression planner family is unsupported.']),
+            default => throw ValidationException::withMessages(['family' => (string) __('The selected progression planner family is unsupported.')]),
         };
     }
 

@@ -28,16 +28,16 @@ final readonly class PreviewBulkMembershipRoleChange
     {
         $membershipIds = array_values(array_unique($membershipIds));
         if ($membershipIds === [] || count($membershipIds) > 50) {
-            throw ValidationException::withMessages(['membership_ids' => 'Select between 1 and 50 Alliance memberships.']);
+            throw ValidationException::withMessages(['membership_ids' => (string) __('Select between 1 and 50 Alliance memberships.')]);
         }
         if (! in_array($operation, ['assign', 'remove'], true)) {
-            throw ValidationException::withMessages(['operation' => 'Choose assign or remove.']);
+            throw ValidationException::withMessages(['operation' => (string) __('Choose assign or remove.')]);
         }
         $this->authorization->authorize($actorPlayerId, $allianceId, AlliancePermission::RoleManage);
 
         $role = Role::query()->whereKey($roleId)->where('alliance_id', $allianceId)->with('permissions:id,key')->firstOrFail();
         if ($operation === 'assign' && $role->archived_at !== null) {
-            throw ValidationException::withMessages(['role' => 'Archived specialist roles cannot be assigned.']);
+            throw ValidationException::withMessages(['role' => (string) __('Archived specialist roles cannot be assigned.')]);
         }
         $alliance = Alliance::query()->findOrFail($allianceId);
         $actor = AllianceMembership::query()->where('alliance_id', $allianceId)

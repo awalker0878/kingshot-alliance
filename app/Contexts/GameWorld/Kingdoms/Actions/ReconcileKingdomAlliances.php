@@ -37,13 +37,13 @@ final readonly class ReconcileKingdomAlliances
     ): KingdomAllianceReference {
         $reason = trim($reason);
         if ($canonicalKingdomAllianceId === $duplicateKingdomAllianceId) {
-            throw ValidationException::withMessages(['duplicate_kingdom_alliance_id' => 'Canonical and duplicate Alliance identities must be different.']);
+            throw ValidationException::withMessages(['duplicate_kingdom_alliance_id' => (string) __('Canonical and duplicate Alliance identities must be different.')]);
         }
         if ($reason === '') {
-            throw ValidationException::withMessages(['reason' => 'A reconciliation reason is required.']);
+            throw ValidationException::withMessages(['reason' => (string) __('A reconciliation reason is required.')]);
         }
         if ($confidenceBasisPoints !== null && ($confidenceBasisPoints < 0 || $confidenceBasisPoints > 10000)) {
-            throw ValidationException::withMessages(['confidence_basis_points' => 'Confidence must be between 0 and 10000 basis points.']);
+            throw ValidationException::withMessages(['confidence_basis_points' => (string) __('Confidence must be between 0 and 10000 basis points.')]);
         }
 
         DB::transaction(function () use (
@@ -64,11 +64,11 @@ final readonly class ReconcileKingdomAlliances
             $duplicate = $locked->get($duplicateKingdomAllianceId);
             if ($canonical === null) {
                 KingdomAlliance::query()->findOrFail($canonicalKingdomAllianceId);
-                throw ValidationException::withMessages(['kingdom_alliance' => 'The canonical identity no longer belongs to the expected Kingdom.']);
+                throw ValidationException::withMessages(['kingdom_alliance' => (string) __('The canonical identity no longer belongs to the expected Kingdom.')]);
             }
             if ($duplicate === null) {
                 KingdomAlliance::query()->findOrFail($duplicateKingdomAllianceId);
-                throw ValidationException::withMessages(['kingdom_alliance' => 'Alliance identities from different Kingdoms cannot be reconciled.']);
+                throw ValidationException::withMessages(['kingdom_alliance' => (string) __('Alliance identities from different Kingdoms cannot be reconciled.')]);
             }
             /** @var KingdomAlliance $canonical */
             /** @var KingdomAlliance $duplicate */
@@ -77,24 +77,24 @@ final readonly class ReconcileKingdomAlliances
             }
             if ($canonical->canonical_kingdom_alliance_id !== null || $duplicate->canonical_kingdom_alliance_id !== null) {
                 throw ValidationException::withMessages([
-                    'kingdom_alliance' => 'Reconciliation inputs must be direct identities. Resolve existing aliases to their canonical identity first.',
+                    'kingdom_alliance' => (string) __('Reconciliation inputs must be direct identities. Resolve existing aliases to their canonical identity first.'),
                 ]);
             }
             if ((string) $canonical->kingdom_id !== (string) $duplicate->kingdom_id) {
-                throw ValidationException::withMessages(['kingdom_alliance' => 'Alliance identities from different Kingdoms cannot be reconciled.']);
+                throw ValidationException::withMessages(['kingdom_alliance' => (string) __('Alliance identities from different Kingdoms cannot be reconciled.')]);
             }
             if ($canonical->status !== KingdomAllianceStatus::Active) {
-                throw ValidationException::withMessages(['canonical_kingdom_alliance_id' => 'The canonical Alliance identity must be active.']);
+                throw ValidationException::withMessages(['canonical_kingdom_alliance_id' => (string) __('The canonical Alliance identity must be active.')]);
             }
 
             if ($kingdom->status !== KingdomStatus::Active) {
-                throw ValidationException::withMessages(['kingdom' => 'Alliance identities cannot be reconciled while their Kingdom is archived.']);
+                throw ValidationException::withMessages(['kingdom' => (string) __('Alliance identities cannot be reconciled while their Kingdom is archived.')]);
             }
 
             $canonicalStableId = $this->nullable($canonical->game_alliance_id);
             $duplicateStableId = $this->nullable($duplicate->game_alliance_id);
             if ($canonicalStableId !== null && $duplicateStableId !== null && $canonicalStableId !== $duplicateStableId) {
-                throw ValidationException::withMessages(['game_alliance_id' => 'Alliance identities with conflicting stable game IDs cannot be reconciled.']);
+                throw ValidationException::withMessages(['game_alliance_id' => (string) __('Alliance identities with conflicting stable game IDs cannot be reconciled.')]);
             }
 
             $effectiveStableId = $canonicalStableId ?? $duplicateStableId;

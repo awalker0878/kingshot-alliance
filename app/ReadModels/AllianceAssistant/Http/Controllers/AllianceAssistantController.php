@@ -54,9 +54,9 @@ final class AllianceAssistantController extends Controller
         $user = $request->user();
         abort_unless($user instanceof AuthenticatedAccount, 401);
         $actor = $this->players->playerOrNull();
-        abort_unless($actor instanceof PlayerReference, 409, 'Select a Player before using Alliance Assistant.');
+        abort_unless($actor instanceof PlayerReference, 409, (string) __('Select a Player before using Alliance Assistant.'));
         $scope = $context->scope();
-        abort_unless($scope->playerId === $actor->playerId, 409, 'Alliance context does not match the active Player.');
+        abort_unless($scope->playerId === $actor->playerId, 409, (string) __('Alliance context does not match the active Player.'));
 
         $question = trim((string) $request->input('question', ''));
         $validation = $this->validationError($question);

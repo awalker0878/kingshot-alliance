@@ -115,7 +115,7 @@ final readonly class KingdomGovernanceProjectionQuery
         $search = $this->search($search);
         $this->optionalId($selectedId);
         if (! in_array($kind, ['players', 'roles'], true)) {
-            throw ValidationException::withMessages(['choices' => 'Choose a supported Governance catalogue.']);
+            throw ValidationException::withMessages(['choices' => (string) __('Choose a supported Governance catalogue.')]);
         }
         $scope = $this->scope($actorId, $kingdomId, 'choices-'.$kind, [$search]);
         if ($kind === 'players') {
@@ -190,14 +190,14 @@ final readonly class KingdomGovernanceProjectionQuery
     private function optionalId(?string $id): void
     {
         if ($id !== null && ! $this->pages->isId($id)) {
-            throw ValidationException::withMessages(['filter' => 'The Governance filter identifier is invalid.']);
+            throw ValidationException::withMessages(['filter' => (string) __('The Governance filter identifier is invalid.')]);
         }
     }
 
     private function permissionKey(?string $permission): void
     {
         if ($permission !== null && (strlen($permission) > 100 || ! Permission::query()->whereNotNull('owner_key')->where('key', $permission)->exists())) {
-            throw ValidationException::withMessages(['permission' => 'Choose a declared permission.']);
+            throw ValidationException::withMessages(['permission' => (string) __('Choose a declared permission.')]);
         }
     }
 
@@ -205,7 +205,7 @@ final readonly class KingdomGovernanceProjectionQuery
     {
         $search = trim($search);
         if (mb_strlen($search) > 160) {
-            throw ValidationException::withMessages(['search' => 'Search must be 160 characters or fewer.']);
+            throw ValidationException::withMessages(['search' => (string) __('Search must be 160 characters or fewer.')]);
         }
 
         return $search;

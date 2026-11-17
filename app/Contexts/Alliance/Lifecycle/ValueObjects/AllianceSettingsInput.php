@@ -29,17 +29,17 @@ final readonly class AllianceSettingsInput
         $name = trim($name);
         $slug = Str::slug($slug);
         if ($name === '' || mb_strlen($name) > 120) {
-            throw ValidationException::withMessages(['name' => 'Use an Alliance name between 1 and 120 characters.']);
+            throw ValidationException::withMessages(['name' => (string) __('Use an Alliance name between 1 and 120 characters.')]);
         }
         if ($slug === '' || strlen($slug) > 120 || in_array($slug, self::RESERVED_SLUGS, true)) {
-            throw ValidationException::withMessages(['slug' => 'Choose another Alliance URL name of at most 120 characters.']);
+            throw ValidationException::withMessages(['slug' => (string) __('Choose another Alliance URL name of at most 120 characters.')]);
         }
         $locale = SupportedAllianceLocale::tryFrom($language);
         if ($locale === null) {
-            throw ValidationException::withMessages(['language' => 'Choose a supported Alliance language.']);
+            throw ValidationException::withMessages(['language' => (string) __('Choose a supported Alliance language.')]);
         }
         if (! in_array($timezone, DateTimeZone::listIdentifiers(), true)) {
-            throw ValidationException::withMessages(['timezone' => 'Choose a valid IANA timezone.']);
+            throw ValidationException::withMessages(['timezone' => (string) __('Choose a valid IANA timezone.')]);
         }
 
         return new self($name, $slug, $locale, $timezone);

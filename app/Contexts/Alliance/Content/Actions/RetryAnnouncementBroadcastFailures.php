@@ -32,7 +32,7 @@ final readonly class RetryAnnouncementBroadcastFailures
         array $deliveryIds,
     ): int {
         if (count($deliveryIds) > 50) {
-            throw ValidationException::withMessages(['delivery_ids' => 'Retry at most 50 failed deliveries at once.']);
+            throw ValidationException::withMessages(['delivery_ids' => (string) __('Retry at most 50 failed deliveries at once.')]);
         }
 
         return DB::transaction(function () use ($allianceId, $actorPlayerId, $runId, $deliveryIds): int {
@@ -54,7 +54,7 @@ final readonly class RetryAnnouncementBroadcastFailures
             );
             if ($retried === []) {
                 throw ValidationException::withMessages([
-                    'delivery_ids' => 'No selected failures are currently eligible for retry.',
+                    'delivery_ids' => (string) __('No selected failures are currently eligible for retry.'),
                 ]);
             }
 

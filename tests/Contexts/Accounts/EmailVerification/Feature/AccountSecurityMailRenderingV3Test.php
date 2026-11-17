@@ -9,6 +9,7 @@ use App\Contexts\Accounts\EmailVerification\Notifications\KingshotAllianceEmailC
 use App\Contexts\Accounts\EmailVerification\Notifications\VerifyKingshotAllianceEmail;
 use App\Contexts\Accounts\EmailVerification\Notifications\VerifyPendingKingshotAllianceEmail;
 use App\Contexts\Accounts\Identity\Models\User;
+use App\Shared\Infrastructure\Http\SupportedLocale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -16,6 +17,24 @@ use Tests\TestCase;
 
 final class AccountSecurityMailRenderingV3Test extends TestCase
 {
+    public function test_account_mail_renders_in_every_supported_language_with_the_correct_direction(): void
+    {
+        $user = new User;
+        $user->forceFill(['id' => 42, 'email' => 'fixture@example.test']);
+        foreach (SupportedLocale::CODES as $locale) {
+            app()->setLocale($locale);
+            $mail = (new VerifyKingshotAllianceEmail)->toMail($user);
+            $html = view($mail->view['html'], $mail->viewData)->render();
+            $plainText = view($mail->view['text'], $mail->viewData)->render();
+            self::assertStringContainsString('lang="'.$locale.'"', $html);
+            self::assertStringContainsString('dir="'.($locale === 'ar' ? 'rtl' : 'ltr').'"', $html);
+            self::assertStringNotContainsString(':minutes', $plainText);
+            if ($locale !== 'en') {
+                self::assertStringNotContainsString('Verify your email address', $plainText);
+            }
+        }
+    }
+
     /** @return iterable<string,array{string}> */
     public static function messages(): iterable
     {

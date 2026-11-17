@@ -31,12 +31,12 @@ final readonly class BootstrapKingdomAdministrator
         return DB::transaction(function () use ($kingdomId, $targetPlayerId): KingdomAdministratorBootstrap {
             $kingdom = Kingdom::query()->whereKey($kingdomId)->lockForUpdate()->firstOrFail();
             if ($kingdom->status !== KingdomStatus::Active) {
-                throw ValidationException::withMessages(['kingdom' => 'An archived Kingdom cannot bootstrap an administrator.']);
+                throw ValidationException::withMessages(['kingdom' => (string) __('An archived Kingdom cannot bootstrap an administrator.')]);
             }
 
             $target = Player::query()->whereKey($targetPlayerId)->lockForUpdate()->firstOrFail();
             if ((string) $target->current_kingdom_id !== (string) $kingdom->id || $target->canonical_player_id !== null) {
-                throw ValidationException::withMessages(['player' => 'The bootstrap Player must currently belong to the target Kingdom.']);
+                throw ValidationException::withMessages(['player' => (string) __('The bootstrap Player must currently belong to the target Kingdom.')]);
             }
 
             $roles = $this->provisioner->provision($kingdom);
@@ -57,7 +57,7 @@ final readonly class BootstrapKingdomAdministrator
                 if ((string) $historicalAssignment->player_id === (string) $target->id && $historicalAssignment->isEffectiveAt()) {
                     return $this->result($historicalAssignment, $kingdom, $target, $administrator, $eventCoordinator, $viewer);
                 }
-                throw ValidationException::withMessages(['kingdom' => 'This Kingdom has already had an administrator. Use Player-authorized handoff or Platform break-glass recovery.']);
+                throw ValidationException::withMessages(['kingdom' => (string) __('This Kingdom has already had an administrator. Use Player-authorized handoff or Platform break-glass recovery.')]);
             }
 
             $assignment = KingdomRoleAssignment::query()->create([

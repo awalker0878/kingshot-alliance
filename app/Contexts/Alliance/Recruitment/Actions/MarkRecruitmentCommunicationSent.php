@@ -46,7 +46,7 @@ final class MarkRecruitmentCommunicationSent
 
             if ($candidate->merged_into_id !== null) {
                 throw ValidationException::withMessages([
-                    'candidate' => 'Communication state must be updated on the current merged candidate record.',
+                    'candidate' => (string) __('Communication state must be updated on the current merged candidate record.'),
                 ]);
             }
 

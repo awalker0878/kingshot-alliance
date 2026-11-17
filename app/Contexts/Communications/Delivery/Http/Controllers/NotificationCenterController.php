@@ -418,7 +418,7 @@ final class NotificationCenterController extends Controller
     private function ownedPlayer(int $userId): PlayerReference
     {
         $player = $this->ownedPlayerOrNull($userId);
-        abort_unless($player instanceof PlayerReference, 409, 'Select a Governor before configuring notification channels.');
+        abort_unless($player instanceof PlayerReference, 409, (string) __('Select a Governor before configuring notification channels.'));
 
         return $player;
     }

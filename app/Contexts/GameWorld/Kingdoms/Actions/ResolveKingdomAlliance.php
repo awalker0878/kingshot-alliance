@@ -35,7 +35,7 @@ final readonly class ResolveKingdomAlliance
     ): KingdomAllianceReference {
         $name = trim($currentName);
         if ($name === '') {
-            throw ValidationException::withMessages(['current_name' => 'Alliance name is required.']);
+            throw ValidationException::withMessages(['current_name' => (string) __('Alliance name is required.')]);
         }
 
         $tag = $this->nullableLine($currentTag);
@@ -44,7 +44,7 @@ final readonly class ResolveKingdomAlliance
         $id = DB::transaction(function () use ($kingdomId, $name, $tag, $stableId, $source, $sourceReference, $observedAt, $confidenceBasisPoints): string {
             $kingdom = Kingdom::query()->whereKey($kingdomId)->lockForUpdate()->firstOrFail();
             if ($kingdom->status !== KingdomStatus::Active) {
-                throw ValidationException::withMessages(['kingdom' => 'Archived Kingdoms cannot receive new or operational Alliance identities.']);
+                throw ValidationException::withMessages(['kingdom' => (string) __('Archived Kingdoms cannot receive new or operational Alliance identities.')]);
             }
 
             if ($stableId === null) {
@@ -77,7 +77,7 @@ final readonly class ResolveKingdomAlliance
 
             if ($alliance->status !== KingdomAllianceStatus::Active || $alliance->canonical_kingdom_alliance_id !== null) {
                 throw ValidationException::withMessages([
-                    'game_alliance_id' => 'That game Alliance identity is archived or has been reconciled to another canonical identity.',
+                    'game_alliance_id' => (string) __('That game Alliance identity is archived or has been reconciled to another canonical identity.'),
                 ]);
             }
 

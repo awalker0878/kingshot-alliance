@@ -76,13 +76,13 @@ final readonly class CompleteTransferParticipant
 
             if ($plan->state !== TransferPlanState::Locked) {
                 throw ValidationException::withMessages([
-                    'completion' => 'Transfer participants can only be completed after the cycle is Locked.',
+                    'completion' => (string) __('Transfer participants can only be completed after the cycle is Locked.'),
                 ]);
             }
 
             if ($context->kingdomId() !== (string) $plan->home_kingdom_id) {
                 throw ValidationException::withMessages([
-                    'completion' => 'The transfer cycle home Kingdom does not match the Alliance Kingdom.',
+                    'completion' => (string) __('The transfer cycle home Kingdom does not match the Alliance Kingdom.'),
                 ]);
             }
 
@@ -105,7 +105,7 @@ final readonly class CompleteTransferParticipant
                 || (string) $routing->player_id !== (string) $participant->player_id
                 || $routing->direction !== $participant->direction
                 || $routing->destination_kingdom_id !== $participant->destination_kingdom_id) {
-                throw ValidationException::withMessages(['completion' => 'The participant routing changed. Reload before completing this transfer.']);
+                throw ValidationException::withMessages(['completion' => (string) __('The participant routing changed. Reload before completing this transfer.')]);
             }
 
             $this->assertCompletable($participant);
@@ -243,19 +243,19 @@ final readonly class CompleteTransferParticipant
     {
         if ($participant->withdrawn_at !== null || $participant->readiness_state === TransferReadinessState::Withdrawn) {
             throw ValidationException::withMessages([
-                'completion' => 'Withdrawn transfer participants cannot be completed.',
+                'completion' => (string) __('Withdrawn transfer participants cannot be completed.'),
             ]);
         }
 
         if ($participant->readiness_state !== TransferReadinessState::Confirmed) {
             throw ValidationException::withMessages([
-                'completion' => 'The participant must be explicitly Confirmed before actual completion is recorded.',
+                'completion' => (string) __('The participant must be explicitly Confirmed before actual completion is recorded.'),
             ]);
         }
 
         if ($participant->direction === TransferDirection::Outgoing && $participant->destination_kingdom_id === null) {
             throw ValidationException::withMessages([
-                'completion' => 'Set an outgoing destination Kingdom before completing the transfer.',
+                'completion' => (string) __('Set an outgoing destination Kingdom before completing the transfer.'),
             ]);
         }
     }
@@ -282,7 +282,7 @@ final readonly class CompleteTransferParticipant
     ): RosterEntryReference {
         if ($participant->roster_entry_id === null) {
             throw ValidationException::withMessages([
-                'completion' => 'This roster-bound participant no longer has a roster entry to hand off.',
+                'completion' => (string) __('This roster-bound participant no longer has a roster entry to hand off.'),
             ]);
         }
 
@@ -292,13 +292,13 @@ final readonly class CompleteTransferParticipant
 
         if (! $entry instanceof RosterEntryReference) {
             throw ValidationException::withMessages([
-                'completion' => 'This roster-bound participant no longer has a roster entry to hand off.',
+                'completion' => (string) __('This roster-bound participant no longer has a roster entry to hand off.'),
             ]);
         }
 
         if ($entry->playerId !== (string) $participant->player_id) {
             throw ValidationException::withMessages([
-                'completion' => 'The participant roster binding no longer matches its captured game identity.',
+                'completion' => (string) __('The participant roster binding no longer matches its captured game identity.'),
             ]);
         }
 
@@ -325,13 +325,13 @@ final readonly class CompleteTransferParticipant
 
         if ($disallowedMemberships !== []) {
             throw ValidationException::withMessages([
-                'completion' => 'The Player still has an active Alliance membership that must be ended before changing Kingdoms.',
+                'completion' => (string) __('The Player still has an active Alliance membership that must be ended before changing Kingdoms.'),
             ]);
         }
 
         if ($this->governance->hasActiveAssignmentsForPlayer((string) $player->id, (string) $player->current_kingdom_id)) {
             throw ValidationException::withMessages([
-                'completion' => 'Revoke the Player effective Kingdom roles before changing Kingdoms.',
+                'completion' => (string) __('Revoke the Player effective Kingdom roles before changing Kingdoms.'),
             ]);
         }
 
@@ -341,7 +341,7 @@ final readonly class CompleteTransferParticipant
 
         if ($hasConflictingRoster) {
             throw ValidationException::withMessages([
-                'completion' => "Resolve the Player's other active or tracked Alliance roster entries before changing Kingdoms.",
+                'completion' => (string) __("Resolve the Player's other active or tracked Alliance roster entries before changing Kingdoms."),
             ]);
         }
     }

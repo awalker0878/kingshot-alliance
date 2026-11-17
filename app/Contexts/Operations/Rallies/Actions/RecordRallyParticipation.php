@@ -39,7 +39,7 @@ final readonly class RecordRallyParticipation
         RallyAssignmentStatus $status,
     ): void {
         if (! in_array($status, [RallyAssignmentStatus::Participated, RallyAssignmentStatus::Absent], true)) {
-            throw ValidationException::withMessages(['status' => 'Participation must be recorded as participated or absent.']);
+            throw ValidationException::withMessages(['status' => (string) __('Participation must be recorded as participated or absent.')]);
         }
 
         DB::transaction(function () use ($actorPlayerId, $occurrenceId, $assignmentId, $status): void {
@@ -71,7 +71,7 @@ final readonly class RecordRallyParticipation
                 ->firstOrFail();
 
             if (in_array($assignment->statusEnum(), [RallyAssignmentStatus::Declined, RallyAssignmentStatus::Removed], true)) {
-                throw ValidationException::withMessages(['status' => 'Declined or removed assignments cannot receive participation.']);
+                throw ValidationException::withMessages(['status' => (string) __('Declined or removed assignments cannot receive participation.')]);
             }
 
             $frozenContext = $this->contexts->existing((string) $occurrence->id, (string) $assignment->player_id);

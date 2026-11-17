@@ -54,7 +54,7 @@ final readonly class StageKingdomIngestionCandidate
 
             if (! is_array($payload)) {
                 throw ValidationException::withMessages([
-                    'payload' => 'The source adapter must return a normalized payload object.',
+                    'payload' => (string) __('The source adapter must return a normalized payload object.'),
                 ]);
             }
 
@@ -140,16 +140,16 @@ final readonly class StageKingdomIngestionCandidate
         AllianceReference $alliance,
     ): void {
         if ($subscription->state !== KingdomIngestionSubscriptionState::Active) {
-            throw ValidationException::withMessages(['subscription' => 'The ingestion subscription is not active.']);
+            throw ValidationException::withMessages(['subscription' => (string) __('The ingestion subscription is not active.')]);
         }
 
         if ($batch->state !== KingdomIngestionBatchState::Pending) {
-            throw ValidationException::withMessages(['batch' => 'Candidates can only be staged into a pending ingestion batch.']);
+            throw ValidationException::withMessages(['batch' => (string) __('Candidates can only be staged into a pending ingestion batch.')]);
         }
 
         if ($alliance->kingdomId !== (string) $subscription->kingdom_id) {
             throw ValidationException::withMessages([
-                'subscription' => 'Ingestion is blocked because the alliance Kingdom no longer matches the subscription context.',
+                'subscription' => (string) __('Ingestion is blocked because the alliance Kingdom no longer matches the subscription context.'),
             ]);
         }
 
@@ -157,7 +157,7 @@ final readonly class StageKingdomIngestionCandidate
             || (string) $batch->kingdom_id !== (string) $subscription->kingdom_id
             || $batch->adapter_key !== $subscription->adapter_key
             || $batch->adapter_version !== $subscription->adapter_version) {
-            throw ValidationException::withMessages(['batch' => 'The ingestion batch context does not match its subscription.']);
+            throw ValidationException::withMessages(['batch' => (string) __('The ingestion batch context does not match its subscription.')]);
         }
     }
 
@@ -166,7 +166,7 @@ final readonly class StageKingdomIngestionCandidate
         $adapter = $this->adapters->require($subscription->adapter_key);
         if ($adapter->version() !== $subscription->adapter_version) {
             throw ValidationException::withMessages([
-                'subscription' => 'The configured source adapter version is no longer approved.',
+                'subscription' => (string) __('The configured source adapter version is no longer approved.'),
             ]);
         }
 
@@ -181,7 +181,7 @@ final readonly class StageKingdomIngestionCandidate
 
         if ($kind === null || ! in_array($kind, $adapter->supportedTargetKinds(), true)) {
             throw ValidationException::withMessages([
-                'target_kind' => 'The source adapter returned an unsupported ingestion target kind.',
+                'target_kind' => (string) __('The source adapter returned an unsupported ingestion target kind.'),
             ]);
         }
 
@@ -191,18 +191,18 @@ final readonly class StageKingdomIngestionCandidate
     private function capturedAt(mixed $value): Carbon
     {
         if (! is_string($value) || trim($value) === '') {
-            throw ValidationException::withMessages(['captured_at' => 'A source capture time is required.']);
+            throw ValidationException::withMessages(['captured_at' => (string) __('A source capture time is required.')]);
         }
 
         try {
             $capturedAt = Carbon::parse($value)->utc();
         } catch (Throwable) {
-            throw ValidationException::withMessages(['captured_at' => 'The source capture time is invalid.']);
+            throw ValidationException::withMessages(['captured_at' => (string) __('The source capture time is invalid.')]);
         }
 
         if ($capturedAt->isAfter(now()->addMinutes(5))) {
             throw ValidationException::withMessages([
-                'captured_at' => 'The source capture time cannot be more than five minutes in the future.',
+                'captured_at' => (string) __('The source capture time cannot be more than five minutes in the future.'),
             ]);
         }
 
@@ -262,7 +262,7 @@ final readonly class StageKingdomIngestionCandidate
         foreach (array_keys($payload) as $key) {
             if (! is_string($key) || ! in_array($key, $allowed, true)) {
                 throw ValidationException::withMessages([
-                    'payload' => 'The source payload contains a field that is not approved for this target kind.',
+                    'payload' => (string) __('The source payload contains a field that is not approved for this target kind.'),
                 ]);
             }
         }
@@ -271,12 +271,12 @@ final readonly class StageKingdomIngestionCandidate
     private function requiredText(mixed $value, int $max, string $field): string
     {
         if (! is_string($value)) {
-            throw ValidationException::withMessages([$field => 'The normalized source field must be text.']);
+            throw ValidationException::withMessages([$field => (string) __('The normalized source field must be text.')]);
         }
 
         $value = trim($value);
         if ($value === '' || mb_strlen($value) > $max) {
-            throw ValidationException::withMessages([$field => 'The normalized source text is missing or too long.']);
+            throw ValidationException::withMessages([$field => (string) __('The normalized source text is missing or too long.')]);
         }
 
         return $value;
@@ -289,7 +289,7 @@ final readonly class StageKingdomIngestionCandidate
         }
 
         if (! is_string($value)) {
-            throw ValidationException::withMessages([$field => 'The normalized source field must be text.']);
+            throw ValidationException::withMessages([$field => (string) __('The normalized source field must be text.')]);
         }
 
         $value = trim($value);
@@ -298,7 +298,7 @@ final readonly class StageKingdomIngestionCandidate
         }
 
         if (mb_strlen($value) > $max) {
-            throw ValidationException::withMessages([$field => 'The normalized source text is too long.']);
+            throw ValidationException::withMessages([$field => (string) __('The normalized source text is too long.')]);
         }
 
         return $value;
@@ -311,19 +311,19 @@ final readonly class StageKingdomIngestionCandidate
         }
 
         if (! is_string($value) && ! is_int($value)) {
-            throw ValidationException::withMessages(['power' => 'Normalized power must be an unsigned integer value.']);
+            throw ValidationException::withMessages(['power' => (string) __('Normalized power must be an unsigned integer value.')]);
         }
 
         $value = (string) $value;
         if (preg_match('/^\d{1,19}$/', $value) !== 1) {
-            throw ValidationException::withMessages(['power' => 'Normalized power must contain 1-19 digits.']);
+            throw ValidationException::withMessages(['power' => (string) __('Normalized power must contain 1-19 digits.')]);
         }
 
         $canonical = ltrim($value, '0');
         $canonical = $canonical === '' ? '0' : $canonical;
         if (strlen($canonical) > strlen(self::MAX_POWER)
             || (strlen($canonical) === strlen(self::MAX_POWER) && strcmp($canonical, self::MAX_POWER) > 0)) {
-            throw ValidationException::withMessages(['power' => 'Normalized power exceeds the supported signed 64-bit range.']);
+            throw ValidationException::withMessages(['power' => (string) __('Normalized power exceeds the supported signed 64-bit range.')]);
         }
 
         return $canonical;
@@ -341,7 +341,7 @@ final readonly class StageKingdomIngestionCandidate
 
         if (! is_int($value) || $value < 0 || $value > 1000000) {
             throw ValidationException::withMessages([
-                'member_count' => 'Normalized member count must be between 0 and 1,000,000.',
+                'member_count' => (string) __('Normalized member count must be between 0 and 1,000,000.'),
             ]);
         }
 

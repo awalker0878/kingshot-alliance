@@ -56,16 +56,16 @@ final class ConvertAcceptedRecruitmentCandidate
             $locked->ensureNotAnonymized();
 
             if ($locked->merged_into_id !== null) {
-                throw ValidationException::withMessages(['candidate' => 'A merged recruitment record cannot be converted.']);
+                throw ValidationException::withMessages(['candidate' => (string) __('A merged recruitment record cannot be converted.')]);
             }
             if ($locked->stage !== RecruitmentStage::Accepted) {
-                throw ValidationException::withMessages(['candidate' => 'Only accepted recruitment candidates can be converted.']);
+                throw ValidationException::withMessages(['candidate' => (string) __('Only accepted recruitment candidates can be converted.')]);
             }
             $this->reentryPolicy->assertCanConvert($locked);
 
             if ($locked->membership_invitation_id !== null) {
                 if ($locked->player_id !== null && (string) $locked->player_id !== $targetPlayerId) {
-                    throw ValidationException::withMessages(['player_id' => 'This candidate was already converted for a different Player.']);
+                    throw ValidationException::withMessages(['player_id' => (string) __('This candidate was already converted for a different Player.')]);
                 }
 
                 return new ConvertedRecruitmentCandidate((string) $locked->id, (string) $locked->membership_invitation_id, null, false);

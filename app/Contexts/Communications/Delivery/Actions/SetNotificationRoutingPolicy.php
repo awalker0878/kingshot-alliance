@@ -32,7 +32,7 @@ final readonly class SetNotificationRoutingPolicy
     ): void {
         $timezone = trim($timezone);
         if (! in_array($timezone, DateTimeZone::listIdentifiers(), true)) {
-            throw ValidationException::withMessages(['timezone' => 'Choose a valid timezone.']);
+            throw ValidationException::withMessages(['timezone' => (string) __('Choose a valid timezone.')]);
         }
 
         $quietHoursStart = $this->clock($quietHoursStart, 'quiet_hours_start');
@@ -40,7 +40,7 @@ final readonly class SetNotificationRoutingPolicy
         if ($quietHoursEnabled
             && ($quietHoursStart === null || $quietHoursEnd === null || $quietHoursStart === $quietHoursEnd)) {
             throw ValidationException::withMessages([
-                'quiet_hours' => 'Quiet hours require distinct start and end times.',
+                'quiet_hours' => (string) __('Quiet hours require distinct start and end times.'),
             ]);
         }
 
@@ -52,7 +52,7 @@ final readonly class SetNotificationRoutingPolicy
         $mute = $mutedUntil === null ? null : CarbonImmutable::instance($mutedUntil)->utc();
         if ($mute instanceof CarbonImmutable && $mute->greaterThan(CarbonImmutable::now('UTC')->addDays(30))) {
             throw ValidationException::withMessages([
-                'muted_until' => 'Temporary mute cannot extend more than 30 days.',
+                'muted_until' => (string) __('Temporary mute cannot extend more than 30 days.'),
             ]);
         }
         if ($mute instanceof CarbonImmutable && ! $mute->isFuture()) {
@@ -88,7 +88,7 @@ final readonly class SetNotificationRoutingPolicy
 
         $value = trim($value);
         if (preg_match('/^(?:[01]\\d|2[0-3]):[0-5]\\d$/D', $value) !== 1) {
-            throw ValidationException::withMessages([$field => 'Use a 24-hour HH:MM time.']);
+            throw ValidationException::withMessages([$field => (string) __('Use a 24-hour HH:MM time.')]);
         }
 
         return $value;

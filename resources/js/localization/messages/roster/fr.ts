@@ -37,7 +37,7 @@ const messages = {
     gameId: 'ID de jeu',
     power: 'Puissance',
     progression: 'Progression',
-    allianceTag: 'Alliance / tag',
+    allianceTag: 'Alliance / sigle',
     snapshotCaptured: 'Relevé de reconnaissance capturé',
     linkedMember: 'Membre lié',
     noResults: 'Aucune entrée ne correspond à ces filtres.',
@@ -80,6 +80,8 @@ const messages = {
     changeFrom: '{change} depuis {date}',
     noComparisonRows: 'Aucun historique comparable de Gouverneur n’est disponible.',
     powerTrends: 'Tendances de puissance',
+    pageResults: 'Affichage de {count} sur {total} gouverneurs correspondants.',
+    pageSizeHelp: "Jusqu'à {pageSize} gouverneurs par page.",
   },
   rosterManage: {
     manageSubtitle:
@@ -161,6 +163,44 @@ const messages = {
     source: 'Source',
     recordedBy: 'Enregistré par',
     noSnapshots: 'Aucun relevé de reconnaissance n’a été enregistré pour ce Gouverneur.',
+    progressionHelp:
+      "Utiliser l'étiquette exacte du four ou de la progression observée. Kingshot Alliance n'infère pas les niveaux de jeu.",
+    sincePriorObservation: "depuis l ' observation précédente",
+    observedChanges: 'Changements observés',
+    nameChanged: 'Nom',
+    progressionChanged: 'Progression',
+    allianceChanged: "Tag de l'alliance",
+    noObservedChange: "Aucun champ observé n'a été modifié",
+    earlierHistoryNotShown:
+      "Des observations antérieures existent au-delà de la limite d'affichage de 250 lignes.",
+    capability: {
+      eyebrow: 'Profil du gouverneur',
+      title: 'Ce que nous savons sur ce gouverneur',
+      help: "Les historiques des propriétaires autorisés sont affichés séparément avec leurs dates d'origine et leurs liens de workflow. Ce profil ne calcule pas la force ou la qualité du gouverneur.",
+      events: "Participation à l'événement",
+      eventSummary: '{completed} terminé · {absent} absent · {unresolved} non résolu',
+      noEvents: "Aucun historique d'événement autorisé n'est enregistré pour cette alliance.",
+      bearHunt: 'Résultats de la chasse à l’ours',
+      recordedRuns: '{count} résultats enregistrés du gouverneur',
+      latestDamage: 'Dernières dommages acceptés',
+      openDebrief: 'Ouvrir le bilan',
+      noRecordedRuns: "Aucun résultat de gouverneur de chasse à l'ours n'est enregistré.",
+      rallies: 'Participation au rallye',
+      noRallies:
+        "Aucune affectation de Rally n'est enregistrée dans l'historique des événements visibles.",
+      battlePlans: 'BattlePlan missions',
+      noBattlePlans:
+        "Aucune affectation de BattlePlan n'est enregistrée dans l'historique des événements visibles.",
+      transfer: 'Évaluation du transfert',
+      noTransfer: "Ce gouverneur n'est pas dans le plan de transfert actuel.",
+      evidence: 'Preuves de progression',
+      evidenceSummary:
+        '{review} révision · {pending} en attente · {committed} validée · {failed} échouée',
+      latestEvidence: 'Dernière preuve: {date}',
+      openOwner: 'Ouvrir le workflow du propriétaire',
+      unavailable:
+        "Cette projection du propriétaire n'est pas disponible avec l'autorité actuelle.",
+    },
   },
 } satisfies MessageCatalogue;
 

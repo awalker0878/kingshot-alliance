@@ -55,30 +55,30 @@ final class RosterCsvParser
         $filename = trim($file->getClientOriginalName());
         if ($filename === '' || str_ends_with(strtolower($filename), '.csv') === false) {
             throw ValidationException::withMessages([
-                'file' => 'Upload a .csv file using the documented Kingdoms roster schema.',
+                'file' => (string) __('Upload a .csv file using the documented Kingdoms roster schema.'),
             ]);
         }
 
         $size = $file->getSize();
         if (is_int($size) === false || $size <= 0 || $size > self::MAX_BYTES) {
             throw ValidationException::withMessages([
-                'file' => 'The CSV file must be non-empty and no larger than 1 MiB.',
+                'file' => (string) __('The CSV file must be non-empty and no larger than 1 MiB.'),
             ]);
         }
 
         $path = $file->getRealPath();
         if (is_string($path) === false || $path === '') {
-            throw ValidationException::withMessages(['file' => 'The uploaded CSV file could not be read.']);
+            throw ValidationException::withMessages(['file' => (string) __('The uploaded CSV file could not be read.')]);
         }
 
         $content = file_get_contents($path);
         if (is_string($content) === false || $content === '') {
-            throw ValidationException::withMessages(['file' => 'The uploaded CSV file is empty.']);
+            throw ValidationException::withMessages(['file' => (string) __('The uploaded CSV file is empty.')]);
         }
 
         if (str_contains($content, "\0") || mb_check_encoding($content, 'UTF-8') === false) {
             throw ValidationException::withMessages([
-                'file' => 'The CSV file must contain valid UTF-8 text and cannot contain NUL bytes.',
+                'file' => (string) __('The CSV file must contain valid UTF-8 text and cannot contain NUL bytes.'),
             ]);
         }
 
@@ -93,7 +93,7 @@ final class RosterCsvParser
         $headers = fgetcsv($handle, 0, ',', '"', '');
         if (is_array($headers) === false) {
             fclose($handle);
-            throw ValidationException::withMessages(['file' => 'The CSV file is missing its header row.']);
+            throw ValidationException::withMessages(['file' => (string) __('The CSV file is missing its header row.')]);
         }
 
         $headers = array_map(static fn (mixed $value): string => trim((string) $value), $headers);
@@ -104,7 +104,7 @@ final class RosterCsvParser
         if ($headers !== self::HEADERS) {
             fclose($handle);
             throw ValidationException::withMessages([
-                'file' => 'The CSV header does not match the documented kingdoms-roster.v1 schema.',
+                'file' => (string) __('The CSV header does not match the documented kingdoms-roster.v1 schema.'),
             ]);
         }
 
@@ -132,7 +132,7 @@ final class RosterCsvParser
         fclose($handle);
 
         if ($rows === []) {
-            throw ValidationException::withMessages(['file' => 'The CSV file does not contain any data rows.']);
+            throw ValidationException::withMessages(['file' => (string) __('The CSV file does not contain any data rows.')]);
         }
 
         /** @var array<string, list<int>> $duplicates */

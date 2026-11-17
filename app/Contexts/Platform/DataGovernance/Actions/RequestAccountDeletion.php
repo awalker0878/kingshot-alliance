@@ -31,7 +31,7 @@ final readonly class RequestAccountDeletion
             }
 
             if ($account->anonymized) {
-                throw ValidationException::withMessages(['account' => 'This account has already been deleted.']);
+                throw ValidationException::withMessages(['account' => (string) __('This account has already been deleted.')]);
             }
 
             $request->forceFill([

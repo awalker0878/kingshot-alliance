@@ -18,7 +18,7 @@ final readonly class StorageCapacityPolicy
         $current = (int) MediaAsset::query()->where('alliance_id', $alliance->id)->sum('size_bytes');
         $limit = $this->entitlements->limit((string) $alliance->id, 'storage.bytes.max');
         if ($additionalBytes < 0 || $current + $additionalBytes > $limit) {
-            throw ValidationException::withMessages(['media' => 'The alliance storage quota would be exceeded by this upload.']);
+            throw ValidationException::withMessages(['media' => (string) __('The alliance storage quota would be exceeded by this upload.')]);
         }
     }
 }

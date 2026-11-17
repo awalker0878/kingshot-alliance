@@ -63,7 +63,7 @@ final readonly class SaveAllianceRules
 
             if (trim($sanitizedBody) === '') {
                 throw ValidationException::withMessages([
-                    'body' => 'Alliance Rules cannot be empty.',
+                    'body' => (string) __('Alliance Rules cannot be empty.'),
                 ]);
             }
 
@@ -75,7 +75,7 @@ final readonly class SaveAllianceRules
 
             if ($item instanceof ContentItem && $item->type !== ContentType::Rule) {
                 throw ValidationException::withMessages([
-                    'body' => 'The reserved Alliance Rules content identity is unavailable.',
+                    'body' => (string) __('The reserved Alliance Rules content identity is unavailable.'),
                 ]);
             }
 

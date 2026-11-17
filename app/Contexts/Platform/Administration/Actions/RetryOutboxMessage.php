@@ -31,13 +31,13 @@ final readonly class RetryOutboxMessage
             $message = OutboxMessage::query()->whereKey($messageId)->lockForUpdate()->firstOrFail();
             if ($message->published_at !== null) {
                 throw ValidationException::withMessages([
-                    'outbox' => 'Published outbox messages cannot be replayed.',
+                    'outbox' => (string) __('Published outbox messages cannot be replayed.'),
                 ]);
             }
             $maximumAttempts = max(1, (int) config('operations.outbox.maximum_attempts', 10));
             if ($message->attempts < $maximumAttempts || $message->last_error === null) {
                 throw ValidationException::withMessages([
-                    'outbox' => 'Only an exhausted failed outbox message can be released for retry.',
+                    'outbox' => (string) __('Only an exhausted failed outbox message can be released for retry.'),
                 ]);
             }
 

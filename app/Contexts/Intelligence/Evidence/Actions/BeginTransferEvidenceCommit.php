@@ -50,7 +50,7 @@ final readonly class BeginTransferEvidenceCommit
                 ->lockForUpdate()
                 ->firstOrFail();
             if ($review->status !== EvidenceReviewStatus::Approved) {
-                throw ValidationException::withMessages(['review' => 'Resolve the semantic duplicate or approve a newer review before committing Transfer Evidence.']);
+                throw ValidationException::withMessages(['review' => (string) __('Resolve the semantic duplicate or approve a newer review before committing Transfer Evidence.')]);
             }
             $latest = TransferEvidenceReview::query()
                 ->where('evidence_id', $review->evidence_id)
@@ -59,7 +59,7 @@ final readonly class BeginTransferEvidenceCommit
                 ->sharedLock()
                 ->first();
             if (! $latest instanceof TransferEvidenceReview || (string) $latest->id !== (string) $review->id) {
-                throw ValidationException::withMessages(['review' => 'Only the latest approved Transfer Evidence review may be committed.']);
+                throw ValidationException::withMessages(['review' => (string) __('Only the latest approved Transfer Evidence review may be committed.')]);
             }
 
             $evidence = GameEvidence::query()
@@ -71,11 +71,11 @@ final readonly class BeginTransferEvidenceCommit
                 ->lockForUpdate()
                 ->firstOrFail();
             if ($evidence->lifecycle_status === EvidenceLifecycleStatus::Deleted || $evidence->kind !== $review->evidence_kind) {
-                throw ValidationException::withMessages(['evidence' => 'The reviewed Transfer Evidence is no longer commit-eligible.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('The reviewed Transfer Evidence is no longer commit-eligible.')]);
             }
             $schema = $this->schemas->require($review->evidence_kind);
             if ($schema->version !== (string) $review->schema_version) {
-                throw ValidationException::withMessages(['review' => 'The approved review schema version is no longer the registered destination contract.']);
+                throw ValidationException::withMessages(['review' => (string) __('The approved review schema version is no longer the registered destination contract.')]);
             }
 
             $idempotencyKey = hash('sha256', implode(':', [
@@ -93,7 +93,7 @@ final readonly class BeginTransferEvidenceCommit
                 ->first();
             if (! $attempt instanceof TransferEvidenceCommitAttempt) {
                 if ($evidence->lifecycle_status !== EvidenceLifecycleStatus::Approved) {
-                    throw ValidationException::withMessages(['evidence' => 'Transfer Evidence must be approved before starting a new destination commit.']);
+                    throw ValidationException::withMessages(['evidence' => (string) __('Transfer Evidence must be approved before starting a new destination commit.')]);
                 }
                 $attempt = TransferEvidenceCommitAttempt::query()->create([
                     'evidence_id' => $evidence->id,

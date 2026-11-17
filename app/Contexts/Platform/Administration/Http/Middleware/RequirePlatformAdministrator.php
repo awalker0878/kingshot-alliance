@@ -24,17 +24,17 @@ final readonly class RequirePlatformAdministrator
         abort_unless(
             $account->emailVerified,
             403,
-            'Platform administrators must have a verified email address.',
+            (string) __('Platform administrators must have a verified email address.'),
         );
         abort_unless(
             $account->multiFactorConfirmed,
             403,
-            'Platform administrators must enable multi-factor authentication.',
+            (string) __('Platform administrators must enable multi-factor authentication.'),
         );
         abort_unless(
             PlatformAdministrator::activeForUserId($account->userId),
             403,
-            'Platform administrator access is required.',
+            (string) __('Platform administrator access is required.'),
         );
 
         $request->attributes->set('platform_administrator_user_id', $account->userId);

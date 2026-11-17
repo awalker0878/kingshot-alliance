@@ -48,7 +48,7 @@ final readonly class TransferEvidenceTargetQuery
                 ->sharedLock()
                 ->firstOrFail();
             if (! in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true)) {
-                throw ValidationException::withMessages(['plan' => 'Transfer Evidence can be added only while the Transfer Plan is mutable.']);
+                throw ValidationException::withMessages(['plan' => (string) __('Transfer Evidence can be added only while the Transfer Plan is mutable.')]);
             }
 
             $participant = TransferParticipant::query()
@@ -58,7 +58,7 @@ final readonly class TransferEvidenceTargetQuery
                 ->sharedLock()
                 ->firstOrFail();
             if ($participant->withdrawn_at !== null) {
-                throw ValidationException::withMessages(['participant' => 'Withdrawn participants cannot receive new Transfer Evidence.']);
+                throw ValidationException::withMessages(['participant' => (string) __('Withdrawn participants cannot receive new Transfer Evidence.')]);
             }
 
             $targetKingdomId = match ($participant->direction->value) {
@@ -71,7 +71,7 @@ final readonly class TransferEvidenceTargetQuery
                 try {
                     $this->kingdoms->lockActiveShared($targetKingdomId);
                 } catch (ModelNotFoundException) {
-                    throw ValidationException::withMessages(['participant' => 'The current target Kingdom is archived or unavailable.']);
+                    throw ValidationException::withMessages(['participant' => (string) __('The current target Kingdom is archived or unavailable.')]);
                 }
             }
 

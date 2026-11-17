@@ -62,6 +62,7 @@ function submit(): void {
       :eyebrow="t('territory.eyebrow')"
       :title="t('territory.indexTitle')"
       :subtitle="t('territory.indexSubtitle', { governor: activePlayer.name })"
+      scene="territory-command"
       image="/images/kingshot/v4/kingdom-transfer.svg"
     />
 

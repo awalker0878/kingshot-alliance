@@ -36,7 +36,7 @@ final readonly class DeleteTerritorySpatialEvidence
             );
             if ($scope->kingdomId !== $kingdomId) {
                 throw ValidationException::withMessages([
-                    'kingdom_id' => 'The Territory evidence belongs to historical Kingdom context.',
+                    'kingdom_id' => (string) __('The Territory evidence belongs to historical Kingdom context.'),
                 ]);
             }
 
@@ -48,7 +48,7 @@ final readonly class DeleteTerritorySpatialEvidence
                 ->firstOrFail();
             if ($evidence->expected_kind !== EvidenceKind::TerritoryMapObservation) {
                 throw ValidationException::withMessages([
-                    'evidence' => 'The selected Evidence is not Territory spatial evidence.',
+                    'evidence' => (string) __('The selected Evidence is not Territory spatial evidence.'),
                 ]);
             }
             if ($evidence->lifecycle_status === EvidenceLifecycleStatus::Deleted) {

@@ -90,7 +90,7 @@ final readonly class WebhookEndpointPolicy
     private function deny(): never
     {
         throw ValidationException::withMessages([
-            'url' => 'Webhook endpoints must use HTTPS with a public destination and no credentials or fragment.',
+            'url' => (string) __('Webhook endpoints must use HTTPS with a public destination and no credentials or fragment.'),
         ]);
     }
 }

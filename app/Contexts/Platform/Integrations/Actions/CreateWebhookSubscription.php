@@ -31,16 +31,16 @@ final readonly class CreateWebhookSubscription
     {
         $name = trim($name);
         if ($name === '') {
-            throw ValidationException::withMessages(['name' => 'Webhook subscription name is required.']);
+            throw ValidationException::withMessages(['name' => (string) __('Webhook subscription name is required.')]);
         }
 
         $events = array_values(array_unique(array_map('strval', $events)));
         if ($events === [] || count($events) > 20) {
-            throw ValidationException::withMessages(['events' => 'Choose between 1 and 20 webhook event types.']);
+            throw ValidationException::withMessages(['events' => (string) __('Choose between 1 and 20 webhook event types.')]);
         }
         foreach ($events as $event) {
             if (! WebhookEventCatalog::isValidSelector($event)) {
-                throw ValidationException::withMessages(['events' => 'Choose only supported public webhook event types or wildcard (*).']);
+                throw ValidationException::withMessages(['events' => (string) __('Choose only supported public webhook event types or wildcard (*).')]);
             }
         }
         if (in_array('*', $events, true)) {
@@ -54,7 +54,7 @@ final readonly class CreateWebhookSubscription
 
             $settings = AlliancePlatformSetting::query()->lockForUpdate()->find($currentAlliance->allianceId);
             if ($settings !== null && ! $settings->webhooks_enabled) {
-                throw ValidationException::withMessages(['webhooks' => 'Webhooks are disabled for this alliance.']);
+                throw ValidationException::withMessages(['webhooks' => (string) __('Webhooks are disabled for this alliance.')]);
             }
 
             $this->entitlements->assertWebhookCapacity((string) $currentAlliance->allianceId);

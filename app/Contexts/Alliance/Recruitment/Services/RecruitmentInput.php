@@ -37,7 +37,7 @@ final class RecruitmentInput
     {
         $clean = self::optionalText($value, $field, $limit);
         if ($clean === null) {
-            throw ValidationException::withMessages([$field => 'This field is required.']);
+            throw ValidationException::withMessages([$field => (string) __('This field is required.')]);
         }
 
         return $clean;
@@ -60,7 +60,7 @@ final class RecruitmentInput
     {
         $clean = Str::lower(self::requiredText($value, 'email', self::LIMITS['email']));
         if (! filter_var($clean, FILTER_VALIDATE_EMAIL)) {
-            throw ValidationException::withMessages(['email' => 'A valid email address is required.']);
+            throw ValidationException::withMessages(['email' => (string) __('A valid email address is required.')]);
         }
 
         return $clean;
@@ -85,7 +85,7 @@ final class RecruitmentInput
         $clean = [];
         foreach ($options as $index => $option) {
             if (! is_string($option)) {
-                throw ValidationException::withMessages(['options.'.$index => 'Each option must be text.']);
+                throw ValidationException::withMessages(['options.'.$index => (string) __('Each option must be text.')]);
             }
             $value = self::optionalText($option, 'options.'.$index, self::LIMITS['option']);
             if ($value !== null && ! in_array($value, $clean, true)) {
@@ -93,7 +93,7 @@ final class RecruitmentInput
             }
         }
         if (in_array($type, [RecruitmentQuestionType::Select, RecruitmentQuestionType::MultiSelect], true) && $clean === []) {
-            throw ValidationException::withMessages(['options' => 'Select recruitment questions require at least one option.']);
+            throw ValidationException::withMessages(['options' => (string) __('Select recruitment questions require at least one option.')]);
         }
 
         return $clean;

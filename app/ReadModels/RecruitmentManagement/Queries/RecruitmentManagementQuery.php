@@ -137,7 +137,7 @@ final readonly class RecruitmentManagementQuery
 
             if (! is_string($submittedAt) || ! is_string($candidateId)) {
                 throw ValidationException::withMessages([
-                    'cursor' => 'The recruitment candidate cursor is incomplete.',
+                    'cursor' => (string) __('The recruitment candidate cursor is incomplete.'),
                 ]);
             }
 
@@ -201,7 +201,7 @@ final readonly class RecruitmentManagementQuery
             $id = $position['id'] ?? null;
             if (! is_string($id) || ! preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/Di', $id)
                 || ($column === 'position' ? (! is_int($value) || $value < 0 || $value > 65535) : (! is_string($value) || mb_strlen($value) > 120))) {
-                throw ValidationException::withMessages(['cursor' => 'The recruitment catalogue cursor is invalid.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The recruitment catalogue cursor is invalid.')]);
             }
             $query->where(static function (Builder $after) use ($column, $value, $id): void {
                 $after->where($column, '>', $value)->orWhere(static function (Builder $tie) use ($column, $value, $id): void {

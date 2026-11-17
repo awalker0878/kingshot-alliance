@@ -47,7 +47,7 @@ final readonly class NotificationRoutingPolicyWriteState
                 $actor = $this->players->lockCurrent($playerId);
                 if ($actor->userId !== $recipientUserId) {
                     throw ValidationException::withMessages([
-                        'player' => 'The selected Governor no longer belongs to this account.',
+                        'player' => (string) __('The selected Governor no longer belongs to this account.'),
                     ]);
                 }
             }
@@ -81,7 +81,7 @@ final readonly class NotificationRoutingPolicyWriteState
             $actor = $this->players->lockCurrent($playerId);
             if ($actor->userId !== $recipientUserId) {
                 throw ValidationException::withMessages([
-                    'player' => 'The selected Governor no longer belongs to this account.',
+                    'player' => (string) __('The selected Governor no longer belongs to this account.'),
                 ]);
             }
 

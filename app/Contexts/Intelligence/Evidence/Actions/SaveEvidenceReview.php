@@ -42,7 +42,7 @@ final readonly class SaveEvidenceReview
         ?string $reportTimestampText = null,
     ): string {
         if ($rows === [] || count($rows) > 100) {
-            throw ValidationException::withMessages(['rows' => 'Review between 1 and 100 ranking rows.']);
+            throw ValidationException::withMessages(['rows' => (string) __('Review between 1 and 100 ranking rows.')]);
         }
 
         $target = $this->targets->authorizeManage($actorPlayerId, $occurrenceId);
@@ -79,7 +79,7 @@ final readonly class SaveEvidenceReview
             foreach ($rows as $row) {
                 $ordinal = (int) $row['row_ordinal'];
                 if ($ordinal < 1 || $ordinal > 1000 || isset($seenOrdinals[$ordinal])) {
-                    throw ValidationException::withMessages(['rows' => 'Review row ordinals must be unique positive values.']);
+                    throw ValidationException::withMessages(['rows' => (string) __('Review row ordinals must be unique positive values.')]);
                 }
                 $seenOrdinals[$ordinal] = true;
                 $included = (bool) $row['included'];
@@ -90,26 +90,26 @@ final readonly class SaveEvidenceReview
                 $reason = $row['correction_reason'] === null ? null : trim((string) $row['correction_reason']);
 
                 if ($playerName === '' || mb_strlen($playerName) > 128) {
-                    throw ValidationException::withMessages(['rows' => 'Every reviewed row needs a Governor name of 128 characters or fewer.']);
+                    throw ValidationException::withMessages(['rows' => (string) __('Every reviewed row needs a Governor name of 128 characters or fewer.')]);
                 }
                 if ($rank !== null && ($rank < 1 || $rank > 999)) {
-                    throw ValidationException::withMessages(['rows' => 'Reported rank must be between 1 and 999 when provided.']);
+                    throw ValidationException::withMessages(['rows' => (string) __('Reported rank must be between 1 and 999 when provided.')]);
                 }
                 if ($damage !== null && $damage < 0) {
-                    throw ValidationException::withMessages(['rows' => 'Damage cannot be negative.']);
+                    throw ValidationException::withMessages(['rows' => (string) __('Damage cannot be negative.')]);
                 }
                 if ($reason !== null && mb_strlen($reason) > 500) {
-                    throw ValidationException::withMessages(['rows' => 'Correction reasons must be 500 characters or fewer.']);
+                    throw ValidationException::withMessages(['rows' => (string) __('Correction reasons must be 500 characters or fewer.')]);
                 }
                 if ($included) {
                     if ($playerId === null || $playerId === '' || $damage === null) {
-                        throw ValidationException::withMessages(['rows' => 'Included rows require a resolved Governor and damage value.']);
+                        throw ValidationException::withMessages(['rows' => (string) __('Included rows require a resolved Governor and damage value.')]);
                     }
                     if (isset($seenPlayers[$playerId])) {
-                        throw ValidationException::withMessages(['rows' => 'A Governor can appear only once in one battle report.']);
+                        throw ValidationException::withMessages(['rows' => (string) __('A Governor can appear only once in one battle report.')]);
                     }
                     if (! $this->roster->hasActiveRosterPresence($target->allianceId, $playerId)) {
-                        throw ValidationException::withMessages(['rows' => 'Included Governors must be active members of the Bear Hunt Alliance.']);
+                        throw ValidationException::withMessages(['rows' => (string) __('Included Governors must be active members of the Bear Hunt Alliance.')]);
                     }
                     $this->players->lockCurrent($playerId);
                     $seenPlayers[$playerId] = true;
@@ -138,7 +138,7 @@ final readonly class SaveEvidenceReview
 
             $timestamp = $reportTimestampText === null || trim($reportTimestampText) === '' ? null : trim($reportTimestampText);
             if ($timestamp !== null && mb_strlen($timestamp) > 64) {
-                throw ValidationException::withMessages(['report_timestamp' => 'Report timestamp text must be 64 characters or fewer.']);
+                throw ValidationException::withMessages(['report_timestamp' => (string) __('Report timestamp text must be 64 characters or fewer.')]);
             }
             $fingerprint = $this->fingerprint($target->occurrenceId, $timestamp, $normalizedRows);
             $duplicate = EvidenceReview::query()

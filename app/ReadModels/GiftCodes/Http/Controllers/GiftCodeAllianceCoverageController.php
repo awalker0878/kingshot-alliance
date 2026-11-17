@@ -28,7 +28,7 @@ final class GiftCodeAllianceCoverageController extends Controller
         $account = $request->user();
         abort_unless($account instanceof AuthenticatedAccount, 401);
         $player = $context->playerOrNull();
-        abort_unless($player instanceof PlayerReference, 409, 'Select a Governor before opening Alliance Gift Code coverage.');
+        abort_unless($player instanceof PlayerReference, 409, (string) __('Select a Governor before opening Alliance Gift Code coverage.'));
         $authorization->authorize($player->playerId, $alliance, AlliancePermission::GiftCodeCoverage);
 
         return Inertia::render('Kingdom/GiftCodes/AllianceCoverage', [

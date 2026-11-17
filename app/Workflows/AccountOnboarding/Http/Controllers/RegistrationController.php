@@ -50,7 +50,7 @@ final class RegistrationController extends Controller
         $invitation = $token === '' ? null : $invitations->byToken($token);
 
         if ($mode !== 'open' && $invitation === null) {
-            abort(403, 'A valid invitation is required to register.');
+            abort(403, (string) __('A valid invitation is required to register.'));
         }
 
         if ($token !== '' && $invitation === null) {
@@ -62,7 +62,7 @@ final class RegistrationController extends Controller
             (string) $request->input('email'),
         )) {
             throw ValidationException::withMessages([
-                'email' => 'Use the email address that received this invitation.',
+                'email' => (string) __('Use the email address that received this invitation.'),
             ]);
         }
 

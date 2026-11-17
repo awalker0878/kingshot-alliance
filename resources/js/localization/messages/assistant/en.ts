@@ -89,7 +89,6 @@ const messages = {
     answers: {
       transferVerificationIncomplete:
         'This overview assessed {assessed} of {total} Transfer participants. At least {count} need attention; {unassessed} are not assessed here. Open Transfer readiness for current checks.',
-
       help: 'I can answer from authorized Events, your roster and RSVPs, your assignments, Alliance guides and observations, published territory plans, source-backed Game data, and your transfer readiness when you are in scope. I do not use unsourced KingShot knowledge.',
       unsupported:
         'I can only answer from the supported authorized sources. I do not use general KingShot knowledge or make changes from the Assistant.',
@@ -183,6 +182,37 @@ const messages = {
       allianceRosterReconciliationNotAvailable:
         'There is no accepted Alliance roster observation available to reconcile yet.',
     },
+    transferRequirements: {
+      window_phase: 'Transfer window phase',
+      transfer_group: 'Transfer group',
+      power_cap: 'Power cap',
+      invitation: 'Invitation',
+      transfer_passes: 'Transfer passes',
+      in_game_rules: 'In-game rules',
+    },
+    transferStates: {
+      met: 'Met',
+      unmet: 'Unmet',
+      unknown: 'Unknown',
+      stale: 'Stale',
+      conflicting: 'Conflicting',
+      not_applicable: 'Not applicable',
+    },
+    requirementValues: 'Actual: {actual} · Required: {required}',
+  },
+  intelligenceChange: {
+    title: 'Recent intelligence changes',
+    subtitle:
+      'Source-cited changes derived from authorized history. Changes describe observations, not strategic intent.',
+    empty: 'No material intelligence changes are available for this scope.',
+    source: 'Source',
+    observed: 'Observed',
+    baseline: 'Baseline',
+    current: 'Current',
+    previous: 'Previous',
+    viewSource: 'View source',
+    material: 'Material change',
+    attention: 'Needs verification',
   },
 } satisfies MessageCatalogue;
 

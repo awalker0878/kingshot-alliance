@@ -55,7 +55,7 @@ final readonly class UpsertRosterEntry
 
             $name = trim($attributes['name']);
             if ($name === '') {
-                throw ValidationException::withMessages(['name' => 'Player name is required.']);
+                throw ValidationException::withMessages(['name' => (string) __('Player name is required.')]);
             }
             $state = $attributes['state'] ?? RosterState::Active;
 
@@ -67,7 +67,7 @@ final readonly class UpsertRosterEntry
                     $expectedPlayerId,
                 );
                 if (AllianceRosterEntry::query()->where('alliance_id', $allianceId)->where('player_id', $player->playerId)->exists()) {
-                    throw ValidationException::withMessages(['game_player_id' => 'That game player is already on this Alliance roster.']);
+                    throw ValidationException::withMessages(['game_player_id' => (string) __('That game player is already on this Alliance roster.')]);
                 }
                 $entry = new AllianceRosterEntry(['alliance_id' => $allianceId, 'player_id' => $player->playerId]);
                 $event = 'membership.roster_entry_created';
@@ -81,13 +81,13 @@ final readonly class UpsertRosterEntry
                     ->lockForUpdate()
                     ->firstOrFail();
                 if ($expectedPlayerId !== null && $player->playerId !== $expectedPlayerId) {
-                    throw ValidationException::withMessages(['player_id' => 'The roster entry no longer identifies the expected Player.']);
+                    throw ValidationException::withMessages(['player_id' => (string) __('The roster entry no longer identifies the expected Player.')]);
                 }
                 $event = 'membership.roster_entry_updated';
             }
 
             if ($player->kingdomId !== (string) $context->alliance->kingdom_id) {
-                throw ValidationException::withMessages(['game_player_id' => 'The Player must currently belong to the Alliance Kingdom.']);
+                throw ValidationException::withMessages(['game_player_id' => (string) __('The Player must currently belong to the Alliance Kingdom.')]);
             }
 
             $entry->forceFill([

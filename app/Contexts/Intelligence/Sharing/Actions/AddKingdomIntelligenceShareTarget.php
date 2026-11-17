@@ -29,16 +29,16 @@ final readonly class AddKingdomIntelligenceShareTarget
             [$scope,$actor] = $this->writeState->authorize($actorPlayerId, $sourceAllianceId, IntelligencePermission::KingdomManage);
             $share = KingdomIntelligenceShare::query()->whereKey($shareId)->where('source_alliance_id', $sourceAllianceId)->where('state', KingdomIntelligenceShareState::Active->value)->lockForUpdate()->firstOrFail();
             if ($share->recipient_alliance_id === null) {
-                throw ValidationException::withMessages(['sharing' => 'Only an active sharing agreement with a recipient can receive shared targets.']);
+                throw ValidationException::withMessages(['sharing' => (string) __('Only an active sharing agreement with a recipient can receive shared targets.')]);
             }
             $recipientId = (string) $share->recipient_alliance_id;
             $recipient = $this->alliances->lockCurrent($recipientId);
             if (! $recipient->active() || $scope->kingdomId !== (string) $share->kingdom_id || $recipient->kingdomId !== (string) $share->kingdom_id) {
-                throw ValidationException::withMessages(['sharing' => 'Both alliances must be active in the captured Kingdom before a target can be shared.']);
+                throw ValidationException::withMessages(['sharing' => (string) __('Both alliances must be active in the captured Kingdom before a target can be shared.')]);
             }
             $tracking = TrackedKingdomAlliance::query()->whereKey($trackingId)->where('alliance_id', $sourceAllianceId)->lockForUpdate()->firstOrFail();
             if ($tracking->state !== TrackedKingdomAllianceState::Active || (string) $tracking->kingdom_id !== (string) $share->kingdom_id) {
-                throw ValidationException::withMessages(['tracking' => 'Only an actively tracked game alliance in the captured Kingdom can be shared.']);
+                throw ValidationException::withMessages(['tracking' => (string) __('Only an actively tracked game alliance in the captured Kingdom can be shared.')]);
             }
             $target = KingdomIntelligenceShareTarget::query()->where('kingdom_intelligence_share_id', $share->id)->where('tracked_kingdom_alliance_id', $tracking->id)->lockForUpdate()->first();
             if ($target instanceof KingdomIntelligenceShareTarget && $target->state === KingdomIntelligenceShareTargetState::Active) {

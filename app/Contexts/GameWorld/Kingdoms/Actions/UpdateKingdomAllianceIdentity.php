@@ -41,7 +41,7 @@ final readonly class UpdateKingdomAllianceIdentity
     ): KingdomAllianceReference {
         $name = trim($currentName);
         if ($name === '') {
-            throw ValidationException::withMessages(['current_name' => 'Alliance name is required.']);
+            throw ValidationException::withMessages(['current_name' => (string) __('Alliance name is required.')]);
         }
 
         $tag = $this->nullable($currentTag);
@@ -66,19 +66,19 @@ final readonly class UpdateKingdomAllianceIdentity
             $alliance = KingdomAlliance::query()->whereKey($targetKingdomAllianceId)->where('kingdom_id', $expectedKingdomId)->lockForUpdate()->first();
             if (! $alliance instanceof KingdomAlliance) {
                 KingdomAlliance::query()->findOrFail($targetKingdomAllianceId);
-                throw ValidationException::withMessages(['kingdom_alliance' => 'The neutral alliance no longer belongs to the expected Kingdom.']);
+                throw ValidationException::withMessages(['kingdom_alliance' => (string) __('The neutral alliance no longer belongs to the expected Kingdom.')]);
             }
             if ($alliance->status !== KingdomAllianceStatus::Active || $alliance->canonical_kingdom_alliance_id !== null) {
-                throw ValidationException::withMessages(['kingdom_alliance' => 'Archived or reconciled Alliance identities cannot be mutated. Resolve the active canonical identity first.']);
+                throw ValidationException::withMessages(['kingdom_alliance' => (string) __('Archived or reconciled Alliance identities cannot be mutated. Resolve the active canonical identity first.')]);
             }
 
             if ($kingdom->status !== KingdomStatus::Active) {
-                throw ValidationException::withMessages(['kingdom' => 'Alliance identity cannot change while its Kingdom is archived.']);
+                throw ValidationException::withMessages(['kingdom' => (string) __('Alliance identity cannot change while its Kingdom is archived.')]);
             }
 
             $existingStableId = $alliance->game_alliance_id === null ? null : (string) $alliance->game_alliance_id;
             if ($existingStableId !== null && $stableId !== null && $stableId !== $existingStableId) {
-                throw ValidationException::withMessages(['game_alliance_id' => 'A stable game Alliance ID cannot be changed in place.']);
+                throw ValidationException::withMessages(['game_alliance_id' => (string) __('A stable game Alliance ID cannot be changed in place.')]);
             }
 
             $effectiveStableId = $existingStableId ?? $stableId;
@@ -90,7 +90,7 @@ final readonly class UpdateKingdomAllianceIdentity
                     ->first();
                 if ($conflict instanceof KingdomAlliance) {
                     throw ValidationException::withMessages([
-                        'game_alliance_id' => 'That stable game Alliance ID belongs to another neutral identity. Reconcile the identities explicitly instead of overwriting either record.',
+                        'game_alliance_id' => (string) __('That stable game Alliance ID belongs to another neutral identity. Reconcile the identities explicitly instead of overwriting either record.'),
                     ]);
                 }
             }

@@ -41,6 +41,25 @@ const messages = {
     noPreviousHelp: 'Il confronto appare dopo una Caccia all’Orso precedente completata.',
     history: 'Cronologia',
     runHistory: 'Cronologia Caccia all’Orso',
+    signals: {
+      evidence: 'Stato evidenza',
+      factualSignals: 'Confronto registrato',
+      reviewPending: 'Una o più righe di governatore importate devono ancora essere verificate.',
+      newPersonalBest: 'Nuovo record personale dai risultati accettati',
+      damageDirection: 'Danno {direction}',
+      rallyDirection: 'Partecipazione al rally {direction}',
+      evidenceStates: {
+        accepted: 'Risultato dello screenshot accettato',
+        recorded_without_accepted_evidence: 'Risultato registrato senza screenshot accettato',
+        unavailable: 'Nessun risultato registrato',
+      },
+      directions: {
+        unknown: 'Non è comparabile',
+        increased: 'aumentato',
+        decreased: 'diminuito',
+        unchanged: 'invariato',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

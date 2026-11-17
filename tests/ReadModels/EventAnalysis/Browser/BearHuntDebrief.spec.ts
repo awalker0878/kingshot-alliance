@@ -1,3 +1,4 @@
+import { selectLocale } from '../../../Shared/ApplicationShell/Browser/select-locale';
 import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
@@ -20,7 +21,8 @@ async function openBearHuntDebrief(page: Page): Promise<void> {
     if (/select governor/i.test(label)) {
       await identitySwitcher.click();
       await page.getByRole('listbox', { name: 'Active Governor' }).getByRole('option').first().click();
-      await page.waitForURL('**/dashboard');
+      await expect(page.getByRole('listbox', { name: 'Active Governor' })).toHaveCount(0);
+      await expect(identitySwitcher).toHaveAttribute('aria-busy', 'false');
     }
   }
 
@@ -32,8 +34,11 @@ async function openBearHuntDebrief(page: Page): Promise<void> {
   // Bear Hunt is recurring, so the Event page opens the next scheduled occurrence.
   // Navigate through the Debrief's own run history to the deterministic completed
   // fixture run that contains Results, Attendance, Rally and unresolved Evidence.
-  await page.getByRole('link', { name: /Aug 23/ }).click();
-  await page.waitForLoadState('networkidle');
+  const completedRun = page.getByRole('link', { name: /Aug 23/ });
+  await completedRun.click();
+  // Inertia may still be accepting this run after networkidle already fired.
+  // Its current-page marker proves the fixture is displayed before changing language.
+  await expect(completedRun).toHaveAttribute('aria-current', 'page');
 }
 
 async function expectNoHorizontalOverflow(page: Page): Promise<void> {
@@ -92,7 +97,8 @@ test('Bear Hunt Debrief remains readable and complete on desktop and mobile', as
 
 test('Bear Hunt Debrief long localized strings do not overflow', async ({ page }) => {
   await openBearHuntDebrief(page);
-  await page.evaluate(() => window.localStorage.setItem('kingshot.locale', 'de'));
+  await selectLocale(page, 'de');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'de');
   await page.reload();
   await page.waitForLoadState('networkidle');
   await page.evaluate(() => document.fonts.ready);

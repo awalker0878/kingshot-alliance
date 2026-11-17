@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "policy": "English source definitions are the authority. Localized translations are only approved after qualified review; this glossary does not confer approval.",
+  "terms": [
+    {
+      "term": "Governor",
+      "meaning": "A KingShot player character/persona associated with an account; not the account itself.",
+      "policy": "Use consistent game-specific terminology; do not interchange account and Governor."
+    },
+    {
+      "term": "Alliance",
+      "meaning": "In-game organization to which Governors belong.",
+      "policy": "Keep distinct from Kingdom."
+    },
+    {
+      "term": "Kingdom",
+      "meaning": "In-game kingdom/server context; can contain multiple Alliances.",
+      "policy": "Keep distinct from Alliance and real-world country."
+    },
+    {
+      "term": "Kingdom Administrator",
+      "meaning": "An administrator with effective Kingdom authority.",
+      "policy": "Retaining at least one administrator is mandatory when the source requires it."
+    },
+    {
+      "term": "blocker",
+      "meaning": "An obstacle preventing an operation from proceeding.",
+      "policy": "Do not translate as a converter, blocking software module, or a person who blocks."
+    },
+    {
+      "term": "blocked",
+      "meaning": "Operation cannot proceed under current conditions.",
+      "policy": "Distinguish from failed, pending, denied and cancelled."
+    },
+    {
+      "term": "failed",
+      "meaning": "An attempted operation did not succeed.",
+      "policy": "Do not render as pending or completed."
+    },
+    {
+      "term": "completed",
+      "meaning": "Operation finished.",
+      "policy": "Do not imply success when the source only states completion."
+    },
+    {
+      "term": "pending",
+      "meaning": "Waiting for a future action or result.",
+      "policy": "Do not translate as completed or rejected."
+    },
+    {
+      "term": "at most",
+      "meaning": "Inclusive maximum; the value must not be exceeded.",
+      "policy": "Never reverse to more than or at least; number grammar may differ by locale."
+    },
+    {
+      "term": "at least",
+      "meaning": "Inclusive minimum; a smaller value is not permitted.",
+      "policy": "Never reverse to at most."
+    },
+    {
+      "term": "required",
+      "meaning": "A prerequisite that must be satisfied.",
+      "policy": "Do not soften to optional."
+    },
+    {
+      "term": "prohibited",
+      "meaning": "An action that must not be performed.",
+      "policy": "Preserve negation and prohibition."
+    },
+    {
+      "term": "unlink",
+      "meaning": "Remove an association between an account and a Governor or identity.",
+      "policy": "Distinguish unlinking from deleting the underlying game identity."
+    },
+    {
+      "term": "delete",
+      "meaning": "Remove the specified application record or resource.",
+      "policy": "Do not imply unlink-only when destructive action is intended."
+    },
+    {
+      "term": "transfer eligibility",
+      "meaning": "Whether a Governor or Kingdom satisfies applicable transfer conditions.",
+      "policy": "Do not equate eligibility with confirmed availability."
+    },
+    {
+      "term": "Gift Code redemption",
+      "meaning": "Submitting an eligible Gift Code for an in-game reward.",
+      "policy": "Distinguish discovery, preparation, handoff, attempt and confirmed redemption."
+    }
+  ]
+}

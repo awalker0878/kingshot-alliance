@@ -36,7 +36,7 @@ final readonly class PreviewRosterCsvImport
             [, $actor] = $this->writeState->authorize($actorPlayerId, $allianceId, IntelligencePermission::KingdomManage);
             $alliance = $this->alliances->lockCurrent($allianceId);
             if ($alliance->kingdomId === '') {
-                throw ValidationException::withMessages(['file' => 'The alliance must have a Kingdom before roster data can be imported.']);
+                throw ValidationException::withMessages(['file' => (string) __('The alliance must have a Kingdom before roster data can be imported.')]);
             }
 
             $entries = $this->roster->all($allianceId);

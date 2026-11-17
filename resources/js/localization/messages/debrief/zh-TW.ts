@@ -41,6 +41,25 @@ const messages = {
     noPreviousHelp: '當此聯盟存在更早已完成的獵熊行動後，將顯示比較。',
     history: '歷史',
     runHistory: '獵熊行動歷史',
+    signals: {
+      evidence: '證據狀態',
+      factualSignals: '記錄的比較',
+      reviewPending: '一個或多個匯入的統計器行仍然需要身份審查。',
+      newPersonalBest: '從被接受的結果中創造新的個人最佳成績',
+      damageDirection: '傷害 {direction}',
+      rallyDirection: '集結參與情況 {direction}',
+      evidenceStates: {
+        accepted: '接受截圖結果',
+        recorded_without_accepted_evidence: '記錄的結果沒有被接受的截圖證據',
+        unavailable: '無記錄結果',
+      },
+      directions: {
+        unknown: '無法比較',
+        increased: '增加',
+        decreased: '減少',
+        unchanged: '無變動',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

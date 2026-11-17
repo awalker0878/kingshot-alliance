@@ -38,11 +38,11 @@ final readonly class SaveTransferParticipant
             $cohort = $routing?->transfer_cohort_id === null ? null : TransferCohort::query()->where('alliance_id', $allianceId)->where('transfer_plan_id', $plan->id)->whereKey($routing->transfer_cohort_id)->sharedLock()->first();
             $participant = $participantId === null ? new TransferParticipant(['alliance_id' => $allianceId, 'transfer_plan_id' => $plan->id]) : TransferParticipant::query()->where('alliance_id', $allianceId)->where('transfer_plan_id', $plan->id)->whereKey($participantId)->lockForUpdate()->firstOrFail();
             if ($participant->exists && $participant->withdrawn_at !== null) {
-                throw ValidationException::withMessages(['participant' => 'Withdrawn transfer participants cannot be edited.']);
+                throw ValidationException::withMessages(['participant' => (string) __('Withdrawn transfer participants cannot be edited.')]);
             }if ($routing !== null && (string) ($participant->transfer_cohort_id ?? '') !== (string) ($routing->transfer_cohort_id ?? '')) {
-                throw ValidationException::withMessages(['participant' => 'The participant cohort changed while this edit was prepared. Reload and try again.']);
+                throw ValidationException::withMessages(['participant' => (string) __('The participant cohort changed while this edit was prepared. Reload and try again.')]);
             }if ($participant->exists && $participant->transfer_cohort_id !== null && ! $cohort instanceof TransferCohort) {
-                throw ValidationException::withMessages(['participant' => 'The assigned transfer cohort no longer exists.']);
+                throw ValidationException::withMessages(['participant' => (string) __('The assigned transfer cohort no longer exists.')]);
             }$direction = $attributes['direction'];
             $values = $direction->isRosterBound() ? $this->rosterBoundValues($allianceId, $context->kingdomId(), $plan, $direction, $attributes, $participant) : $this->incomingValues($plan, $attributes, $participant);
             $this->assertCohortCompatibility($cohort, $direction, $values['destination_kingdom_id']);
@@ -61,7 +61,7 @@ final readonly class SaveTransferParticipant
         if ($participant->exists) {
             $q->where('id', '<>', $participant->id);
         }if ($q->exists()) {
-            throw ValidationException::withMessages(['player_id' => 'That Player already has an active entry in this transfer plan.']);
+            throw ValidationException::withMessages(['player_id' => (string) __('That Player already has an active entry in this transfer plan.')]);
         }
     }
 
@@ -70,20 +70,20 @@ final readonly class SaveTransferParticipant
         if (! $cohort instanceof TransferCohort) {
             return;
         }if ($cohort->state !== TransferCohortState::Active) {
-            throw ValidationException::withMessages(['participant' => 'The assigned cohort is no longer active.']);
+            throw ValidationException::withMessages(['participant' => (string) __('The assigned cohort is no longer active.')]);
         }if ($direction === TransferDirection::Staying || $cohort->direction !== $direction) {
-            throw ValidationException::withMessages(['direction' => 'The participant direction must remain compatible with the cohort.']);
+            throw ValidationException::withMessages(['direction' => (string) __('The participant direction must remain compatible with the cohort.')]);
         }if ($direction === TransferDirection::Outgoing && $cohort->destination_kingdom_id !== null && $cohort->destination_kingdom_id !== $destination) {
-            throw ValidationException::withMessages(['destination_kingdom' => 'The destination must remain compatible with the cohort.']);
+            throw ValidationException::withMessages(['destination_kingdom' => (string) __('The destination must remain compatible with the cohort.')]);
         }
     }
 
     private function assertMutable(string $allianceKingdomId, TransferPlan $plan): void
     {
         if (! in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true)) {
-            throw ValidationException::withMessages(['participant' => 'Participants can only be changed while the plan is Draft or Open.']);
+            throw ValidationException::withMessages(['participant' => (string) __('Participants can only be changed while the plan is Draft or Open.')]);
         }if ($allianceKingdomId !== (string) $plan->home_kingdom_id) {
-            throw ValidationException::withMessages(['participant' => 'The transfer plan must belong to the Alliance Kingdom.']);
+            throw ValidationException::withMessages(['participant' => (string) __('The transfer plan must belong to the Alliance Kingdom.')]);
         }
     }
 
@@ -95,18 +95,18 @@ final readonly class SaveTransferParticipant
     {
         $rosterId = trim((string) ($a['roster_entry_id'] ?? ''));
         if ($rosterId === '') {
-            throw ValidationException::withMessages(['roster_entry_id' => 'Staying and outgoing participants must use an Alliance roster Governor.']);
+            throw ValidationException::withMessages(['roster_entry_id' => (string) __('Staying and outgoing participants must use an Alliance roster Governor.')]);
         }$roster = $this->roster->requireActiveOrTracked($allianceId, $rosterId);
         $player = $this->playerReferences->require($roster->playerId);
         if ($player->kingdomId !== $allianceKingdomId || $player->kingdomId !== (string) $plan->home_kingdom_id) {
-            throw ValidationException::withMessages(['roster_entry_id' => 'The selected Governor no longer belongs to the Alliance Kingdom.']);
+            throw ValidationException::withMessages(['roster_entry_id' => (string) __('The selected Governor no longer belongs to the Alliance Kingdom.')]);
         }if ($participant->exists && (string) $participant->player_id !== $player->playerId) {
-            throw ValidationException::withMessages(['roster_entry_id' => 'Withdraw and recreate the participant to change Player identity.']);
+            throw ValidationException::withMessages(['roster_entry_id' => (string) __('Withdraw and recreate the participant to change Player identity.')]);
         }$destination = null;
         if ($direction === TransferDirection::Outgoing) {
             $destination = $this->kingdom($a['destination_kingdom'] ?? null, 'destination_kingdom');
             if ($destination !== null && $destination->kingdomId === (string) $plan->home_kingdom_id) {
-                throw ValidationException::withMessages(['destination_kingdom' => 'An outgoing destination must be a different Kingdom.']);
+                throw ValidationException::withMessages(['destination_kingdom' => (string) __('An outgoing destination must be a different Kingdom.')]);
             }
         }
 
@@ -121,13 +121,13 @@ final readonly class SaveTransferParticipant
     {
         $name = trim((string) ($a['name'] ?? ''));
         if ($name === '') {
-            throw ValidationException::withMessages(['name' => 'An incoming Governor name is required.']);
+            throw ValidationException::withMessages(['name' => (string) __('An incoming Governor name is required.')]);
         }$source = $this->kingdom($a['source_kingdom'] ?? null, 'source_kingdom');
         if ($source === null || $source->kingdomId === (string) $plan->home_kingdom_id) {
-            throw ValidationException::withMessages(['source_kingdom' => 'An incoming source Kingdom different from the plan home Kingdom is required.']);
+            throw ValidationException::withMessages(['source_kingdom' => (string) __('An incoming source Kingdom different from the plan home Kingdom is required.')]);
         }$player = $this->players->handle($source->kingdomId, $name, $this->nullableLine($a['game_player_id'] ?? null), $participant->exists ? (string) $participant->player_id : null);
         if ($participant->exists && (string) $participant->player_id !== $player->playerId) {
-            throw ValidationException::withMessages(['player_id' => 'Withdraw and recreate the participant to change Player identity.']);
+            throw ValidationException::withMessages(['player_id' => (string) __('Withdraw and recreate the participant to change Player identity.')]);
         }
 
         return ['roster_entry_id' => null, 'player_id' => $player->playerId, 'observed_name' => $name, 'game_player_id' => $player->gamePlayerId, 'source_kingdom_id' => $source->kingdomId, 'destination_kingdom_id' => (string) $plan->home_kingdom_id];

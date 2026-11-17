@@ -90,7 +90,7 @@ final class AllianceApiController extends Controller
     private function alliance(Request $request): AllianceReference
     {
         $allianceId = $request->attributes->get('alliance_id');
-        abort_unless(is_string($allianceId) && $allianceId !== '', 500, 'API tenant context is missing.');
+        abort_unless(is_string($allianceId) && $allianceId !== '', 500, (string) __('API tenant context is missing.'));
         $alliance = $this->alliances->require($allianceId);
         $this->kingdoms->requireActive($alliance->kingdomId);
 

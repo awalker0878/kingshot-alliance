@@ -38,13 +38,13 @@ final readonly class ReconcilePlayers
     ): PlayerReference {
         $reason = trim($reason);
         if ($canonicalPlayerId === $duplicatePlayerId) {
-            throw ValidationException::withMessages(['duplicate_player_id' => 'Canonical and duplicate Player identities must be different.']);
+            throw ValidationException::withMessages(['duplicate_player_id' => (string) __('Canonical and duplicate Player identities must be different.')]);
         }
         if ($reason === '') {
-            throw ValidationException::withMessages(['reason' => 'A reconciliation reason is required.']);
+            throw ValidationException::withMessages(['reason' => (string) __('A reconciliation reason is required.')]);
         }
         if ($confidenceBasisPoints !== null && ($confidenceBasisPoints < 0 || $confidenceBasisPoints > 10000)) {
-            throw ValidationException::withMessages(['confidence_basis_points' => 'Confidence must be between 0 and 10000 basis points.']);
+            throw ValidationException::withMessages(['confidence_basis_points' => (string) __('Confidence must be between 0 and 10000 basis points.')]);
         }
 
         DB::transaction(function () use (
@@ -72,7 +72,7 @@ final readonly class ReconcilePlayers
             foreach ($locked as $player) {
                 $currentOwner = $player->user_id === null ? null : (int) $player->user_id;
                 if ($currentOwner !== ($expectedOwners[(string) $player->id] ?? null)) {
-                    throw ValidationException::withMessages(['player' => 'Player ownership changed. Reload the current identities before reconciling.']);
+                    throw ValidationException::withMessages(['player' => (string) __('Player ownership changed. Reload the current identities before reconciling.')]);
                 }
             }
             $canonical = $locked->get($canonicalPlayerId);
@@ -90,23 +90,23 @@ final readonly class ReconcilePlayers
             }
             if ($canonical->canonical_player_id !== null || $duplicate->canonical_player_id !== null) {
                 throw ValidationException::withMessages([
-                    'player' => 'Reconciliation inputs must be direct Player identities. Resolve an existing alias to its canonical identity first.',
+                    'player' => (string) __('Reconciliation inputs must be direct Player identities. Resolve an existing alias to its canonical identity first.'),
                 ]);
             }
             if ((string) $canonical->current_kingdom_id !== (string) $duplicate->current_kingdom_id) {
-                throw ValidationException::withMessages(['player' => 'Player identities in different current Kingdoms cannot be reconciled directly.']);
+                throw ValidationException::withMessages(['player' => (string) __('Player identities in different current Kingdoms cannot be reconciled directly.')]);
             }
 
             $canonicalStableId = $this->nullable($canonical->game_player_id);
             $duplicateStableId = $this->nullable($duplicate->game_player_id);
             if ($canonicalStableId !== null && $duplicateStableId !== null && $canonicalStableId !== $duplicateStableId) {
-                throw ValidationException::withMessages(['game_player_id' => 'Player identities with conflicting stable game IDs cannot be reconciled.']);
+                throw ValidationException::withMessages(['game_player_id' => (string) __('Player identities with conflicting stable game IDs cannot be reconciled.')]);
             }
 
             $canonicalUserId = $canonical->user_id === null ? null : (int) $canonical->user_id;
             $duplicateUserId = $duplicate->user_id === null ? null : (int) $duplicate->user_id;
             if ($canonicalUserId !== null && $duplicateUserId !== null && $canonicalUserId !== $duplicateUserId) {
-                throw ValidationException::withMessages(['player' => 'Player identities owned by different accounts cannot be reconciled.']);
+                throw ValidationException::withMessages(['player' => (string) __('Player identities owned by different accounts cannot be reconciled.')]);
             }
 
             $this->lifecycle->assertReconciliationDuplicateIsDormant($duplicate);

@@ -38,7 +38,7 @@ final class GoogleAuthenticationController extends Controller
         abort_if(
             $request->user() instanceof Authenticatable,
             409,
-            'Use Security settings to connect Google to an existing account.',
+            (string) __('Use Security settings to connect Google to an existing account.'),
         );
 
         $intent = GoogleAuthenticationIntent::tryFrom((string) $request->query('intent', 'login'));
@@ -85,7 +85,7 @@ final class GoogleAuthenticationController extends Controller
 
         if ($methods->hasGoogle($userId)) {
             throw ValidationException::withMessages([
-                'google' => 'Google is already connected to this Kingshot Alliance account.',
+                'google' => (string) __('Google is already connected to this Kingshot Alliance account.'),
             ]);
         }
 
@@ -131,7 +131,7 @@ final class GoogleAuthenticationController extends Controller
             $googleUser = Socialite::driver('google')->user();
         } catch (Throwable) {
             throw ValidationException::withMessages([
-                'google' => 'Google sign-in could not be completed. Please try again.',
+                'google' => (string) __('Google sign-in could not be completed. Please try again.'),
             ]);
         }
 
@@ -162,7 +162,7 @@ final class GoogleAuthenticationController extends Controller
         abort_if(
             $request->user() instanceof Authenticatable,
             409,
-            'An authenticated account cannot start a new Google sign-in.',
+            (string) __('An authenticated account cannot start a new Google sign-in.'),
         );
 
         $invitationToken = $operation['invitation_token'];
@@ -187,26 +187,26 @@ final class GoogleAuthenticationController extends Controller
             );
 
             throw ValidationException::withMessages([
-                'google' => 'A Kingshot Alliance account already uses this email. Sign in to that account first, then connect Google from Security settings.',
+                'google' => (string) __('A Kingshot Alliance account already uses this email. Sign in to that account first, then connect Google from Security settings.'),
             ]);
         }
 
         if ($intent !== GoogleAuthenticationIntent::Register) {
             throw ValidationException::withMessages([
-                'google' => 'No Kingshot Alliance account is connected to this Google account. Create an account with Google, or sign in another way and connect Google from Security settings.',
+                'google' => (string) __('No Kingshot Alliance account is connected to this Google account. Create an account with Google, or sign in another way and connect Google from Security settings.'),
             ]);
         }
 
         $registrationMode = (string) config('accounts.registration_mode', 'open');
         if ($registrationMode !== 'open' && $invitation === null) {
-            abort(403, 'A valid invitation is required to register.');
+            abort(403, (string) __('A valid invitation is required to register.'));
         }
         if ($invitationToken !== null && $invitation === null) {
             abort(404);
         }
         if ($invitation !== null && ! hash_equals(Str::lower($invitation->email), $email)) {
             throw ValidationException::withMessages([
-                'google' => 'Use the Google account that received this invitation.',
+                'google' => (string) __('Use the Google account that received this invitation.'),
             ]);
         }
 
@@ -232,7 +232,7 @@ final class GoogleAuthenticationController extends Controller
             );
         } catch (QueryException) {
             throw ValidationException::withMessages([
-                'google' => 'This Google account could not be attached safely. Sign in to the existing account if one already owns it.',
+                'google' => (string) __('This Google account could not be attached safely. Sign in to the existing account if one already owns it.'),
             ]);
         }
 
@@ -306,7 +306,7 @@ final class GoogleAuthenticationController extends Controller
             || ! $emailVerified
         ) {
             throw ValidationException::withMessages([
-                'google' => 'Google must provide a stable identity and verified email address to sign in.',
+                'google' => (string) __('Google must provide a stable identity and verified email address to sign in.'),
             ]);
         }
 

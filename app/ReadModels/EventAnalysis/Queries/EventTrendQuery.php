@@ -362,7 +362,7 @@ final readonly class EventTrendQuery
         $until ??= CarbonImmutable::now('UTC');
         $from ??= $until->subDays(180);
         if ($from->greaterThan($until)) {
-            throw ValidationException::withMessages(['from' => 'Trend start must not be after trend end.']);
+            throw ValidationException::withMessages(['from' => (string) __('Trend start must not be after trend end.')]);
         }
 
         return [$from->utc(), $until->utc()];
@@ -374,7 +374,7 @@ final readonly class EventTrendQuery
             EventScope::Alliance => 'event.alliance_id',
             EventScope::Kingdom => 'event.kingdom_id',
             EventScope::Player => throw ValidationException::withMessages([
-                'scope' => 'Organization trend scope must be Alliance or Kingdom.',
+                'scope' => (string) __('Organization trend scope must be Alliance or Kingdom.'),
             ]),
         };
     }
@@ -389,7 +389,7 @@ final readonly class EventTrendQuery
 
         if ($value === null) {
             throw ValidationException::withMessages([
-                'event_type' => 'The Event Type does not support the requested scope.',
+                'event_type' => (string) __('The Event Type does not support the requested scope.'),
             ]);
         }
 

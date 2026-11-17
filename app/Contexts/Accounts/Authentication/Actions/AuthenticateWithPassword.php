@@ -57,7 +57,7 @@ final readonly class AuthenticateWithPassword
                 return $this->proofs->password($user);
             });
             if ($verified === null) {
-                throw ValidationException::withMessages(['email' => 'The provided credentials are incorrect.']);
+                throw ValidationException::withMessages(['email' => (string) __('The provided credentials are incorrect.')]);
             }
             $timebox->returnEarly();
 

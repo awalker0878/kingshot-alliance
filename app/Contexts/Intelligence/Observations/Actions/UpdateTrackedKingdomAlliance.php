@@ -36,20 +36,20 @@ final readonly class UpdateTrackedKingdomAlliance
                 ->lockForUpdate()
                 ->findOrFail($trackingId);
             if ($tracking->state !== TrackedKingdomAllianceState::Active) {
-                throw ValidationException::withMessages(['tracking' => 'Archived tracking records cannot be edited.']);
+                throw ValidationException::withMessages(['tracking' => (string) __('Archived tracking records cannot be edited.')]);
             }
             if ((string) $tracking->kingdom_id !== $scope->kingdomId) {
-                throw ValidationException::withMessages(['tracking' => 'This tracking record belongs to an earlier Kingdom context and cannot be edited.']);
+                throw ValidationException::withMessages(['tracking' => (string) __('This tracking record belongs to an earlier Kingdom context and cannot be edited.')]);
             }
 
             $reference = $this->references->requireActiveCanonical((string) $tracking->kingdom_alliance_id);
             if ($reference->kingdomId !== (string) $tracking->kingdom_id) {
-                throw ValidationException::withMessages(['tracking' => 'The tracked alliance identity no longer matches its captured Kingdom context.']);
+                throw ValidationException::withMessages(['tracking' => (string) __('The tracked alliance identity no longer matches its captured Kingdom context.')]);
             }
 
             $name = trim($attributes['current_name']);
             if ($name === '') {
-                throw ValidationException::withMessages(['current_name' => 'Alliance name is required.']);
+                throw ValidationException::withMessages(['current_name' => (string) __('Alliance name is required.')]);
             }
             $tag = array_key_exists('current_tag', $attributes) ? $this->nullableLine($attributes['current_tag']) : $reference->currentTag;
             $stableId = array_key_exists('game_alliance_id', $attributes) ? $this->nullableLine($attributes['game_alliance_id']) : $reference->gameAllianceId;

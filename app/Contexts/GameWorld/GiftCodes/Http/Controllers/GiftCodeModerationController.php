@@ -213,7 +213,7 @@ final class GiftCodeModerationController extends Controller
         $targetUserId = $this->accounts->findIdByEmail($validated['email']);
         if ($targetUserId === null) {
             throw ValidationException::withMessages([
-                'email' => 'No account exists with that email address.',
+                'email' => (string) __('No account exists with that email address.'),
             ]);
         }
         $grantId = $grants->grant($this->account($request), $targetUserId);
@@ -285,7 +285,7 @@ final class GiftCodeModerationController extends Controller
         foreach ($validated['gift_code_ids'] as $giftCodeId) {
             if (! array_key_exists($giftCodeId, $expectedRevisions)) {
                 throw ValidationException::withMessages([
-                    'expected_status_revisions' => 'Refresh the bulk preview before confirming these decisions.',
+                    'expected_status_revisions' => (string) __('Refresh the bulk preview before confirming these decisions.'),
                 ]);
             }
         }

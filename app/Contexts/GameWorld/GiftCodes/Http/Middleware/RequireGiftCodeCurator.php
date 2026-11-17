@@ -26,12 +26,12 @@ final readonly class RequireGiftCodeCurator
         abort_unless(is_numeric($identifier), 401);
 
         $account = $this->accounts->require((int) $identifier);
-        abort_unless($account->emailVerified, 403, 'Gift Code curators must have a verified email address.');
-        abort_unless($account->multiFactorConfirmed, 403, 'Gift Code curators must enable multi-factor authentication.');
+        abort_unless($account->emailVerified, 403, (string) __('Gift Code curators must have a verified email address.'));
+        abort_unless($account->multiFactorConfirmed, 403, (string) __('Gift Code curators must enable multi-factor authentication.'));
 
         $authorized = $this->platformAuthorization->allows($account)
             || GiftCodeCuratorGrant::activeForUserId($account->userId);
-        abort_unless($authorized, 403, 'Gift Code curator access is required.');
+        abort_unless($authorized, 403, (string) __('Gift Code curator access is required.'));
 
         $request->attributes->set('gift_code_curator_user_id', $account->userId);
 

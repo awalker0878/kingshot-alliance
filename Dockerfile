@@ -12,8 +12,11 @@ FROM composer:2.10 AS composer
 
 FROM php:8.5-fpm-alpine AS php-base
 
-RUN apk add --no-cache \
-        curl \
+# Refresh inherited curl libraries as well as newly installed runtime packages.
+# The version floor excludes CVE-2026-92392 in older PHP base-image layers.
+RUN apk add --no-cache --upgrade \
+        'curl>=8.23.0-r0' \
+        'libcurl>=8.23.0-r0' \
         freetype \
         icu-libs \
         libjpeg-turbo \
@@ -85,11 +88,13 @@ COPY app ./app
 COPY bootstrap ./bootstrap
 COPY config ./config
 COPY database ./database
+COPY lang ./lang
 COPY public ./public
 COPY resources/views ./resources/views
 COPY routes ./routes
 COPY storage ./storage
 COPY artisan composer.json composer.lock LICENSE ./
+COPY scripts/check-localization-image.php ./scripts/check-localization-image.php
 COPY --from=frontend /app/public/build ./public/build
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf

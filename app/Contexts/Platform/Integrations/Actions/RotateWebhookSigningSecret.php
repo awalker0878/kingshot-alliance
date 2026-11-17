@@ -34,7 +34,7 @@ final readonly class RotateWebhookSigningSecret
                 ->firstOrFail();
             if (! $subscription->is_active || $subscription->revoked_at !== null) {
                 throw ValidationException::withMessages([
-                    'webhook' => 'Only an active webhook subscription can rotate its signing secret.',
+                    'webhook' => (string) __('Only an active webhook subscription can rotate its signing secret.'),
                 ]);
             }
 

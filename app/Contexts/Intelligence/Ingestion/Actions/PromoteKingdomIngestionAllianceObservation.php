@@ -66,13 +66,13 @@ final readonly class PromoteKingdomIngestionAllianceObservation
             }
             if ($candidate->target_kind !== KingdomIngestionTargetKind::AllianceObservation) {
                 throw ValidationException::withMessages([
-                    'candidate' => 'This promotion path accepts only game-alliance observation candidates.',
+                    'candidate' => (string) __('This promotion path accepts only game-alliance observation candidates.'),
                 ]);
             }
             if ($subscription->state !== KingdomIngestionSubscriptionState::Active
                 || $batch->state !== KingdomIngestionBatchState::Pending) {
                 throw ValidationException::withMessages([
-                    'subscription' => 'The ingestion subscription and batch must still be active before a candidate can be promoted.',
+                    'subscription' => (string) __('The ingestion subscription and batch must still be active before a candidate can be promoted.'),
                 ]);
             }
 
@@ -215,7 +215,7 @@ final readonly class PromoteKingdomIngestionAllianceObservation
         if ($candidate->promoted_record_type !== KingdomIngestionTargetKind::AllianceObservation->value
             || $candidate->promoted_record_id === null) {
             throw ValidationException::withMessages([
-                'candidate' => 'The promoted candidate does not contain a valid game-alliance observation reference.',
+                'candidate' => (string) __('The promoted candidate does not contain a valid game-alliance observation reference.'),
             ]);
         }
 
@@ -225,7 +225,7 @@ final readonly class PromoteKingdomIngestionAllianceObservation
             ->exists();
         if (! $exists) {
             throw ValidationException::withMessages([
-                'candidate' => 'The promoted alliance observation no longer exists.',
+                'candidate' => (string) __('The promoted alliance observation no longer exists.'),
             ]);
         }
 
@@ -258,7 +258,7 @@ final readonly class PromoteKingdomIngestionAllianceObservation
             || ($power !== null && ! is_string($power))
             || ($memberCount !== null && ! is_int($memberCount))) {
             throw ValidationException::withMessages([
-                'candidate' => 'The normalized game-alliance observation payload is invalid.',
+                'candidate' => (string) __('The normalized game-alliance observation payload is invalid.'),
             ]);
         }
 

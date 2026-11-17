@@ -67,13 +67,13 @@ final readonly class SaveTransferEvidenceReview
         $observed = CarbonImmutable::parse($observedAt)->utc();
         $valid = $validUntil === null || trim($validUntil) === '' ? null : CarbonImmutable::parse($validUntil)->utc();
         if ($valid !== null && $valid->lt($observed)) {
-            throw ValidationException::withMessages(['valid_until' => 'Validity must end on or after the observation time.']);
+            throw ValidationException::withMessages(['valid_until' => (string) __('Validity must end on or after the observation time.')]);
         }
 
         return DB::transaction(function () use ($actorPlayerId, $allianceId, $planId, $participantId, $evidenceId, $extractionAttemptId, $observed, $valid, $governorPower, $transferScore, $transferPassesAvailable, $transferPassesRequired, $invitationStatus, $targetKingdomNumber, $targetPowerCap, $targetHeroGeneration, $targetTruegoldLevel, $targetCharacterAgeThresholdDays, $kingdomClassification, $officialGroupIdentifier, $officialGroupKingdomNumbers, $target): string {
             $currentTarget = $this->targets->authorizeManage($actorPlayerId, $allianceId, $planId, $participantId);
             if ($currentTarget->transferWindowId !== $target->transferWindowId || $currentTarget->direction !== $target->direction || $currentTarget->targetKingdomId !== $target->targetKingdomId) {
-                throw ValidationException::withMessages(['evidence' => 'Transfer scope changed while the Evidence review was being saved. Review the current participant state again.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('Transfer scope changed while the Evidence review was being saved. Review the current participant state again.')]);
             }
             $actor = $this->players->lockCurrent($actorPlayerId);
             $evidence = GameEvidence::query()
@@ -86,7 +86,7 @@ final readonly class SaveTransferEvidenceReview
                 ->firstOrFail();
             $kind = EvidenceKind::from((string) $evidence->getRawOriginal('kind'));
             if (! $kind->isTransfer() || $kind !== EvidenceKind::from((string) $evidence->getRawOriginal('expected_kind'))) {
-                throw ValidationException::withMessages(['evidence' => 'The screenshot class has not been safely verified.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('The screenshot class has not been safely verified.')]);
             }
             $schema = $this->schemas->require($kind);
             $extraction = EvidenceExtractionAttempt::query()
@@ -103,7 +103,7 @@ final readonly class SaveTransferEvidenceReview
                 ->sharedLock()
                 ->firstOrFail();
             if ((float) $classification->confidence < $schema->minimumClassificationConfidence) {
-                throw ValidationException::withMessages(['evidence' => 'Classification confidence is below the supported schema threshold.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('Classification confidence is below the supported schema threshold.')]);
             }
 
             $sourceFields = EvidenceExtractedField::query()
@@ -111,7 +111,7 @@ final readonly class SaveTransferEvidenceReview
                 ->get();
             foreach ($sourceFields as $field) {
                 if (! in_array((string) $field->field_key, $schema->supportedFields, true)) {
-                    throw ValidationException::withMessages(['evidence' => 'Extraction contained a field that is not supported by this schema version.']);
+                    throw ValidationException::withMessages(['evidence' => (string) __('Extraction contained a field that is not supported by this schema version.')]);
                 }
             }
 
@@ -283,7 +283,7 @@ final readonly class SaveTransferEvidenceReview
                 $this->kingdomNumbers($officialGroupKingdomNumbers),
                 null,
             ],
-            default => throw ValidationException::withMessages(['evidence' => 'Unsupported Transfer Evidence schema.']),
+            default => throw ValidationException::withMessages(['evidence' => (string) __('Unsupported Transfer Evidence schema.')]),
         };
     }
 
@@ -301,7 +301,7 @@ final readonly class SaveTransferEvidenceReview
         $value = $this->nonNegative($value, 'Character-age threshold');
         if ($value < TransferOfficialRulebook::MIN_CHARACTER_AGE_THRESHOLD_DAYS || $value > TransferOfficialRulebook::MAX_CHARACTER_AGE_THRESHOLD_DAYS) {
             throw ValidationException::withMessages([
-                'character_age_threshold_days' => 'The official character-age threshold must be between 90 and 180 days.',
+                'character_age_threshold_days' => (string) __('The official character-age threshold must be between 90 and 180 days.'),
             ]);
         }
 
@@ -318,7 +318,7 @@ final readonly class SaveTransferEvidenceReview
     private function requireValidity(?CarbonImmutable $validUntil): void
     {
         if (! $validUntil instanceof CarbonImmutable) {
-            throw ValidationException::withMessages(['valid_until' => 'A validity boundary is required for this mutable Transfer observation.']);
+            throw ValidationException::withMessages(['valid_until' => (string) __('A validity boundary is required for this mutable Transfer observation.')]);
         }
     }
 
@@ -326,7 +326,7 @@ final readonly class SaveTransferEvidenceReview
     {
         $this->requireValidity($validUntil);
         if ($targetKingdomId === null) {
-            throw ValidationException::withMessages(['participant' => 'This screenshot class requires a current target Kingdom.']);
+            throw ValidationException::withMessages(['participant' => (string) __('This screenshot class requires a current target Kingdom.')]);
         }
 
         return $targetKingdomId;
@@ -342,15 +342,15 @@ final readonly class SaveTransferEvidenceReview
     private function verifiedTarget(?string $targetKingdomId, ?int $observedNumber, bool $requiredObservedNumber): string
     {
         if ($targetKingdomId === null) {
-            throw ValidationException::withMessages(['participant' => 'This screenshot class requires a current target Kingdom.']);
+            throw ValidationException::withMessages(['participant' => (string) __('This screenshot class requires a current target Kingdom.')]);
         }
         if ($requiredObservedNumber && $observedNumber === null) {
-            throw ValidationException::withMessages(['target_kingdom_number' => 'The target Kingdom number must be visible and reviewed for this screenshot class.']);
+            throw ValidationException::withMessages(['target_kingdom_number' => (string) __('The target Kingdom number must be visible and reviewed for this screenshot class.')]);
         }
         if ($observedNumber !== null) {
             $observed = $this->kingdoms->findByNumber($observedNumber);
             if ($observed === null || $observed->kingdomId !== $targetKingdomId) {
-                throw ValidationException::withMessages(['target_kingdom_number' => 'The reviewed screenshot target does not match the participant current target Kingdom.']);
+                throw ValidationException::withMessages(['target_kingdom_number' => (string) __('The reviewed screenshot target does not match the participant current target Kingdom.')]);
             }
         }
 
@@ -361,7 +361,7 @@ final readonly class SaveTransferEvidenceReview
     {
         $status = $status === null ? '' : trim($status);
         if (TransferInvitationStatus::tryFrom($status) === null) {
-            throw ValidationException::withMessages(['invitation_status' => 'Review the invitation into a supported in-game invitation state.']);
+            throw ValidationException::withMessages(['invitation_status' => (string) __('Review the invitation into a supported in-game invitation state.')]);
         }
 
         return $status;
@@ -374,7 +374,7 @@ final readonly class SaveTransferEvidenceReview
             return null;
         }
         if (TransferKingdomClassification::tryFrom($classification) === null) {
-            throw ValidationException::withMessages(['kingdom_classification' => 'Kingdom classification is invalid.']);
+            throw ValidationException::withMessages(['kingdom_classification' => (string) __('Kingdom classification is invalid.')]);
         }
 
         return $classification;
@@ -384,7 +384,7 @@ final readonly class SaveTransferEvidenceReview
     {
         $identifier = trim((string) $identifier);
         if ($identifier === '' || mb_strlen($identifier) > 96) {
-            throw ValidationException::withMessages(['official_group_identifier' => 'An official Transfer Group identifier of 96 characters or fewer is required.']);
+            throw ValidationException::withMessages(['official_group_identifier' => (string) __('An official Transfer Group identifier of 96 characters or fewer is required.')]);
         }
 
         return $identifier;
@@ -399,14 +399,14 @@ final readonly class SaveTransferEvidenceReview
         $normalized = [];
         foreach ($numbers as $number) {
             if ($number < 1 || $number > 999999) {
-                throw ValidationException::withMessages(['kingdom_numbers' => 'Official Transfer Group Kingdom numbers must be positive supported Kingdom numbers.']);
+                throw ValidationException::withMessages(['kingdom_numbers' => (string) __('Official Transfer Group Kingdom numbers must be positive supported Kingdom numbers.')]);
             }
             $normalized[$number] = $number;
         }
         ksort($normalized, SORT_NUMERIC);
         $values = array_values($normalized);
         if ($values === []) {
-            throw ValidationException::withMessages(['kingdom_numbers' => 'Review at least one explicitly visible Kingdom for the official Transfer Group.']);
+            throw ValidationException::withMessages(['kingdom_numbers' => (string) __('Review at least one explicitly visible Kingdom for the official Transfer Group.')]);
         }
 
         return $values;
@@ -434,7 +434,7 @@ final readonly class SaveTransferEvidenceReview
                 $observedAt->toIso8601String(),
             ],
             EvidenceKind::TransferOfficialGroup => [$schemaVersion, $windowId, $values['official_group_identifier'], $kingdomNumbers, $observedAt->toIso8601String()],
-            default => throw ValidationException::withMessages(['evidence' => 'Unsupported Transfer Evidence fingerprint schema.']),
+            default => throw ValidationException::withMessages(['evidence' => (string) __('Unsupported Transfer Evidence fingerprint schema.')]),
         };
 
         return hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));

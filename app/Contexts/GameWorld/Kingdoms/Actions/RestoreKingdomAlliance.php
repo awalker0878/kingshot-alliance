@@ -30,13 +30,13 @@ final readonly class RestoreKingdomAlliance
             $alliance = KingdomAlliance::query()->whereKey($kingdomAllianceId)->where('kingdom_id', $kingdom->id)->lockForUpdate()->firstOrFail();
             if ($alliance->canonical_kingdom_alliance_id !== null) {
                 throw ValidationException::withMessages([
-                    'kingdom_alliance' => 'A reconciled alias cannot be restored. Use its canonical Alliance identity.',
+                    'kingdom_alliance' => (string) __('A reconciled alias cannot be restored. Use its canonical Alliance identity.'),
                 ]);
             }
 
             if ($kingdom->status !== KingdomStatus::Active) {
                 throw ValidationException::withMessages([
-                    'kingdom' => 'An Alliance identity cannot be restored while its Kingdom is archived.',
+                    'kingdom' => (string) __('An Alliance identity cannot be restored while its Kingdom is archived.'),
                 ]);
             }
 

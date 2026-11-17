@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import RoomArtwork from '@/components/game/RoomArtwork.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
@@ -218,7 +219,8 @@ function formatCaptured(value: string): string {
   <Head :title="t('progression.governorProgression')" />
   <AppLayout :user="user">
     <div class="mx-auto w-full max-w-[100rem] space-y-6">
-      <section class="ks-surface-gold p-5 sm:p-6">
+      <section class="ks-artwork-panel ks-surface-gold p-5 sm:p-6">
+        <RoomArtwork scene="progression-forge" />
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p class="ks-kicker">{{ t('progression.governorProgression') }}</p>

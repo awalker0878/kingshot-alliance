@@ -231,6 +231,7 @@ function statusTone(status: string): 'success' | 'warning' | 'danger' | 'info' {
       :eyebrow="t('giftCodes.workspace.eyebrow')"
       :title="t('giftCodes.workspace.title')"
       :subtitle="t('giftCodes.workspace.subtitle')"
+      scene="gift-code-vault"
       image="/images/kingshot/v4/account-vault.svg"
     >
       <template #actions>

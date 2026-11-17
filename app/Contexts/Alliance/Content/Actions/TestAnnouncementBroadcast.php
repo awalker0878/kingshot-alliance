@@ -36,7 +36,7 @@ final readonly class TestAnnouncementBroadcast
             $context = $this->writeState->lockActiveScope($actorPlayerId, $allianceId);
             $this->authority->authorizeContext($context, AlliancePermission::ContentManage);
             if ($context->actor->userId === null) {
-                throw ValidationException::withMessages(['player' => 'Claim this Governor before sending a test delivery.']);
+                throw ValidationException::withMessages(['player' => (string) __('Claim this Governor before sending a test delivery.')]);
             }
 
             $item = ContentItem::query()
@@ -45,7 +45,7 @@ final readonly class TestAnnouncementBroadcast
                 ->lockForUpdate()
                 ->firstOrFail();
             if ($item->type !== ContentType::Announcement || $item->status === ContentStatus::Archived) {
-                throw ValidationException::withMessages(['content' => 'Only active announcements can be tested.']);
+                throw ValidationException::withMessages(['content' => (string) __('Only active announcements can be tested.')]);
             }
 
             $receipt = $this->deliveries->queue(new NotificationIntent(

@@ -59,12 +59,12 @@ final readonly class CreateGiftCodeRedemptionSession
         $maxGovernors = max(1, min(100, (int) config('game_world.gift_codes.max_session_governors', 50)));
         $maxItems = max(1, min(2000, (int) config('game_world.gift_codes.max_session_items', 500)));
         if (count($giftCodeIds) > $maxCodes || count($playerIds) > $maxGovernors) {
-            throw ValidationException::withMessages(['session' => 'The requested Gift Code session exceeds configured bounds.']);
+            throw ValidationException::withMessages(['session' => (string) __('The requested Gift Code session exceeds configured bounds.')]);
         }
 
         $ownedPlayers = $this->players->ownedByUserUpTo($userId, $maxGovernors + 1);
         if (count($ownedPlayers) > $maxGovernors) {
-            throw ValidationException::withMessages(['session' => 'This account has more Governors than one Gift Code session may process.']);
+            throw ValidationException::withMessages(['session' => (string) __('This account has more Governors than one Gift Code session may process.')]);
         }
         $owned = [];
         foreach ($ownedPlayers as $player) {
@@ -74,22 +74,22 @@ final readonly class CreateGiftCodeRedemptionSession
             $selected = [];
             foreach ($playerIds as $playerId) {
                 if (! isset($owned[$playerId])) {
-                    throw ValidationException::withMessages(['player_ids' => 'A selected Governor is no longer owned by this account.']);
+                    throw ValidationException::withMessages(['player_ids' => (string) __('A selected Governor is no longer owned by this account.')]);
                 }
                 $selected[$playerId] = $owned[$playerId];
             }
             $owned = $selected;
         }
         if ($owned === []) {
-            throw ValidationException::withMessages(['player_ids' => 'At least one owned Governor is required.']);
+            throw ValidationException::withMessages(['player_ids' => (string) __('At least one owned Governor is required.')]);
         }
 
         $codes = $this->codesForMode($mode, $giftCodeIds, array_keys($owned), $maxCodes);
         if ($codes->count() > $maxCodes) {
-            throw ValidationException::withMessages(['gift_code_ids' => 'The requested Gift Code session exceeds the code limit.']);
+            throw ValidationException::withMessages(['gift_code_ids' => (string) __('The requested Gift Code session exceeds the code limit.')]);
         }
         if ($codes->isEmpty()) {
-            throw ValidationException::withMessages(['gift_code_ids' => 'No Gift Codes match this session mode.']);
+            throw ValidationException::withMessages(['gift_code_ids' => (string) __('No Gift Codes match this session mode.')]);
         }
 
         $candidates = [];
@@ -108,12 +108,12 @@ final readonly class CreateGiftCodeRedemptionSession
                 }
                 $candidates[] = [$giftCode, $player, $decision];
                 if (count($candidates) > $maxItems) {
-                    throw ValidationException::withMessages(['session' => 'The requested Gift Code session exceeds the item limit.']);
+                    throw ValidationException::withMessages(['session' => (string) __('The requested Gift Code session exceeds the item limit.')]);
                 }
             }
         }
         if ($candidates === []) {
-            throw ValidationException::withMessages(['session' => 'No currently actionable Gift Code/Governor pairs were found.']);
+            throw ValidationException::withMessages(['session' => (string) __('No currently actionable Gift Code/Governor pairs were found.')]);
         }
 
         $now = CarbonImmutable::now('UTC');

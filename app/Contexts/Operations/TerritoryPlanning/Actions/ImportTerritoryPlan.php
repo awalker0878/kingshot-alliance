@@ -37,7 +37,7 @@ final readonly class ImportTerritoryPlan
         $preview = $this->imports->preview($document);
         if (($preview['can_commit'] ?? false) !== true) {
             throw ValidationException::withMessages([
-                'import' => 'The imported Territory layout contains blocking placement violations.',
+                'import' => (string) __('The imported Territory layout contains blocking placement violations.'),
             ]);
         }
 

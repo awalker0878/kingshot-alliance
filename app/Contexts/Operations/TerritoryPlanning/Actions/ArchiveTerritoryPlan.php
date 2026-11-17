@@ -22,7 +22,7 @@ final readonly class ArchiveTerritoryPlan
             $context = $this->writeState->lock($actorPlayerId, $planId);
             $this->authorization->authorizeManage($context);
             if ((int) $context->plan->revision !== $expectedRevision) {
-                throw ValidationException::withMessages(['revision' => 'This plan changed before it could be archived.']);
+                throw ValidationException::withMessages(['revision' => (string) __('This plan changed before it could be archived.')]);
             }
             $context->plan->forceFill(['status' => TerritoryPlanStatus::Archived, 'updated_by_player_id' => $actorPlayerId])->save();
             $this->audit->record('territory.plan.archived', $context->actor, $context->plan, $context->plan->owner_alliance_id === null ? null : (string) $context->plan->owner_alliance_id, ['revision' => $expectedRevision]);

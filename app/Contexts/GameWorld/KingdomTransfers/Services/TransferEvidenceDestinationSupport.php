@@ -70,10 +70,10 @@ final readonly class TransferEvidenceDestinationSupport
             ->lockForUpdate()
             ->firstOrFail();
         if (! in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true)) {
-            throw ValidationException::withMessages(['plan' => 'The Transfer Plan is no longer mutable.']);
+            throw ValidationException::withMessages(['plan' => (string) __('The Transfer Plan is no longer mutable.')]);
         }
         if ((string) $plan->transfer_window_id !== $expectedWindowId) {
-            throw ValidationException::withMessages(['evidence' => 'The Transfer Window changed after Evidence review. Re-review the screenshot against the current Plan.']);
+            throw ValidationException::withMessages(['evidence' => (string) __('The Transfer Window changed after Evidence review. Re-review the screenshot against the current Plan.')]);
         }
 
         $participant = TransferParticipant::query()
@@ -83,7 +83,7 @@ final readonly class TransferEvidenceDestinationSupport
             ->lockForUpdate()
             ->firstOrFail();
         if ($participant->withdrawn_at !== null) {
-            throw ValidationException::withMessages(['participant' => 'The participant was withdrawn after Evidence review.']);
+            throw ValidationException::withMessages(['participant' => (string) __('The participant was withdrawn after Evidence review.')]);
         }
         $targetKingdomId = match ($participant->direction->value) {
             'incoming' => (string) $plan->home_kingdom_id,
@@ -91,7 +91,7 @@ final readonly class TransferEvidenceDestinationSupport
             default => null,
         };
         if ($targetSpecific && ($expectedTargetKingdomId === null || $targetKingdomId !== $expectedTargetKingdomId)) {
-            throw ValidationException::withMessages(['evidence' => 'The participant target Kingdom changed after Evidence review. Re-review the screenshot.']);
+            throw ValidationException::withMessages(['evidence' => (string) __('The participant target Kingdom changed after Evidence review. Re-review the screenshot.')]);
         }
 
         return new TransferEvidenceTarget(

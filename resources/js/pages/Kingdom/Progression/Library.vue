@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import RoomArtwork from '@/components/game/RoomArtwork.vue';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
@@ -206,9 +207,10 @@ function sourceMetaValue(key: string): string | null {
   <AppLayout :user="user">
     <div class="mx-auto w-full max-w-[104rem] space-y-6">
       <section
-        class="overflow-hidden rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[rgba(5,13,13,.88)] p-5 shadow-xl sm:p-7"
+        class="ks-artwork-panel overflow-hidden rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[rgba(5,13,13,.88)] p-5 shadow-xl sm:p-7"
         aria-labelledby="progression-title"
       >
+        <RoomArtwork scene="progression-forge" />
         <div class="grid gap-5 xl:grid-cols-[1fr_auto] xl:items-start">
           <div>
             <p class="ks-kicker">{{ t('progression.eyebrow') }}</p>

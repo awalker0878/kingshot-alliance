@@ -64,6 +64,9 @@ const messages = {
     recruitmentBreakdown: '{joined} joined / {total} candidates',
     pendingApprovals: 'Pending approvals',
     dataIssues: 'Data issues',
+    dataQuality: 'Contribution data quality',
+    dataQualityHelp:
+      'Review missing, conflicting or incomplete records before using contribution totals.',
     configuration: 'Contribution rules',
     newCategory: 'New contribution category',
     name: 'Name',

@@ -16,7 +16,7 @@ final class TerritoryAnnotationContract
     public function normalize(array $rows, ?array $allianceKeys = null): array
     {
         if (! array_is_list($rows) || count($rows) > 500) {
-            throw ValidationException::withMessages(['annotations' => 'Annotations must be a list of at most 500 entries.']);
+            throw ValidationException::withMessages(['annotations' => (string) __('Annotations must be a list of at most 500 entries.')]);
         }
 
         $allowedAlliances = $allianceKeys === null ? null : array_fill_keys($allianceKeys, true);
@@ -24,10 +24,10 @@ final class TerritoryAnnotationContract
         $normalized = [];
         foreach ($rows as $index => $row) {
             if (! is_array($row) || array_is_list($row)) {
-                throw ValidationException::withMessages(['annotations' => 'Every annotation must be an object.']);
+                throw ValidationException::withMessages(['annotations' => (string) __('Every annotation must be an object.')]);
             }
             if (array_diff(array_keys($row), ['key', 'kind', 'alliance_key', 'text', 'x', 'y', 'target_x', 'target_y', 'sort_order']) !== []) {
-                throw ValidationException::withMessages(['annotations' => 'An annotation contains unsupported fields.']);
+                throw ValidationException::withMessages(['annotations' => (string) __('An annotation contains unsupported fields.')]);
             }
 
             $key = trim((string) ($row['key'] ?? ''));
@@ -41,35 +41,35 @@ final class TerritoryAnnotationContract
             $sortOrder = $row['sort_order'] ?? $index;
 
             if ($key === '' || mb_strlen($key) > 120 || isset($keys[$key])) {
-                throw ValidationException::withMessages(['annotations' => 'Annotation keys must be unique bounded strings.']);
+                throw ValidationException::withMessages(['annotations' => (string) __('Annotation keys must be unique bounded strings.')]);
             }
             if (! in_array($kind, ['label', 'line', 'arrow', 'rectangle'], true)) {
-                throw ValidationException::withMessages(['annotations' => 'Annotation kind is unsupported.']);
+                throw ValidationException::withMessages(['annotations' => (string) __('Annotation kind is unsupported.')]);
             }
             if (! is_int($x) || ! is_int($y) || abs($x) > 1_000_000 || abs($y) > 1_000_000) {
-                throw ValidationException::withMessages(['annotations' => 'Annotation coordinates must be bounded integers.']);
+                throw ValidationException::withMessages(['annotations' => (string) __('Annotation coordinates must be bounded integers.')]);
             }
             if (($targetX !== null && (! is_int($targetX) || abs($targetX) > 1_000_000))
                 || ($targetY !== null && (! is_int($targetY) || abs($targetY) > 1_000_000))) {
-                throw ValidationException::withMessages(['annotations' => 'Annotation target coordinates must be bounded integers.']);
+                throw ValidationException::withMessages(['annotations' => (string) __('Annotation target coordinates must be bounded integers.')]);
             }
             if (in_array($kind, ['line', 'arrow', 'rectangle'], true) && ($targetX === null || $targetY === null)) {
-                throw ValidationException::withMessages(['annotations' => 'Shape annotations require a target coordinate.']);
+                throw ValidationException::withMessages(['annotations' => (string) __('Shape annotations require a target coordinate.')]);
             }
             if ($text !== null && mb_strlen($text) > 500) {
-                throw ValidationException::withMessages(['annotations' => 'Annotation text must be at most 500 characters.']);
+                throw ValidationException::withMessages(['annotations' => (string) __('Annotation text must be at most 500 characters.')]);
             }
             if ($allianceKey === '') {
                 $allianceKey = null;
             }
             if ($allianceKey !== null && mb_strlen($allianceKey) > 120) {
-                throw ValidationException::withMessages(['annotations' => 'Annotation Alliance keys must be bounded strings.']);
+                throw ValidationException::withMessages(['annotations' => (string) __('Annotation Alliance keys must be bounded strings.')]);
             }
             if ($allowedAlliances !== null && $allianceKey !== null && ! isset($allowedAlliances[$allianceKey])) {
-                throw ValidationException::withMessages(['annotations' => 'Annotation Alliance keys must reference a layout Alliance layer.']);
+                throw ValidationException::withMessages(['annotations' => (string) __('Annotation Alliance keys must reference a layout Alliance layer.')]);
             }
             if (! is_int($sortOrder) || $sortOrder < 0 || $sortOrder > 500) {
-                throw ValidationException::withMessages(['annotations' => 'Annotation sort order is out of range.']);
+                throw ValidationException::withMessages(['annotations' => (string) __('Annotation sort order is out of range.')]);
             }
 
             $keys[$key] = true;

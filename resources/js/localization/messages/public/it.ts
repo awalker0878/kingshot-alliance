@@ -68,6 +68,37 @@ const messages = {
     chooseOption: 'Scegli un’opzione',
     submit: 'Invia candidatura',
     submitting: 'Invio…',
+    attributionBoard: 'Commissione di assunzione pubblica',
+    attributionAlliancePage: "Pagina pubblica dell'alleanza",
+    attributionShareLink: 'Condividi il link',
+    attributionBotCommand: "Comando bot dell'alleanza",
+    attributionHelp:
+      "Questa etichetta visibile aiuta l'alleanza a capire quali link di reclutamento funzionano. Non identifica o traccia l'utente.",
+  },
+  recruitmentBoard: {
+    eyebrow: "Scoperta dell'alleanza",
+    title: "Trova un'alleanza",
+    body: "Esplora le alleanze che hanno aperto il reclutamento pubblico. Filtra l'elenco, condividi la visualizzazione corrente e applica le domande specifiche di ogni alleanza.",
+    search: 'Cerca',
+    searchPlaceholder: "Nome dell'alleanza, titolo di reclutamento o introduzione",
+    kingdom: 'Regno',
+    allKingdoms: 'Tutti i regni',
+    language: 'Lingua',
+    allLanguages: 'Tutte le lingue',
+    applyFilters: 'Applica filtri',
+    clearFilters: 'Cancella filtri',
+    copyLink: 'Copia il link filtrato',
+    copied: 'Il link è stato copiato',
+    resultCount: '{count} alleanze di reclutamento',
+    capped:
+      'Visualizzazione dei primi 100 risultati. Restringi i filtri per vedere un risultato più mirato.',
+    noMatchesTitle: 'Nessuna corrispondenza di alleanze di reclutamento',
+    noMatchesBody:
+      'Prova a cancellare un filtro o controlla di nuovo quando più alleanze aderiranno al reclutamento pubblico.',
+    viewAlliance: "Vedi l'alleanza",
+    apply: 'Applica',
+    publicOnly: 'Vengono mostrate solo le alleanze che hanno optato per il reclutamento pubblico',
+    listedByAlliance: "Inserzione da parte del team di reclutamento dell'alleanza",
   },
 } satisfies MessageCatalogue;
 

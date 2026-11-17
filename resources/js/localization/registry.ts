@@ -1,3 +1,4 @@
+import { createCatalogueImporter } from './catalogue-importer';
 import type { LocaleCode } from './locales';
 import type { MessageModule } from './types';
 
@@ -25,6 +26,18 @@ export const localizationDomains = [
 
 export type LocalizationDomain = (typeof localizationDomains)[number];
 const catalogueModules = import.meta.glob<MessageModule>('./messages/*/*.ts');
+const baseUrl = () => new URL(import.meta.env.BASE_URL, window.location.href).href;
+const importCatalogue = createCatalogueImporter(catalogueModules, {
+  enabled: () => typeof window !== 'undefined' && import.meta.env.PROD,
+  baseUrl,
+  currentModuleUrl: () => import.meta.url,
+  async manifest() {
+    const response = await fetch(new URL('manifest.json', baseUrl()), { cache: 'no-cache' });
+    if (!response.ok) throw new Error('Unable to retrieve localization chunk metadata.');
+    return response.json();
+  },
+  importUrl: (url) => import(/* @vite-ignore */ url) as Promise<MessageModule>,
+});
 function cataloguePath(domain: LocalizationDomain, locale: LocaleCode): string {
   return `./messages/${domain}/${locale}.ts`;
 }
@@ -38,9 +51,7 @@ export async function importDomainCatalogue(
   domain: LocalizationDomain,
   locale: LocaleCode,
 ): Promise<MessageModule> {
-  const importer = catalogueModules[cataloguePath(domain, locale)];
-  if (!importer) throw new Error(`Missing localization catalogue: ${domain}/${locale}`);
-  return importer();
+  return importCatalogue(cataloguePath(domain, locale));
 }
 export function domainsForPage(name: string): LocalizationDomain[] {
   // Progression and Assistant navigation labels stay globally available because
@@ -48,10 +59,12 @@ export function domainsForPage(name: string): LocalizationDomain[] {
   const domains = new Set<LocalizationDomain>(['progression', 'assistant']);
   if (name.startsWith('Accounts/Access/')) domains.add('auth');
   if (name.startsWith('Accounts/Governor/')) domains.add('account');
+  if (name === 'Accounts/Governor/Profile') domains.add('auth');
   if (name.startsWith('Accounts/Notifications/')) domains.add('account');
   if (name.startsWith('Public/')) {
     domains.add('public');
     if (name.startsWith('Public/Recruitment/')) domains.add('recruitment');
+    if (name === 'Public/Recruitment/Apply') domains.add('auth');
     if (name.startsWith('Public/Alliance/')) domains.add('content');
   }
   if (name.startsWith('Dashboard/')) domains.add('alliance');
@@ -77,6 +90,7 @@ export function domainsForPage(name: string): LocalizationDomain[] {
     domains.add('kingdom');
     if (name.startsWith('Intelligence/Roster/')) domains.add('roster');
     if (name.startsWith('Intelligence/Contributions/')) domains.add('contributions');
+    if (name === 'Intelligence/Contributions/History') domains.add('events');
   }
   if (name.startsWith('Kingdom/')) {
     domains.add('kingdom');
@@ -86,6 +100,7 @@ export function domainsForPage(name: string): LocalizationDomain[] {
   if (name.startsWith('Platform/')) {
     domains.add('platform');
     if (name.startsWith('Platform/EventTypes/')) domains.add('events');
+    if (name === 'Platform/Administration/Index') domains.add('events');
   }
   return [...domains];
 }

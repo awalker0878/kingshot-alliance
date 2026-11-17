@@ -22,13 +22,13 @@ const messages = {
       existingAccount: '¿Ya tienes una cuenta?',
     },
     password: {
-      forgotTitle: 'Restablecer tu contraseña',
+      forgotTitle: 'Recuperar tu cuenta',
       forgotDescription:
-        'Introduce tu correo y te enviaremos un enlace para restablecer la contraseña.',
-      sendResetLink: 'Enviar enlace de restablecimiento',
+        'Introduce el correo electrónico asociado a tu cuenta de Kingshot Alliance.',
+      sendResetLink: 'Enviar instrucciones de recuperación',
       resetTitle: 'Elige una nueva contraseña',
       resetSubmit: 'Restablecer contraseña',
-      confirmTitle: 'Confirmar contraseña',
+      confirmTitle: 'Confirma tu identidad',
     },
     verification: {
       title: 'Verifica tu correo electrónico',
@@ -49,17 +49,18 @@ const messages = {
     shell: {
       headline: 'Hecho para líderes de alianza.',
       intro:
-        'Acceso seguro a las herramientas que tu alianza usa para coordinarse, reclutar y prepararse para lo que viene.',
+        'Recluta Gobernadores, prepara Eventos, gestiona tu Alianza y sigue la actividad del Reino en un solo lugar.',
     },
     login: {
-      intro: 'Accede a todas las alianzas vinculadas a tu cuenta global.',
+      intro: 'Inicia sesión con tu cuenta y luego elige el Gobernador que quieres usar.',
       invitationNotice:
         'Inicia sesión con la cuenta invitada para continuar aceptando la invitación de alianza.',
       needAccount: '¿Necesitas una cuenta?',
       register: 'Registrarse',
     },
     register: {
-      intro: 'Una identidad global puede pertenecer a varias alianzas.',
+      intro:
+        'Una cuenta puede tener varios Gobernadores. El rango en la Alianza y las funciones en el Reino siempre corresponden al Gobernador que elijas.',
       invitationNotice:
         'Te invitaron a {alliance} como {email}. Crear tu cuenta también aceptará esta invitación.',
       invitationOnly:
@@ -79,22 +80,64 @@ const messages = {
     },
     password: {
       backToSignIn: 'Volver a iniciar sesión',
-      resetIntro: 'Restablecer tu contraseña revoca los tokens de acceso personales.',
+      resetIntro:
+        'Elige una nueva contraseña de Kingshot Alliance para la cuenta que aparece abajo.',
       newPassword: 'Nueva contraseña',
       confirmNewPassword: 'Confirmar nueva contraseña',
       confirmDescription:
-        'Esta acción cambia el acceso o los permisos de alianza, por lo que debes confirmar de nuevo tu contraseña.',
+        'Esto cambia el acceso protegido a la Alianza. Confirma tu identidad antes de continuar.',
+      recoveryKicker: 'RECUPERACIÓN DE CUENTA',
+      recoveryNeutral:
+        'Si la recuperación de contraseña está disponible para ese correo electrónico, enviaremos instrucciones seguras para restablecerla.',
+      checkInboxKicker: 'REVISA TU BANDEJA DE ENTRADA',
+      checkInboxHeading: 'Instrucciones de recuperación solicitadas',
+      checkInboxDescription:
+        'Si la recuperación de contraseña está disponible para la dirección introducida, se han enviado instrucciones para restablecerla. Por seguridad, no podemos confirmar si existe una cuenta ni qué métodos de inicio de sesión utiliza.',
+      resetKicker: 'RESTABLECIMIENTO SEGURO DE CONTRASEÑA',
+      accountEmail: 'Correo electrónico de la cuenta',
+      requirements: 'Su contraseña debe incluir:',
+      requirementLength: 'Al menos 12 caracteres',
+      requirementUpper: 'Una letra mayúscula',
+      requirementLower: 'Una letra minúscula',
+      requirementNumber: 'Un dígito',
+      showPassword: 'Mostrar contraseña *',
+      hidePassword: 'Ocultar contraseña',
+      validationSummary: 'Revise los campos resaltados antes de continuar.',
     },
     verification: {
       description:
-        'Enviamos un enlace de verificación a {email}. Verifica la dirección antes de realizar acciones protegidas.',
+        'Enviamos un enlace de verificación seguro para tu cuenta de Kingshot Alliance a:',
       sent: 'Se ha enviado un nuevo enlace de verificación.',
+      kicker: 'VERIFICACIÓN DEL CORREO ELECTRÓNICO',
+      instructions:
+        'Abre el mensaje y sigue el enlace para finalizar la verificación de tu dirección de correo electrónico.',
+      securityNote:
+        'Kingshot Alliance nunca te pedirá tu contraseña en un mensaje de verificación del correo electrónico.',
+      resendIn: 'Podrás reenviar en {seconds} segundos',
+      useAnotherAccount: 'Cerrar sesión y usar otra cuenta',
     },
     twoFactor: {
-      kicker: 'Comprobación de seguridad',
+      kicker: 'Seguridad de la cuenta',
       description: 'Introduce el código actual de seis dígitos de tu aplicación de autenticación.',
       verifyCode: 'Verificar código',
       useRecoveryCode: 'Usar código de recuperación',
+    },
+    social: {
+      continueWithGoogle: 'Continuar con Google',
+      createWithGoogle: 'Crear una cuenta de Kingshot Alliance con Google',
+      or: 'o',
+    },
+    passkeys: {
+      signIn: 'Iniciar sesión con una clave de acceso',
+      authenticating: 'Comprobando la clave de acceso…',
+    },
+    confirm: {
+      title: 'Confirma tu identidad',
+      description:
+        'Usa uno de los métodos de inicio de sesión vinculados a tu cuenta antes de continuar con este cambio sensible en la cuenta.',
+      usePassword: 'Confirmar con contraseña',
+      useGoogle: 'Confirmar con Google',
+      usePasskey: 'Confirmar con una clave de acceso',
     },
   },
 } satisfies MessageCatalogue;

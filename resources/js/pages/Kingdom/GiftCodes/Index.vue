@@ -279,6 +279,7 @@ function factSummary(value: Record<string, unknown> | null, unknownKey: string):
       :eyebrow="t('giftCodes.eyebrow')"
       :title="t('giftCodes.title')"
       :subtitle="t('giftCodes.subtitle', { governor: player.name })"
+      scene="gift-code-vault"
       image="/images/kingshot/v4/account-vault.svg"
     >
       <template #actions>

@@ -32,7 +32,7 @@ final class PlatformAdministrationController extends Controller
         $targetUserId = $this->accounts->findIdByEmail((string) $validated['email']);
 
         if ($targetUserId === null) {
-            throw ValidationException::withMessages(['email' => 'No account exists for that email address.']);
+            throw ValidationException::withMessages(['email' => (string) __('No account exists for that email address.')]);
         }
 
         try {

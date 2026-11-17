@@ -151,7 +151,7 @@ final class EventRosterController extends Controller
     private function player(): PlayerReference
     {
         $player = $this->playerContext->playerOrNull();
-        abort_unless($player instanceof PlayerReference, 409, 'Select a Player before performing Event operations.');
+        abort_unless($player instanceof PlayerReference, 409, (string) __('Select a Player before performing Event operations.'));
 
         return $player;
     }

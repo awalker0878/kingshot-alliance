@@ -29,7 +29,7 @@ final readonly class CreateTerritoryShare
     {
         Validator::make(['keys' => $allianceKeys], ['keys' => ['required', 'array', 'min:1', 'max:50'], 'keys.*' => ['required', 'string', 'max:120', 'distinct']])->validate();
         if (! $expiresAt->isFuture() || $expiresAt->greaterThan(now()->addDays(31))) {
-            throw ValidationException::withMessages(['expires_at' => 'Share expiry must be within 31 days.']);
+            throw ValidationException::withMessages(['expires_at' => (string) __('Share expiry must be within 31 days.')]);
         }
 
         return DB::transaction(function () use ($actorPlayerId, $planId, $revisionId, $recipientPlayerId, $allianceKeys, $expiresAt): array {
@@ -37,13 +37,13 @@ final readonly class CreateTerritoryShare
             $this->authorization->authorizeManage($context);
             $player = $this->players->lockLinkedPlayer($recipientPlayerId);
             if ($player->kingdomId !== $context->plan->kingdom_id || $player->userId === null) {
-                throw ValidationException::withMessages(['recipient_player_id' => 'Choose an account-backed Governor in the current Kingdom.']);
+                throw ValidationException::withMessages(['recipient_player_id' => (string) __('Choose an account-backed Governor in the current Kingdom.')]);
             }
             $this->plans->authorizeView($recipientPlayerId, $planId);
             $revision = TerritoryPlanRevision::query()->where('territory_plan_id', $planId)->whereKey($revisionId)->firstOrFail();
             $available = array_column($revision->snapshot['alliances'] ?? [], 'key');
             if (array_diff($allianceKeys, $available) !== []) {
-                throw ValidationException::withMessages(['alliance_keys' => 'Choose Alliance layers from the published revision.']);
+                throw ValidationException::withMessages(['alliance_keys' => (string) __('Choose Alliance layers from the published revision.')]);
             }
             $token = bin2hex(random_bytes(32));
             $share = TerritoryShare::query()->create([

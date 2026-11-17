@@ -43,10 +43,10 @@ final readonly class AssignEventObjectiveTarget
         ?string $notes = null,
     ): void {
         if (($rosterId === null) === ($playerId === null)) {
-            throw ValidationException::withMessages(['assignment' => 'Choose exactly one roster or Player target.']);
+            throw ValidationException::withMessages(['assignment' => (string) __('Choose exactly one roster or Player target.')]);
         }
         if ($notes !== null && mb_strlen(trim($notes)) > 10000) {
-            throw ValidationException::withMessages(['notes' => 'Assignment notes must be 10000 characters or fewer.']);
+            throw ValidationException::withMessages(['notes' => (string) __('Assignment notes must be 10000 characters or fewer.')]);
         }
 
         DB::transaction(function () use ($actorPlayerId, $occurrenceId, $objectiveId, $rosterId, $playerId, $notes): void {
@@ -67,7 +67,7 @@ final readonly class AssignEventObjectiveTarget
                     && $context->target->allianceId !== null
                     && $this->roster->lockActiveRosterPresence($context->target->allianceId, $playerId);
                 if (! $this->participants->eligibleAgainstTarget($context->target, $player, $activeRosterPresence)) {
-                    throw ValidationException::withMessages(['player' => 'This Player is not eligible for the Event target.']);
+                    throw ValidationException::withMessages(['player' => (string) __('This Player is not eligible for the Event target.')]);
                 }
                 $targetPlayerId = $player->playerId;
             }

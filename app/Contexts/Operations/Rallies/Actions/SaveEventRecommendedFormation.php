@@ -49,10 +49,10 @@ final readonly class SaveEventRecommendedFormation
         $key = Str::slug($key);
         $name = trim($name);
         if ($key === '' || mb_strlen($key) > 64) {
-            throw ValidationException::withMessages(['key' => 'Formation key is required and must be 64 characters or fewer.']);
+            throw ValidationException::withMessages(['key' => (string) __('Formation key is required and must be 64 characters or fewer.')]);
         }
         if ($name === '' || mb_strlen($name) > 120) {
-            throw ValidationException::withMessages(['name' => 'Formation name is required and must be 120 characters or fewer.']);
+            throw ValidationException::withMessages(['name' => (string) __('Formation name is required and must be 120 characters or fewer.')]);
         }
         $heroes = array_values(array_slice(array_filter(
             array_map(static fn ($hero): string => trim((string) $hero), $heroes),

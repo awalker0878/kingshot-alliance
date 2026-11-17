@@ -37,10 +37,10 @@ final readonly class HiveLayoutGenerator
         array $preferences = [],
     ): array {
         if (! in_array($style, ['swirl', 'banner_pad'], true)) {
-            throw ValidationException::withMessages(['style' => 'Hive style must be swirl or banner_pad.']);
+            throw ValidationException::withMessages(['style' => (string) __('Hive style must be swirl or banner_pad.')]);
         }
         if ($cityCount < 1 || $cityCount > 100 || $spacing < 0 || $spacing > 10 || count($existingObjects) > 5000) {
-            throw ValidationException::withMessages(['city_count' => 'Choose 1–100 cities, 0–10 spacing tiles, and at most 5000 existing objects.']);
+            throw ValidationException::withMessages(['city_count' => (string) __('Choose 1–100 cities, 0–10 spacing tiles, and at most 5000 existing objects.')]);
         }
         $input = [$dataset->id, $dataset->checksum, $existingObjects, $style, $allianceKey, $centerX, $centerY, $cityCount, $spacing, $preferences];
         $checksum = hash('sha256', json_encode($input, JSON_THROW_ON_ERROR));

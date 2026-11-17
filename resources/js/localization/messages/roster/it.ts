@@ -78,6 +78,8 @@ const messages = {
     changeFrom: '{change} da {date}',
     noComparisonRows: 'Nessuna cronologia Governatore confrontabile disponibile.',
     powerTrends: 'Tendenze di potere',
+    pageResults: 'Visualizzazione di {count} di {total} governatori corrispondenti.',
+    pageSizeHelp: 'Fino a {pageSize} governatori per pagina.',
   },
   rosterManage: {
     manageSubtitle:
@@ -159,6 +161,44 @@ const messages = {
     source: 'Origine',
     recordedBy: 'Registrato da',
     noSnapshots: 'Nessun record scout registrato per questo Governatore.',
+    progressionHelp:
+      "Utilizzare l'esatta etichetta di forno o di progressione osservata. Kingshot Alliance non deduce i livelli di gioco.",
+    sincePriorObservation: 'Da osservazione precedente',
+    observedChanges: 'I cambiamenti osservati',
+    nameChanged: 'Nome',
+    progressionChanged: 'Progressione',
+    allianceChanged: "Tag dell'alleanza",
+    noObservedChange: 'Nessun campo osservato cambiato',
+    earlierHistoryNotShown:
+      'Le osservazioni precedenti esistono oltre il limite di visualizzazione di 250 righe.',
+    capability: {
+      eyebrow: 'Profilo del governatore',
+      title: 'Quello che sappiamo su questo governatore',
+      help: 'Le cronologie dei proprietari autorizzati vengono visualizzate separatamente con le date originali e i collegamenti al flusso di lavoro. Questo profilo non calcola la forza del governatore o il punteggio di qualità.',
+      events: 'Partecipazione ad eventi',
+      eventSummary: '{completed} completato · {absent} assente · {unresolved} non risolto',
+      noEvents:
+        'Non è stata registrata alcuna cronologia degli eventi autorizzati per questa alleanza.',
+      bearHunt: 'Risultati della caccia all’orso',
+      recordedRuns: '{count} risultati registrati del governatore',
+      latestDamage: 'Ultimo danno accettato',
+      openDebrief: 'Apri il Debrief',
+      noRecordedRuns: 'Non è stato registrato alcun risultato di Bear Hunt governor.',
+      rallies: 'Partecipazione al rally',
+      noRallies:
+        'Nessuna assegnazione di Rally viene registrata nella cronologia degli eventi visibili.',
+      battlePlans: 'Assegnazioni di BattlePlan',
+      noBattlePlans:
+        'Nessuna assegnazione di BattlePlan viene registrata nella cronologia degli eventi visibili.',
+      transfer: 'Valutazione trasferimento',
+      noTransfer: 'Questo governatore non è nel piano di trasferimento corrente.',
+      evidence: 'Evidenze di progressione',
+      evidenceSummary:
+        '{review} revisione · {pending} in sospeso · {committed} approvato · {failed} fallito',
+      latestEvidence: 'Ultime evidenze: {date}',
+      openOwner: 'Aprire il flusso di lavoro del proprietario',
+      unavailable: "Questa proiezione proprietaria non è disponibile con l'autorità corrente.",
+    },
   },
 } satisfies MessageCatalogue;
 

@@ -32,7 +32,7 @@ final readonly class PreviewRecruitmentStageBulkChange
     ): array {
         $candidateIds = array_values(array_unique($candidateIds));
         if ($candidateIds === [] || count($candidateIds) > 50) {
-            throw ValidationException::withMessages(['candidate_ids' => 'Select between 1 and 50 recruitment candidates.']);
+            throw ValidationException::withMessages(['candidate_ids' => (string) __('Select between 1 and 50 recruitment candidates.')]);
         }
         $this->authority->authorize($actorPlayerId, $allianceId, AlliancePermission::RecruitmentManage);
 

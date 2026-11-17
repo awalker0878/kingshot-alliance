@@ -24,7 +24,7 @@ final readonly class GrantTerritoryPlanAccess
     public function handle(string $actorPlayerId, string $planId, string $playerId, string $allianceKey, string $permission, CarbonImmutable $expiresAt): string
     {
         if (! in_array($permission, ['review', 'edit'], true) || ! $expiresAt->isFuture() || $expiresAt->greaterThan(now()->addDays(31))) {
-            throw ValidationException::withMessages(['access' => 'Choose review or edit permission and an expiry within 31 days.']);
+            throw ValidationException::withMessages(['access' => (string) __('Choose review or edit permission and an expiry within 31 days.')]);
         }
 
         return DB::transaction(function () use ($actorPlayerId, $planId, $playerId, $allianceKey, $permission, $expiresAt): string {
@@ -33,7 +33,7 @@ final readonly class GrantTerritoryPlanAccess
             $player = $this->players->lockLinkedPlayer($playerId);
             if ($player->kingdomId !== $context->plan->kingdom_id || $player->userId === null
                 || ! $context->plan->planAlliances()->where('plan_key', $allianceKey)->exists()) {
-                throw ValidationException::withMessages(['player_id' => 'Select an account-backed current Governor and a plan Alliance.']);
+                throw ValidationException::withMessages(['player_id' => (string) __('Select an account-backed current Governor and a plan Alliance.')]);
             }
             $this->plans->authorizeView($playerId, $planId);
             $grant = TerritoryPlanAccessGrant::query()->updateOrCreate([

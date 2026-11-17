@@ -64,7 +64,7 @@ final readonly class TransitionTransferReadiness
 
             if ($participant->withdrawn_at !== null || $current === TransferReadinessState::Withdrawn) {
                 throw ValidationException::withMessages([
-                    'readiness' => 'Withdrawn transfer participants cannot change readiness.',
+                    'readiness' => (string) __('Withdrawn transfer participants cannot change readiness.'),
                 ]);
             }
 
@@ -83,7 +83,7 @@ final readonly class TransitionTransferReadiness
 
             if ($target === TransferReadinessState::Blocked && $activeBlockerCount === 0) {
                 throw ValidationException::withMessages([
-                    'readiness' => 'Add an active blocker before marking a participant blocked.',
+                    'readiness' => (string) __('Add an active blocker before marking a participant blocked.'),
                 ]);
             }
 
@@ -91,14 +91,14 @@ final readonly class TransitionTransferReadiness
                 && $target !== TransferReadinessState::Withdrawn
                 && $activeBlockerCount > 0) {
                 throw ValidationException::withMessages([
-                    'readiness' => 'Resolve all active blockers before leaving the blocked state.',
+                    'readiness' => (string) __('Resolve all active blockers before leaving the blocked state.'),
                 ]);
             }
 
             if (in_array($target, [TransferReadinessState::Ready, TransferReadinessState::Confirmed], true)
                 && $activeBlockerCount > 0) {
                 throw ValidationException::withMessages([
-                    'readiness' => 'Ready or confirmed participants cannot have active blockers.',
+                    'readiness' => (string) __('Ready or confirmed participants cannot have active blockers.'),
                 ]);
             }
 
@@ -186,13 +186,13 @@ final readonly class TransitionTransferReadiness
     {
         if (! in_array($plan->state, [TransferPlanState::Draft, TransferPlanState::Open], true)) {
             throw ValidationException::withMessages([
-                'readiness' => 'Readiness can only change while the transfer cycle is Draft or Open.',
+                'readiness' => (string) __('Readiness can only change while the transfer cycle is Draft or Open.'),
             ]);
         }
 
         if ($allianceKingdomId !== (string) $plan->home_kingdom_id) {
             throw ValidationException::withMessages([
-                'readiness' => 'The transfer cycle home Kingdom does not match the Alliance Kingdom.',
+                'readiness' => (string) __('The transfer cycle home Kingdom does not match the Alliance Kingdom.'),
             ]);
         }
     }

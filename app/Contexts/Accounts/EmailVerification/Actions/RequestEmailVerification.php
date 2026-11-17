@@ -30,7 +30,7 @@ final class RequestEmailVerification
                 'aggregate_type' => User::class,
                 'aggregate_id' => (string) $userId,
                 'idempotency_key' => self::EVENT_TYPE.':'.$userId.':'.Str::ulid(),
-                'payload' => ['target' => $target->value, 'email_hash' => hash('sha256', $email)],
+                'payload' => ['target' => $target->value, 'email_hash' => hash('sha256', $email), 'locale' => app()->getLocale()],
                 'occurred_at' => now(),
                 'available_at' => now(),
                 'attempts' => 0,

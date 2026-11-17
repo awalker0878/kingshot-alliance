@@ -33,13 +33,13 @@ final readonly class ResolvePlayerContext
         if ($request->session()->exists($sessionKey)) {
             if (! is_string($activePlayerId) || $activePlayerId === '') {
                 $request->session()->forget($sessionKey);
-                abort(403, 'The selected Player is not available to this account.');
+                abort(403, (string) __('The selected Player is not available to this account.'));
             }
 
             $player = $this->players->findOwnedByUser($userId, $activePlayerId);
             if (! $player instanceof PlayerReference) {
                 $request->session()->forget($sessionKey);
-                abort(403, 'The selected Player is not available to this account.');
+                abort(403, (string) __('The selected Player is not available to this account.'));
             }
 
             $this->activate($request, $userId, $player);

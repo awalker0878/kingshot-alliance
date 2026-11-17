@@ -49,7 +49,7 @@ final readonly class DeleteTransferEvidence
             $status = $evidence->lifecycle_status;
             if (in_array($status, [EvidenceLifecycleStatus::Classifying, EvidenceLifecycleStatus::Extracting, EvidenceLifecycleStatus::Committing], true)) {
                 throw ValidationException::withMessages([
-                    'evidence' => 'Transfer Evidence cannot be deleted while processing or committing is active.',
+                    'evidence' => (string) __('Transfer Evidence cannot be deleted while processing or committing is active.'),
                 ]);
             }
 

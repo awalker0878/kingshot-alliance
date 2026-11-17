@@ -30,13 +30,13 @@ final readonly class ArchiveKingdomRole
             $this->authorization->authorizeContext($context, KingdomPermission::RoleManage);
             $role = KingdomRole::query()->whereKey($roleId)->where('kingdom_id', $kingdomId)->lockForUpdate()->firstOrFail();
             if ($role->is_system) {
-                throw ValidationException::withMessages(['role' => 'System Kingdom roles cannot be archived.']);
+                throw ValidationException::withMessages(['role' => (string) __('System Kingdom roles cannot be archived.')]);
             }
             if ($role->archived_at !== null) {
                 return;
             }
             if (KingdomRoleAssignment::query()->effective()->where('kingdom_role_id', (string) $role->id)->exists()) {
-                throw ValidationException::withMessages(['role' => 'Revoke active assignments before archiving this Kingdom role.']);
+                throw ValidationException::withMessages(['role' => (string) __('Revoke active assignments before archiving this Kingdom role.')]);
             }
             $role->forceFill(['archived_at' => now()])->save();
             $metadata = ['kingdom_id' => $kingdomId, 'role_id' => $roleId, 'role_key' => (string) $role->key];

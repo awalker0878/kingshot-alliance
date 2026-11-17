@@ -436,6 +436,58 @@ canvas {
   font-size: clamp(2rem, 3vw, 3.25rem);
 }
 
+/* Decorative room scenes keep text, data and actions in the document. */
+.ks-room-artwork {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+.ks-room-artwork img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 65% 50%;
+  filter: saturate(0.92) contrast(1.04) brightness(0.82);
+}
+.ks-artwork-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.ks-artwork-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    var(--ks-artwork-scrim-direction, 90deg),
+    rgba(4, 9, 9, 0.96) 0%,
+    rgba(4, 9, 9, 0.9) 45%,
+    rgba(4, 9, 9, 0.72) 100%
+  );
+}
+.ks-artwork-panel > :not(.ks-room-artwork) {
+  position: relative;
+  z-index: 2;
+}
+.ks-artwork-panel:dir(rtl) {
+  --ks-artwork-scrim-direction: 270deg;
+}
+.ks-room-banner[data-scene]:dir(rtl)::before {
+  background:
+    linear-gradient(
+      270deg,
+      rgba(4, 9, 9, 0.98) 0%,
+      rgba(4, 9, 9, 0.89) 33%,
+      rgba(4, 9, 9, 0.3) 66%,
+      rgba(4, 9, 9, 0.48) 100%
+    ),
+    linear-gradient(0deg, rgba(4, 9, 9, 0.76), transparent 58%);
+}
+
 /* Summary cards */
 .ks-stat-seal {
   position: relative;

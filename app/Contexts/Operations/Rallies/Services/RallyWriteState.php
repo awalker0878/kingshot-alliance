@@ -40,7 +40,7 @@ final readonly class RallyWriteState
 
         if (! $valid) {
             throw ValidationException::withMessages([
-                'alliance_id' => 'This Alliance is not a current Rally context for the Event.',
+                'alliance_id' => (string) __('This Alliance is not a current Rally context for the Event.'),
             ]);
         }
 
@@ -64,7 +64,7 @@ final readonly class RallyWriteState
             || $alliance->kingdomId !== $player->kingdomId
             || ! $this->participants->eligibleAgainstTarget($target, $player, $eventRosterPresence)) {
             throw ValidationException::withMessages([
-                'player' => 'This Player is not currently eligible for this Rally Alliance.',
+                'player' => (string) __('This Player is not currently eligible for this Rally Alliance.'),
             ]);
         }
 

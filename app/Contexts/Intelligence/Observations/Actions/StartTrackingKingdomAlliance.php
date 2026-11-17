@@ -47,12 +47,12 @@ final readonly class StartTrackingKingdomAlliance
 
             if ($reference->kingdomId !== $scope->kingdomId) {
                 throw ValidationException::withMessages([
-                    'tracking' => 'The game-side alliance must belong to the active alliance current Kingdom.',
+                    'tracking' => (string) __('The game-side alliance must belong to the active alliance current Kingdom.'),
                 ]);
             }
             if ($reference->statusObservedAtRead !== KingdomAllianceStatus::Active) {
                 throw ValidationException::withMessages([
-                    'tracking' => 'Archived game-side alliance references cannot be newly tracked.',
+                    'tracking' => (string) __('Archived game-side alliance references cannot be newly tracked.'),
                 ]);
             }
 
@@ -65,7 +65,7 @@ final readonly class StartTrackingKingdomAlliance
             foreach ($activeTrackings as $activeTracking) {
                 $trackedCanonical = $this->references->requireCanonical((string) $activeTracking->kingdom_alliance_id);
                 if ($trackedCanonical->kingdomAllianceId === $reference->kingdomAllianceId) {
-                    throw ValidationException::withMessages(['tracking' => 'That game-side alliance is already actively tracked through its canonical identity or an earlier alias.']);
+                    throw ValidationException::withMessages(['tracking' => (string) __('That game-side alliance is already actively tracked through its canonical identity or an earlier alias.')]);
                 }
             }
 

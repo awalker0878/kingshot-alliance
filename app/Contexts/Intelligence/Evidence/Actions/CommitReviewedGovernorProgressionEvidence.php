@@ -62,7 +62,7 @@ final readonly class CommitReviewedGovernorProgressionEvidence
                 ->lockForUpdate()
                 ->firstOrFail();
             if ($review->status !== EvidenceReviewStatus::Approved) {
-                throw ValidationException::withMessages(['review' => 'Only an approved Governor Progression review can be committed.']);
+                throw ValidationException::withMessages(['review' => (string) __('Only an approved Governor Progression review can be committed.')]);
             }
             $latestId = GovernorProgressionEvidenceReview::query()
                 ->where('evidence_id', $review->evidence_id)
@@ -70,7 +70,7 @@ final readonly class CommitReviewedGovernorProgressionEvidence
                 ->orderByDesc('id')
                 ->value('id');
             if ((string) $latestId !== (string) $review->id) {
-                throw ValidationException::withMessages(['review' => 'Commit the latest approved review revision instead.']);
+                throw ValidationException::withMessages(['review' => (string) __('Commit the latest approved review revision instead.')]);
             }
             $evidence = GameEvidence::query()
                 ->whereKey($review->evidence_id)
@@ -83,7 +83,7 @@ final readonly class CommitReviewedGovernorProgressionEvidence
                 || $evidence->kind !== $kind
                 || $evidence->expected_kind !== $kind
                 || $evidence->lifecycle_status === EvidenceLifecycleStatus::Deleted) {
-                throw ValidationException::withMessages(['evidence' => 'The approved screenshot provenance is no longer valid for this target.']);
+                throw ValidationException::withMessages(['evidence' => (string) __('The approved screenshot provenance is no longer valid for this target.')]);
             }
             $idempotencyKey = hash('sha256', implode(':', [
                 'governor-progression',

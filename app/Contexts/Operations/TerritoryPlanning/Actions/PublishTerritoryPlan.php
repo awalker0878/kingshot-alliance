@@ -40,20 +40,20 @@ final readonly class PublishTerritoryPlan
             $context = $this->writeState->lock($actorPlayerId, $planId);
             $this->authorization->authorizeManage($context);
             if ($context->plan->status === TerritoryPlanStatus::Archived) {
-                throw ValidationException::withMessages(['plan' => 'Archived plans are read-only. Clone this plan to resume editing.']);
+                throw ValidationException::withMessages(['plan' => (string) __('Archived plans are read-only. Clone this plan to resume editing.')]);
             }
             if ((int) $context->plan->revision !== $expectedRevision) {
                 throw new TerritoryRevisionConflict($expectedRevision, $context->plan->revision);
             }
             $dataset = $this->datasets->require((string) $context->plan->map_dataset_id, (string) $context->plan->map_dataset_checksum);
             if (! $context->plan->objects()->exists()) {
-                throw ValidationException::withMessages(['layout' => 'Add at least one planned object before publishing.']);
+                throw ValidationException::withMessages(['layout' => (string) __('Add at least one planned object before publishing.')]);
             }
 
             $snapshot = $this->snapshots->build($context->plan);
             $checksum = $this->snapshots->checksum($snapshot);
             if (! hash_equals($checksum, $layoutChecksum)) {
-                throw ValidationException::withMessages(['layout_checksum' => 'Save and review the current layout before publishing.']);
+                throw ValidationException::withMessages(['layout_checksum' => (string) __('Save and review the current layout before publishing.')]);
             }
             $layout = $this->contract->normalize($snapshot['alliances'], $snapshot['groups'], $snapshot['objects'], $snapshot['plan']['planning_preferences']);
             $this->identities->validateLinkedAlliances($context->plan, $layout['alliances']);

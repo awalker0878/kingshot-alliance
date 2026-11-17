@@ -5,9 +5,9 @@ const messages = {
     title: 'Evaluasi Bear Hunt',
     eyebrow: 'Bear Hunt · Setelah aksi',
     subtitle: 'Tinjau damage, kehadiran, Rally, Governor yang belum cocok, dan Hunt terbaru.',
-    totalDamage: 'Total damage',
+    totalDamage: 'Total kerusakan',
     governors: 'Governor',
-    governor: 'Governor',
+    governor: 'Gubernur',
     governorCount: '{count} Governor',
     attendance: 'Kehadiran',
     recordedRallies: 'Rally tercatat',
@@ -21,7 +21,7 @@ const messages = {
     rankUp: 'Naik {count} peringkat',
     rankDown: 'Turun {count} peringkat',
     yourHunt: 'Hunt Anda',
-    damage: 'Damage',
+    damage: 'Kerusakan',
     rank: 'Peringkat',
     alliancePerformance: 'Performa Alliance',
     leaderboard: 'Peringkat Governor',
@@ -41,6 +41,27 @@ const messages = {
     noPreviousHelp: 'Perbandingan muncul setelah Bear Hunt sebelumnya selesai.',
     history: 'Riwayat',
     runHistory: 'Riwayat Bear Hunt',
+    signals: {
+      evidence: 'Status bukti',
+      factualSignals: 'Perbandingan yang direkam',
+      reviewPending:
+        'Satu atau lebih baris gubernur yang diimpor masih memerlukan tinjauan identitas.',
+      newPersonalBest: 'Rekor pribadi baru dari hasil yang diterima',
+      damageDirection: 'Kerusakan {direction}',
+      rallyDirection: 'Keanggotaan rally {direction}',
+      evidenceStates: {
+        accepted: 'Hasil tangkapan layar diterima',
+        recorded_without_accepted_evidence:
+          'Hasil yang direkam tanpa bukti screenshot yang diterima',
+        unavailable: 'Tidak ada hasil yang direkam',
+      },
+      directions: {
+        unknown: 'tidak sebanding',
+        increased: 'naik',
+        decreased: 'turun',
+        unchanged: 'tidak berubah',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

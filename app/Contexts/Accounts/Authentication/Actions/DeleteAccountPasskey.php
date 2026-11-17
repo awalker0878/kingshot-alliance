@@ -30,7 +30,7 @@ final class DeleteAccountPasskey extends DeletePasskey
 
             if (! $this->methods->canRemovePasskey($lockedUser, (int) $lockedPasskey->id)) {
                 throw ValidationException::withMessages([
-                    'passkey' => 'Add another sign-in method before removing this passkey.',
+                    'passkey' => (string) __('Add another sign-in method before removing this passkey.'),
                 ]);
             }
 

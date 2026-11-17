@@ -31,7 +31,7 @@ final readonly class AuthenticateWithGoogle
             $identity = AccountIdentity::query()->whereKey($identityId)->where('user_id', $userId)
                 ->where('provider', 'google')->lockForUpdate()->first();
             abort_unless($identity !== null && hash_equals($identity->provider_subject, $verifiedSubject), 403,
-                'This Google sign-in request changed. Please sign in again.');
+                (string) __('This Google sign-in request changed. Please sign in again.'));
             $this->recordIdentityUse->handle($identityId, $verifiedEmail, true);
 
             return $this->proofs->google($user, $identity);

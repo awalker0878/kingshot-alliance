@@ -46,19 +46,19 @@ final readonly class SaveEventPoll
         ?string $pollId = null,
     ): string {
         if (! preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $key)) {
-            throw ValidationException::withMessages(['key' => 'Poll key must use lowercase letters, numbers, and hyphens.']);
+            throw ValidationException::withMessages(['key' => (string) __('Poll key must use lowercase letters, numbers, and hyphens.')]);
         }
         if (($question === null || trim($question) === '') && ($questionKey === null || trim($questionKey) === '')) {
-            throw ValidationException::withMessages(['question' => 'A poll question is required.']);
+            throw ValidationException::withMessages(['question' => (string) __('A poll question is required.')]);
         }
         if ($opensAt !== null && $closesAt !== null && ! $closesAt->greaterThan($opensAt)) {
-            throw ValidationException::withMessages(['closes_at' => 'Poll close time must be after open time.']);
+            throw ValidationException::withMessages(['closes_at' => (string) __('Poll close time must be after open time.')]);
         }
         if ($maxChoices < 1 || $maxChoices > 20) {
-            throw ValidationException::withMessages(['max_choices' => 'Poll max choices must be between 1 and 20.']);
+            throw ValidationException::withMessages(['max_choices' => (string) __('Poll max choices must be between 1 and 20.')]);
         }
         if ($type === EventPollType::TimeVote && $maxChoices !== 1) {
-            throw ValidationException::withMessages(['max_choices' => 'Time voting allows one choice per Player.']);
+            throw ValidationException::withMessages(['max_choices' => (string) __('Time voting allows one choice per Player.')]);
         }
 
         return DB::transaction(function () use ($actorPlayerId, $occurrenceId, $pollId, $key, $type, $question, $questionKey, $opensAt, $closesAt, $status, $maxChoices, $options, $settings): string {
@@ -77,7 +77,7 @@ final readonly class SaveEventPoll
             $created = ! $record->exists;
             $hasVotes = $record->exists && $record->votes()->exists();
             if ($hasVotes && $options !== null) {
-                throw ValidationException::withMessages(['options' => 'Poll options cannot change after voting has started.']);
+                throw ValidationException::withMessages(['options' => (string) __('Poll options cannot change after voting has started.')]);
             }
 
             $normalizedOptions = $options === null ? null : $this->normalizeOptions($type, $options);
@@ -85,13 +85,13 @@ final readonly class SaveEventPoll
                 ? ($record->exists ? $record->options()->count() : 0)
                 : count($normalizedOptions);
             if ($status === EventPollStatus::Open && $optionCount < 2) {
-                throw ValidationException::withMessages(['options' => 'An open poll requires at least two options.']);
+                throw ValidationException::withMessages(['options' => (string) __('An open poll requires at least two options.')]);
             }
             if ($status === EventPollStatus::Open && $closesAt !== null && ! $closesAt->greaterThan(CarbonImmutable::now('UTC'))) {
-                throw ValidationException::withMessages(['closes_at' => 'An open poll must close in the future.']);
+                throw ValidationException::withMessages(['closes_at' => (string) __('An open poll must close in the future.')]);
             }
             if ($maxChoices > max(1, $optionCount)) {
-                throw ValidationException::withMessages(['max_choices' => 'Max choices cannot exceed the number of poll options.']);
+                throw ValidationException::withMessages(['max_choices' => (string) __('Max choices cannot exceed the number of poll options.')]);
             }
 
             if ($created) {
@@ -152,16 +152,16 @@ final readonly class SaveEventPoll
             $label = trim((string) ($option['label'] ?? ''));
             $value = trim((string) ($option['value'] ?? ''));
             if ($label === '' || $value === '') {
-                throw ValidationException::withMessages(['options' => 'Every poll option requires a label and value.']);
+                throw ValidationException::withMessages(['options' => (string) __('Every poll option requires a label and value.')]);
             }
             if (isset($seen[$value])) {
-                throw ValidationException::withMessages(['options' => 'Poll option values must be unique.']);
+                throw ValidationException::withMessages(['options' => (string) __('Poll option values must be unique.')]);
             }
             if ($type === EventPollType::TimeVote) {
                 try {
                     CarbonImmutable::parse($value);
                 } catch (\Throwable) {
-                    throw ValidationException::withMessages(['options' => 'Time-vote option values must be valid date-times.']);
+                    throw ValidationException::withMessages(['options' => (string) __('Time-vote option values must be valid date-times.')]);
                 }
             }
             $seen[$value] = true;

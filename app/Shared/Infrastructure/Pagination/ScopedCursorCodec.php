@@ -60,7 +60,7 @@ final class ScopedCursorCodec
     private function invalid(): ValidationException
     {
         return ValidationException::withMessages([
-            'cursor' => 'The pagination cursor is invalid or no longer applies to this view.',
+            'cursor' => (string) __('The pagination cursor is invalid or no longer applies to this view.'),
         ]);
     }
 }

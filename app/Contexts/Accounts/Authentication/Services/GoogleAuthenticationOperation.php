@@ -62,7 +62,7 @@ final class GoogleAuthenticationOperation
     private function invalid(): ValidationException
     {
         return ValidationException::withMessages([
-            'google' => 'This Google sign-in request expired or was already used. Please start again.',
+            'google' => (string) __('This Google sign-in request expired or was already used. Please start again.'),
         ]);
     }
 }

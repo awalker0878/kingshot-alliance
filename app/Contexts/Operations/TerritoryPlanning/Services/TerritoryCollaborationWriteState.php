@@ -17,10 +17,10 @@ final readonly class TerritoryCollaborationWriteState
         $context = $this->state->lock($actorPlayerId, $planId);
         $this->authorization->authorizeView($context);
         if ($context->plan->status === TerritoryPlanStatus::Archived) {
-            throw ValidationException::withMessages(['plan' => 'Archived plans cannot be changed.']);
+            throw ValidationException::withMessages(['plan' => (string) __('Archived plans cannot be changed.')]);
         }
         if ($expectedRevision !== null && $context->plan->revision !== $expectedRevision) {
-            throw ValidationException::withMessages(['revision' => 'This plan changed. Review the current revision before retrying.']);
+            throw ValidationException::withMessages(['revision' => (string) __('This plan changed. Review the current revision before retrying.')]);
         }
 
         return $context;

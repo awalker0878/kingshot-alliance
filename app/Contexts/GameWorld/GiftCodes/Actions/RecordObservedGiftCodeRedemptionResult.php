@@ -33,7 +33,7 @@ final readonly class RecordObservedGiftCodeRedemptionResult
         $player = $this->players->findOwnedByUser($ownerUserId, $playerId);
         if ($player === null) {
             throw ValidationException::withMessages([
-                'player_id' => 'That Governor is no longer owned by this account.',
+                'player_id' => (string) __('That Governor is no longer owned by this account.'),
             ]);
         }
 

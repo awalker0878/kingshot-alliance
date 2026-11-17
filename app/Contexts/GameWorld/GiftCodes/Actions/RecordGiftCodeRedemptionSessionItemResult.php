@@ -42,10 +42,10 @@ final readonly class RecordGiftCodeRedemptionSessionItemResult
             throw new AuthorizationException('This Gift Code session belongs to another account.');
         }
         if ($item->session->status !== GiftCodeRedemptionSessionStatus::Active) {
-            throw ValidationException::withMessages(['session' => 'This Gift Code session is no longer active.']);
+            throw ValidationException::withMessages(['session' => (string) __('This Gift Code session is no longer active.')]);
         }
         if ($item->state !== GiftCodeRedemptionSessionItemState::AwaitingConfirmation) {
-            throw ValidationException::withMessages(['item' => 'Prepare this Gift Code handoff before recording an outcome.']);
+            throw ValidationException::withMessages(['item' => (string) __('Prepare this Gift Code handoff before recording an outcome.')]);
         }
 
         $redemption = $this->record->handle($actor, $item->gift_code_id, $item->player_id, $result);

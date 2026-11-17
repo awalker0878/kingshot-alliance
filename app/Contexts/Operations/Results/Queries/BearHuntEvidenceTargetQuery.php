@@ -35,12 +35,12 @@ final readonly class BearHuntEvidenceTargetQuery
             ]);
 
             if ($context->event->scopeEnum() !== EventScope::Alliance || ! is_string($context->event->alliance_id)) {
-                throw ValidationException::withMessages(['event' => 'Screenshot Intake currently supports Alliance Bear Hunt Events only.']);
+                throw ValidationException::withMessages(['event' => (string) __('Screenshot Intake currently supports Alliance Bear Hunt Events only.')]);
             }
 
             $eventType = EventType::query()->select(['id', 'slug'])->whereKey($context->event->event_type_id)->sharedLock()->firstOrFail();
             if ($eventType->slug !== 'bear-hunt') {
-                throw ValidationException::withMessages(['event' => 'Screenshot Intake currently supports Bear Hunt battle reports only.']);
+                throw ValidationException::withMessages(['event' => (string) __('Screenshot Intake currently supports Bear Hunt battle reports only.')]);
             }
 
             EventOccurrence::query()

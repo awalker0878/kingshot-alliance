@@ -29,15 +29,15 @@ final readonly class CreateTransferPlan
             $this->authority->authorizeContext($context, TransferPermission::Manage);
             $home = Kingdom::query()->whereKey($context->kingdomId())->where('status', KingdomStatus::Active->value)->sharedLock()->first();
             if (! $home instanceof Kingdom) {
-                throw ValidationException::withMessages(['plan' => 'The Alliance must reference an active Kingdom before creating a transfer plan.']);
+                throw ValidationException::withMessages(['plan' => (string) __('The Alliance must reference an active Kingdom before creating a transfer plan.')]);
             }$label = trim($attributes['label']);
             if ($label === '') {
-                throw ValidationException::withMessages(['label' => 'A transfer plan label is required.']);
+                throw ValidationException::withMessages(['label' => (string) __('A transfer plan label is required.')]);
             }$window = TransferWindow::query()->where('alliance_id', $allianceId)->whereKey($attributes['transfer_window_id'])->sharedLock()->first();
             if (! $window instanceof TransferWindow) {
-                throw ValidationException::withMessages(['transfer_window_id' => 'Select a Transfer Window owned by this Alliance.']);
+                throw ValidationException::withMessages(['transfer_window_id' => (string) __('Select a Transfer Window owned by this Alliance.')]);
             }if (TransferPlan::query()->where('alliance_id', $allianceId)->where('transfer_window_id', $window->id)->exists()) {
-                throw ValidationException::withMessages(['transfer_window_id' => 'This Alliance already has a plan for that Transfer Window.']);
+                throw ValidationException::withMessages(['transfer_window_id' => (string) __('This Alliance already has a plan for that Transfer Window.')]);
             }$plan = TransferPlan::query()->create(['alliance_id' => $allianceId, 'home_kingdom_id' => $home->id, 'transfer_window_id' => $window->id, 'label' => $label, 'state' => TransferPlanState::Draft]);
             $metadata = ['alliance_id' => $allianceId, 'transfer_plan_id' => (string) $plan->id, 'transfer_window_id' => (string) $window->id, 'home_kingdom_id' => (string) $plan->home_kingdom_id, 'state' => TransferPlanState::Draft->value];
             $this->audit->record('kingdoms.transfer_plan_created', $context->actor, $plan, null, $metadata);

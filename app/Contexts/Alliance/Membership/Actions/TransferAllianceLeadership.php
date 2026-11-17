@@ -51,7 +51,7 @@ final readonly class TransferAllianceLeadership
                 static fn (AllianceMembership $membership): bool => (string) $membership->player_id === $targetPlayerId,
             );
             if (! $target instanceof AllianceMembership) {
-                throw ValidationException::withMessages(['player_id' => 'The new R5 must be an active Player in this Alliance.']);
+                throw ValidationException::withMessages(['player_id' => (string) __('The new R5 must be an active Player in this Alliance.')]);
             }
 
             if ((string) $target->player_id === $actorPlayerId) {

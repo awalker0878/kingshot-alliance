@@ -40,7 +40,7 @@ final readonly class UpdateGiftCodeAccountState
 
         if ($state === GiftCodeAccountStateStatus::Snoozed) {
             if ($snoozedUntil === null || ! $snoozedUntil->isAfter($now)) {
-                throw ValidationException::withMessages(['snoozed_until' => 'A future snooze time is required.']);
+                throw ValidationException::withMessages(['snoozed_until' => (string) __('A future snooze time is required.')]);
             }
         } else {
             $snoozedUntil = null;
@@ -48,7 +48,7 @@ final readonly class UpdateGiftCodeAccountState
         if ($remindAt !== null) {
             $horizon = max(1, (int) config('game_world.gift_codes.reminder_horizon_days', 30));
             if (! $remindAt->isAfter($now) || $remindAt->isAfter($now->addDays($horizon))) {
-                throw ValidationException::withMessages(['remind_at' => 'The reminder time is outside the allowed window.']);
+                throw ValidationException::withMessages(['remind_at' => (string) __('The reminder time is outside the allowed window.')]);
             }
         }
 

@@ -44,7 +44,7 @@ final readonly class RegisterAccount
 
             if ($invitationToken !== null && $invitation === null) {
                 throw ValidationException::withMessages([
-                    'invitation_token' => 'This invitation is no longer available.',
+                    'invitation_token' => (string) __('This invitation is no longer available.'),
                 ]);
             }
 
@@ -53,7 +53,7 @@ final readonly class RegisterAccount
                 Str::lower(trim($email)),
             )) {
                 throw ValidationException::withMessages([
-                    'email' => 'Use the email address that received this invitation.',
+                    'email' => (string) __('Use the email address that received this invitation.'),
                 ]);
             }
 

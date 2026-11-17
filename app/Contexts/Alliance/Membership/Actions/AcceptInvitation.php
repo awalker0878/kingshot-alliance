@@ -74,13 +74,13 @@ final readonly class AcceptInvitation
 
             if ((string) $invitation->player_id !== $playerId) {
                 throw ValidationException::withMessages([
-                    'invitation' => 'This invitation no longer targets the selected Player.',
+                    'invitation' => (string) __('This invitation no longer targets the selected Player.'),
                 ]);
             }
 
             if ($player->kingdomId !== (string) $alliance->kingdom_id) {
                 throw ValidationException::withMessages([
-                    'invitation' => 'This Player is no longer in the Alliance Kingdom.',
+                    'invitation' => (string) __('This Player is no longer in the Alliance Kingdom.'),
                 ]);
             }
 
@@ -93,7 +93,7 @@ final readonly class AcceptInvitation
 
             if (! $roster instanceof AllianceRosterEntry) {
                 throw ValidationException::withMessages([
-                    'invitation' => 'This Player is no longer active on the Alliance roster.',
+                    'invitation' => (string) __('This Player is no longer active on the Alliance roster.'),
                 ]);
             }
 
@@ -105,7 +105,7 @@ final readonly class AcceptInvitation
 
             if ($membership?->status !== MembershipStatus::Active) {
                 if ($this->memberships->hasAnyActiveForPlayer($playerId)) {
-                    throw ValidationException::withMessages(['invitation' => 'This Player is already active in another Alliance.']);
+                    throw ValidationException::withMessages(['invitation' => (string) __('This Player is already active in another Alliance.')]);
                 }
                 try {
                     $membership = DB::transaction(static function () use ($membership, $alliance, $playerId): AllianceMembership {
@@ -123,7 +123,7 @@ final readonly class AcceptInvitation
                     if (! $this->memberships->hasAnyActiveForPlayer($playerId)) {
                         throw $exception;
                     }
-                    throw ValidationException::withMessages(['invitation' => 'This Player is already active in another Alliance.']);
+                    throw ValidationException::withMessages(['invitation' => (string) __('This Player is already active in another Alliance.')]);
                 }
             }
 

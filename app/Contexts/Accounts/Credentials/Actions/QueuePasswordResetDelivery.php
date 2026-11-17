@@ -41,7 +41,7 @@ final readonly class QueuePasswordResetDelivery
                 eventType: self::EVENT_TYPE,
                 allianceId: null,
                 aggregate: $user,
-                payload: ['delivery_id' => $deliveryId],
+                payload: ['delivery_id' => $deliveryId, 'locale' => app()->getLocale()],
             );
         });
     }

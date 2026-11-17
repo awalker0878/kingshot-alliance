@@ -34,7 +34,7 @@ final class DurableEmailVerificationV3Test extends TestCase
         $intent = OutboxMessage::query()->where('event_type', RequestEmailVerification::EVENT_TYPE)->sole();
 
         self::assertSame((string) $user->id, $intent->aggregate_id);
-        self::assertSame(['target' => 'account', 'email_hash' => hash('sha256', (string) $user->email)], $intent->payload);
+        self::assertSame(['target' => 'account', 'email_hash' => hash('sha256', (string) $user->email), 'locale' => 'en'], $intent->payload);
         self::assertNull($intent->published_at);
         Notification::assertNothingSent();
 
@@ -44,6 +44,19 @@ final class DurableEmailVerificationV3Test extends TestCase
         self::assertNotNull($intent->refresh()->published_at);
         app(PublishOutboxBatch::class)->handle(100);
         Notification::assertSentToTimes($user, VerifyKingshotAllianceEmail::class, 1);
+    }
+
+    public function test_delayed_verification_retains_the_request_language_when_the_worker_uses_english(): void
+    {
+        Notification::fake();
+        app()->setLocale('fr');
+        $user = User::factory()->unverified()->create();
+        app(RequestEmailVerification::class)->handle((int) $user->id, EmailVerificationTarget::Account);
+        app()->setLocale('en');
+        app(PublishOutboxBatch::class)->handle(100);
+
+        Notification::assertSentTo($user, VerifyKingshotAllianceEmail::class, static fn (VerifyKingshotAllianceEmail $notification): bool => $notification->locale === 'fr');
+        self::assertSame('en', app()->getLocale());
     }
 
     public function test_intent_insert_failure_rolls_back_registration_instead_of_leaving_an_unmailed_account(): void

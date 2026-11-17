@@ -33,7 +33,7 @@ final readonly class TransferGroupKingdomPageQuery
             $position = $this->cursors->decode($cursor, $scope);
             $after = $position['after'] ?? null;
             if (array_keys($position) !== ['after'] || ! is_string($after) || ! preg_match('/^[0-7][0-9A-HJKMNP-TV-Z]{25}$/Di', $after)) {
-                throw ValidationException::withMessages(['cursor' => 'The group membership cursor is invalid.']);
+                throw ValidationException::withMessages(['cursor' => (string) __('The group membership cursor is invalid.')]);
             }
             $query->where('kingdom.id', '>', $after);
         }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { governanceCatalogueLabels } from '../../../../resources/js/localization/governance-catalogue-labels.ts';
+import { localeCodes } from '../../../../resources/js/localization/locales.ts';
 import {
   GovernanceChoiceLoader,
   parseGovernanceChoices,
@@ -202,9 +202,10 @@ test('successful page transitions retain one page, not a growing option cache', 
   assert.equal(view?.result?.page.items[0]?.id, id(100));
 });
 
-test('every supported locale contains choice navigation and failure labels', () => {
-  assert.equal(Object.keys(governanceCatalogueLabels).length, 17);
-  for (const [locale, messages] of Object.entries(governanceCatalogueLabels)) {
+test('every supported locale contains canonical choice navigation and failure labels', async () => {
+  for (const locale of localeCodes) {
+    const catalogue = await import(`../../../../resources/js/localization/messages/kingdom/${locale}.ts`);
+    const messages = catalogue.default.governanceExpansion as Record<string, string>;
     for (const key of [
       'searchChoices',
       'choicePageSummary',

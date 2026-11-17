@@ -113,7 +113,7 @@ final readonly class CloneTerritoryPlan
     private function invalidSnapshot(): ValidationException
     {
         return ValidationException::withMessages([
-            'plan' => 'The source Territory plan snapshot is invalid and cannot be cloned.',
+            'plan' => (string) __('The source Territory plan snapshot is invalid and cannot be cloned.'),
         ]);
     }
 }

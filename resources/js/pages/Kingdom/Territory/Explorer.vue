@@ -158,8 +158,13 @@ async function jsonRequest(
 }
 function inspect(entity: TerritorySceneEntity): void {
   selectedReference.value = entity.key;
-  mobilePanel.value = 'map';
   void nextTick(() => canvas.value?.focusBounds(entity.bounds));
+}
+function showMap(): void {
+  mobilePanel.value = 'map';
+  void nextTick(() => {
+    if (selected.value) canvas.value?.focusBounds(selected.value.bounds);
+  });
 }
 function inspectReference(key: string): void {
   const entity = scene.value.entities.find((candidate) => candidate.key === key);
@@ -350,6 +355,7 @@ onBeforeUnmount(() => {
       :eyebrow="t('territory.eyebrow')"
       :title="territory.map.source_label"
       :subtitle="t('territory.mapEvidenceHelp')"
+      scene="territory-command"
       image="/images/kingshot/v4/kingdom-transfer.svg"
     >
       <template #actions>
@@ -361,8 +367,12 @@ onBeforeUnmount(() => {
 
     <ActionNotice v-if="notice" class="mt-4" :tone="notice.tone" :message="notice.message" />
 
-    <nav class="mt-4 flex gap-2 xl:hidden" :aria-label="t('territory.mapLayers')">
-      <AppButton :aria-pressed="mobilePanel === 'map'" @click="mobilePanel = 'map'">{{
+    <nav
+      data-testid="territory-panel-navigation"
+      class="mt-4 flex gap-2 xl:hidden"
+      :aria-label="t('territory.mapLayers')"
+    >
+      <AppButton :aria-pressed="mobilePanel === 'map'" @click="showMap">{{
         t('territory.explorer.map')
       }}</AppButton>
       <AppButton :aria-pressed="mobilePanel === 'tools'" @click="mobilePanel = 'tools'">{{

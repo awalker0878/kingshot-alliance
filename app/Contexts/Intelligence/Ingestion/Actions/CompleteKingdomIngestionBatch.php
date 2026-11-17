@@ -25,14 +25,14 @@ final readonly class CompleteKingdomIngestionBatch
         ?string $failureCode = null,
     ): string {
         if ($state === KingdomIngestionBatchState::Pending) {
-            throw ValidationException::withMessages(['state' => 'A completed batch cannot remain pending.']);
+            throw ValidationException::withMessages(['state' => (string) __('A completed batch cannot remain pending.')]);
         }
 
         $failureCode = $this->failureCode($failureCode);
         if (! in_array($state, [KingdomIngestionBatchState::Failed, KingdomIngestionBatchState::Blocked], true)
             && $failureCode !== null) {
             throw ValidationException::withMessages([
-                'failure_code' => 'A failure code is only valid for failed or blocked batches.',
+                'failure_code' => (string) __('A failure code is only valid for failed or blocked batches.'),
             ]);
         }
 
@@ -51,7 +51,7 @@ final readonly class CompleteKingdomIngestionBatch
                 }
 
                 throw ValidationException::withMessages([
-                    'batch' => 'A completed ingestion batch cannot be rewritten to a different outcome.',
+                    'batch' => (string) __('A completed ingestion batch cannot be rewritten to a different outcome.'),
                 ]);
             }
 
@@ -104,7 +104,7 @@ final readonly class CompleteKingdomIngestionBatch
 
         if (preg_match('/^[a-z0-9][a-z0-9._-]{0,79}$/', $value) !== 1) {
             throw ValidationException::withMessages([
-                'failure_code' => 'The batch failure code must be a stable lowercase identifier.',
+                'failure_code' => (string) __('The batch failure code must be a stable lowercase identifier.'),
             ]);
         }
 

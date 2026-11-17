@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import RoomArtwork from '@/components/game/RoomArtwork.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
@@ -337,8 +338,9 @@ function ambiguityKey(candidate: Record<string, unknown>, index: number): string
         class="overflow-hidden rounded-[var(--ks-radius-lg)] border border-[var(--ks-border)] bg-[var(--ks-panel)] shadow-2xl"
       >
         <div
-          class="border-b border-[var(--ks-border)] bg-[linear-gradient(135deg,rgba(18,60,56,.92),rgba(6,18,18,.96))] px-5 py-6 sm:px-8 sm:py-8"
+          class="ks-artwork-panel border-b border-[var(--ks-border)] bg-[linear-gradient(135deg,rgba(18,60,56,.92),rgba(6,18,18,.96))] px-5 py-6 sm:px-8 sm:py-8"
         >
+          <RoomArtwork scene="assistant-archive" />
           <p class="text-xs font-extrabold tracking-[.18em] text-[var(--ks-gold)] uppercase">
             {{ t('assistant.eyebrow') }}
           </p>

@@ -56,22 +56,22 @@ final readonly class RecordRegisteredGiftCodeEvidence
         $source = GiftCodeSourceRegistry::query()->findOrFail(trim($attributes['source_id']));
         $policy = $source->provenance_policy ?? [];
         if (! $source->is_active || $source->revoked_at !== null) {
-            throw ValidationException::withMessages(['source_id' => 'The registered Gift Code source is not active.']);
+            throw ValidationException::withMessages(['source_id' => (string) __('The registered Gift Code source is not active.')]);
         }
         if (($policy['manual_evidence_allowed'] ?? false) !== true) {
-            throw ValidationException::withMessages(['source_id' => 'This registered source is not approved for curated manual evidence.']);
+            throw ValidationException::withMessages(['source_id' => (string) __('This registered source is not approved for curated manual evidence.')]);
         }
         if (($policy['auto_verify'] ?? false) === true) {
-            throw ValidationException::withMessages(['source_id' => 'Manual-evidence sources cannot use automatic verification.']);
+            throw ValidationException::withMessages(['source_id' => (string) __('Manual-evidence sources cannot use automatic verification.')]);
         }
 
         $code = trim($attributes['code']);
         if (preg_match('/^[A-Za-z0-9_-]{3,64}$/D', $code) !== 1) {
-            throw ValidationException::withMessages(['code' => 'Use 3–64 letters, numbers, dashes, or underscores.']);
+            throw ValidationException::withMessages(['code' => (string) __('Use 3–64 letters, numbers, dashes, or underscores.')]);
         }
         $assertion = trim($attributes['assertion']);
         if (! in_array($assertion, ['available', 'invalid', 'expires', 'reward', 'applicability'], true)) {
-            throw ValidationException::withMessages(['assertion' => 'Choose a supported registered-source assertion.']);
+            throw ValidationException::withMessages(['assertion' => (string) __('Choose a supported registered-source assertion.')]);
         }
         $sourceUrl = trim($attributes['source_url']);
         $this->assertSourceUrl($source, $sourceUrl);
@@ -85,10 +85,10 @@ final readonly class RecordRegisteredGiftCodeEvidence
             : $this->optional($attributes['expiry_timezone'] ?? null, 80);
         $payload = $attributes['assertion_payload'] ?? null;
         if ($payload !== null && ! is_array($payload)) {
-            throw ValidationException::withMessages(['assertion_payload' => 'Assertion payload must be an object.']);
+            throw ValidationException::withMessages(['assertion_payload' => (string) __('Assertion payload must be an object.')]);
         }
         if (in_array($assertion, ['reward', 'applicability'], true) && $payload === null) {
-            throw ValidationException::withMessages(['assertion_payload' => 'Reward and applicability evidence require a structured assertion payload.']);
+            throw ValidationException::withMessages(['assertion_payload' => (string) __('Reward and applicability evidence require a structured assertion payload.')]);
         }
 
         $contentFingerprint = hash('sha256', json_encode([
@@ -218,7 +218,7 @@ final readonly class RecordRegisteredGiftCodeEvidence
     private function assertSourceUrl(GiftCodeSourceRegistry $source, string $sourceUrl): void
     {
         if (mb_strlen($sourceUrl) > 2048) {
-            throw ValidationException::withMessages(['source_url' => 'The evidence URL is too long.']);
+            throw ValidationException::withMessages(['source_url' => (string) __('The evidence URL is too long.')]);
         }
         $canonical = mb_strtolower(rtrim(trim((string) $source->canonical_domain), '.'));
         $scheme = parse_url($sourceUrl, PHP_URL_SCHEME);
@@ -229,7 +229,7 @@ final readonly class RecordRegisteredGiftCodeEvidence
             || $host === null
             || ($host !== $canonical && ! str_ends_with($host, '.'.$canonical))) {
             throw ValidationException::withMessages([
-                'source_url' => 'The evidence URL must use HTTPS on the registered canonical source domain.',
+                'source_url' => (string) __('The evidence URL must use HTTPS on the registered canonical source domain.'),
             ]);
         }
     }
@@ -243,7 +243,7 @@ final readonly class RecordRegisteredGiftCodeEvidence
         try {
             return CarbonImmutable::parse($value);
         } catch (\Throwable) {
-            throw ValidationException::withMessages(['date' => 'Provide a valid evidence date or timestamp.']);
+            throw ValidationException::withMessages(['date' => (string) __('Provide a valid evidence date or timestamp.')]);
         }
     }
 
@@ -262,7 +262,7 @@ final readonly class RecordRegisteredGiftCodeEvidence
             return null;
         }
         if ($value !== null && mb_strlen($value) > $maximum) {
-            throw ValidationException::withMessages(['value' => 'A manual evidence field exceeded its maximum length.']);
+            throw ValidationException::withMessages(['value' => (string) __('A manual evidence field exceeded its maximum length.')]);
         }
 
         return $value;

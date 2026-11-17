@@ -36,7 +36,7 @@ final readonly class CommentOnTerritoryObject
             $object = $this->object($snapshot['objects'] ?? null, $objectKey);
             $allianceKey = $object['alliance_key'] ?? null;
             if (! is_string($allianceKey) || $allianceKey === '') {
-                throw ValidationException::withMessages(['object_key' => 'Select a current object.']);
+                throw ValidationException::withMessages(['object_key' => (string) __('Select a current object.')]);
             }
 
             $this->authorization->authorizeReview($context, $allianceKey);
@@ -69,7 +69,7 @@ final readonly class CommentOnTerritoryObject
     private function object(mixed $value, string $objectKey): array
     {
         if (! is_array($value) || ! array_is_list($value)) {
-            throw ValidationException::withMessages(['object_key' => 'Select a current object.']);
+            throw ValidationException::withMessages(['object_key' => (string) __('Select a current object.')]);
         }
 
         foreach ($value as $candidate) {
@@ -90,6 +90,6 @@ final readonly class CommentOnTerritoryObject
             return $object;
         }
 
-        throw ValidationException::withMessages(['object_key' => 'Select a current object.']);
+        throw ValidationException::withMessages(['object_key' => (string) __('Select a current object.')]);
     }
 }

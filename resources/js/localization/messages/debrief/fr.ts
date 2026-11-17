@@ -41,6 +41,27 @@ const messages = {
     noPreviousHelp: 'La comparaison apparaît après une Chasse à l’Ours précédente terminée.',
     history: 'Historique',
     runHistory: 'Historique des Chasses à l’Ours',
+    signals: {
+      evidence: 'État de la preuve',
+      factualSignals: 'Comparaison enregistrée',
+      reviewPending:
+        'Une ou plusieurs lignes de gouverneur importées doivent encore être vérifiées.',
+      newPersonalBest: 'Nouveau record personnel à partir de résultats acceptés',
+      damageDirection: 'Dommages {direction}',
+      rallyDirection: 'Participation au rallye {direction}',
+      evidenceStates: {
+        accepted: "Résultat de capture d'écran accepté",
+        recorded_without_accepted_evidence:
+          "Résultat enregistré sans preuve acceptée de capture d'écran",
+        unavailable: 'Aucun résultat enregistré',
+      },
+      directions: {
+        unknown: 'Non comparable',
+        increased: 'a augmenté',
+        decreased: 'a diminué',
+        unchanged: 'Inchangé',
+      },
+    },
   },
 } satisfies MessageCatalogue;
 

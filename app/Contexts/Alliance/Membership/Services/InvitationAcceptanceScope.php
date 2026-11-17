@@ -29,18 +29,18 @@ final readonly class InvitationAcceptanceScope
 
         $candidate = $this->invitations->byToken($token);
         if ($candidate === null) {
-            throw ValidationException::withMessages(['invitation' => 'This invitation is no longer available.']);
+            throw ValidationException::withMessages(['invitation' => (string) __('This invitation is no longer available.')]);
         }
 
         $alliance = Alliance::query()->whereKey($candidate->allianceId)->sharedLock()->firstOrFail();
         if ($alliance->status !== AllianceStatus::Active) {
-            throw ValidationException::withMessages(['invitation' => 'This Alliance is not currently active.']);
+            throw ValidationException::withMessages(['invitation' => (string) __('This Alliance is not currently active.')]);
         }
 
         try {
             $this->kingdoms->lockActiveShared((string) $alliance->kingdom_id);
         } catch (ModelNotFoundException) {
-            throw ValidationException::withMessages(['invitation' => 'The Alliance Kingdom is archived or unavailable.']);
+            throw ValidationException::withMessages(['invitation' => (string) __('The Alliance Kingdom is archived or unavailable.')]);
         }
 
         return $candidate;

@@ -52,20 +52,20 @@ final readonly class TransitionKingdomAllianceDiplomacy
 
             if ($tracking->state !== TrackedKingdomAllianceState::Active) {
                 throw ValidationException::withMessages([
-                    'diplomacy' => 'Diplomacy can only change for actively tracked game-side alliances.',
+                    'diplomacy' => (string) __('Diplomacy can only change for actively tracked game-side alliances.'),
                 ]);
             }
 
             if ((string) $tracking->kingdom_id !== $scope->kingdomId) {
                 throw ValidationException::withMessages([
-                    'diplomacy' => 'The tracked alliance belongs to historical Kingdom context. Diplomacy history remains readable, but changes require matching current Kingdom context.',
+                    'diplomacy' => (string) __('The tracked alliance belongs to historical Kingdom context. Diplomacy history remains readable, but changes require matching current Kingdom context.'),
                 ]);
             }
 
             $reference = $this->kingdomAlliances->requireActiveCanonical((string) $tracking->kingdom_alliance_id);
             if ($reference->kingdomId !== (string) $tracking->kingdom_id) {
                 throw ValidationException::withMessages([
-                    'diplomacy' => 'The tracked alliance reference no longer matches its captured Kingdom context.',
+                    'diplomacy' => (string) __('The tracked alliance reference no longer matches its captured Kingdom context.'),
                 ]);
             }
 
@@ -77,19 +77,19 @@ final readonly class TransitionKingdomAllianceDiplomacy
 
             if ($reviewAt !== null && $reviewAt->lt($effectiveAt)) {
                 throw ValidationException::withMessages([
-                    'review_at' => 'Review time cannot be earlier than the relationship effective time.',
+                    'review_at' => (string) __('Review time cannot be earlier than the relationship effective time.'),
                 ]);
             }
 
             if ($expiresAt !== null && $expiresAt->lt($effectiveAt)) {
                 throw ValidationException::withMessages([
-                    'expires_at' => 'Expiry time cannot be earlier than the relationship effective time.',
+                    'expires_at' => (string) __('Expiry time cannot be earlier than the relationship effective time.'),
                 ]);
             }
 
             if ($reviewAt !== null && $expiresAt !== null && $reviewAt->gt($expiresAt)) {
                 throw ValidationException::withMessages([
-                    'review_at' => 'Review time cannot be later than the relationship expiry time.',
+                    'review_at' => (string) __('Review time cannot be later than the relationship expiry time.'),
                 ]);
             }
 
@@ -107,7 +107,7 @@ final readonly class TransitionKingdomAllianceDiplomacy
                 $relationshipCanonical = $this->kingdomAlliances->requireCanonical((string) $relationship->kingdom_alliance_id);
                 if ($relationshipCanonical->kingdomAllianceId !== $reference->kingdomAllianceId) {
                     throw ValidationException::withMessages([
-                        'diplomacy' => 'The diplomacy relationship no longer matches the tracked canonical Alliance identity.',
+                        'diplomacy' => (string) __('The diplomacy relationship no longer matches the tracked canonical Alliance identity.'),
                     ]);
                 }
                 $identityRebound = (string) $relationship->kingdom_alliance_id !== $reference->kingdomAllianceId;

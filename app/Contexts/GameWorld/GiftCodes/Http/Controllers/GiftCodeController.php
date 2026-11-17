@@ -132,7 +132,7 @@ final class GiftCodeController extends Controller
         $activePlayer = $this->player($context);
         $ownedPlayers = $players->ownedByUser($this->accountId($account));
         $ownedPlayerIds = array_values(array_map(static fn (PlayerReference $owned): string => $owned->playerId, $ownedPlayers));
-        abort_if($ownedPlayerIds === [], 409, 'At least one owned Governor is required for Gift Codes.');
+        abort_if($ownedPlayerIds === [], 409, (string) __('At least one owned Governor is required for Gift Codes.'));
 
         $validated = $request->validate([
             'view' => ['sometimes', 'string', Rule::in(GiftCodeCatalogQuery::VIEWS)],
@@ -325,7 +325,7 @@ final class GiftCodeController extends Controller
     private function player(PlayerContext $context): PlayerReference
     {
         $player = $context->playerOrNull();
-        abort_unless($player instanceof PlayerReference, 409, 'Select a Governor before opening Gift Codes.');
+        abort_unless($player instanceof PlayerReference, 409, (string) __('Select a Governor before opening Gift Codes.'));
 
         return $player;
     }
@@ -338,7 +338,7 @@ final class GiftCodeController extends Controller
 
         $player = $players->findOwnedByUser($this->accountId($this->account($request)), $targetPlayerId);
         if (! $player instanceof PlayerReference) {
-            throw ValidationException::withMessages(['player_id' => 'That Governor is no longer owned by this account.']);
+            throw ValidationException::withMessages(['player_id' => (string) __('That Governor is no longer owned by this account.')]);
         }
 
         return $player;

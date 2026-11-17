@@ -43,13 +43,13 @@ final readonly class UpdateTerritoryPlanAlliances
 
             if ($context->plan->scope !== TerritoryPlanScope::Kingdom) {
                 throw ValidationException::withMessages([
-                    'alliances' => 'Alliance layers can only be managed independently on a Kingdom territory plan.',
+                    'alliances' => (string) __('Alliance layers can only be managed independently on a Kingdom territory plan.'),
                 ]);
             }
 
             if ((int) $context->plan->revision !== $expectedRevision) {
                 throw ValidationException::withMessages([
-                    'revision' => 'This plan changed before its Alliance layers could be updated. Reload the current layout first.',
+                    'revision' => (string) __('This plan changed before its Alliance layers could be updated. Reload the current layout first.'),
                 ]);
             }
 
@@ -62,7 +62,7 @@ final readonly class UpdateTerritoryPlanAlliances
                 $reference = $this->writeState->lockLinkedAlliance($allianceId);
                 if ($reference->kingdomId !== (string) $context->plan->kingdom_id) {
                     throw ValidationException::withMessages([
-                        'alliances' => 'Linked Alliances must belong to the plan Kingdom.',
+                        'alliances' => (string) __('Linked Alliances must belong to the plan Kingdom.'),
                     ]);
                 }
             }
@@ -100,7 +100,7 @@ final readonly class UpdateTerritoryPlanAlliances
 
                 if ($identityChanged && $ownsObjects) {
                     throw ValidationException::withMessages([
-                        'alliances' => 'Remove planned objects from an Alliance layer before changing that layer identity.',
+                        'alliances' => (string) __('Remove planned objects from an Alliance layer before changing that layer identity.'),
                     ]);
                 }
 
@@ -125,7 +125,7 @@ final readonly class UpdateTerritoryPlanAlliances
                         ->exists()
                 ) {
                     throw ValidationException::withMessages([
-                        'alliances' => 'Remove planned objects from an Alliance layer before removing that layer.',
+                        'alliances' => (string) __('Remove planned objects from an Alliance layer before removing that layer.'),
                     ]);
                 }
 
@@ -184,7 +184,7 @@ final readonly class UpdateTerritoryPlanAlliances
     {
         if ($layers === [] || count($layers) > 50) {
             throw ValidationException::withMessages([
-                'alliances' => 'A Kingdom plan requires between 1 and 50 Alliance layers.',
+                'alliances' => (string) __('A Kingdom plan requires between 1 and 50 Alliance layers.'),
             ]);
         }
 
@@ -212,13 +212,13 @@ final readonly class UpdateTerritoryPlanAlliances
                 || ! preg_match('/^#[0-9a-f]{6}$/', $color)
             ) {
                 throw ValidationException::withMessages([
-                    'alliances' => 'Every Alliance layer requires unique identity, one linked or external Alliance, a display name, and a valid map color.',
+                    'alliances' => (string) __('Every Alliance layer requires unique identity, one linked or external Alliance, a display name, and a valid map color.'),
                 ]);
             }
 
             if ($allianceId !== null && isset($linked[$allianceId])) {
                 throw ValidationException::withMessages([
-                    'alliances' => 'A linked Alliance can appear only once in a Kingdom plan.',
+                    'alliances' => (string) __('A linked Alliance can appear only once in a Kingdom plan.'),
                 ]);
             }
 

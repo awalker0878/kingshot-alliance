@@ -47,7 +47,7 @@ final readonly class ClaimExternalActorLink
                 ->lockForUpdate()
                 ->firstOrFail();
             if (! $credential->active() || ! $credential->allows('actor-links:write')) {
-                throw ValidationException::withMessages(['credential' => 'The API credential cannot claim actor links.']);
+                throw ValidationException::withMessages(['credential' => (string) __('The API credential cannot claim actor links.')]);
             }
 
             $pairing = ExternalActorPairingCode::query()
@@ -59,7 +59,7 @@ final readonly class ClaimExternalActorLink
             if (! $pairing instanceof ExternalActorPairingCode
                 || $pairing->cancelled_at !== null
                 || $pairing->expires_at->isPast()) {
-                throw ValidationException::withMessages(['code' => 'The pairing code is invalid, expired, or already used.']);
+                throw ValidationException::withMessages(['code' => (string) __('The pairing code is invalid, expired, or already used.')]);
             }
 
             $subjectLink = ExternalActorLink::query()
@@ -81,11 +81,11 @@ final readonly class ClaimExternalActorLink
                     );
                 }
 
-                throw ValidationException::withMessages(['code' => 'The pairing code is invalid, expired, or already used.']);
+                throw ValidationException::withMessages(['code' => (string) __('The pairing code is invalid, expired, or already used.')]);
             }
             if ($subjectLink instanceof ExternalActorLink && $subjectLink->player_id !== $pairing->player_id) {
                 throw ValidationException::withMessages([
-                    'external_subject' => 'This provider identity is already linked to another Governor.',
+                    'external_subject' => (string) __('This provider identity is already linked to another Governor.'),
                 ]);
             }
 

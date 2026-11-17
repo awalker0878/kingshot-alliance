@@ -24,7 +24,7 @@ final readonly class ResolveKingdom
 
         $raw = trim((string) $number);
         if (! ctype_digit($raw)) {
-            throw ValidationException::withMessages(['kingdom' => 'Kingdom must be a positive numeric kingdom number.']);
+            throw ValidationException::withMessages(['kingdom' => (string) __('Kingdom must be a positive numeric kingdom number.')]);
         }
 
         $digits = ltrim($raw, '0');
@@ -38,7 +38,7 @@ final readonly class ResolveKingdom
             ['status' => KingdomStatus::Active],
         );
         if ($kingdom->status !== KingdomStatus::Active) {
-            throw ValidationException::withMessages(['kingdom' => 'The selected kingdom is archived.']);
+            throw ValidationException::withMessages(['kingdom' => (string) __('The selected kingdom is archived.')]);
         }
 
         return $this->kingdoms->require((string) $kingdom->id);

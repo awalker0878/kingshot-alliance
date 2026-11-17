@@ -44,7 +44,7 @@ final readonly class CommitReviewedSpatialEvidence
             );
             if ($scope->kingdomId !== $kingdomId) {
                 throw ValidationException::withMessages([
-                    'kingdom_id' => 'The reviewed observation belongs to historical Kingdom context.',
+                    'kingdom_id' => (string) __('The reviewed observation belongs to historical Kingdom context.'),
                 ]);
             }
 
@@ -56,7 +56,7 @@ final readonly class CommitReviewedSpatialEvidence
                 ->firstOrFail();
             if ($review->status !== EvidenceReviewStatus::Approved) {
                 throw ValidationException::withMessages([
-                    'review' => 'Only an approved Territory spatial review can be committed.',
+                    'review' => (string) __('Only an approved Territory spatial review can be committed.'),
                 ]);
             }
 
@@ -67,7 +67,7 @@ final readonly class CommitReviewedSpatialEvidence
                 ->value('id');
             if ((string) $latestId !== (string) $review->id) {
                 throw ValidationException::withMessages([
-                    'review' => 'Commit the latest approved review revision instead.',
+                    'review' => (string) __('Commit the latest approved review revision instead.'),
                 ]);
             }
 
@@ -81,7 +81,7 @@ final readonly class CommitReviewedSpatialEvidence
                 || $evidence->expected_kind !== EvidenceKind::TerritoryMapObservation
                 || $evidence->lifecycle_status === EvidenceLifecycleStatus::Deleted) {
                 throw ValidationException::withMessages([
-                    'evidence' => 'The approved Territory screenshot provenance is no longer valid.',
+                    'evidence' => (string) __('The approved Territory screenshot provenance is no longer valid.'),
                 ]);
             }
 

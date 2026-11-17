@@ -40,14 +40,14 @@ final readonly class SetNotificationPreference
         bool $enabled,
     ): void {
         if (! in_array($notificationType, self::NOTIFICATION_TYPES, true)) {
-            throw ValidationException::withMessages(['notification_type' => 'Choose a supported notification type.']);
+            throw ValidationException::withMessages(['notification_type' => (string) __('Choose a supported notification type.')]);
         }
 
         DB::transaction(function () use ($recipientUserId, $playerId, $notificationType, $channel, $enabled): void {
             if ($playerId !== null) {
                 $actor = $this->players->lockCurrent($playerId);
                 if ($actor->userId !== $recipientUserId) {
-                    throw ValidationException::withMessages(['player' => 'The selected Governor no longer belongs to this account.']);
+                    throw ValidationException::withMessages(['player' => (string) __('The selected Governor no longer belongs to this account.')]);
                 }
             }
 
@@ -73,13 +73,13 @@ final readonly class SetNotificationPreference
         DeliveryChannel $channel,
     ): void {
         if (! in_array($notificationType, self::NOTIFICATION_TYPES, true)) {
-            throw ValidationException::withMessages(['notification_type' => 'Choose a supported notification type.']);
+            throw ValidationException::withMessages(['notification_type' => (string) __('Choose a supported notification type.')]);
         }
 
         DB::transaction(function () use ($recipientUserId, $playerId, $notificationType, $channel): void {
             $actor = $this->players->lockCurrent($playerId);
             if ($actor->userId !== $recipientUserId) {
-                throw ValidationException::withMessages(['player' => 'The selected Governor no longer belongs to this account.']);
+                throw ValidationException::withMessages(['player' => (string) __('The selected Governor no longer belongs to this account.')]);
             }
 
             NotificationPreference::query()
