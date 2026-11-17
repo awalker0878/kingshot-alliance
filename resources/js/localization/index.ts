@@ -1,5 +1,6 @@
 import { computed, readonly, ref } from 'vue';
 
+import { createLocaleLoadCoordinator } from './async-coordinator';
 import { loadDomains, resolveMessage } from './loader';
 import {
   defaultLocale,
@@ -9,12 +10,15 @@ import {
   type LocaleCode,
 } from './locales';
 import { domainsForPage, hasLocaleCatalogue, type LocalizationDomain } from './registry';
+import { createLocalePreferences, preferenceStorage } from './preferences';
 import type { TranslationParams } from './types';
 
-const storageKey = 'kingshot.locale';
 const currentLocale = ref<LocaleCode>(defaultLocale);
-let currentPageDomains: LocalizationDomain[] = [];
-let localeRequest = 0;
+const localeLoadFailed = ref(false);
+const desiredLocale = ref<LocaleCode>(defaultLocale);
+const serverDocumentLocale = typeof document === 'undefined' ? null : document.documentElement.lang;
+let preferredStartupLocale: string | null | undefined;
+let listenersInstalled = false;
 
 function interpolate(value: string, params?: TranslationParams): string {
   if (!params) return value;
@@ -25,68 +29,120 @@ function interpolate(value: string, params?: TranslationParams): string {
   });
 }
 
-function applyDocumentLocale(locale: LocaleCode): void {
+function applyDocumentLanguage(locale: LocaleCode): void {
   if (typeof document === 'undefined') return;
   const definition = localeDefinition(locale);
   document.documentElement.lang = definition.code;
   document.documentElement.dir = definition.direction;
-  // Keep server validation and account-email requests in the selected UI language.
-  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-  document.cookie = `kingshot_locale=${locale}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
 }
 
-function activeDomains(): LocalizationDomain[] {
-  return ['core', ...currentPageDomains];
+const coordinator = createLocaleLoadCoordinator<LocaleCode, LocalizationDomain>({
+  initialLocale: defaultLocale,
+  coreDomain: 'core',
+  domainsForPage,
+  load: loadDomains,
+  commit(locale) {
+    currentLocale.value = locale;
+    localeLoadFailed.value = false;
+    applyDocumentLanguage(locale);
+  },
+  loadFailed() {
+    localeLoadFailed.value = true;
+  },
+});
+
+const preferences = createLocalePreferences({
+  readCookie(name) {
+    if (typeof document === 'undefined') return null;
+    const prefix = `${name}=`;
+    return (
+      document.cookie
+        .split(';')
+        .map((part) => part.trim())
+        .find((part) => part.startsWith(prefix))
+        ?.slice(prefix.length) ?? null
+    );
+  },
+  writeCookie(name, value) {
+    if (typeof document === 'undefined' || typeof window === 'undefined') return;
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `${name}=${value}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+  },
+  writeStorage(key, value) {
+    if (typeof window !== 'undefined') window.localStorage.setItem(key, value);
+  },
+  fallbackLocale() {
+    const candidates = [preferredStartupLocale];
+    candidates.push(serverDocumentLocale);
+    if (typeof window !== 'undefined')
+      candidates.push(...window.navigator.languages, window.navigator.language);
+    return candidates.map(normalizeLocale).find((locale) => locale !== null) ?? defaultLocale;
+  },
+  newId: () => globalThis.crypto.randomUUID().replaceAll('-', ''),
+  load: (locale, authorize) => coordinator.setLocale(locale, false, authorize),
+  desired(locale) {
+    desiredLocale.value = locale;
+  },
+});
+
+function installPreferenceListeners(): void {
+  if (listenersInstalled || typeof window === 'undefined') return;
+  listenersInstalled = true;
+  const reconcile = (value?: string | null) => {
+    void preferences.synchronize(value).catch(() => {
+      /* Existing UI and retry remain available. */
+    });
+  };
+  window.addEventListener('storage', (event) => {
+    if (event.key === preferenceStorage || event.key === null) reconcile(event.newValue);
+  });
+  window.addEventListener('focus', () => reconcile());
+  window.addEventListener('pageshow', () => reconcile());
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') reconcile();
+  });
 }
 
 export async function ensureDomain(domain: LocalizationDomain): Promise<void> {
-  await loadDomains(currentLocale.value, ['core', domain]);
+  await coordinator.ensureDomain(domain);
 }
 
 export async function ensurePageDomains(pageName: string): Promise<void> {
-  const domains = domainsForPage(pageName);
-  await loadDomains(currentLocale.value, ['core', ...domains]);
-  currentPageDomains = domains;
+  await coordinator.ensurePageDomains(pageName);
+}
+
+export function preparePageDomains(pageName: string, signal?: AbortSignal) {
+  return coordinator.preparePageDomains(pageName, signal);
+}
+
+export function activatePageDomains(pageName: string): void {
+  coordinator.activatePageDomains(pageName);
 }
 
 export async function setLocale(locale: LocaleCode, persist = true): Promise<void> {
   if (!hasLocaleCatalogue(locale)) return;
-
-  const request = ++localeRequest;
-  await loadDomains(locale, activeDomains());
-  if (request !== localeRequest) return;
-
-  currentLocale.value = locale;
-  applyDocumentLocale(locale);
-
-  if (persist && typeof window !== 'undefined') {
-    window.localStorage.setItem(storageKey, locale);
-  }
+  if (persist) await preferences.select(locale);
+  else await coordinator.setLocale(locale, false);
 }
 
 export async function initializeLocale(preferredLocale?: string | null): Promise<void> {
-  const candidates: Array<string | null | undefined> = [preferredLocale];
-
-  if (typeof window !== 'undefined') {
-    candidates.push(window.localStorage.getItem(storageKey));
-    candidates.push(...window.navigator.languages);
-    candidates.push(window.navigator.language);
+  preferredStartupLocale = preferredLocale;
+  installPreferenceListeners();
+  try {
+    await preferences.initialize();
+  } catch {
+    // Mount a usable shell if the selected catalogue fails during startup.
+    // Keep the shared preference and desired locale intact for explicit retry.
+    await coordinator.setLocale(defaultLocale, false);
+    localeLoadFailed.value = true;
   }
-
-  const locale = candidates
-    .map((candidate) => normalizeLocale(candidate))
-    .find(
-      (candidate): candidate is LocaleCode => candidate !== null && hasLocaleCatalogue(candidate),
-    );
-  const selected = locale ?? defaultLocale;
-
-  applyDocumentLocale(selected);
-  await loadDomains(selected, ['core']);
-  currentLocale.value = selected;
 }
 
 export function t(key: string, params?: TranslationParams): string {
-  return interpolate(resolveMessage(currentLocale.value, activeDomains(), key) ?? key, params);
+  return interpolate(
+    resolveMessage(currentLocale.value, coordinator.activeDomains(), key) ?? key,
+    params,
+  );
 }
 
 export function formatNumber(value: number, options?: Intl.NumberFormatOptions): string {
@@ -112,10 +168,13 @@ export function useLocale() {
 
   return {
     locale: readonly(currentLocale),
+    localeLoadFailed: readonly(localeLoadFailed),
+    desiredLocale: readonly(desiredLocale),
     definition,
     direction: computed(() => definition.value.direction),
     availableLocales,
     setLocale,
+    retryLocale: preferences.retry,
     ensureDomain,
     formatNumber,
     formatDate,

@@ -122,27 +122,25 @@ function catalogueStrings(file, sourceText) {
     }
   });
 
-  function visit(node) {
+  function visit(node, key = '') {
     const value = unwrap(node);
     if (!value) return;
     if (ts.isStringLiteral(value) || ts.isNoSubstitutionTemplateLiteral(value)) {
-      values.push(value.text);
+      values.push({ key, text: value.text });
       return;
     }
     if (ts.isTemplateExpression(value)) {
-      values.push(
-        [value.head.text, ...value.templateSpans.map((span) => span.literal.text)].join(' '),
-      );
+      values.push({ key, text: [value.head.text, ...value.templateSpans.map((span) => span.literal.text)].join(' ') });
       return;
     }
     if (ts.isObjectLiteralExpression(value)) {
       for (const property of value.properties) {
-        if (ts.isPropertyAssignment(property)) visit(property.initializer);
+        if (ts.isPropertyAssignment(property)) visit(property.initializer, [key, property.name.text].filter(Boolean).join('.'));
       }
       return;
     }
     if (ts.isArrayLiteralExpression(value)) {
-      for (const element of value.elements) visit(element);
+      for (const [index, element] of value.elements.entries()) visit(element, `${key}.${index}`);
     }
   }
 
@@ -224,6 +222,12 @@ const presentationReferenceFiles = [
 ];
 
 const failures = [];
+// Structural moves expose wording the old scanner skipped in external overlays.
+// Pin that existing debt by identity, exact text and phrase; new wording still fails.
+const debt = JSON.parse(fs.readFileSync(path.join(root, 'resources/data/localization/structural-wording-debt.json'), 'utf8'));
+const remainingDebt = new Set(debt.entries.map(entry => `${entry.domain}:${entry.key}`));
+const knownDebt = new Map(debt.entries.map(entry => [`${entry.domain}:${entry.key}`, entry]));
+if (knownDebt.size !== debt.entries.length) throw new Error('Duplicate structural wording debt');
 
 for (const file of englishCatalogues) {
   const source = fs.readFileSync(file, 'utf8');
@@ -232,19 +236,25 @@ for (const file of englishCatalogues) {
   const isTechnicalSurface =
     relative.endsWith('/platform/en.ts') || relative.endsWith('/integrations/en.ts');
 
-  for (const rawValue of strings) {
+  for (const { key, text: rawValue } of strings) {
+    const identity = `${path.basename(path.dirname(file))}:${key}`;
+    const existing = knownDebt.get(identity);
+    if (existing) {
+      remainingDebt.delete(identity);
+      if (existing.value !== rawValue) failures.push(`${identity}: structural wording debt text changed; review and remove the debt record separately`);
+    }
     const value = normalizeProductString(rawValue);
     const lower = value.toLowerCase();
 
     for (const phrase of retiredPhrases) {
-      if (lower.includes(phrase.toLowerCase())) {
+      if (lower.includes(phrase.toLowerCase()) && !(existing?.value === rawValue && existing.phrases.includes(phrase))) {
         failures.push(`${relative}: retired product phrase "${phrase}" in "${rawValue}"`);
       }
     }
 
     if (!isTechnicalSurface) {
       for (const phrase of architecturePhrases) {
-        if (lower.includes(phrase.toLowerCase())) {
+        if (lower.includes(phrase.toLowerCase()) && !(existing?.value === rawValue && existing.phrases.includes(phrase))) {
           failures.push(`${relative}: architecture phrase "${phrase}" is user-facing in "${rawValue}"`);
         }
       }
@@ -302,6 +312,8 @@ for (const file of presentationReferenceFiles) {
   }
 }
 
+for (const identity of remainingDebt) failures.push(`${identity}: stale structural wording debt record`);
+
 if (failures.length > 0) {
   console.error('KingShot product-language check failed:\n');
   for (const failure of [...new Set(failures)].sort()) console.error(`- ${failure}`);
@@ -312,3 +324,4 @@ if (failures.length > 0) {
 console.log(
   `KingShot product-language check passed (${englishCatalogues.length} English catalogues, ${userInterfaceFiles.length} UI files, ${staticProductFiles.length} static files).`,
 );
+console.log(`Existing structural wording debt: ${knownDebt.size} messages require separate review; no new violations permitted.`);

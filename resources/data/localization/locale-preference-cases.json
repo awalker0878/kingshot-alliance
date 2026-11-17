@@ -1,0 +1,162 @@
+[
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.en",
+    "expected": "en"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ar",
+    "expected": "ar"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.de",
+    "expected": "de"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.es",
+    "expected": "es"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.fr",
+    "expected": "fr"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.id",
+    "expected": "id"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.it",
+    "expected": "it"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ja",
+    "expected": "ja"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ko",
+    "expected": "ko"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.pl",
+    "expected": "pl"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.pt-BR",
+    "expected": "pt-BR"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ru",
+    "expected": "ru"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.th",
+    "expected": "th"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.tr",
+    "expected": "tr"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.vi",
+    "expected": "vi"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.zh-CN",
+    "expected": "zh-CN"
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.zh-TW",
+    "expected": "zh-TW"
+  },
+  {
+    "value": null,
+    "expected": null
+  },
+  {
+    "value": 5,
+    "expected": null
+  },
+  {
+    "value": {},
+    "expected": null
+  },
+  {
+    "value": "",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.fr\n",
+    "expected": null
+  },
+  {
+    "value": " 1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.fr",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.fr ",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.fr;x=1",
+    "expected": null
+  },
+  {
+    "value": "2.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.fr",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.01.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.fr",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.-1.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.fr",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.9007199254740992.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.fr",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.1.5.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.fr",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.fr",
+    "expected": null
+  },
+  {
+    "value": "1.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.fr",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.fr-CA",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.en_US",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.FR",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.zz",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.zh-SG",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.0.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.../en",
+    "expected": null
+  },
+  {
+    "value": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "expected": null
+  },
+  {
+    "value": "1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.9007199254740991.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.fr",
+    "expected": "fr"
+  }
+]

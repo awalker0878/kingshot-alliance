@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "sourceRevision": "355d975d3b1f37e0decb3bf80803596c0570eb6d",
+  "reason": "Existing effective wording exposed by moving overlays into canonical catalogues. Requires separate wording review; these are not approved terminology exceptions. Exact message identities, text and phrases are pinned.",
+  "entries": [
+    {
+      "domain": "core",
+      "key": "giftCodes.acquisitionOperations.effectivenessHelp",
+      "value": "These metrics are rebuildable from append-only provenance. They guide operations and never grant trust or source authority.",
+      "phrases": ["append-only", "provenance"],
+      "previousOverlay": "gift-code-workspace-labels"
+    },
+    {
+      "domain": "core",
+      "key": "giftCodes.acquisitionOperations.replays",
+      "value": "replay rejections",
+      "phrases": ["replay"],
+      "previousOverlay": "gift-code-workspace-labels"
+    },
+    {
+      "domain": "core",
+      "key": "giftCodes.acquisitionOperations.quarantined",
+      "value": "quarantined",
+      "phrases": ["quarantined"],
+      "previousOverlay": "gift-code-workspace-labels"
+    },
+    {
+      "domain": "events",
+      "key": "events.command.eyebrow",
+      "value": "Event Command",
+      "phrases": ["Event Command"],
+      "previousOverlay": "event-command-labels"
+    },
+    {
+      "domain": "events",
+      "key": "events.command.closeoutEyebrow",
+      "value": "Event Command",
+      "phrases": ["Event Command"],
+      "previousOverlay": "event-command-labels"
+    },
+    {
+      "domain": "events",
+      "key": "events.command.attentionItems",
+      "value": "Event Command items needing attention",
+      "phrases": ["Event Command"],
+      "previousOverlay": "event-command-labels"
+    },
+    {
+      "domain": "progression",
+      "key": "progression.staleObservationHelp",
+      "value": "This observed state is older than the {days}-day freshness threshold. Its factual value and provenance are preserved; capture a newer observation when current-state confidence matters.",
+      "phrases": ["provenance"],
+      "previousOverlay": "progression-planner-labels"
+    },
+    {
+      "domain": "territory",
+      "key": "territory.observationProvenance",
+      "value": "Observation provenance",
+      "phrases": ["provenance"],
+      "previousOverlay": "territory-reconciliation-labels"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { selectLocale } from './select-locale';
 import { expect, test } from '@playwright/test';
 
 const rooms = [
@@ -30,13 +31,20 @@ for (const room of rooms) {
     // startup language. English labels do not identify the Arabic switcher.
     if (await switcher.isVisible()) {
       await switcher.click();
-      await page.getByRole('listbox').getByRole('option').first().click();
-      await page.waitForLoadState('networkidle');
+      const governor = page.getByRole('listbox').getByRole('option').first();
+      const governorName = (await governor.locator('strong').innerText()).trim();
+      await governor.click();
+      // A same-URL Inertia switch can still be in flight after networkidle
+      // already fired. Wait for its accepted UI before opening navigation.
+      await expect(page.getByRole('listbox')).toHaveCount(0);
+      await expect(switcher.locator('strong')).toHaveText(governorName);
+      await expect(switcher).toHaveAttribute('aria-busy', 'false');
     }
 
     const locales = testInfo.project.name === 'rtl-tablet' ? ['ar'] : ['en', 'fr', 'pt-BR', 'ar'];
     for (const locale of locales) {
-      await page.evaluate((value) => window.localStorage.setItem('kingshot.locale', value), locale);
+      await selectLocale(page, locale);
+      await expect(page.locator('html')).toHaveAttribute('lang', locale);
       await page.goto(room.path);
       await page.waitForLoadState('networkidle');
       await page.evaluate(() => document.fonts.ready);

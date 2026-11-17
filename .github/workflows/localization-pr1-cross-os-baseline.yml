@@ -7,7 +7,7 @@ permissions:
 
 jobs:
   macos-pinned-baseline:
-    if: github.head_ref == 'codex/localization-pr1-critical-baseline'
+    if: github.head_ref == 'codex/localization-pr1-critical-baseline' || github.head_ref == 'codex/localization-integrated-acceptance'
     runs-on: macos-latest
     timeout-minutes: 20
     steps:

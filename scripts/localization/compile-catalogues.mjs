@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { selectServerTranslation, selectUiTranslation } from './translation-precedence.mjs';
 import {
   catalogueProblems,
   expandMessages,
@@ -45,7 +46,11 @@ for (const locale of locales) {
       }),
   );
   const allowed = [...unchanged.common, ...(unchanged.locales[locale] ?? [])];
-  const translate = (source) => reviewed[source]?.[locale] ?? records.get(source)?.translation;
+  const translate = (source) =>
+    selectServerTranslation({
+      reviewed: reviewed[source]?.[locale],
+      draft: records.get(source)?.translation,
+    });
   counts[locale] = {
     preserved: 0,
     recoveredFromBase: 0,
@@ -66,8 +71,12 @@ for (const locale of locales) {
         counts[locale].preserved++;
         if (languages[locale][key] === source) counts[locale].recoveredFromBase++;
       } else counts[locale].filled++;
-      localized[key] =
-        keyCorrections[`${domain}:${key}`]?.[locale] ?? previous ?? translate(source);
+      localized[key] = selectUiTranslation({
+        keyCorrection: keyCorrections[`${domain}:${key}`]?.[locale],
+        preserved: previous,
+        reviewed: reviewed[source]?.[locale],
+        draft: records.get(source)?.translation,
+      });
     }
     failures.push(
       ...catalogueProblems(languages.en, localized, allowed).map((problem) => ({

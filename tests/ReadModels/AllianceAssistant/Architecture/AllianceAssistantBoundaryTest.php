@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\ReadModels\AllianceAssistant\Architecture;
 
+use App\Shared\Infrastructure\Http\SupportedLocale;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -143,24 +144,19 @@ final class AllianceAssistantBoundaryTest extends TestCase
         self::assertStringContainsString('ids.slice(0, 9)', $source);
     }
 
-    public function test_assistant_extension_localization_is_typed_for_every_locale_and_lazy_loaded(): void
+    public function test_assistant_canonical_localization_is_typed_for_every_locale_and_lazy_loaded(): void
     {
-        $loader = file_get_contents(RepositoryPath::fromRoot('resources/js/localization/loader.ts'));
-        $extension = file_get_contents(RepositoryPath::fromRoot('resources/js/localization/assistant-gameworld-extension.ts'));
-        $transferLabels = file_get_contents(RepositoryPath::fromRoot('resources/js/localization/assistant-transfer-labels.ts'));
-        self::assertIsString($loader);
-        self::assertIsString($extension);
-        self::assertIsString($transferLabels);
+        $registry = file_get_contents(RepositoryPath::fromRoot('resources/js/localization/registry.ts'));
+        self::assertIsString($registry);
+        self::assertStringContainsString("import.meta.glob<MessageModule>('./messages/*/*.ts')", $registry);
+        self::assertStringNotContainsString('eager: true', $registry);
 
-        self::assertStringContainsString("import('./assistant-gameworld-extension')", $loader);
-        self::assertStringContainsString("import('./assistant-transfer-labels')", $loader);
-        self::assertStringNotContainsString("from './assistant-gameworld-extension'", $loader);
-        self::assertStringNotContainsString("from './assistant-transfer-labels'", $loader);
-        self::assertStringContainsString(
-            'satisfies Record<NonEnglishLocale, AssistantExtensionStrings>',
-            $extension,
-        );
-        self::assertStringContainsString('satisfies Record<LocaleCode, TransferLabels>', $transferLabels);
+        foreach (SupportedLocale::CODES as $locale) {
+            $catalogue = file_get_contents(RepositoryPath::fromRoot('resources/js/localization/messages/assistant/'.$locale.'.ts'));
+            self::assertIsString($catalogue);
+            self::assertStringContainsString('satisfies MessageCatalogue', $catalogue);
+            self::assertStringContainsString('transferRequirements', $catalogue);
+        }
     }
 
     /** @return array<string, string> */

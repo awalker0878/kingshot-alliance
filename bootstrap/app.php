@@ -55,7 +55,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.credential' => AuthenticateApiCredential::class,
             'password.confirm' => RequireRecentAccountAuthentication::class,
         ]);
-        $middleware->encryptCookies(except: ['kingshot_locale']);
+        $middleware->encryptCookies(except: ['kingshot_locale', 'kingshot_locale_state']);
         $middleware->append([AssignRequestContext::class, RecordRequestMetrics::class, SecurityHeaders::class, ResolveRequestLocale::class]);
         $middleware->appendToPriorityList(StartSession::class, TrackAccountSession::class);
         $middleware->web(append: [TrackAccountSession::class, ResolvePlayerContext::class, RequireCurrentPlayerContextVersion::class, HandleInertiaRequests::class]);

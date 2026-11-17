@@ -1,7 +1,7 @@
 import '../css/app.css';
 
-import { createInertiaApp, router } from '@inertiajs/vue3';
-import { createApp, h } from 'vue';
+import { createInertiaApp, router, usePage } from '@inertiajs/vue3';
+import { createApp, h, watch } from 'vue';
 
 import {
   AUTHORITY_CONTEXT_HEADER,
@@ -18,34 +18,61 @@ import {
   cancelContextTransition,
   completeContextTransition,
 } from './identity/context-isolation';
-import { ensurePageDomains, initializeLocale, t } from './localization';
+import { activatePageDomains, initializeLocale, preparePageDomains, t } from './localization';
 
 const appName = import.meta.env.VITE_APP_NAME ?? 'Kingshot Alliance';
 let recoveringAuthorityContext = false;
 let authorityNoticeTimer: number | null = null;
 let fetchInterceptorInstalled = false;
+const navigationSignals = new WeakMap<object, AbortSignal>();
 
 async function bootstrap(): Promise<void> {
   await initializeLocale();
 
   await createInertiaApp({
     title: (title) => (title ? `${title} · ${appName}` : appName),
-    resolve: async (name) => {
-      const [{ resolvePage }] = await Promise.all([
-        import('./page-loader'),
-        ensurePageDomains(name),
-      ]);
-
-      return resolvePage(name);
+    resolve: async (name, page) => {
+      const signal = page ? navigationSignals.get(page) : undefined;
+      const navigation = preparePageDomains(name, signal);
+      try {
+        const [component] = await Promise.all([
+          import('./page-loader').then(({ resolvePage }) => resolvePage(name)),
+          navigation.ready,
+        ]);
+        signal?.throwIfAborted();
+        return component;
+      } catch (error) {
+        navigation.cancel();
+        throw error;
+      }
     },
     defaults: {
-      visitOptions: (_href, options) => ({
-        headers: authorityContextHeaders(options.headers),
-      }),
+      visitOptions: (_href, options) => {
+        const controller = new AbortController();
+        return {
+          headers: authorityContextHeaders(options.headers),
+          onBeforeUpdate(page) {
+            navigationSignals.set(page, controller.signal);
+            options.onBeforeUpdate?.(page);
+          },
+          onFinish(visit) {
+            if (visit.cancelled || visit.interrupted) controller.abort();
+            options.onFinish?.(visit);
+          },
+        };
+      },
     },
     setup({ el, App, props, plugin }) {
       updateAuthorityContextFromPageProps(props.initialPage.props as Record<string, unknown>);
       installAuthorityContextRuntime();
+      const page = usePage();
+      watch(
+        () => page.component,
+        (name) => {
+          if (name) activatePageDomains(name);
+        },
+        { immediate: true, flush: 'sync' },
+      );
 
       createApp({ render: () => h(App, props) })
         .use(plugin)

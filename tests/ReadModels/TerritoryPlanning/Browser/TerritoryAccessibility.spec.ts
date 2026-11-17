@@ -1,3 +1,4 @@
+import { selectLocale } from '../../../Shared/ApplicationShell/Browser/select-locale';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
@@ -29,7 +30,7 @@ async function openExplorer(page: Page): Promise<void> {
       const listbox = page.locator('[role="listbox"]:visible').last();
       if ((await listbox.count()) && (await listbox.getByRole('option').count())) {
         await listbox.getByRole('option').first().click();
-        await page.waitForLoadState('networkidle');
+        await expect(listbox).toHaveCount(0);
         activated = true;
         break;
       }
@@ -49,7 +50,8 @@ test('@km16 Explorer exposes semantic keyboard, touch, responsive and RTL journe
   await openExplorer(page);
 
   if (testInfo.project.name === 'rtl-tablet') {
-    await page.evaluate(() => window.localStorage.setItem('kingshot.locale', 'ar'));
+    await selectLocale(page, 'ar');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
     await page.reload();
     await page.waitForLoadState('networkidle');
     await expect(page.locator('html')).toHaveAttribute('lang', 'ar');

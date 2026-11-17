@@ -27,6 +27,7 @@ jobs:
     timeout-minutes: 10
     outputs:
       requested: ${{ steps.request.outputs.requested }}
+      locales: ${{ steps.locales.outputs.locales }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -48,6 +49,10 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+      - name: Read translated locales from the shared registry
+        id: locales
+        if: steps.request.outputs.requested == 'true'
+        run: echo "locales=$(node scripts/localization/list-locales.mjs --translated)" >> "$GITHUB_OUTPUT"
       - name: Export authoritative catalogues and source messages
         if: steps.request.outputs.requested == 'true'
         run: |
@@ -71,7 +76,7 @@ jobs:
       fail-fast: false
       max-parallel: 8
       matrix:
-        locale: [ar, de, es, fr, id, it, ja, ko, pl, pt-BR, ru, th, tr, vi, zh-CN, zh-TW]
+        locale: ${{ fromJSON(needs.prepare.outputs.locales) }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:

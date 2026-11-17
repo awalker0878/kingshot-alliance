@@ -1,3 +1,4 @@
+import { selectLocale } from '../../../Shared/ApplicationShell/Browser/select-locale';
 import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
@@ -170,7 +171,8 @@ test('Alliance Assistant supports keyboard submission and a localized non-overfl
   await expect(assistant.getByText(/Swordland starts/)).toBeVisible();
   await expect(assistant.getByText(/Rally Lead/)).toBeVisible();
 
-  await page.evaluate(() => window.localStorage.setItem('kingshot.locale', 'de'));
+  await selectLocale(page, 'de');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'de');
   await page.reload();
   await page.waitForLoadState('networkidle');
   await page.evaluate(() => document.fonts.ready);

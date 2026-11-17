@@ -1,3 +1,4 @@
+import { createCatalogueImporter } from './catalogue-importer';
 import type { LocaleCode } from './locales';
 import type { MessageModule } from './types';
 
@@ -25,6 +26,18 @@ export const localizationDomains = [
 
 export type LocalizationDomain = (typeof localizationDomains)[number];
 const catalogueModules = import.meta.glob<MessageModule>('./messages/*/*.ts');
+const baseUrl = () => new URL(import.meta.env.BASE_URL, window.location.href).href;
+const importCatalogue = createCatalogueImporter(catalogueModules, {
+  enabled: () => typeof window !== 'undefined' && import.meta.env.PROD,
+  baseUrl,
+  currentModuleUrl: () => import.meta.url,
+  async manifest() {
+    const response = await fetch(new URL('manifest.json', baseUrl()), { cache: 'no-cache' });
+    if (!response.ok) throw new Error('Unable to retrieve localization chunk metadata.');
+    return response.json();
+  },
+  importUrl: (url) => import(/* @vite-ignore */ url) as Promise<MessageModule>,
+});
 function cataloguePath(domain: LocalizationDomain, locale: LocaleCode): string {
   return `./messages/${domain}/${locale}.ts`;
 }
@@ -38,9 +51,7 @@ export async function importDomainCatalogue(
   domain: LocalizationDomain,
   locale: LocaleCode,
 ): Promise<MessageModule> {
-  const importer = catalogueModules[cataloguePath(domain, locale)];
-  if (!importer) throw new Error(`Missing localization catalogue: ${domain}/${locale}`);
-  return importer();
+  return importCatalogue(cataloguePath(domain, locale));
 }
 export function domainsForPage(name: string): LocalizationDomain[] {
   // Progression and Assistant navigation labels stay globally available because
